@@ -8,6 +8,7 @@ project:
     - formal-and-practical-preliminaries/elementary-mathematical-concepts/index.qmd
     - formal-and-practical-preliminaries/elementary-mathematical-concepts/sets.ipynb
     - formal-and-practical-preliminaries/elementary-mathematical-concepts/multisets.ipynb
+    - formal-and-practical-preliminaries/elementary-mathematical-concepts/cardinality.ipynb
     - formal-and-practical-preliminaries/elementary-mathematical-concepts/set-relations.ipynb
     - formal-and-practical-preliminaries/elementary-mathematical-concepts/power-sets.ipynb
     - formal-and-practical-preliminaries/elementary-mathematical-concepts/products.ipynb
@@ -43,6 +44,7 @@ website:
               - formal-and-practical-preliminaries/elementary-mathematical-concepts/index.qmd
               - formal-and-practical-preliminaries/elementary-mathematical-concepts/sets.ipynb
               - formal-and-practical-preliminaries/elementary-mathematical-concepts/multisets.ipynb
+              - formal-and-practical-preliminaries/elementary-mathematical-concepts/cardinality.ipynb
               - formal-and-practical-preliminaries/elementary-mathematical-concepts/set-relations.ipynb
               - formal-and-practical-preliminaries/elementary-mathematical-concepts/power-sets.ipynb
               - formal-and-practical-preliminaries/elementary-mathematical-concepts/products.ipynb
