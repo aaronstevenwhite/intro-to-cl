@@ -1,0 +1,82 @@
+project:
+  type: website
+  output-dir: docs
+  render: 
+    - index.qmd
+    - installation.qmd
+    - formal-and-practical-preliminaries/index.qmd
+    - formal-and-practical-preliminaries/elementary-mathematical-concepts/index.qmd
+    - formal-and-practical-preliminaries/elementary-mathematical-concepts/sets.ipynb
+    - formal-and-practical-preliminaries/elementary-mathematical-concepts/multisets.ipynb
+    - formal-and-practical-preliminaries/elementary-mathematical-concepts/set-relations.ipynb
+    - formal-and-practical-preliminaries/elementary-mathematical-concepts/power-sets.ipynb
+    - formal-and-practical-preliminaries/elementary-mathematical-concepts/products.ipynb
+    - formal-and-practical-preliminaries/elementary-mathematical-concepts/relations-and-functions.ipynb
+    - formal-and-practical-preliminaries/elementary-mathematical-concepts/sequences.ipynb
+    - formal-and-practical-preliminaries/elementary-mathematical-concepts/string-and-languages.ipynb
+    - formal-and-practical-preliminaries/regular-expressions/index.qmd
+    - formal-and-practical-preliminaries/text-normalization/index.qmd
+    - formal-and-practical-preliminaries/working-with-annotated-corpora/index.qmd
+    - formal-and-practical-preliminaries/edit-distance-and-string-alignment/index.qmd
+    - formal-and-practical-preliminaries/text-normalization/index.qmd
+    - formal-and-practical-preliminaries/working-with-annotated-corpora/index.qmd
+    - formal-and-practical-preliminaries/edit-distance-and-string-alignment/index.qmd
+    - finite-state-models/index.qmd
+    - context-free-models/index.qmd
+    - mildly-context-sensitive-models/index.qmd
+
+
+website:
+  title: "Introduction to Computational Linguistics"
+  page-navigation: true
+  sidebar:
+    style: docked
+    search: true
+    contents:
+      - index.qmd
+      - installation.qmd
+      - section: "Formal and Practical Preliminaries"
+        contents:
+          - formal-and-practical-preliminaries/index.qmd
+          - section: "Elementary Mathematical Concepts"
+            contents:
+              - formal-and-practical-preliminaries/elementary-mathematical-concepts/index.qmd
+              - formal-and-practical-preliminaries/elementary-mathematical-concepts/sets.ipynb
+              - formal-and-practical-preliminaries/elementary-mathematical-concepts/multisets.ipynb
+              - formal-and-practical-preliminaries/elementary-mathematical-concepts/set-relations.ipynb
+              - formal-and-practical-preliminaries/elementary-mathematical-concepts/power-sets.ipynb
+              - formal-and-practical-preliminaries/elementary-mathematical-concepts/products.ipynb
+              - formal-and-practical-preliminaries/elementary-mathematical-concepts/relations-and-functions.ipynb
+              - formal-and-practical-preliminaries/elementary-mathematical-concepts/sequences.ipynb
+              - formal-and-practical-preliminaries/elementary-mathematical-concepts/string-and-languages.ipynb
+          - formal-and-practical-preliminaries/regular-expressions/index.qmd
+          - formal-and-practical-preliminaries/text-normalization/index.qmd
+          - formal-and-practical-preliminaries/working-with-annotated-corpora/index.qmd
+          - formal-and-practical-preliminaries/edit-distance-and-string-alignment/index.qmd
+      - section: "Finite State Models"
+        contents:
+          - finite-state-models/index.qmd
+      - section: "Context Free Models"
+        contents:
+          - context-free-models/index.qmd
+      - section: "Mildly Context Sensitive Models"
+        contents:
+          - mildly-context-sensitive-models/index.qmd
+
+format:
+  html:
+    theme: lux
+    highlight-style: oblivion
+    css: styles.css
+    toc: true
+
+filters:
+  - include-code-files
+  - line-highlight
+
+comments:
+  giscus: 
+    repo: aaronstevenwhite/intro-to-cl
+
+
+

@@ -1,0 +1,8 @@
+---
+title: Text Normalization
+bibliography: ../../references.bib
+---
+
+::: {.callout-caution}
+This submodule will be available around February 5, 2024.
+:::

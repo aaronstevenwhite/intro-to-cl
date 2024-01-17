@@ -1,0 +1,22 @@
+---
+title: Course Structure and Content
+bibliography: references.bib
+---
+
+This course is partitioned into four modules. As the course progresses, we will develop and implement increasingly more expressive formal models of language.
+
+## Module 0: Formal and Practical Preliminaries
+
+In [Module 0](formal-and-practical-preliminaries/), we develop basic formal and practical tools that will be used throughout the course. This module is partitioned into 
+
+## Module 1: Finite State Models
+
+In [Module 1](finite-state-models/), we will develop
+
+## Module 2: Context Free Models
+
+In [Module 2](context-free-models/), we will focus on
+
+## Module 3: Mildly Context Sensitive Models
+
+In [Module 3](mildly-context-sensitive-models/), we will focus on 

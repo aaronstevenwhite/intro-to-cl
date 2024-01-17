@@ -1,0 +1,8 @@
+---
+title: Working with Annotated Corpora
+bibliography: ../../references.bib
+---
+
+::: {.callout-caution}
+This submodule will be available around February 7, 2024.
+:::

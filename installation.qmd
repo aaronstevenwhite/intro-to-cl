@@ -1,0 +1,57 @@
+---
+title: Installation
+---
+
+The site itself is built using [Quarto](https://quarto.org/). The source files for this site are available on github at [`aaronstevenwhite/intro-to-cl`](https://github.com/aaronstevenwhite/intro-to-cl). You can obtain the files by cloning this repo.
+
+```bash
+git clone https://github.com/aaronstevenwhite/intro-to-cl.git
+```
+
+All further code on this page assumes that you are inside of this cloned repo.
+
+```bash
+cd intro-to-cl
+```
+
+## Installing Quarto and extensions
+
+To build this site, you will need to [install Quarto](https://quarto.org/docs/get-started/) as well as its [`include-code-files`](https://github.com/quarto-ext/include-code-files) and [`line-highlight`](https://github.com/shafayetShafee/line-highlight) extensions.
+
+```bash
+quarto add quarto-ext/include-code-files
+quarto add shafayetShafee/line-highlight
+```
+
+These extensions are mainly used for including and highlighting parts of external files.
+
+## Building the Docker container
+
+All pages that have executed code blocks are generated from jupyter notebooks, which were run within a [Docker](https://www.docker.com/) container constructed using the Dockerfile contained in this repo. 
+
+```{.dockerfile include="Dockerfile"}
+```
+
+Assuming you have Docker installed, the image can be built using:
+
+```bash
+docker build --platform linux/amd64 -t intro-to-cl .
+```
+
+A container based on this image can then be constructed using:
+
+```bash
+docker run -it --rm -p 8888:8888 -v "${PWD}":/home/jovyan/work intro-to-cl
+```
+
+To access jupyter, simply copy the link provided when running this command. It should look something like this (though your access tokens will differ):
+
+```bash
+To access the server, open this file in a browser:
+    file:///home/jovyan/.local/share/jupyter/runtime/jpserver-8-open.html
+Or copy and paste one of these URLs:
+    http://4738b6192fb0:8888/lab?token=8fc165776e7e99c98ec19883f750071a187e85a0a9253b81
+    http://127.0.0.1:8888/lab?token=8fc165776e7e99c98ec19883f750071a187e85a0a9253b81
+```
+
+You can change the port that docker forwards to by changing the first `8888` in the `-p 8888:8888` option–e.g. to redirect port 10000 `-p 10000:8888`. Just remember to correspondingly change the port you attempt to access in your browser: so even though the message above has you accessing port 8888, that's the docker container's port 8888, which forwards to your machine's 10000.
