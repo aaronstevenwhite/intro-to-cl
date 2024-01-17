@@ -339,7 +339,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>We express that something is an element of a set using the notation <span class="math inline">\(\cdot \in \cdot\)</span> and that it is not an element using the notation <span class="math inline">\(\cdot \not\in \cdot\)</span>. So for instance, <span class="math inline">\(\text{e}\)</span> is an element of <span class="math inline">\(V_1\)</span>, while <span class="math inline">\(\text{t}\)</span> is not.</p>
 <p><span class="math display">\[\text{e} \in V_1 \quad \text{t} \not\in V_1\]</span></p>
 <p>To work with sets in Python, we can use the standard library’s <a href="https://docs.python.org/3/tutorial/datastructures.html#sets"><code>set</code></a> type. These objects function as we would expect in terms of elementhood.</p>
-<div class="cell" data-execution_count="1">
+<div class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb1" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>vowels_1: <span class="bu">set</span>[<span class="bu">str</span>] <span class="op">=</span> {<span class="st">"e"</span>, <span class="st">"i"</span>, <span class="st">"o"</span>, <span class="st">"u"</span>, <span class="st">"æ"</span>, <span class="st">"ɑ"</span>, <span class="st">"ɔ"</span>, <span class="st">"ə"</span>, <span class="st">"ɛ"</span>, <span class="st">"ɪ"</span>, <span class="st">"ʊ"</span>}</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="st">"e"</span> <span class="kw">in</span> vowels_1:</span>
@@ -358,7 +358,7 @@ t ∉ V_3</code></pre>
 </div>
 <p>Sets can be represented in many ways. For instance, we could also represent the set <span class="math inline">\(V_1\)</span> in this way:</p>
 <p><span class="math display">\[V_2 \equiv \{\text{o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ, e, i}\}\]</span></p>
-<p>Because sets are unordered, both <span class="math inline">\(V_1\)</span> and <span class="math inline">\(V_2\)</span> are representations of the exact same set (<span class="math inline">\(V_1 = V_2\)</span>). And because sets are uniqued, <span class="math inline">\(V_3\)</span> is also a representation of the same set as <span class="math inline">\(V_1\)</span> and <span class="math inline">\(V_2\)</span>–i.e.&nbsp;<span class="math inline">\(V_1=V_2=V_3\)</span>–even though their are multiple copies of some vowels in this representation.</p>
+<p>Because sets are unordered, both <span class="math inline">\(V_1\)</span> and <span class="math inline">\(V_2\)</span> are representations of the exact same set (<span class="math inline">\(V_1 = V_2\)</span>). And because sets are uniqued, <span class="math inline">\(V_3\)</span> is also a representation of the same set as <span class="math inline">\(V_1\)</span> and <span class="math inline">\(V_2\)</span>–i.e.&nbsp;<span class="math inline">\(V_1=V_2=V_3\)</span>–even though there are multiple copies of some vowels in this representation.</p>
 <p><span class="math display">\[V_3 \equiv \{\text{o, o, o, u, u, æ, ɑ, ɔ, ə, ə, ə, ɛ, ɪ, ʊ, e, i}\}\]</span></p>
 <p>Python <code>set</code>s work as we would expect in terms of equality.</p>
 <div class="cell" data-execution_count="2">
