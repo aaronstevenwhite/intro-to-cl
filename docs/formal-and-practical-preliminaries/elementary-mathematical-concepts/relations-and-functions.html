@@ -311,13 +311,44 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
       </ul>
   </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true">
+ <span class="menu-text">Assignments</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../assignments/assignments-1-and-2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Assignments 1 and 2</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
     </ul>
     </div>
 </nav>
 <div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#relations" id="toc-relations" class="nav-link active" data-scroll-target="#relations">Relations</a></li>
+  <li><a href="#functions" id="toc-functions" class="nav-link" data-scroll-target="#functions">Functions</a>
+  <ul class="collapse">
+  <li><a href="#partiality" id="toc-partiality" class="nav-link" data-scroll-target="#partiality">Partiality</a></li>
+  <li><a href="#domain-and-codomain" id="toc-domain-and-codomain" class="nav-link" data-scroll-target="#domain-and-codomain">Domain and codomain</a></li>
+  <li><a href="#image" id="toc-image" class="nav-link" data-scroll-target="#image">Image</a></li>
+  <li><a href="#preimage" id="toc-preimage" class="nav-link" data-scroll-target="#preimage">Preimage</a></li>
+  <li><a href="#range" id="toc-range" class="nav-link" data-scroll-target="#range">Range</a></li>
+  </ul></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -339,28 +370,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<p>A <em>relation</em> <span class="math inline">\(R\)</span> is a set of <span class="math inline">\(N\)</span>-tuples whose elements <span class="math inline">\(r_i\)</span> are drawn from sets <span class="math inline">\(A_i\)</span>.</p>
-<p>For example, the relation between vowel height <span class="math inline">\(H = \{\mathrm{high}, \mathrm{mid}, \mathrm{low}\}\)</span> and the English vowels <span class="math inline">\(V = \{\mathrm{i}, \mathrm{u}, ...\}\)</span> that have that height and can be viewed as a relation <span class="math inline">\(R_\text{height-of}\)</span>.</p>
+<section id="relations" class="level2">
+<h2 class="anchored" data-anchor-id="relations">Relations</h2>
+<p>A <em>relation</em> <span class="math inline">\(R\)</span> is a subset of the product of sets <span class="math inline">\(A_1 \times A_2 \times \ldots \times A_N\)</span>. That means that elements of a relation are <span class="math inline">\(N\)</span>-tuples. Including a particular tuple in the relation represents that the things in the tuple have that relationship to each other.</p>
+<p>For example, the relation between vowel height <span class="math inline">\(H = \{\mathrm{high}, \mathrm{mid}, \mathrm{low}\}\)</span> and the English vowels <span class="math inline">\(V = \{\mathrm{i}, \mathrm{u}, ...\}\)</span> that have that height and can be represented as a relation <span class="math inline">\(R_\text{height-of}\)</span>.</p>
 <div class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb1" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>height_of <span class="op">=</span> {(<span class="st">'high'</span>, <span class="st">'i'</span>),</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>             (<span class="st">'high'</span>, <span class="st">'ɪ'</span>),</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>             (<span class="st">'high'</span>, <span class="st">'u'</span>),</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>             (<span class="st">'high'</span>, <span class="st">'ʊ'</span>),</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>             (<span class="st">'mid'</span>, <span class="st">'e'</span>),</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>             (<span class="st">'mid'</span>, <span class="st">'ɛ'</span>),</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>             (<span class="st">'mid'</span>, <span class="st">'o'</span>),</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>             (<span class="st">'mid'</span>, <span class="st">'ɔ'</span>),</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>             (<span class="st">'mid'</span>, <span class="st">'ə'</span>),</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>             (<span class="st">'low'</span>, <span class="st">'ɑ'</span>),</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>             (<span class="st">'low'</span>, <span class="st">'æ'</span>)}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>height_of: <span class="bu">set</span>[<span class="bu">tuple</span>[<span class="bu">str</span>, <span class="bu">str</span>]] <span class="op">=</span> {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    (<span class="st">'high'</span>, <span class="st">'i'</span>),</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    (<span class="st">'high'</span>, <span class="st">'ɪ'</span>),</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    (<span class="st">'high'</span>, <span class="st">'u'</span>),</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    (<span class="st">'high'</span>, <span class="st">'ʊ'</span>),</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    (<span class="st">'mid'</span>, <span class="st">'e'</span>),</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    (<span class="st">'mid'</span>, <span class="st">'ɛ'</span>),</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    (<span class="st">'mid'</span>, <span class="st">'o'</span>),</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    (<span class="st">'mid'</span>, <span class="st">'ɔ'</span>),</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    (<span class="st">'mid'</span>, <span class="st">'ə'</span>),</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    (<span class="st">'low'</span>, <span class="st">'ɑ'</span>),</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    (<span class="st">'low'</span>, <span class="st">'æ'</span>)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Relations are a subset of the cartesian product of two sets.</p>
+<p><span class="math inline">\(R_\text{height-of}\)</span> is a relation, since it is the subset of <span class="math inline">\(H \times V\)</span>.</p>
 <p><span class="math display">\[R_\text{height-of} \subseteq H \times V\]</span></p>
-<p>The (graph of a) <strong>function</strong> <span class="math inline">\(F \subseteq X \times Y\)</span> is a relation s.t. if <span class="math inline">\(\langle x, y \rangle \in F \land \langle x, z \rangle \in F\)</span>, then <span class="math inline">\(y = z\)</span> A function is <strong>total</strong> if <span class="math inline">\(X = \{x \;|\; \langle x, y \rangle \in F\}\)</span>; otherwise it is <strong>partial</strong>.</p>
-<p>For instance, the height-of relation <span class="math inline">\(R_\text{height-of}\)</span> is not a function, but its inverse relation <span class="math inline">\(R_\text{height-of}^{-1} = R_\text{has-height}\)</span> is a function.</p>
+</section>
+<section id="functions" class="level2">
+<h2 class="anchored" data-anchor-id="functions">Functions</h2>
+<p>Functions–or more specifically, their <em>graphs</em>–are particular kinds of relations. The (graph of a) <strong>function</strong> <span class="math inline">\(F \subseteq X \times Y\)</span> is a relation s.t. if <span class="math inline">\(\langle x, y \rangle \in F \land \langle x, z \rangle \in F\)</span>, then <span class="math inline">\(y = z\)</span>.</p>
+<p>For instance, the relation <span class="math inline">\(R_\text{height-of}\)</span> is not a function, but its inverse relation <span class="math inline">\(R_\text{height-of}^{-1} = R_\text{has-height}\)</span> is.</p>
 <p><span class="math display">\[R^{-1}_\text{height-of} = R_\text{has-height} = \{\langle y, x \rangle \;|\; \langle x, y \rangle \in R_\text{height-of}\}\]</span></p>
 <div class="cell" data-executioninfo="{&quot;elapsed&quot;:183,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1643047553438,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;photoUrl&quot;:&quot;https://lh3.googleusercontent.com/a-/AOh14GjIthWcbbAkpz4qrGfqtOGZvudhRK2mQl0LCAJjbw=s64&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="9ff029fe-0e04-445c-911b-808e54858fd4" data-execution_count="2">
-<div class="sourceCode cell-code" id="cb2" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>has_height <span class="op">=</span> {(y, x) <span class="cf">for</span> x, y <span class="kw">in</span> height_of}</span>
+<div class="sourceCode cell-code" id="cb2" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>has_height: <span class="bu">set</span>[<span class="bu">tuple</span>[<span class="bu">str</span>, <span class="bu">str</span>]] <span class="op">=</span> {(y, x) <span class="cf">for</span> x, y <span class="kw">in</span> height_of}</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>has_height</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="2">
@@ -390,16 +428,31 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <pre data-code-line-numbers=""><code>False</code></pre>
 </div>
 </div>
-<p>The set <span class="math inline">\(\mathcal{F}_{X,Y}\)</span> of all functions between two nonempty sets <span class="math inline">\(X\)</span> (the domain) and <span class="math inline">\(Y\)</span> (the codomain) is a subset of the set <span class="math inline">\(\mathcal{R}_{X,Y}\)</span> of all relations between <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>.</p>
-<p><span class="math display">\[\mathcal{F}_{X,Y} \subseteq \mathcal{R}_{X,Y} = \{R \;|\; R \subseteq X \times Y\} = 2^{ X \times Y}\]</span> <span class="math display">\[\mathrm{dom}(F) = X\]</span> <span class="math display">\[\mathrm{cod}(F) = Y\]</span></p>
-<p>It is a proper subset if <span class="math inline">\(|Y|&gt;1\)</span>.</p>
-<p>We denote each <span class="math inline">\(y\)</span> s.t. <span class="math inline">\(\langle x, y \rangle \in F\)</span> as <span class="math inline">\(f(x)\)</span>.</p>
+<section id="partiality" class="level3">
+<h3 class="anchored" data-anchor-id="partiality">Partiality</h3>
+<p>A function is <em>total</em> if <span class="math inline">\(X = \{x \;|\; \langle x, y \rangle \in F\}\)</span>; otherwise it is <em>partial</em>.</p>
+</section>
+<section id="domain-and-codomain" class="level3">
+<h3 class="anchored" data-anchor-id="domain-and-codomain">Domain and codomain</h3>
+<p>We often think of functions as mapping inputs to outputs. The inputs of the function come from its <em>domain</em> and the outputs come from its <em>codomain</em>.</p>
+<p>For instance, if we view <span class="math inline">\(R_\text{has-height}\)</span> as a function <span class="math inline">\(f_\text{has-height}\)</span>, the domain of <span class="math inline">\(f_\text{has-height}\)</span> is the set of vowels <span class="math inline">\(V\)</span> and the codomain is the set of heights <span class="math inline">\(H\)</span>. We will often express this using the following notation.</p>
+<p><span class="math display">\[f_\text{has-height}: V \rightarrow H\]</span></p>
+<p>Sometimes we will express it using two other functions <span class="math inline">\(\text{dom}\)</span> and <span class="math inline">\(\text{cod}\)</span>.</p>
+<p><span class="math display">\[\text{dom}(f_\text{has-height}) = V\]</span> <span class="math display">\[\text{cod}(f_\text{has-height}) = H\]</span></p>
+<p>For a function <span class="math inline">\(f\)</span> with graph <span class="math inline">\(R\)</span>, we denote each <span class="math inline">\(y\)</span> s.t. <span class="math inline">\(\langle x, y \rangle \in F\)</span> as <span class="math inline">\(f(x)\)</span>.</p>
+</section>
+<section id="image" class="level3">
+<h3 class="anchored" data-anchor-id="image">Image</h3>
 <p>The <strong>image</strong> of <span class="math inline">\(W \subseteq X\)</span> under <span class="math inline">\(f\)</span> is <span class="math inline">\(f(W) = \{f(x) \;|\; x \in W\}\)</span>.</p>
 <div class="cell" data-executioninfo="{&quot;elapsed&quot;:217,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1643047802023,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;photoUrl&quot;:&quot;https://lh3.googleusercontent.com/a-/AOh14GjIthWcbbAkpz4qrGfqtOGZvudhRK2mQl0LCAJjbw=s64&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="b0a28e6d-ef94-4f99-8547-0d76955e96af" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb8" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> image(w, f):</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> {y <span class="cf">for</span> x, y <span class="kw">in</span> f <span class="cf">if</span> x <span class="kw">in</span> w}</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>image({<span class="st">'i'</span>}, has_height)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> TypeVar</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>T <span class="op">=</span> TypeVar(<span class="st">"T"</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> image(w: <span class="bu">set</span>[T], f: <span class="bu">set</span>[<span class="bu">tuple</span>[T, T]]) <span class="op">-&gt;</span> <span class="bu">set</span>[T]:</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> {y <span class="cf">for</span> x, y <span class="kw">in</span> f <span class="cf">if</span> x <span class="kw">in</span> w}</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>image({<span class="st">'i'</span>}, has_height)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="5">
 <pre data-code-line-numbers=""><code>{'high'}</code></pre>
 </div>
@@ -410,9 +463,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <pre data-code-line-numbers=""><code>{'high', 'mid'}</code></pre>
 </div>
 </div>
+</section>
+<section id="preimage" class="level3">
+<h3 class="anchored" data-anchor-id="preimage">Preimage</h3>
 <p>The <strong>preimage</strong> of <span class="math inline">\(Z \subseteq Y\)</span> under <span class="math inline">\(f\)</span> is <span class="math inline">\(f^{-1}(Z) = \{x \;|\; f(x) \in Z\}\)</span>.</p>
 <div class="cell" data-executioninfo="{&quot;elapsed&quot;:213,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1643047943947,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;photoUrl&quot;:&quot;https://lh3.googleusercontent.com/a-/AOh14GjIthWcbbAkpz4qrGfqtOGZvudhRK2mQl0LCAJjbw=s64&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="0957c36f-bb55-4bd9-eea3-a48824e27645" data-execution_count="7">
-<div class="sourceCode cell-code" id="cb12" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> preimage(z, f):</span>
+<div class="sourceCode cell-code" id="cb12" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> preimage(z: <span class="bu">set</span>[T], f: <span class="bu">set</span>[<span class="bu">tuple</span>[T, T]]) <span class="op">-&gt;</span> <span class="bu">set</span>[T]:</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> {x <span class="cf">for</span> x, y <span class="kw">in</span> f <span class="cf">if</span> y <span class="kw">in</span> z}</span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>preimage({<span class="st">'high'</span>}, has_height)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -421,38 +477,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <div class="cell" data-executioninfo="{&quot;elapsed&quot;:204,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1643048001547,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;photoUrl&quot;:&quot;https://lh3.googleusercontent.com/a-/AOh14GjIthWcbbAkpz4qrGfqtOGZvudhRK2mQl0LCAJjbw=s64&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="26aaf92c-6cd4-4636-e279-2bd667310235" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb14" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>heights <span class="op">=</span> {h <span class="cf">for</span> h, _ <span class="kw">in</span> height_of}</span>
+<div class="sourceCode cell-code" id="cb14" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>heights: <span class="bu">set</span>[<span class="bu">str</span>] <span class="op">=</span> {h <span class="cf">for</span> h, _ <span class="kw">in</span> height_of}</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>preimage(heights <span class="op">-</span> {<span class="st">'low'</span>}, has_height)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="8">
 <pre data-code-line-numbers=""><code>{'e', 'i', 'o', 'u', 'ɔ', 'ə', 'ɛ', 'ɪ', 'ʊ'}</code></pre>
 </div>
 </div>
-<p>The <strong>range</strong> of <span class="math inline">\(X\)</span> under <span class="math inline">\(f\)</span> is the image of <span class="math inline">\(X\)</span> under <span class="math inline">\(f\)</span>: <span class="math inline">\(f(X)\)</span>.</p>
-<p>An important kind of function is a <em>sequence</em>, which is a partial function <span class="math inline">\(S\)</span> from the natural numbers <span class="math inline">\(\mathbb{N}\)</span> to a set <span class="math inline">\(\Sigma\)</span>.</p>
-<p><span class="math display">\[\mathbb{N} = \{0, 1, 2, 3, \ldots\}\]</span> <span class="math display">\[\Sigma = \{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ, ɹ, d, t}\}\]</span> <span class="math display">\[S = \begin{Bmatrix}
-0 &amp; \rightarrow &amp; \text{d}\\
-1 &amp; \rightarrow &amp; \text{u}\\
-2 &amp; \rightarrow &amp; \text{d}\\
-\end{Bmatrix}\]</span></p>
-<p>This definition admits of sequences with gaps in the natural numbers.</p>
-<p><span class="math display">\[\begin{Bmatrix}
-0 &amp; \rightarrow &amp; \text{d}\\
-1 &amp; \rightarrow &amp; \text{u}\\
-205 &amp; \rightarrow &amp; \text{d}\\
-\end{Bmatrix}\]</span></p>
-<p>we will generally assume that our sequences map the first <span class="math inline">\(|S^{-1}(\Sigma)|\)</span> natural numbers to <span class="math inline">\(\Sigma\)</span>, because these “gappy” sequences can always be mapped to one where <span class="math inline">\(S^{-1}(\Sigma) = \{0, ..., |S^{-1}(\Sigma)|-1\}\)</span>. But there are cases—one discussed below—where we don’t necessarily want our sequences to start at 0.</p>
-<p>We often denote the <span class="math inline">\(i^{th}\)</span> element of a sequence using a subscript rather than function notation.</p>
-<p><span class="math display">\[s_i \equiv S(i)\]</span></p>
-<p>Functions can be represented as sets of pairs and therefore sequences can be too.</p>
-<p><span class="math display">\[S = \{\langle 0, \text{d} \rangle, \langle 1, \text{u} \rangle, \langle 2, \text{d} \rangle\} \subseteq \mathbb{N}\times \Sigma\]</span></p>
-<p>We can also represent sequences as elements of <span class="math inline">\(\Sigma^{|S^{-1}(\Sigma)|}\)</span>.</p>
-<p><span class="math display">\[\mathrm{func2tuple}(S, i) = \begin{cases}\langle S(i), \mathrm{func2tuple}(S, i+1) \rangle &amp; \text{if } i + 1 \in S^{-1}(\Sigma) \\
-S(i) &amp; \text{otherwise}
-           \end{cases}\]</span></p>
-<p>And as we saw, we can always flatten these elements of <span class="math inline">\(\Sigma^{|S^{-1}(\Sigma)|}\)</span> to <span class="math inline">\(|S^{-1}(\Sigma)|\)</span>-tuples. Because of this, we (often) implement sequences in Python using <code>list</code>s and <code>tuple</code>s, though we can implement them using <code>dict</code>s as well.</p>
+</section>
+<section id="range" class="level3">
+<h3 class="anchored" data-anchor-id="range">Range</h3>
+<p>The <em>range</em> of <span class="math inline">\(X\)</span> under <span class="math inline">\(f\)</span> is the image of <span class="math inline">\(X\)</span> under <span class="math inline">\(f\)</span>: <span class="math inline">\(f(X)\)</span>.</p>
 
 
+</section>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

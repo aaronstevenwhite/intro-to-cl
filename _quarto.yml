@@ -25,6 +25,7 @@ project:
     - finite-state-models/index.qmd
     - context-free-models/index.qmd
     - mildly-context-sensitive-models/index.qmd
+    - assignments/assignments-1-and-2.ipynb
 
 
 website:
@@ -64,6 +65,9 @@ website:
       - section: "Mildly Context Sensitive Models"
         contents:
           - mildly-context-sensitive-models/index.qmd
+      - section: "Assignments"
+        contents:
+          - assignments/assignments-1-and-2.ipynb
 
 format:
   html:
