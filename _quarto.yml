@@ -16,6 +16,8 @@ project:
     - formal-and-practical-preliminaries/elementary-mathematical-concepts/sequences.ipynb
     - formal-and-practical-preliminaries/elementary-mathematical-concepts/string-and-languages.ipynb
     - formal-and-practical-preliminaries/regular-expressions/index.qmd
+    - formal-and-practical-preliminaries/regular-expressions/formal-definition.ipynb
+    - formal-and-practical-preliminaries/regular-expressions/using-regular-expressions.qmd
     - formal-and-practical-preliminaries/text-normalization/index.qmd
     - formal-and-practical-preliminaries/working-with-annotated-corpora/index.qmd
     - formal-and-practical-preliminaries/edit-distance-and-string-alignment/index.qmd
@@ -52,7 +54,11 @@ website:
               - formal-and-practical-preliminaries/elementary-mathematical-concepts/relations-and-functions.ipynb
               - formal-and-practical-preliminaries/elementary-mathematical-concepts/sequences.ipynb
               - formal-and-practical-preliminaries/elementary-mathematical-concepts/string-and-languages.ipynb
-          - formal-and-practical-preliminaries/regular-expressions/index.qmd
+          - section: "Regular Expressions"
+            contents:
+              - formal-and-practical-preliminaries/regular-expressions/index.qmd
+              - formal-and-practical-preliminaries/regular-expressions/formal-definition.ipynb
+              - formal-and-practical-preliminaries/regular-expressions/using-regular-expressions.qmd
           - formal-and-practical-preliminaries/text-normalization/index.qmd
           - formal-and-practical-preliminaries/working-with-annotated-corpora/index.qmd
           - formal-and-practical-preliminaries/edit-distance-and-string-alignment/index.qmd

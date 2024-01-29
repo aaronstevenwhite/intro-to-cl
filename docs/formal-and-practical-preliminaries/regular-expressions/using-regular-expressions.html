@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Introduction to Computational Linguistics - Overview</title>
+<title>Introduction to Computational Linguistics - Using Regular Expressions</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -20,26 +20,7 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-/* CSS for citations */
-div.csl-bib-body { }
-div.csl-entry {
-  clear: both;
-}
-.hanging-indent div.csl-entry {
-  margin-left:2em;
-  text-indent:-2em;
-}
-div.csl-left-margin {
-  min-width:2em;
-  float:left;
-}
-div.csl-right-inline {
-  margin-left:2em;
-  padding-left:1em;
-}
-div.csl-indent {
-  margin-left: 2em;
-}</style>
+</style>
 
 
 <script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -49,8 +30,8 @@ div.csl-indent {
 <script src="../../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../../">
-<link href="../../formal-and-practical-preliminaries/regular-expressions/formal-definition.html" rel="next">
-<link href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/string-and-languages.html" rel="prev">
+<link href="../../formal-and-practical-preliminaries/text-normalization/index.html" rel="next">
+<link href="../../formal-and-practical-preliminaries/regular-expressions/formal-definition.html" rel="prev">
 <script src="../../site_libs/quarto-html/quarto.js"></script>
 <script src="../../site_libs/quarto-html/popper.min.js"></script>
 <script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -81,8 +62,6 @@ div.csl-indent {
   }
 }</script>
 
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 <link rel="stylesheet" href="../../styles.css">
 </head>
@@ -96,7 +75,7 @@ div.csl-indent {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../formal-and-practical-preliminaries/index.html">Formal and Practical Preliminaries</a></li><li class="breadcrumb-item"><a href="../../formal-and-practical-preliminaries/regular-expressions/index.html">Regular Expressions</a></li><li class="breadcrumb-item"><a href="../../formal-and-practical-preliminaries/regular-expressions/index.html">Overview</a></li></ol></nav>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../formal-and-practical-preliminaries/index.html">Formal and Practical Preliminaries</a></li><li class="breadcrumb-item"><a href="../../formal-and-practical-preliminaries/regular-expressions/index.html">Regular Expressions</a></li><li class="breadcrumb-item"><a href="../../formal-and-practical-preliminaries/regular-expressions/using-regular-expressions.html">Using Regular Expressions</a></li></ol></nav>
       <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
       </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -230,7 +209,7 @@ div.csl-indent {
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth2 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/regular-expressions/index.html" class="sidebar-item-text sidebar-link active">
+  <a href="../../formal-and-practical-preliminaries/regular-expressions/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
@@ -242,7 +221,7 @@ div.csl-indent {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/regular-expressions/using-regular-expressions.html" class="sidebar-item-text sidebar-link">
+  <a href="../../formal-and-practical-preliminaries/regular-expressions/using-regular-expressions.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">Using Regular Expressions</span></a>
   </div>
 </li>
@@ -349,7 +328,7 @@ div.csl-indent {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Overview</h1>
+<h1 class="title">Using Regular Expressions</h1>
 </div>
 
 
@@ -364,35 +343,23 @@ div.csl-indent {
 
 </header>
 
-<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout callout-style-default callout-caution callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Reading
+Caution
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><span class="citation" data-cites="jurafsky_speech_2023">Jurafsky and Martin (<a href="#ref-jurafsky_speech_2023" role="doc-biblioref">2023</a>, Ch. 2.1)</span> on regular expressions.</p>
+<p>This submodule will be available around Wednesday, January 31, 2024.</p>
 </div>
 </div>
-<p>In the last submodule, we defined the set of strings on an alphabet <span class="math inline">\(\Sigma\)</span> as:</p>
-<p><span class="math display">\[\Sigma^* = \bigcup_{i=0}^\infty \Sigma^i\]</span></p>
-<p>We then defined a language <span class="math inline">\(L\)</span> on <span class="math inline">\(\Sigma\)</span> to be some (possibly improper) subset of the set of strings:</p>
-<p><span class="math display">\[L \subseteq \Sigma^*\]</span></p>
-<p>The set of all languages on <span class="math inline">\(\Sigma\)</span> is thus the powerset <span class="math inline">\(2^{\Sigma^*}\)</span> of the set of strings <span class="math inline">\(\Sigma^*\)</span>.</p>
-<p>In this submodule, we’re going to discuss one way that we can compactly describe (a subset of) the languages in <span class="math inline">\(2^{\Sigma^*}\)</span>: <em>regular expressions</em>.</p>
-<p>Regular expressions are foundational both from an applied and from a scientific perspective. From an applied perspective, they allow us to effectively query and modify text in a compact programmatic way. From a scientific perspective, they provide a way of stating phonological grammars in an efficient way.</p>
 
 
 
-
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
-<div id="ref-jurafsky_speech_2023" class="csl-entry" role="listitem">
-Jurafsky, Daniel, and James H. Martin. 2023. <em>Speech and Language Processing</em>.
-</div>
-</div></section></div></main> <!-- /main -->
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
@@ -630,13 +597,13 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/string-and-languages.html" class="pagination-link">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Strings and Languages</span>
+      <a href="../../formal-and-practical-preliminaries/regular-expressions/formal-definition.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Formal Definition</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../../formal-and-practical-preliminaries/regular-expressions/formal-definition.html" class="pagination-link">
-        <span class="nav-page-text">Formal Definition</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../../formal-and-practical-preliminaries/text-normalization/index.html" class="pagination-link">
+        <span class="nav-page-text">Text Normalization</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
