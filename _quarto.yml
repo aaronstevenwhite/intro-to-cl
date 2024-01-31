@@ -18,6 +18,11 @@ project:
     - formal-and-practical-preliminaries/regular-expressions/index.qmd
     - formal-and-practical-preliminaries/regular-expressions/formal-definition.ipynb
     - formal-and-practical-preliminaries/regular-expressions/using-regular-expressions.qmd
+    - formal-and-practical-preliminaries/regular-expressions/loading-a-lexicon.ipynb
+    - formal-and-practical-preliminaries/regular-expressions/implementing-the-regular-operations.ipynb
+    - formal-and-practical-preliminaries/regular-expressions/wild-cards-and-character-ranges.ipynb
+    - formal-and-practical-preliminaries/regular-expressions/quantifiers.ipynb
+    - formal-and-practical-preliminaries/regular-expressions/groups-and-greediness.qmd
     - formal-and-practical-preliminaries/text-normalization/index.qmd
     - formal-and-practical-preliminaries/working-with-annotated-corpora/index.qmd
     - formal-and-practical-preliminaries/edit-distance-and-string-alignment/index.qmd
@@ -58,7 +63,11 @@ website:
             contents:
               - formal-and-practical-preliminaries/regular-expressions/index.qmd
               - formal-and-practical-preliminaries/regular-expressions/formal-definition.ipynb
-              - formal-and-practical-preliminaries/regular-expressions/using-regular-expressions.qmd
+              - formal-and-practical-preliminaries/regular-expressions/loading-a-lexicon.ipynb
+              - formal-and-practical-preliminaries/regular-expressions/implementing-the-regular-operations.ipynb
+              - formal-and-practical-preliminaries/regular-expressions/wild-cards-and-character-ranges.ipynb
+              - formal-and-practical-preliminaries/regular-expressions/quantifiers.ipynb
+              - formal-and-practical-preliminaries/regular-expressions/groups-and-greediness.qmd
           - formal-and-practical-preliminaries/text-normalization/index.qmd
           - formal-and-practical-preliminaries/working-with-annotated-corpora/index.qmd
           - formal-and-practical-preliminaries/edit-distance-and-string-alignment/index.qmd

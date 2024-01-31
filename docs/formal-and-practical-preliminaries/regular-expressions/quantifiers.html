@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Introduction to Computational Linguistics - About</title>
+<title>Introduction to Computational Linguistics - Quantifiers</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -20,27 +20,62 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<link href="./installation.html" rel="next">
-<script src="site_libs/quarto-html/quarto.js"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/quarto-contrib/line-highlight-1.0.0/line-highlight.css" rel="stylesheet">
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../formal-and-practical-preliminaries/regular-expressions/groups-and-greediness.html" rel="next">
+<link href="../../formal-and-practical-preliminaries/regular-expressions/wild-cards-and-character-ranges.html" rel="prev">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/quarto-contrib/line-highlight-1.0.0/line-highlight.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -62,7 +97,7 @@ ul.task-list li input[type="checkbox"] {
 }</script>
 
 
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="../../styles.css">
 </head>
 
 <body class="nav-sidebar docked">
@@ -74,7 +109,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./index.html">About</a></li></ol></nav>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../formal-and-practical-preliminaries/index.html">Formal and Practical Preliminaries</a></li><li class="breadcrumb-item"><a href="../../formal-and-practical-preliminaries/regular-expressions/index.html">Regular Expressions</a></li><li class="breadcrumb-item"><a href="../../formal-and-practical-preliminaries/regular-expressions/quantifiers.html">Quantifiers</a></li></ol></nav>
       <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
       </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -89,7 +124,7 @@ ul.task-list li input[type="checkbox"] {
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation docked overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
-      <a href="./">Introduction to Computational Linguistics</a> 
+      <a href="../../">Introduction to Computational Linguistics</a> 
     </div>
       </div>
         <div class="mt-2 flex-shrink-0 align-items-center">
@@ -101,13 +136,13 @@ ul.task-list li input[type="checkbox"] {
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./index.html" class="sidebar-item-text sidebar-link active">
+  <a href="../../index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">About</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./installation.html" class="sidebar-item-text sidebar-link">
+  <a href="../../installation.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Installation</span></a>
   </div>
 </li>
@@ -122,7 +157,7 @@ ul.task-list li input[type="checkbox"] {
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./formal-and-practical-preliminaries/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../formal-and-practical-preliminaries/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
@@ -137,55 +172,55 @@ ul.task-list li input[type="checkbox"] {
       <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./formal-and-practical-preliminaries/elementary-mathematical-concepts/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./formal-and-practical-preliminaries/elementary-mathematical-concepts/sets.html" class="sidebar-item-text sidebar-link">
+  <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/sets.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Sets</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./formal-and-practical-preliminaries/elementary-mathematical-concepts/multisets.html" class="sidebar-item-text sidebar-link">
+  <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/multisets.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Multisets</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./formal-and-practical-preliminaries/elementary-mathematical-concepts/cardinality.html" class="sidebar-item-text sidebar-link">
+  <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/cardinality.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Cardinality</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./formal-and-practical-preliminaries/elementary-mathematical-concepts/set-relations.html" class="sidebar-item-text sidebar-link">
+  <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/set-relations.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Set relations</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./formal-and-practical-preliminaries/elementary-mathematical-concepts/power-sets.html" class="sidebar-item-text sidebar-link">
+  <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/power-sets.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Power Sets</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./formal-and-practical-preliminaries/elementary-mathematical-concepts/products.html" class="sidebar-item-text sidebar-link">
+  <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/products.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Products</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./formal-and-practical-preliminaries/elementary-mathematical-concepts/relations-and-functions.html" class="sidebar-item-text sidebar-link">
+  <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/relations-and-functions.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Relations and Functions</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./formal-and-practical-preliminaries/elementary-mathematical-concepts/sequences.html" class="sidebar-item-text sidebar-link">
+  <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/sequences.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Sequences</span></a>
   </div>
 </li>
@@ -196,52 +231,52 @@ ul.task-list li input[type="checkbox"] {
   </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true">
  <span class="menu-text">Regular Expressions</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth2 ">  
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth2 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./formal-and-practical-preliminaries/regular-expressions/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../formal-and-practical-preliminaries/regular-expressions/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./formal-and-practical-preliminaries/regular-expressions/formal-definition.html" class="sidebar-item-text sidebar-link">
+  <a href="../../formal-and-practical-preliminaries/regular-expressions/formal-definition.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Formal Definition</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./formal-and-practical-preliminaries/regular-expressions/loading-a-lexicon.html" class="sidebar-item-text sidebar-link">
+  <a href="../../formal-and-practical-preliminaries/regular-expressions/loading-a-lexicon.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Loading a Lexicon</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./formal-and-practical-preliminaries/regular-expressions/implementing-the-regular-operations.html" class="sidebar-item-text sidebar-link">
+  <a href="../../formal-and-practical-preliminaries/regular-expressions/implementing-the-regular-operations.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Implementing the Regular Operations</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./formal-and-practical-preliminaries/regular-expressions/wild-cards-and-character-ranges.html" class="sidebar-item-text sidebar-link">
+  <a href="../../formal-and-practical-preliminaries/regular-expressions/wild-cards-and-character-ranges.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Wild cards and character ranges</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./formal-and-practical-preliminaries/regular-expressions/quantifiers.html" class="sidebar-item-text sidebar-link">
+  <a href="../../formal-and-practical-preliminaries/regular-expressions/quantifiers.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">Quantifiers</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./formal-and-practical-preliminaries/regular-expressions/groups-and-greediness.html" class="sidebar-item-text sidebar-link">
+  <a href="../../formal-and-practical-preliminaries/regular-expressions/groups-and-greediness.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Groups and Greediness</span></a>
   </div>
 </li>
@@ -249,19 +284,19 @@ ul.task-list li input[type="checkbox"] {
   </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./formal-and-practical-preliminaries/text-normalization/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../formal-and-practical-preliminaries/text-normalization/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Text Normalization</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./formal-and-practical-preliminaries/working-with-annotated-corpora/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../formal-and-practical-preliminaries/working-with-annotated-corpora/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Working with Annotated Corpora</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./formal-and-practical-preliminaries/edit-distance-and-string-alignment/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../formal-and-practical-preliminaries/edit-distance-and-string-alignment/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Edit Distance and String Alignment</span></a>
   </div>
 </li>
@@ -278,7 +313,7 @@ ul.task-list li input[type="checkbox"] {
       <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./finite-state-models/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../finite-state-models/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
@@ -295,7 +330,7 @@ ul.task-list li input[type="checkbox"] {
       <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./context-free-models/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../context-free-models/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
@@ -312,7 +347,7 @@ ul.task-list li input[type="checkbox"] {
       <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./mildly-context-sensitive-models/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../mildly-context-sensitive-models/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
@@ -329,7 +364,7 @@ ul.task-list li input[type="checkbox"] {
       <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./assignments/assignments-1-and-2.html" class="sidebar-item-text sidebar-link">
+  <a href="../../assignments/assignments-1-and-2.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Assignments 1 and 2</span></a>
   </div>
 </li>
@@ -345,12 +380,7 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#about-the-course" id="toc-about-the-course" class="nav-link active" data-scroll-target="#about-the-course">About the course</a></li>
-  <li><a href="#prerequisites" id="toc-prerequisites" class="nav-link" data-scroll-target="#prerequisites">Prerequisites</a></li>
-  <li><a href="#about-the-instructor" id="toc-about-the-instructor" class="nav-link" data-scroll-target="#about-the-instructor">About the instructor</a></li>
-  <li><a href="#about-the-site" id="toc-about-the-site" class="nav-link" data-scroll-target="#about-the-site">About the site</a></li>
-  <li><a href="#acknowledgments" id="toc-acknowledgments" class="nav-link" data-scroll-target="#acknowledgments">Acknowledgments</a></li>
-  <li><a href="#license" id="toc-license" class="nav-link" data-scroll-target="#license">License </a><a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/" class="nav-link" data-scroll-target="http\://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"></a></li>
+  <li><a href="#set-complement" id="toc-set-complement" class="nav-link active" data-scroll-target="#set-complement">Set complement</a></li>
   </ul>
 </nav>
     </div>
@@ -359,7 +389,7 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">About</h1>
+<h1 class="title">Quantifiers</h1>
 </div>
 
 
@@ -374,31 +404,84 @@ ul.task-list li input[type="checkbox"] {
 
 </header>
 
-<p>This site contains materials for <em>Introduction to Computational Linguistics</em>–a course given by <a href="http://aaronstevenwhite.io/">Aaron Steven White</a> at the University of Rochester.</p>
-<section id="about-the-course" class="level2">
-<h2 class="anchored" data-anchor-id="about-the-course">About the course</h2>
-<p>This course covers foundational concepts in computational linguistics. Major focus is placed on the use of formal languages as a tool for understanding natural language as well as on developing students’ ability to implement foundational algorithms pertaining to those formal languages. Topics include basic formal language theory, finite state phonological and morphological parsing, and syntactic parsing for context free grammars and mildly context sensitive formalisms.</p>
-</section>
-<section id="prerequisites" class="level2">
-<h2 class="anchored" data-anchor-id="prerequisites">Prerequisites</h2>
-<p>This course relies on concepts covered in an introductory linguistics course and an introductory programming course. With respect to the latter, it specifically assumes that you can competently write scripts that do non-trivial things and can work competently with Python’s object-oriented programming facilities but maybe not develop a package on your own.</p>
-</section>
-<section id="about-the-instructor" class="level2">
-<h2 class="anchored" data-anchor-id="about-the-instructor">About the instructor</h2>
-<p>Aaron Steven White is an Associate Professor of <a href="http://www.sas.rochester.edu/lin/">Linguistics</a> and <a href="https://www.cs.rochester.edu/">Computer Science</a> at the <a href="https://rochester.edu/">University of Rochester</a>, where he directs the <a href="http://factslab.io/">Formal and Computational Semantics lab</a> (FACTS.lab). <a href="http://aaronstevenwhite.io/research">His research</a> investigates the relationship between linguistic expressions and conceptual categories that undergird the human ability to convey information about possible past, present, and future configurations of things in the world.</p>
-<p>In addition to being a principal investigator on numerous federally funded grants and contracts, White is the recipient of <a href="https://www.nsf.gov/awardsearch/showAward?AWD_ID=2237175">a National Science Foundation Faculty Early Career Development (CAREER) award</a>. His work has appeared in a variety linguistics, cognitive science, and natural language processing venues, including Semantics &amp; Pragmatics, Glossa, Language Acquisition, Cognitive Science, Cognitive Psychology, Transactions of the Association for Computational Linguistics, and Empirical Methods in Natural Language Processing.</p>
-</section>
-<section id="about-the-site" class="level2">
-<h2 class="anchored" data-anchor-id="about-the-site">About the site</h2>
-<p>The site itself is built using <a href="https://quarto.org/">Quarto</a>. The source files for this site are available on github at <a href="https://github.com/aaronstevenwhite/intro-to-cl"><code>aaronstevenwhite/intro-to-cl</code></a>. See <a href="./installation.html">Installation</a> for information on how to run the code documented here.</p>
-</section>
-<section id="acknowledgments" class="level2">
-<h2 class="anchored" data-anchor-id="acknowledgments">Acknowledgments</h2>
-<p>The development of these materials was supported by the University of Rochester and a National Science Foundation grant: <em>CAREER: Logical Form Induction</em> (<a href="https://www.nsf.gov/awardsearch/showAward?AWD_ID=2237175">BCS/IIS-2237175</a>).</p>
-</section>
-<section id="license" class="level2">
-<h2 class="anchored" data-anchor-id="license">License <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"></a></h2>
-<p><span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/Text" property="dct:title" rel="dct:type">Introduction to Computational Linguistics</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="http://aaronstevenwhite.io" property="cc:attributionName" rel="cc:attributionURL">Aaron Steven White</a> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>. Based on a work at <a xmlns:dct="http://purl.org/dc/terms/" href="https://github.com/aaronstevenwhite/intro-to-cl" rel="dct:source">https://github.com/aaronstevenwhite/intro-to-cl</a>.</p>
+<p>Note that <code>.</code>, the character ranges, and the escape characters match only a single character, and so to match more than one, we need more than one of whichever we are interested in matching.</p>
+<div class="cell" data-executioninfo="{&quot;elapsed&quot;:5,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675099877492,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="df0dd6ca-d641-431a-b8f1-3b1703c7f188" data-execution_count="30">
+<div class="sourceCode cell-code" id="cb1" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>regex_dot_stɹækʃən <span class="op">=</span> <span class="st">'.stɹækʃən'</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>regex_dot_dot_tɹækʃən <span class="op">=</span> <span class="st">'..stɹækʃən'</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>(re.fullmatch(regex_dot_stɹækʃən, string_æbstɹækʃən),</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a> re.fullmatch(regex_dot_dot_tɹækʃən, string_æbstɹækʃən))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="30">
+<pre data-code-line-numbers=""><code>(None, &lt;re.Match object; span=(0, 10), match='æbstɹækʃən'&gt;)</code></pre>
+</div>
+</div>
+<p>We can avoid writing out multiple by using a quantifier. There are a few different quantifiers. For instance, if you have an exact number in mind:</p>
+<div class="cell" data-executioninfo="{&quot;elapsed&quot;:5,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675099877493,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="91dfd965-f326-4001-ea2d-4cc6f69c1160" data-execution_count="31">
+<div class="sourceCode cell-code" id="cb3" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>regex_dot2_tɹækʃən <span class="op">=</span> <span class="st">'.</span><span class="sc">{2}</span><span class="st">stɹækʃən'</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>re.fullmatch(regex_dot2_tɹækʃən, string_æbstɹækʃən)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="31">
+<pre data-code-line-numbers=""><code>&lt;re.Match object; span=(0, 10), match='æbstɹækʃən'&gt;</code></pre>
+</div>
+</div>
+<p>Or if you had a range of numbers in mind:</p>
+<div class="cell" data-executioninfo="{&quot;elapsed&quot;:3,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675099877493,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="84389b5a-30c5-4c2c-8f49-3b69f388ad61" data-execution_count="32">
+<div class="sourceCode cell-code" id="cb5" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>regex_dot2_tɹæk_dot13 <span class="op">=</span> <span class="st">'.</span><span class="sc">{2}</span><span class="st">stɹək.{1,3}'</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>string_əbstɹəkt <span class="op">=</span> string_əbstɹəkʃən[:<span class="op">-</span><span class="dv">3</span>] <span class="op">+</span> <span class="st">'t'</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>(re.fullmatch(regex_dot2_tɹæk_dot13, string_əbstɹəkʃən),</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a> re.fullmatch(regex_dot2_tɹæk_dot13, string_əbstɹəkt))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="32">
+<pre data-code-line-numbers=""><code>(&lt;re.Match object; span=(0, 10), match='əbstɹəkʃən'&gt;,
+ &lt;re.Match object; span=(0, 8), match='əbstɹəkt'&gt;)</code></pre>
+</div>
+</div>
+<p>You can also leave off one bound:</p>
+<div class="cell" data-executioninfo="{&quot;elapsed&quot;:125,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675099877616,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="74eb7177-645f-4b1c-97e7-406b77e8546f" data-execution_count="33">
+<div class="sourceCode cell-code" id="cb7" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>regex_dot2_tɹæk_dot03 <span class="op">=</span> <span class="st">'.</span><span class="sc">{2}</span><span class="st">stɹək.{,3}'</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>regex_dot2_tɹæk_dot1inf <span class="op">=</span> <span class="st">'.</span><span class="sc">{2}</span><span class="st">stɹək.{1,}'</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>(re.fullmatch(regex_dot2_tɹæk_dot03, string_əbstɹəkt),</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a> re.fullmatch(regex_dot2_tɹæk_dot1inf, string_əbstɹəkt))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="33">
+<pre data-code-line-numbers=""><code>(&lt;re.Match object; span=(0, 8), match='əbstɹəkt'&gt;,
+ &lt;re.Match object; span=(0, 8), match='əbstɹəkt'&gt;)</code></pre>
+</div>
+</div>
+<p>Note that <code>{,}</code> is equivalent to <code>*</code>. There is also a special quantifier symbol for <code>{1,}</code>: <code>+</code></p>
+<p>And if you wanted at least one character ot come after <code>Aaron</code>, but didn’t care after that you could use <code>+</code>.</p>
+<div class="cell" data-executioninfo="{&quot;elapsed&quot;:6,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675099877617,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="a871e772-659b-453e-f2b6-59ed3532bc14" data-execution_count="34">
+<div class="sourceCode cell-code" id="cb9" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>regex_dot2_tɹæk_dotplus <span class="op">=</span> <span class="st">'.</span><span class="sc">{2}</span><span class="st">stɹək.+'</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>re.fullmatch(regex_dot2_tɹæk_dotplus, string_əbstɹəkt)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="34">
+<pre data-code-line-numbers=""><code>&lt;re.Match object; span=(0, 8), match='əbstɹəkt'&gt;</code></pre>
+</div>
+</div>
+<p>Note that none of these quantifiers increase the expressive power of the regular expressions. We can always write their equivalents as a vanilla regular expression (in the sense of the formal definition we gave above); it would just be tedious in many cases.</p>
+<section id="set-complement" class="level3">
+<h3 class="anchored" data-anchor-id="set-complement">Set complement</h3>
+<p>For any of these cases where we escape a lowercase alphabetic character to get a character set, the set complement can generally be gotten with by the uppercase version—e.g.&nbsp;<code>\w</code> goes to <code>\W</code>.</p>
+<div class="cell" data-executioninfo="{&quot;elapsed&quot;:4,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675099877617,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="f0da836e-2572-4963-bf0e-68e635f9905c" data-execution_count="35">
+<div class="sourceCode cell-code" id="cb11" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>regex_notw_bstɹækt <span class="op">=</span> <span class="st">'\Wbstɹəkt'</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>(re.fullmatch(regex_notw_bstɹækt, string_əbstɹəkt),</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a> re.fullmatch(regex_notw_bstɹækt, <span class="st">'</span><span class="ch">\n</span><span class="st">'</span><span class="op">+</span>string_əbstɹəkt[<span class="dv">1</span>:]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="35">
+<pre data-code-line-numbers=""><code>(None, &lt;re.Match object; span=(0, 8), match='\nbstɹəkt'&gt;)</code></pre>
+</div>
+</div>
+<p>Sometimes you want the complement of a set that doesn’t have an associated escaped alphabetic character. For that you can use the same square bracket set notation but put a <code>^</code> after the first bracket.</p>
+<div class="cell" data-executioninfo="{&quot;elapsed&quot;:3,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675099877617,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="f0dac4b6-8502-431a-8fe9-3c7347c76bd4" data-execution_count="36">
+<div class="sourceCode cell-code" id="cb13" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>regex_notə_bstɹækt <span class="op">=</span> <span class="st">'[^æ]bstɹəkt'</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>(re.fullmatch(regex_notə_bstɹækt, string_əbstɹəkt),</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a> re.fullmatch(regex_notə_bstɹækt, <span class="st">'æ'</span> <span class="op">+</span> string_əbstɹəkt[<span class="dv">1</span>:]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="36">
+<pre data-code-line-numbers=""><code>(&lt;re.Match object; span=(0, 8), match='əbstɹəkt'&gt;, None)</code></pre>
+</div>
+</div>
+<p>The placement of this <code>^</code> is really important, since it only has the negation interpretation directly after <code>[</code>.</p>
 
 
 </section>
@@ -637,12 +720,17 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   }
 });
 </script>
+<script src="https://giscus.app/client.js" data-repo="aaronstevenwhite/intro-to-cl" data-repo-id="R_kgDOLDRKkw" data-category="General" data-category-id="DIC_kwDOLDRKk84CcfKw" data-mapping="title" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="top" data-theme="light" data-lang="en" crossorigin="anonymous" async="">
+</script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
+      <a href="../../formal-and-practical-preliminaries/regular-expressions/wild-cards-and-character-ranges.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Wild cards and character ranges</span>
+      </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./installation.html" class="pagination-link">
-        <span class="nav-page-text">Installation</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../../formal-and-practical-preliminaries/regular-expressions/groups-and-greediness.html" class="pagination-link">
+        <span class="nav-page-text">Groups and Greediness</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
@@ -650,5 +738,5 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
 
 
-<script src="site_libs/quarto-contrib/line-highlight-1.0.0/line-highlight.js" defer="true"></script>
+<script src="../../site_libs/quarto-contrib/line-highlight-1.0.0/line-highlight.js" defer="true"></script>
 </body></html>

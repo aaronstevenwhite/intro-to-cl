@@ -1,8 +1,0 @@
----
-title: Using Regular Expressions
-bibliography: ../../references.bib
----
-
-::: {.callout-caution}
-This submodule will be available around Wednesday, January 31, 2024.
-:::
