@@ -19,6 +19,7 @@ project:
     - formal-and-practical-preliminaries/regular-expressions/formal-definition.ipynb
     - formal-and-practical-preliminaries/regular-expressions/using-regular-expressions.qmd
     - formal-and-practical-preliminaries/regular-expressions/loading-a-lexicon.ipynb
+    - formal-and-practical-preliminaries/regular-expressions/basic-matching.ipynb
     - formal-and-practical-preliminaries/regular-expressions/implementing-the-regular-operations.ipynb
     - formal-and-practical-preliminaries/regular-expressions/wild-cards-and-character-ranges.ipynb
     - formal-and-practical-preliminaries/regular-expressions/quantifiers.ipynb
@@ -64,6 +65,7 @@ website:
               - formal-and-practical-preliminaries/regular-expressions/index.qmd
               - formal-and-practical-preliminaries/regular-expressions/formal-definition.ipynb
               - formal-and-practical-preliminaries/regular-expressions/loading-a-lexicon.ipynb
+              - formal-and-practical-preliminaries/regular-expressions/basic-matching.ipynb
               - formal-and-practical-preliminaries/regular-expressions/implementing-the-regular-operations.ipynb
               - formal-and-practical-preliminaries/regular-expressions/wild-cards-and-character-ranges.ipynb
               - formal-and-practical-preliminaries/regular-expressions/quantifiers.ipynb
