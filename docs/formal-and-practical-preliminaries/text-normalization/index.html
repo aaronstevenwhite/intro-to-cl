@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Introduction to Computational Linguistics - Text Normalization</title>
+<title>Introduction to Computational Linguistics - Overview</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -30,8 +30,8 @@ ul.task-list li input[type="checkbox"] {
 <script src="../../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../../">
-<link href="../../formal-and-practical-preliminaries/working-with-annotated-corpora/index.html" rel="next">
-<link href="../../formal-and-practical-preliminaries/regular-expressions/index.html" rel="prev">
+<link href="../../formal-and-practical-preliminaries/text-normalization/tokenization.html" rel="next">
+<link href="../../formal-and-practical-preliminaries/regular-expressions/groups-and-greediness.html" rel="prev">
 <script src="../../site_libs/quarto-html/quarto.js"></script>
 <script src="../../site_libs/quarto-html/popper.min.js"></script>
 <script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -75,7 +75,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../formal-and-practical-preliminaries/index.html">Formal and Practical Preliminaries</a></li><li class="breadcrumb-item"><a href="../../formal-and-practical-preliminaries/text-normalization/index.html">Text Normalization</a></li></ol></nav>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../formal-and-practical-preliminaries/index.html">Formal and Practical Preliminaries</a></li><li class="breadcrumb-item"><a href="../../formal-and-practical-preliminaries/text-normalization/index.html">Text Normalization</a></li><li class="breadcrumb-item"><a href="../../formal-and-practical-preliminaries/text-normalization/index.html">Overview</a></li></ol></nav>
       <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
       </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -192,24 +192,112 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/string-and-languages.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Strings and Languages</span></a>
+  <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/strings.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Strings</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/languages.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Languages</span></a>
   </div>
 </li>
       </ul>
   </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="false">
+ <span class="menu-text">Regular Expressions</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../formal-and-practical-preliminaries/regular-expressions/index.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Regular Expressions</span></a>
+ <span class="menu-text">Overview</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/text-normalization/index.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text">Text Normalization</span></a>
+  <a href="../../formal-and-practical-preliminaries/regular-expressions/formal-definition.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Formal Definition</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../formal-and-practical-preliminaries/regular-expressions/loading-a-lexicon.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Loading a Lexicon</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../formal-and-practical-preliminaries/regular-expressions/basic-matching.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Basic Matching</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../formal-and-practical-preliminaries/regular-expressions/implementing-the-regular-operations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Implementing the Regular Operations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../formal-and-practical-preliminaries/regular-expressions/wild-cards-and-character-ranges.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Wild cards and character ranges</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../formal-and-practical-preliminaries/regular-expressions/quantifiers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Quantifiers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../formal-and-practical-preliminaries/regular-expressions/groups-and-greediness.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Groups and Greediness</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true">
+ <span class="menu-text">Text Normalization</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth2 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../formal-and-practical-preliminaries/text-normalization/index.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../formal-and-practical-preliminaries/text-normalization/tokenization.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Tokenization</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../formal-and-practical-preliminaries/text-normalization/sentence-separation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Sentence Separation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../formal-and-practical-preliminaries/text-normalization/lemmatization.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Spacy</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../formal-and-practical-preliminaries/working-with-annotated-corpora/index.html" class="sidebar-item-text sidebar-link">
@@ -226,13 +314,13 @@ ul.task-list li input[type="checkbox"] {
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">
  <span class="menu-text">Finite State Models</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../finite-state-models/index.html" class="sidebar-item-text sidebar-link">
@@ -243,13 +331,13 @@ ul.task-list li input[type="checkbox"] {
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true">
  <span class="menu-text">Context Free Models</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../context-free-models/index.html" class="sidebar-item-text sidebar-link">
@@ -260,17 +348,34 @@ ul.task-list li input[type="checkbox"] {
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true">
  <span class="menu-text">Mildly Context Sensitive Models</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../mildly-context-sensitive-models/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="true">
+ <span class="menu-text">Assignments</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../assignments/assignments-1-and-2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Assignments 1 and 2</span></a>
   </div>
 </li>
       </ul>
@@ -288,7 +393,7 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Text Normalization</h1>
+<h1 class="title">Overview</h1>
 </div>
 
 
@@ -303,19 +408,8 @@ ul.task-list li input[type="checkbox"] {
 
 </header>
 
-<div class="callout callout-style-default callout-caution callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Caution
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>This submodule will be available around February 5, 2024.</p>
-</div>
-</div>
+<p>In this submodule, we’re going to be looking at a few key text normalization methods. These methods are crucial to know from a practical standpoint, since most language data you will work with won’t come nicely formatted: it will be a big blob of text that you’ll need to transform in various ways to make it usable.</p>
+<p>We’ll specifically focus on two basic methods: <em>tokenization</em>, <em>lemmatization</em>, and <em>sentence separation</em>. All three turn out to be surprisingly nontrivial to implement–even for a very well-studied like English–and so we won’t be implementing full solutions here. I mainly want to tell you what they are and show you good off-the-shelf tools for implementing them.</p>
 
 
 
@@ -557,13 +651,13 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../../formal-and-practical-preliminaries/regular-expressions/index.html" class="pagination-link">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Regular Expressions</span>
+      <a href="../../formal-and-practical-preliminaries/regular-expressions/groups-and-greediness.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Groups and Greediness</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../../formal-and-practical-preliminaries/working-with-annotated-corpora/index.html" class="pagination-link">
-        <span class="nav-page-text">Working with Annotated Corpora</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../../formal-and-practical-preliminaries/text-normalization/tokenization.html" class="pagination-link">
+        <span class="nav-page-text">Tokenization</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

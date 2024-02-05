@@ -14,7 +14,8 @@ project:
     - formal-and-practical-preliminaries/elementary-mathematical-concepts/products.ipynb
     - formal-and-practical-preliminaries/elementary-mathematical-concepts/relations-and-functions.ipynb
     - formal-and-practical-preliminaries/elementary-mathematical-concepts/sequences.ipynb
-    - formal-and-practical-preliminaries/elementary-mathematical-concepts/string-and-languages.ipynb
+    - formal-and-practical-preliminaries/elementary-mathematical-concepts/strings.ipynb
+    - formal-and-practical-preliminaries/elementary-mathematical-concepts/languages.ipynb
     - formal-and-practical-preliminaries/regular-expressions/index.qmd
     - formal-and-practical-preliminaries/regular-expressions/formal-definition.ipynb
     - formal-and-practical-preliminaries/regular-expressions/using-regular-expressions.qmd
@@ -25,6 +26,9 @@ project:
     - formal-and-practical-preliminaries/regular-expressions/quantifiers.ipynb
     - formal-and-practical-preliminaries/regular-expressions/groups-and-greediness.ipynb
     - formal-and-practical-preliminaries/text-normalization/index.qmd
+    - formal-and-practical-preliminaries/text-normalization/tokenization.ipynb
+    - formal-and-practical-preliminaries/text-normalization/sentence-separation.ipynb
+    - formal-and-practical-preliminaries/text-normalization/lemmatization.ipynb
     - formal-and-practical-preliminaries/working-with-annotated-corpora/index.qmd
     - formal-and-practical-preliminaries/edit-distance-and-string-alignment/index.qmd
     - formal-and-practical-preliminaries/text-normalization/index.qmd
@@ -59,7 +63,8 @@ website:
               - formal-and-practical-preliminaries/elementary-mathematical-concepts/products.ipynb
               - formal-and-practical-preliminaries/elementary-mathematical-concepts/relations-and-functions.ipynb
               - formal-and-practical-preliminaries/elementary-mathematical-concepts/sequences.ipynb
-              - formal-and-practical-preliminaries/elementary-mathematical-concepts/string-and-languages.ipynb
+              - formal-and-practical-preliminaries/elementary-mathematical-concepts/strings.ipynb
+              - formal-and-practical-preliminaries/elementary-mathematical-concepts/languages.ipynb
           - section: "Regular Expressions"
             contents:
               - formal-and-practical-preliminaries/regular-expressions/index.qmd
@@ -70,7 +75,12 @@ website:
               - formal-and-practical-preliminaries/regular-expressions/wild-cards-and-character-ranges.ipynb
               - formal-and-practical-preliminaries/regular-expressions/quantifiers.ipynb
               - formal-and-practical-preliminaries/regular-expressions/groups-and-greediness.ipynb
-          - formal-and-practical-preliminaries/text-normalization/index.qmd
+          - section: "Text Normalization"
+            contents:
+              - formal-and-practical-preliminaries/text-normalization/index.qmd
+              - formal-and-practical-preliminaries/text-normalization/tokenization.ipynb
+              - formal-and-practical-preliminaries/text-normalization/sentence-separation.ipynb
+              - formal-and-practical-preliminaries/text-normalization/lemmatization.ipynb
           - formal-and-practical-preliminaries/working-with-annotated-corpora/index.qmd
           - formal-and-practical-preliminaries/edit-distance-and-string-alignment/index.qmd
       - section: "Finite State Models"

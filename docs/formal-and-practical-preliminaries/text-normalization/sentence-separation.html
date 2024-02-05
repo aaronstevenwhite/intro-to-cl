@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Introduction to Computational Linguistics - Multisets</title>
+<title>Introduction to Computational Linguistics - Sentence Separation</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -64,8 +64,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../../">
-<link href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/cardinality.html" rel="next">
-<link href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/sets.html" rel="prev">
+<link href="../../formal-and-practical-preliminaries/text-normalization/lemmatization.html" rel="next">
+<link href="../../formal-and-practical-preliminaries/text-normalization/tokenization.html" rel="prev">
 <script src="../../site_libs/quarto-html/quarto.js"></script>
 <script src="../../site_libs/quarto-html/popper.min.js"></script>
 <script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -96,8 +96,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 <link rel="stylesheet" href="../../styles.css">
 </head>
@@ -111,7 +109,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../formal-and-practical-preliminaries/index.html">Formal and Practical Preliminaries</a></li><li class="breadcrumb-item"><a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/index.html">Elementary Mathematical Concepts</a></li><li class="breadcrumb-item"><a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/multisets.html">Multisets</a></li></ol></nav>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../formal-and-practical-preliminaries/index.html">Formal and Practical Preliminaries</a></li><li class="breadcrumb-item"><a href="../../formal-and-practical-preliminaries/text-normalization/index.html">Text Normalization</a></li><li class="breadcrumb-item"><a href="../../formal-and-practical-preliminaries/text-normalization/sentence-separation.html">Sentence Separation</a></li></ol></nav>
       <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
       </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -165,13 +163,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false">
  <span class="menu-text">Elementary Mathematical Concepts</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth2 show">  
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/index.html" class="sidebar-item-text sidebar-link">
@@ -186,7 +184,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/multisets.html" class="sidebar-item-text sidebar-link active">
+  <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/multisets.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Multisets</span></a>
   </div>
 </li>
@@ -224,6 +222,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/sequences.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Sequences</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/strings.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Strings</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -295,13 +299,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true">
  <span class="menu-text">Text Normalization</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth2 ">  
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth2 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../formal-and-practical-preliminaries/text-normalization/index.html" class="sidebar-item-text sidebar-link">
@@ -316,7 +320,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/text-normalization/sentence-separation.html" class="sidebar-item-text sidebar-link">
+  <a href="../../formal-and-practical-preliminaries/text-normalization/sentence-separation.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">Sentence Separation</span></a>
   </div>
 </li>
@@ -423,7 +427,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Multisets</h1>
+<h1 class="title">Sentence Separation</h1>
 </div>
 
 
@@ -438,105 +442,45 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<p><a href="https://en.wikipedia.org/wiki/Multiset"><em>Multisets</em></a> (or <em>bags</em>) are <em>unordered</em>, <em>nonuniqued</em> collections. In this course, we won’t spend too much time with these sorts of objects, but it’s useful to know the terminology.</p>
-<p>Multisets are often (somewhat confusingly) represented using the same notation as sets. For instance, the following is a multiset containing only vowels.</p>
-<p><span class="math display">\[\bar{V}_1 \equiv \{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\}\]</span></p>
-<p>And this is a representation of the same multiset, since multisets are unordered.</p>
-<p><span class="math display">\[\bar{V}_2 \equiv \{\text{o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ, e, i}\}\]</span></p>
-<p>But this is not a representation of a multiset, since multisets are nonuniqued.</p>
-<p><span class="math display">\[\bar{V}_3 \equiv \{\text{o, o, o, u, u, æ, ɑ, ɔ, ə, ə, ə, ɛ, ɪ, ʊ, e, i}\}\]</span></p>
-<p>Another way of saying this is that the <a href="https://en.wikipedia.org/wiki/Multiplicity_(mathematics)"><em>multiplicity</em></a> of a particular element matters in a multiset in a way it doesn’t matter in a set.</p>
-<p>We often work with multisets in Python using <a href="https://docs.python.org/3/tutorial/datastructures.html#dictionaries"><code>dict</code>s</a> or specialized subclasses thereof. One special subclass of <code>dict</code> that is useful for representing multisets (and that you should know) is <a href="https://docs.python.org/3/library/collections.html#collections.Counter"><code>collections.Counter</code></a>.</p>
-<p>The nice thing about <code>Counter</code> is that it can be initialized with an iterable or mapping (such as a <code>set</code>) containing hashable objects (such as <code>str</code>s) and it will make a dictionary mapping the elements of that iterable/mapping to their multiplicity–i.e.&nbsp;how many times they show up in that iterable/mapping.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
-<div class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb1" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pprint <span class="im">import</span> pprint</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> collections <span class="im">import</span> Counter</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>vowels_bar_1: Counter[<span class="bu">str</span>] <span class="op">=</span> Counter(</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"e"</span>, <span class="st">"i"</span>, <span class="st">"o"</span>, <span class="st">"u"</span>, <span class="st">"æ"</span>, <span class="st">"ɑ"</span>, <span class="st">"ɔ"</span>, <span class="st">"ə"</span>, <span class="st">"ɛ"</span>, <span class="st">"ɪ"</span>, <span class="st">"ʊ"</span>]</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>pprint(vowels_bar_1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>When working with actually text, that text won’t come with clear sentence boundaries. So in addition to tokenization, you usually want to do sentence separation.</p>
+<p>When working with standard English orthography, you can usually look at cues such as periods, question marks, exclamation points, etc. to tell you when a sentence ends.</p>
+<div class="cell" data-executioninfo="{&quot;elapsed&quot;:6,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675703873467,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb1" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>en_str_canonical <span class="op">=</span> <span class="st">"The fictional Pandoran biosphere, from James Cameron's Avatar, teems with a biodiversity of bioluminescent species ranging from hexapodal animals to other types of exotic fauna and flora. The Pandoran ecology forms a vast neural network spanning the entire lunar surface into which the Na'vi and other creatures can connect. The strength of this collective consciousness is illustrated when the human invaders are defeated in battle by the Pandoran ecology, after the Na'vi were nearly defeated. Cameron utilized a team of expert advisors in order to make the various examples of fauna and flora as scientifically feasible as possible."</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Text from other sources (e.g.&nbsp;twitter or reddit) can be significantly more difficult to correctly sentence separate, depending on the conventions of the community, and you sometimes need a model specific to that source.</p>
+<section id="stanza" class="level4">
+<h4 class="anchored" data-anchor-id="stanza">Stanza</h4>
+<div class="cell" data-executioninfo="{&quot;elapsed&quot;:190,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675703873651,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="93ea7fb5-d750-40b7-bbea-7dbdbb3eaae9" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb2" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Processing English text</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>en_doc <span class="op">=</span> stanza_en_nlp(en_str_canonical)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> sent <span class="kw">in</span> en_doc.sentences:</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>   <span class="bu">print</span>(<span class="st">' '</span>.join([w.text <span class="cf">for</span> w <span class="kw">in</span> sent.words]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre data-code-line-numbers=""><code>Counter({'e': 1,
-         'i': 1,
-         'o': 1,
-         'u': 1,
-         'æ': 1,
-         'ɑ': 1,
-         'ɔ': 1,
-         'ə': 1,
-         'ɛ': 1,
-         'ɪ': 1,
-         'ʊ': 1})</code></pre>
+<pre data-code-line-numbers=""><code>The fictional Pandoran biosphere , from James Cameron 's Avatar , teems with a biodiversity of bioluminescent species ranging from hexapodal animals to other types of exotic fauna and flora .
+The Pandoran ecology forms a vast neural network spanning the entire lunar surface into which the Na'vi and other creatures can connect .
+The strength of this collective consciousness is illustrated when the human invaders are defeated in battle by the Pandoran ecology , after the Na'vi were nearly defeated .
+Cameron utilized a team of expert advisors in order to make the various examples of fauna and flora as scientifically feasible as possible .</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="2">
-<div class="sourceCode cell-code" id="cb3" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>vowels_bar_2: Counter[<span class="bu">str</span>] <span class="op">=</span> Counter(</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"o"</span>, <span class="st">"u"</span>, <span class="st">"æ"</span>, <span class="st">"ɑ"</span>, <span class="st">"ɔ"</span>, <span class="st">"ə"</span>, <span class="st">"ɛ"</span>, <span class="st">"ɪ"</span>, <span class="st">"ʊ"</span>, <span class="st">"e"</span>, <span class="st">"i"</span>]</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>pprint(vowels_bar_2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="spacy" class="level4">
+<h4 class="anchored" data-anchor-id="spacy">Spacy</h4>
+<div class="cell" data-executioninfo="{&quot;elapsed&quot;:5,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675703873651,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="5cb18f76-9c1c-490d-bf4f-9121aa865153" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb4" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> sent <span class="kw">in</span> en_doc.sentences:</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>   <span class="bu">print</span>(<span class="st">' '</span>.join([w.text <span class="cf">for</span> w <span class="kw">in</span> sent.words]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre data-code-line-numbers=""><code>Counter({'o': 1,
-         'u': 1,
-         'æ': 1,
-         'ɑ': 1,
-         'ɔ': 1,
-         'ə': 1,
-         'ɛ': 1,
-         'ɪ': 1,
-         'ʊ': 1,
-         'e': 1,
-         'i': 1})</code></pre>
-</div>
-</div>
-<div class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb5" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>vowels_bar_3: Counter[<span class="bu">str</span>] <span class="op">=</span> Counter(</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"o"</span>, <span class="st">"o"</span>, <span class="st">"o"</span>, <span class="st">"u"</span>, <span class="st">"u"</span>, <span class="st">"æ"</span>, <span class="st">"ɑ"</span>, <span class="st">"ɔ"</span>, <span class="st">"ə"</span>, <span class="st">"ə"</span>, <span class="st">"ə"</span>, <span class="st">"ɛ"</span>, <span class="st">"ɪ"</span>, <span class="st">"ʊ"</span>, <span class="st">"e"</span>, <span class="st">"i"</span>]</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>pprint(vowels_bar_3)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre data-code-line-numbers=""><code>Counter({'o': 3,
-         'ə': 3,
-         'u': 2,
-         'æ': 1,
-         'ɑ': 1,
-         'ɔ': 1,
-         'ɛ': 1,
-         'ɪ': 1,
-         'ʊ': 1,
-         'e': 1,
-         'i': 1})</code></pre>
-</div>
-</div>
-<p>And <code>Counter</code>s behave as we would expect of a multiset–at least in terms of equality.</p>
-<div class="cell" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb7" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> vowels_bar_1 <span class="op">==</span> vowels_bar_2:</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Vbar_1 = Vbar_2"</span>)</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Vbar_1 ≠ Vbar_2"</span>)</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> vowels_bar_1 <span class="op">==</span> vowels_bar_3:</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Vbar_1 = Vbar_3"</span>)</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Vbar_1 ≠ Vbar_3"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre data-code-line-numbers=""><code>Vbar_1 = Vbar_2
-Vbar_1 ≠ Vbar_3</code></pre>
+<pre data-code-line-numbers=""><code>The fictional Pandoran biosphere , from James Cameron 's Avatar , teems with a biodiversity of bioluminescent species ranging from hexapodal animals to other types of exotic fauna and flora .
+The Pandoran ecology forms a vast neural network spanning the entire lunar surface into which the Na'vi and other creatures can connect .
+The strength of this collective consciousness is illustrated when the human invaders are defeated in battle by the Pandoran ecology , after the Na'vi were nearly defeated .
+Cameron utilized a team of expert advisors in order to make the various examples of fauna and flora as scientifically feasible as possible .</code></pre>
 </div>
 </div>
 
 
+</section>
 
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
-
-<ol>
-<li id="fn1"><p>Note that I’m passing the vowels in the multiset as a <code>list</code> to <code>Counter</code>. We crucially don’t want to pass them as a <code>set</code>, because that would destroy the multiplicities of the items.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-</ol>
-</section></div></main> <!-- /main -->
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
@@ -616,57 +560,6 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     // clear code selection
     e.clearSelection();
   });
-  const viewSource = window.document.getElementById('quarto-view-source') ||
-                     window.document.getElementById('quarto-code-tools-source');
-  if (viewSource) {
-    const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
-    viewSource.addEventListener("click", function(e) {
-      if (sourceUrl) {
-        // rstudio viewer pane
-        if (/\bcapabilities=\b/.test(window.location)) {
-          window.open(sourceUrl);
-        } else {
-          window.location.href = sourceUrl;
-        }
-      } else {
-        const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
-        modal.show();
-      }
-      return false;
-    });
-  }
-  function toggleCodeHandler(show) {
-    return function(e) {
-      const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
-      for (let i=0; i<detailsSrc.length; i++) {
-        const details = detailsSrc[i].parentElement;
-        if (show) {
-          details.open = true;
-        } else {
-          details.removeAttribute("open");
-        }
-      }
-      const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
-      const fromCls = show ? "hidden" : "unhidden";
-      const toCls = show ? "unhidden" : "hidden";
-      for (let i=0; i<cellCodeDivs.length; i++) {
-        const codeDiv = cellCodeDivs[i];
-        if (codeDiv.classList.contains(fromCls)) {
-          codeDiv.classList.remove(fromCls);
-          codeDiv.classList.add(toCls);
-        } 
-      }
-      return false;
-    }
-  }
-  const hideAllCode = window.document.getElementById("quarto-hide-all-code");
-  if (hideAllCode) {
-    hideAllCode.addEventListener("click", toggleCodeHandler(false));
-  }
-  const showAllCode = window.document.getElementById("quarto-show-all-code");
-  if (showAllCode) {
-    showAllCode.addEventListener("click", toggleCodeHandler(true));
-  }
   function tippyHover(el, contentFn) {
     const config = {
       allowHTML: true,
@@ -825,13 +718,13 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/sets.html" class="pagination-link">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Sets</span>
+      <a href="../../formal-and-practical-preliminaries/text-normalization/tokenization.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Tokenization</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/cardinality.html" class="pagination-link">
-        <span class="nav-page-text">Cardinality</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../../formal-and-practical-preliminaries/text-normalization/lemmatization.html" class="pagination-link">
+        <span class="nav-page-text">Spacy</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

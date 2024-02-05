@@ -1,8 +1,8 @@
 ---
-title: Text Normalization
+title: Overview
 bibliography: ../../references.bib
 ---
 
-::: {.callout-caution}
-This submodule will be available around February 5, 2024.
-:::
+In this submodule, we're going to be looking at a few key text normalization methods. These methods are crucial to know from a practical standpoint, since most language data you will work with won't come nicely formatted: it will be a big blob of text that you'll need to transform in various ways to make it usable.
+
+We'll specifically focus on two basic methods: *tokenization*, *lemmatization*, and *sentence separation*. All three turn out to be surprisingly nontrivial to implement–even for a very well-studied like English–and so we won't be implementing full solutions here. I mainly want to tell you what they are and show you good off-the-shelf tools for implementing them.
