@@ -664,9 +664,9 @@ bæt (bat) + ʃən = bætʃənd (bachand)
 ...</code></pre>
 </div>
 </div>
-<p>An issue here is that /ʃən/ doesn’t simply get appended to a stem. There is an additional phonological process that deletes a portion of that stem–e.g.&nbsp;/æbstɹækt/ + /ʃən/ is /æbstɹækʃən/, not /æbstɹæk<strong>t</strong>ʃən/. So we need to consider cases where a final consonant–usually a <code>t</code>–was deleted.</p>
-<div class="cell" data-executioninfo="{&quot;elapsed&quot;:5,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675099877737,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="17b3ba36-8b13-4bf7-edb3-442cdab008cf" data-execution_count="65">
-<div class="sourceCode cell-code" id="cb14" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>regex_ʃən <span class="op">=</span> <span class="st">'(.+?)(?:eɪ)?ʃən'</span></span>
+<p>An issue here is that /ʃən/ doesn’t simply get appended to a stem. There is an additional phonological process that deletes a portion of that stem–e.g.&nbsp;/æbstɹækt/ + /ʃən/ is /æbstɹækʃən/, not /æbstɹæk<strong>t</strong>ʃən/. So we need to consider cases where a final consonant–usually a <code>t</code>–was deleted. But we need to make sure we do so only when the morpheme wasn’t realized as /eɪʃən/, so we need to go back to capturing it.</p>
+<div class="cell" data-executioninfo="{&quot;elapsed&quot;:5,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675099877737,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="17b3ba36-8b13-4bf7-edb3-442cdab008cf" data-execution_count="78">
+<div class="sourceCode cell-code" id="cb14" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>regex_ʃən <span class="op">=</span> <span class="st">'(.+?)(eɪ)?ʃən'</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>n_matches <span class="op">=</span> <span class="dv">0</span></span>
 <span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
@@ -676,20 +676,24 @@ bæt (bat) + ʃən = bætʃənd (bachand)
 <span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    possible_morpheme <span class="op">=</span> re.findall(regex_ʃən, <span class="st">""</span>.join(ipa1))</span>
 <span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> possible_morpheme:</span>
 <span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> w2, ipa2 <span class="kw">in</span> entries.items():</span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> re.fullmatch(possible_morpheme[<span class="dv">0</span>] <span class="op">+</span> <span class="st">"t"</span>, <span class="st">""</span>.join(ipa2)):</span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> n_matches <span class="op">&lt;</span> <span class="dv">20</span> <span class="kw">and</span> <span class="st">""</span>.join(ipa2) <span class="kw">not</span> <span class="kw">in</span> seen:</span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>                    n_matches <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>                    seen <span class="op">|=</span> {<span class="st">""</span>.join(ipa2)}</span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>                    <span class="bu">print</span>(<span class="st">""</span>.join(ipa2), <span class="ss">f"(</span><span class="sc">{</span>w2<span class="sc">}</span><span class="ss">)"</span>, <span class="st">"+"</span>, <span class="st">"ʃən"</span>, <span class="st">"="</span>, <span class="st">""</span>.join(ipa1), <span class="ss">f"(</span><span class="sc">{</span>w1<span class="sc">}</span><span class="ss">)"</span>)</span>
-<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>:</span>
-<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">break</span></span>
-<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> n_matches <span class="op">&gt;=</span> <span class="dv">20</span>:   </span>
-<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">"..."</span>)</span>
-<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> possible_morpheme[<span class="dv">0</span>][<span class="dv">1</span>]:</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>                regex_stem <span class="op">=</span> possible_morpheme[<span class="dv">0</span>][<span class="dv">0</span>]</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span>:</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>                regex_stem <span class="op">=</span> possible_morpheme[<span class="dv">0</span>][<span class="dv">0</span>] <span class="op">+</span> <span class="st">"t"</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> re.fullmatch(regex_stem, <span class="st">""</span>.join(ipa2)):</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> n_matches <span class="op">&lt;</span> <span class="dv">20</span> <span class="kw">and</span> <span class="st">""</span>.join(ipa2) <span class="kw">not</span> <span class="kw">in</span> seen:</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>                    n_matches <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>                    seen <span class="op">|=</span> {<span class="st">""</span>.join(ipa2)}</span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>                    <span class="bu">print</span>(<span class="st">""</span>.join(ipa2), <span class="ss">f"(</span><span class="sc">{</span>w2<span class="sc">}</span><span class="ss">)"</span>, <span class="st">"+"</span>, <span class="st">"ʃən"</span>, <span class="st">"="</span>, <span class="st">""</span>.join(ipa1), <span class="ss">f"(</span><span class="sc">{</span>w1<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>:</span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">break</span></span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> n_matches <span class="op">&gt;=</span> <span class="dv">20</span>:   </span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">"..."</span>)</span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre data-code-line-numbers=""><code>æbdəkt (abduct) + ʃən = æbdəkʃən (abduction)
-æbɝt (abert) + ʃən = æbɝeɪʃən (aberration)
 əbɔɹt (abort) + ʃən = əbɔɹʃən (abortion)
 æbsəlut (absolut) + ʃən = æbsəluʃən (absolution)
 æbstɹækt (abstract) + ʃən = æbstɹækʃən (abstraction)
@@ -697,23 +701,24 @@ bæt (bat) + ʃən = bætʃənd (bachand)
 ədɪkt (addict) + ʃən = ədɪkʃən (addiction)
 ədmɪt (admit) + ʃən = ədmɪʃən (admission(1))
 ədɑpt (adopt) + ʃən = ədɑpʃən (adoption)
+ædɝ (adder) + ʃən = ædɝeɪʃən (adoration)
+ædʒəl (agile) + ʃən = ædʒəleɪʃən (adulation)
 əfɛkt (affect) + ʃən = əfɛkʃən (affection)
 əflɪkt (afflict) + ʃən = əflɪkʃən (affliction)
+eɪliən (alien) + ʃən = eɪliəneɪʃən (alienation)
+ɔltɝ (altar) + ʃən = ɔltɝeɪʃən (alteration)
+əmælgəm (amalgam) + ʃən = əmælgəmeɪʃən (amalgamation)
 eɪnt (ain't) + ʃən = eɪnʃənt (ancient(1))
-ænɛkst (annexed) + ʃən = ænɛkseɪʃən (annexation)
+ænəm (annum) + ʃən = ænəmeɪʃən (animation)
+ænɛks (annex) + ʃən = ænɛkseɪʃən (annexation)
 ænt (ant) + ʃən = ænʃən (anshan)
-əsɛnt (ascent) + ʃən = əsɛnʃən (ascension)
-æt (at) + ʃən = æʃən (ashen)
-əsɝt (assert) + ʃən = əsɝʃən (assertion)
-ətɹækt (attract) + ʃən = ətɹækʃən (attraction)
-ɔkt (oct) + ʃən = ɔkʃən (auction(1))
-ɔdɪt (audit) + ʃən = ɔdɪʃənd (auditioned)
+æpəl (appel) + ʃən = æpəleɪʃən (appalachian(1))
 ...</code></pre>
 </div>
 </div>
-<p>There’s still some wonky stuff in here–e.g.&nbsp;<em>ancient</em> coming from <em>ain’t</em> and <em>ashen</em> coming from <em>at</em>–but we’re getting closer. We can’t really deal with <em>ashen</em> coming from <em>at</em>, but we can deal with <em>ancient</em> coming from <em>ain’t</em>, which reveals a behavior of <code>re.findall</code>: it functions like <code>re.match</code>, rather than <code>re.fullmatch</code>, in that it matches the beginning of a string. If we want it to match the entire string, we have to explicitly specify that in the regular expression. To do this, we can use a <code>$</code>, which means “end of string”.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
-<div class="cell" data-executioninfo="{&quot;elapsed&quot;:4,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675103797019,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="5a2743c7-b97a-465a-b61f-8911d356e624" data-execution_count="75">
-<div class="sourceCode cell-code" id="cb16" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>regex_ʃən <span class="op">=</span> <span class="st">'(.+?)(?:eɪ)?ʃən$'</span></span>
+<p>There’s still some wonky stuff in here–e.g.&nbsp;<em>ancient</em> coming from <em>ain’t</em> and <em>ashen</em> coming from <em>at</em>–but we’re getting closer. We can’t really deal with cases like <em>ashen</em> coming from <em>at</em>, but we can deal with <em>ancient</em> coming from <em>ain’t</em>, which reveals a behavior of <code>re.findall</code>: it functions like <code>re.match</code>, rather than <code>re.fullmatch</code>, in that it matches the beginning of a string. If we want it to match the entire string, we have to explicitly specify that in the regular expression. To do this, we can use a <code>$</code>, which means “end of string”.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<div class="cell" data-executioninfo="{&quot;elapsed&quot;:4,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675103797019,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="5a2743c7-b97a-465a-b61f-8911d356e624" data-execution_count="79">
+<div class="sourceCode cell-code" id="cb16" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>regex_ʃən <span class="op">=</span> <span class="st">'(.+?)(eɪ)?ʃən$'</span></span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>n_matches <span class="op">=</span> <span class="dv">0</span></span>
 <span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
@@ -723,20 +728,24 @@ eɪnt (ain't) + ʃən = eɪnʃənt (ancient(1))
 <span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    possible_morpheme <span class="op">=</span> re.findall(regex_ʃən, <span class="st">""</span>.join(ipa1))</span>
 <span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> possible_morpheme:</span>
 <span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> w2, ipa2 <span class="kw">in</span> entries.items():</span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> re.fullmatch(possible_morpheme[<span class="dv">0</span>] <span class="op">+</span> <span class="st">"t"</span>, <span class="st">""</span>.join(ipa2)):</span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> n_matches <span class="op">&lt;</span> <span class="dv">20</span> <span class="kw">and</span> <span class="st">""</span>.join(ipa2) <span class="kw">not</span> <span class="kw">in</span> seen:</span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>                    n_matches <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>                    seen <span class="op">|=</span> {<span class="st">""</span>.join(ipa2)}</span>
-<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>                    <span class="bu">print</span>(<span class="st">""</span>.join(ipa2), <span class="ss">f"(</span><span class="sc">{</span>w2<span class="sc">}</span><span class="ss">)"</span>, <span class="st">"+"</span>, <span class="st">"ʃən"</span>, <span class="st">"="</span>, <span class="st">""</span>.join(ipa1), <span class="ss">f"(</span><span class="sc">{</span>w1<span class="sc">}</span><span class="ss">)"</span>)</span>
-<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>:</span>
-<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">break</span></span>
-<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> n_matches <span class="op">&gt;=</span> <span class="dv">20</span>:   </span>
-<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">"..."</span>)</span>
-<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> possible_morpheme[<span class="dv">0</span>][<span class="dv">1</span>]:</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>                regex_stem <span class="op">=</span> possible_morpheme[<span class="dv">0</span>][<span class="dv">0</span>]</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span>:</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>                regex_stem <span class="op">=</span> possible_morpheme[<span class="dv">0</span>][<span class="dv">0</span>] <span class="op">+</span> <span class="st">"t"</span></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> re.fullmatch(regex_stem, <span class="st">""</span>.join(ipa2)):</span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> n_matches <span class="op">&lt;</span> <span class="dv">20</span> <span class="kw">and</span> <span class="st">""</span>.join(ipa2) <span class="kw">not</span> <span class="kw">in</span> seen:</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>                    n_matches <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>                    seen <span class="op">|=</span> {<span class="st">""</span>.join(ipa2)}</span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>                    <span class="bu">print</span>(<span class="st">""</span>.join(ipa2), <span class="ss">f"(</span><span class="sc">{</span>w2<span class="sc">}</span><span class="ss">)"</span>, <span class="st">"+"</span>, <span class="st">"ʃən"</span>, <span class="st">"="</span>, <span class="st">""</span>.join(ipa1), <span class="ss">f"(</span><span class="sc">{</span>w1<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>:</span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">break</span></span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> n_matches <span class="op">&gt;=</span> <span class="dv">20</span>:   </span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">"..."</span>)</span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre data-code-line-numbers=""><code>æbdəkt (abduct) + ʃən = æbdəkʃən (abduction)
-æbɝt (abert) + ʃən = æbɝeɪʃən (aberration)
 əbɔɹt (abort) + ʃən = əbɔɹʃən (abortion)
 æbsəlut (absolut) + ʃən = æbsəluʃən (absolution)
 æbstɹækt (abstract) + ʃən = æbstɹækʃən (abstraction)
@@ -744,21 +753,22 @@ eɪnt (ain't) + ʃən = eɪnʃənt (ancient(1))
 ədɪkt (addict) + ʃən = ədɪkʃən (addiction)
 ədmɪt (admit) + ʃən = ədmɪʃən (admission(1))
 ədɑpt (adopt) + ʃən = ədɑpʃən (adoption)
+ædɝ (adder) + ʃən = ædɝeɪʃən (adoration)
+ædʒəl (agile) + ʃən = ædʒəleɪʃən (adulation)
 əfɛkt (affect) + ʃən = əfɛkʃən (affection)
 əflɪkt (afflict) + ʃən = əflɪkʃən (affliction)
-ænɛkst (annexed) + ʃən = ænɛkseɪʃən (annexation)
+eɪliən (alien) + ʃən = eɪliəneɪʃən (alienation)
+ɔltɝ (altar) + ʃən = ɔltɝeɪʃən (alteration)
+əmælgəm (amalgam) + ʃən = əmælgəmeɪʃən (amalgamation)
+ænəm (annum) + ʃən = ænəmeɪʃən (animation)
+ænɛks (annex) + ʃən = ænɛkseɪʃən (annexation)
 ænt (ant) + ʃən = ænʃən (anshan)
+æpəl (appel) + ʃən = æpəleɪʃən (appalachian(1))
 əsɛnt (ascent) + ʃən = əsɛnʃən (ascension)
-æt (at) + ʃən = æʃən (ashen)
-əsɝt (assert) + ʃən = əsɝʃən (assertion)
-ətɹækt (attract) + ʃən = ətɹækʃən (attraction)
-ɔkt (oct) + ʃən = ɔkʃən (auction(1))
-bɛnədɪkt (benedict) + ʃən = bɛnədɪkʃən (benediction)
-boʊt (boat) + ʃən = boʊʃən (bocian)
 ...</code></pre>
 </div>
 </div>
-<p>To get much better than this, we’d need to start matching on the orthographic representation as well–e.g.&nbsp;matching the <em>ion</em> at the end of the orthographic representation of the word, thus filtering things like /æt/ + /ʃən/ = æʃən.</p>
+<p>To get much better than this, we’d need to start matching on the orthographic representation as well–e.g.&nbsp;matching the <em>ion</em> at the end of the orthographic representation of the word, thus filtering things like /æt/ + /ʃən/ = /æʃən/. One thing we’ll still miss are cases like <em>adoration</em>, where there is a vowel quality change (which is consequently why we get <em>adder</em> + <em>ion</em> = <em>adoration</em> currently). To handle those cases, we would need to account for the conditions under which vowel quality changes, which we could do in principle using regular expressions but which I won’t do here.</p>
 
 
 
