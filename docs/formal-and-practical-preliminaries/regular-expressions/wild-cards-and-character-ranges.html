@@ -408,7 +408,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <p>We can represent all simple regular expressions according to our formal definition, but in certain cases, doing so would be tedious. For instance, suppose I want to represent the set of all English phonemes <span class="math inline">\(\Sigma\)</span>. Using our formal definition, we would need to list out all of the phonemes joined by <span class="math inline">\(\cup\)</span>: <span class="math inline">\((\text{i} \cup (\text{ɝ} \cup (\text{a} \cup (\text{ɪ} \cup \ldots))))\)</span>.</p>
 <p>To make this less tedious, Python (and many other languages) introduce additional special characters into the definition of <span class="math inline">\(R(\Sigma)\)</span>. The most basic is the wildcard <code>.</code>, which matches any single character (alphanumeric or otherwise) except the newline <code>\n</code>.</p>
-<div class="cell" data-execution_count="2">
+<div class="cell" data-execution_count="1">
 <details>
 <summary>Load IPA representation of CMU Pronouncing Dictionary</summary>
 <div class="sourceCode cell-code" id="cb1" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">"cmudict-ipa"</span>) <span class="im">as</span> f:</span>
@@ -423,13 +423,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell" data-executioninfo="{&quot;elapsed&quot;:396,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675102126972,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="20e11f17-403b-40d5-c75d-bdc4c0aaa220" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb2" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> re</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>regex_dot_bstɹækʃən <span class="op">=</span> <span class="st">'.bstɹækʃən'</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>regex_dot_bstɹ_dot_kʃən <span class="op">=</span> <span class="st">'.bstɹ.kʃən'</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>string_æbstɹækʃən <span class="op">=</span> <span class="st">""</span>.join(entries[<span class="st">"abstraction"</span>])</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>re.fullmatch(regex_dot_bstɹækʃən, string_æbstɹækʃən)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="3">
-<pre data-code-line-numbers=""><code>&lt;re.Match object; span=(0, 10), match='æbstɹækʃən'&gt;</code></pre>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> w, ipa <span class="kw">in</span> entries.items():</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> re.fullmatch(regex_dot_bstɹ_dot_kʃən, <span class="st">""</span>.join(ipa)):</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">""</span>.join(ipa), <span class="ss">f"(</span><span class="sc">{</span>w<span class="sc">}</span><span class="ss">)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre data-code-line-numbers=""><code>abstraction æbstɹækʃən
+obstruction əbstɹəkʃən</code></pre>
 </div>
 </div>
 <p>If you want to match the <code>.</code> itself (or any special character we introduce below), you need to <em>escape</em> it.</p>
