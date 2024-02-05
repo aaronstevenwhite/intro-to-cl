@@ -1,7 +1,0 @@
----
-title: Groups and Greediness
----
-
-::: {.callout-caution}
-This subsubmodule will be available around Monday, February 5, 2024.
-:::

@@ -20,6 +20,40 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -224,6 +258,12 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../../formal-and-practical-preliminaries/regular-expressions/basic-matching.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Basic Matching</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../../formal-and-practical-preliminaries/regular-expressions/implementing-the-regular-operations.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Implementing the Regular Operations</span></a>
   </div>
@@ -364,23 +404,371 @@ ul.task-list li input[type="checkbox"] {
 
 </header>
 
-<div class="callout callout-style-default callout-caution callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
+<p>One of the major uses for regular expressions is for extracting substrings from a string. This can be done with groups. For instance, suppose I want all of stems that have the morpheme with the form /ʃən/.</p>
+<div class="cell" data-execution_count="12">
+<details>
+<summary>Load IPA representation of CMU Pronouncing Dictionary</summary>
+<div class="sourceCode cell-code" id="cb1" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">"cmudict-ipa"</span>) <span class="im">as</span> f:</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    entries: <span class="bu">list</span>[<span class="bu">tuple</span>[<span class="bu">str</span>, <span class="bu">str</span>]] <span class="op">=</span> [</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>        l.strip().split(<span class="st">","</span>) <span class="cf">for</span> l <span class="kw">in</span> f</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    entries: <span class="bu">dict</span>[<span class="bu">str</span>, <span class="bu">list</span>[<span class="bu">str</span>]] <span class="op">=</span> {</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>        w: ipa.split() <span class="cf">for</span> w, ipa <span class="kw">in</span> entries</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    }</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
-<div class="callout-title-container flex-fill">
-Caution
+<div class="cell" data-executioninfo="{&quot;elapsed&quot;:4,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675099877736,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="06b7bb47-0dd1-4b3a-b8ad-1a99ca57c056" data-execution_count="48">
+<div class="sourceCode cell-code" id="cb2" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> re</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>regex_ʃən <span class="op">=</span> <span class="st">'(.+)ʃən'</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>n_matches <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> w, ipa <span class="kw">in</span> entries.items():</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> re.fullmatch(regex_ʃən, <span class="st">""</span>.join(ipa)):</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> n_matches <span class="op">&lt;</span> <span class="dv">30</span>:</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>            n_matches <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="st">""</span>.join(ipa), re.findall(regex_ʃən, <span class="st">""</span>.join(ipa)), <span class="ss">f"(</span><span class="sc">{</span>w<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="st">"..."</span>)</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>            <span class="cf">break</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre data-code-line-numbers=""><code>əbɹivieɪʃən ['əbɹivieɪ'] (abbreviation)
+æbdɪkeɪʃən ['æbdɪkeɪ'] (abdication)
+æbdəkʃən ['æbdək'] (abduction)
+əbdəkʃən ['əbdək'] (abduction(1))
+æbɝeɪʃən ['æbɝeɪ'] (aberration)
+əbleɪʃən ['əbleɪ'] (ablation)
+əbluʃən ['əblu'] (ablution)
+æbnɛgeɪʃən ['æbnɛgeɪ'] (abnegation)
+æbəlɪʃən ['æbəlɪ'] (abolition)
+əbɑməneɪʃən ['əbɑməneɪ'] (abomination)
+əbɔɹʃən ['əbɔɹ'] (abortion)
+æbɹəgeɪʃən ['æbɹəgeɪ'] (abrogation)
+æbsəluʃən ['æbsəlu'] (absolution)
+əbzɔɹpʃən ['əbzɔɹp'] (absorption)
+əbsɔɹpʃən ['əbsɔɹp'] (absorption(1))
+əbstɛntʃən ['əbstɛnt'] (abstention)
+æbstɛntʃən ['æbstɛnt'] (abstention(1))
+æbstɹækʃən ['æbstɹæk'] (abstraction)
+ækədəmɪʃən ['ækədəmɪ'] (academician)
+æksɛlɝeɪʃən ['æksɛlɝeɪ'] (acceleration)
+əksɛʃən ['əksɛ'] (accession)
+ækləmeɪʃən ['ækləmeɪ'] (acclamation)
+ækləmeɪʃən ['ækləmeɪ'] (acclimation)
+əkɑmədeɪʃən ['əkɑmədeɪ'] (accommodation)
+əkɹɛdəteɪʃən ['əkɹɛdəteɪ'] (accreditation)
+əkɹiʃən ['əkɹi'] (accretion)
+əkjumjəleɪʃən ['əkjumjəleɪ'] (accumulation)
+ækjəzeɪʃən ['ækjəzeɪ'] (accusation)
+ækjuzeɪʃən ['ækjuzeɪ'] (accusation(1))
+əsɪdəfəkeɪʃən ['əsɪdəfəkeɪ'] (acidification)
+...</code></pre>
 </div>
 </div>
-<div class="callout-body-container callout-body">
-<p>This subsubmodule will be available around Monday, February 5, 2024.</p>
+<p>This works to some extent, but notice that it will capture cases where /ʃən/ is not a morpheme. For instance, the word <em>passion</em> will get matched. It will also return the wrong stem when the morpheme is realized as /eɪʃən/, such as <em>accreditation</em>.</p>
+<div class="cell" data-execution_count="49">
+<div class="sourceCode cell-code" id="cb4" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>re.findall(regex_ʃən, <span class="st">""</span>.join(entries[<span class="st">"passion"</span>])), re.findall(regex_ʃən, <span class="st">""</span>.join(entries[<span class="st">"accreditation"</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="49">
+<pre data-code-line-numbers=""><code>(['pæ'], ['əkɹɛdəteɪ'])</code></pre>
 </div>
 </div>
+<p>To handle the second, we might look for /eɪʃən/ and /ʃən/. We can use the quantifier <code>?</code> to say that /eɪ/ is optional. Because it is a digraph, we need to surround it with parentheses.</p>
+<div class="cell" data-execution_count="51">
+<div class="sourceCode cell-code" id="cb6" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>regex_ʃən <span class="op">=</span> <span class="st">'(.+)(eɪ)?ʃən'</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>n_matches <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> w, ipa <span class="kw">in</span> entries.items():</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> re.fullmatch(regex_ʃən, <span class="st">""</span>.join(ipa)):</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> n_matches <span class="op">&lt;</span> <span class="dv">30</span>:</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>            n_matches <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="st">""</span>.join(ipa), re.findall(regex_ʃən, <span class="st">""</span>.join(ipa)), <span class="ss">f"(</span><span class="sc">{</span>w<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="st">"..."</span>)</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>            <span class="cf">break</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre data-code-line-numbers=""><code>əbɹivieɪʃən [('əbɹivieɪ', '')] (abbreviation)
+æbdɪkeɪʃən [('æbdɪkeɪ', '')] (abdication)
+æbdəkʃən [('æbdək', '')] (abduction)
+əbdəkʃən [('əbdək', '')] (abduction(1))
+æbɝeɪʃən [('æbɝeɪ', '')] (aberration)
+əbleɪʃən [('əbleɪ', '')] (ablation)
+əbluʃən [('əblu', '')] (ablution)
+æbnɛgeɪʃən [('æbnɛgeɪ', '')] (abnegation)
+æbəlɪʃən [('æbəlɪ', '')] (abolition)
+əbɑməneɪʃən [('əbɑməneɪ', '')] (abomination)
+əbɔɹʃən [('əbɔɹ', '')] (abortion)
+æbɹəgeɪʃən [('æbɹəgeɪ', '')] (abrogation)
+æbsəluʃən [('æbsəlu', '')] (absolution)
+əbzɔɹpʃən [('əbzɔɹp', '')] (absorption)
+əbsɔɹpʃən [('əbsɔɹp', '')] (absorption(1))
+əbstɛntʃən [('əbstɛnt', '')] (abstention)
+æbstɛntʃən [('æbstɛnt', '')] (abstention(1))
+æbstɹækʃən [('æbstɹæk', '')] (abstraction)
+ækədəmɪʃən [('ækədəmɪ', '')] (academician)
+æksɛlɝeɪʃən [('æksɛlɝeɪ', '')] (acceleration)
+əksɛʃən [('əksɛ', '')] (accession)
+ækləmeɪʃən [('ækləmeɪ', '')] (acclamation)
+ækləmeɪʃən [('ækləmeɪ', '')] (acclimation)
+əkɑmədeɪʃən [('əkɑmədeɪ', '')] (accommodation)
+əkɹɛdəteɪʃən [('əkɹɛdəteɪ', '')] (accreditation)
+əkɹiʃən [('əkɹi', '')] (accretion)
+əkjumjəleɪʃən [('əkjumjəleɪ', '')] (accumulation)
+ækjəzeɪʃən [('ækjəzeɪ', '')] (accusation)
+ækjuzeɪʃən [('ækjuzeɪ', '')] (accusation(1))
+əsɪdəfəkeɪʃən [('əsɪdəfəkeɪ', '')] (acidification)
+...</code></pre>
+</div>
+</div>
+<p>The problem is that this makes Python think we want to capture it. So what we need is a non-capturing group, which we get by putting <code>?:</code> after the open parenthesis.</p>
+<div class="cell" data-execution_count="52">
+<div class="sourceCode cell-code" id="cb8" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>regex_ʃən <span class="op">=</span> <span class="st">'(.+)(?:eɪ)?ʃən'</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>n_matches <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> w, ipa <span class="kw">in</span> entries.items():</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> re.fullmatch(regex_ʃən, <span class="st">""</span>.join(ipa)):</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> n_matches <span class="op">&lt;</span> <span class="dv">30</span>:</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>            n_matches <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="st">""</span>.join(ipa), re.findall(regex_ʃən, <span class="st">""</span>.join(ipa)), <span class="ss">f"(</span><span class="sc">{</span>w<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="st">"..."</span>)</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>            <span class="cf">break</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre data-code-line-numbers=""><code>əbɹivieɪʃən ['əbɹivieɪ'] (abbreviation)
+æbdɪkeɪʃən ['æbdɪkeɪ'] (abdication)
+æbdəkʃən ['æbdək'] (abduction)
+əbdəkʃən ['əbdək'] (abduction(1))
+æbɝeɪʃən ['æbɝeɪ'] (aberration)
+əbleɪʃən ['əbleɪ'] (ablation)
+əbluʃən ['əblu'] (ablution)
+æbnɛgeɪʃən ['æbnɛgeɪ'] (abnegation)
+æbəlɪʃən ['æbəlɪ'] (abolition)
+əbɑməneɪʃən ['əbɑməneɪ'] (abomination)
+əbɔɹʃən ['əbɔɹ'] (abortion)
+æbɹəgeɪʃən ['æbɹəgeɪ'] (abrogation)
+æbsəluʃən ['æbsəlu'] (absolution)
+əbzɔɹpʃən ['əbzɔɹp'] (absorption)
+əbsɔɹpʃən ['əbsɔɹp'] (absorption(1))
+əbstɛntʃən ['əbstɛnt'] (abstention)
+æbstɛntʃən ['æbstɛnt'] (abstention(1))
+æbstɹækʃən ['æbstɹæk'] (abstraction)
+ækədəmɪʃən ['ækədəmɪ'] (academician)
+æksɛlɝeɪʃən ['æksɛlɝeɪ'] (acceleration)
+əksɛʃən ['əksɛ'] (accession)
+ækləmeɪʃən ['ækləmeɪ'] (acclamation)
+ækləmeɪʃən ['ækləmeɪ'] (acclimation)
+əkɑmədeɪʃən ['əkɑmədeɪ'] (accommodation)
+əkɹɛdəteɪʃən ['əkɹɛdəteɪ'] (accreditation)
+əkɹiʃən ['əkɹi'] (accretion)
+əkjumjəleɪʃən ['əkjumjəleɪ'] (accumulation)
+ækjəzeɪʃən ['ækjəzeɪ'] (accusation)
+ækjuzeɪʃən ['ækjuzeɪ'] (accusation(1))
+əsɪdəfəkeɪʃən ['əsɪdəfəkeɪ'] (acidification)
+...</code></pre>
+</div>
+</div>
+<p>It still seems to be capturing /eɪ/ in <em>accreditation</em>. What gives? The reason this is happening is that quantifiers like <code>+</code> are <em>greedy</em> by default. That means they will match as much as they can. And because /eɪ/ is optional, <code>(.+)</code> can match it.</p>
+<p>To make sure it doesn’t match it if it doesn’t need to, we can make the quantifier non-greedy by appending a <code>?</code>.</p>
+<div class="cell" data-execution_count="53">
+<div class="sourceCode cell-code" id="cb10" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>regex_ʃən <span class="op">=</span> <span class="st">'(.+?)(?:eɪ)?ʃən'</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>n_matches <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> w, ipa <span class="kw">in</span> entries.items():</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> re.fullmatch(regex_ʃən, <span class="st">""</span>.join(ipa)):</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> n_matches <span class="op">&lt;</span> <span class="dv">30</span>:</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>            n_matches <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="st">""</span>.join(ipa), re.findall(regex_ʃən, <span class="st">""</span>.join(ipa)), <span class="ss">f"(</span><span class="sc">{</span>w<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="st">"..."</span>)</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>            <span class="cf">break</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre data-code-line-numbers=""><code>əbɹivieɪʃən ['əbɹivi'] (abbreviation)
+æbdɪkeɪʃən ['æbdɪk'] (abdication)
+æbdəkʃən ['æbdək'] (abduction)
+əbdəkʃən ['əbdək'] (abduction(1))
+æbɝeɪʃən ['æbɝ'] (aberration)
+əbleɪʃən ['əbl'] (ablation)
+əbluʃən ['əblu'] (ablution)
+æbnɛgeɪʃən ['æbnɛg'] (abnegation)
+æbəlɪʃən ['æbəlɪ'] (abolition)
+əbɑməneɪʃən ['əbɑmən'] (abomination)
+əbɔɹʃən ['əbɔɹ'] (abortion)
+æbɹəgeɪʃən ['æbɹəg'] (abrogation)
+æbsəluʃən ['æbsəlu'] (absolution)
+əbzɔɹpʃən ['əbzɔɹp'] (absorption)
+əbsɔɹpʃən ['əbsɔɹp'] (absorption(1))
+əbstɛntʃən ['əbstɛnt'] (abstention)
+æbstɛntʃən ['æbstɛnt'] (abstention(1))
+æbstɹækʃən ['æbstɹæk'] (abstraction)
+ækədəmɪʃən ['ækədəmɪ'] (academician)
+æksɛlɝeɪʃən ['æksɛlɝ'] (acceleration)
+əksɛʃən ['əksɛ'] (accession)
+ækləmeɪʃən ['ækləm'] (acclamation)
+ækləmeɪʃən ['ækləm'] (acclimation)
+əkɑmədeɪʃən ['əkɑməd'] (accommodation)
+əkɹɛdəteɪʃən ['əkɹɛdət'] (accreditation)
+əkɹiʃən ['əkɹi'] (accretion)
+əkjumjəleɪʃən ['əkjumjəl'] (accumulation)
+ækjəzeɪʃən ['ækjəz'] (accusation)
+ækjuzeɪʃən ['ækjuz'] (accusation(1))
+əsɪdəfəkeɪʃən ['əsɪdəfək'] (acidification)
+...</code></pre>
+</div>
+</div>
+<p>Okay. So how do we deal with cases where /ʃən/ is not a morpheme? One thing we can do is to look for stems that show up without /ʃən/. This will exclude <em>passion</em>, since /pæ/ is not a word.</p>
+<div class="cell" data-execution_count="64">
+<div class="sourceCode cell-code" id="cb12" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>regex_ʃən <span class="op">=</span> <span class="st">'(.+?)(?:eɪ)?ʃən'</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>n_matches <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>seen <span class="op">=</span> <span class="bu">set</span>()</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> w1, ipa1 <span class="kw">in</span> entries.items():</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    possible_morpheme <span class="op">=</span> re.findall(regex_ʃən, <span class="st">""</span>.join(ipa1))</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> possible_morpheme:</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> w2, ipa2 <span class="kw">in</span> entries.items():</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> re.fullmatch(possible_morpheme[<span class="dv">0</span>], <span class="st">""</span>.join(ipa2)):</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> n_matches <span class="op">&lt;</span> <span class="dv">20</span> <span class="kw">and</span> <span class="st">""</span>.join(ipa2) <span class="kw">not</span> <span class="kw">in</span> seen:</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>                    n_matches <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>                    seen <span class="op">|=</span> {<span class="st">""</span>.join(ipa2)}</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>                    <span class="bu">print</span>(<span class="st">""</span>.join(ipa2), <span class="ss">f"(</span><span class="sc">{</span>w2<span class="sc">}</span><span class="ss">)"</span>, <span class="st">"+"</span>, <span class="st">"ʃən"</span>, <span class="st">"="</span>, <span class="st">""</span>.join(ipa1), <span class="ss">f"(</span><span class="sc">{</span>w1<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>:</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">break</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> n_matches <span class="op">&gt;=</span> <span class="dv">20</span>:   </span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">"..."</span>)</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre data-code-line-numbers=""><code>əbɔɹ (abor) + ʃən = əbɔɹʃən (abortion)
+əkɹi (acree) + ʃən = əkɹiʃən (accretion)
+æk (ack) + ʃən = ækʃən (action)
+ædɝ (adder) + ʃən = ædɝeɪʃən (adoration)
+ædʒəl (agile) + ʃən = ædʒəleɪʃən (adulation)
+eɪliən (alien) + ʃən = eɪliəneɪʃən (alienation)
+ɔltɝ (altar) + ʃən = ɔltɝeɪʃən (alteration)
+əmælgəm (amalgam) + ʃən = əmælgəmeɪʃən (amalgamation)
+eɪnt (ain't) + ʃən = eɪntʃənt (ancient)
+eɪn (aine) + ʃən = eɪnʃənt (ancient(1))
+ænəm (annum) + ʃən = ænəmeɪʃən (animation)
+ænɛks (annex) + ʃən = ænɛkseɪʃən (annexation)
+æn (ahn) + ʃən = ænʃən (anshan)
+æpəl (appel) + ʃən = æpəleɪʃən (appalachian(1))
+æspɝ (asper) + ʃən = æspɝeɪʃən (aspiration)
+əsæsən (assassin) + ʃən = əsæsəneɪʃən (assassination)
+ɑk (och) + ʃən = ɑkʃən (auction)
+ɔtəm (autumn) + ʃən = ɔtəmeɪʃən (automation)
+eɪvi (av) + ʃən = eɪvieɪʃən (aviacion)
+bæt (bat) + ʃən = bætʃənd (bachand)
+...</code></pre>
+</div>
+</div>
+<p>An issue here is that /ʃən/ doesn’t simply get appended to a stem. There is an additional phonological process that deletes a portion of that stem–e.g.&nbsp;/æbstɹækt/ + /ʃən/ is /æbstɹækʃən/, not /æbstɹæk<strong>t</strong>ʃən/. So we need to consider cases where a final consonant–usually a <code>t</code>–was deleted.</p>
+<div class="cell" data-executioninfo="{&quot;elapsed&quot;:5,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675099877737,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="17b3ba36-8b13-4bf7-edb3-442cdab008cf" data-execution_count="65">
+<div class="sourceCode cell-code" id="cb14" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>regex_ʃən <span class="op">=</span> <span class="st">'(.+?)(?:eɪ)?ʃən'</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>n_matches <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>seen <span class="op">=</span> <span class="bu">set</span>()</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> w1, ipa1 <span class="kw">in</span> entries.items():</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    possible_morpheme <span class="op">=</span> re.findall(regex_ʃən, <span class="st">""</span>.join(ipa1))</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> possible_morpheme:</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> w2, ipa2 <span class="kw">in</span> entries.items():</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> re.fullmatch(possible_morpheme[<span class="dv">0</span>] <span class="op">+</span> <span class="st">"t"</span>, <span class="st">""</span>.join(ipa2)):</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> n_matches <span class="op">&lt;</span> <span class="dv">20</span> <span class="kw">and</span> <span class="st">""</span>.join(ipa2) <span class="kw">not</span> <span class="kw">in</span> seen:</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>                    n_matches <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>                    seen <span class="op">|=</span> {<span class="st">""</span>.join(ipa2)}</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>                    <span class="bu">print</span>(<span class="st">""</span>.join(ipa2), <span class="ss">f"(</span><span class="sc">{</span>w2<span class="sc">}</span><span class="ss">)"</span>, <span class="st">"+"</span>, <span class="st">"ʃən"</span>, <span class="st">"="</span>, <span class="st">""</span>.join(ipa1), <span class="ss">f"(</span><span class="sc">{</span>w1<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>:</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">break</span></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> n_matches <span class="op">&gt;=</span> <span class="dv">20</span>:   </span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">"..."</span>)</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre data-code-line-numbers=""><code>æbdəkt (abduct) + ʃən = æbdəkʃən (abduction)
+æbɝt (abert) + ʃən = æbɝeɪʃən (aberration)
+əbɔɹt (abort) + ʃən = əbɔɹʃən (abortion)
+æbsəlut (absolut) + ʃən = æbsəluʃən (absolution)
+æbstɹækt (abstract) + ʃən = æbstɹækʃən (abstraction)
+ækt (act) + ʃən = ækʃən (action)
+ədɪkt (addict) + ʃən = ədɪkʃən (addiction)
+ədmɪt (admit) + ʃən = ədmɪʃən (admission(1))
+ədɑpt (adopt) + ʃən = ədɑpʃən (adoption)
+əfɛkt (affect) + ʃən = əfɛkʃən (affection)
+əflɪkt (afflict) + ʃən = əflɪkʃən (affliction)
+eɪnt (ain't) + ʃən = eɪnʃənt (ancient(1))
+ænɛkst (annexed) + ʃən = ænɛkseɪʃən (annexation)
+ænt (ant) + ʃən = ænʃən (anshan)
+əsɛnt (ascent) + ʃən = əsɛnʃən (ascension)
+æt (at) + ʃən = æʃən (ashen)
+əsɝt (assert) + ʃən = əsɝʃən (assertion)
+ətɹækt (attract) + ʃən = ətɹækʃən (attraction)
+ɔkt (oct) + ʃən = ɔkʃən (auction(1))
+ɔdɪt (audit) + ʃən = ɔdɪʃənd (auditioned)
+...</code></pre>
+</div>
+</div>
+<p>There’s still some wonky stuff in here–e.g.&nbsp;<em>ancient</em> coming from <em>ain’t</em> and <em>ashen</em> coming from <em>at</em>–but we’re getting closer. We can’t really deal with <em>ashen</em> coming from <em>at</em>, but we can deal with <em>ancient</em> coming from <em>ain’t</em>, which reveals a behavior of <code>re.findall</code>: it functions like <code>re.match</code>, rather than <code>re.fullmatch</code>, in that it matches the beginning of a string. If we want it to match the entire string, we have to explicitly specify that in the regular expression. To do this, we can use a <code>$</code>, which means “end of string”.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<div class="cell" data-executioninfo="{&quot;elapsed&quot;:4,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675103797019,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="5a2743c7-b97a-465a-b61f-8911d356e624" data-execution_count="75">
+<div class="sourceCode cell-code" id="cb16" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>regex_ʃən <span class="op">=</span> <span class="st">'(.+?)(?:eɪ)?ʃən$'</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>n_matches <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>seen <span class="op">=</span> <span class="bu">set</span>()</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> w1, ipa1 <span class="kw">in</span> entries.items():</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    possible_morpheme <span class="op">=</span> re.findall(regex_ʃən, <span class="st">""</span>.join(ipa1))</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> possible_morpheme:</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> w2, ipa2 <span class="kw">in</span> entries.items():</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> re.fullmatch(possible_morpheme[<span class="dv">0</span>] <span class="op">+</span> <span class="st">"t"</span>, <span class="st">""</span>.join(ipa2)):</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> n_matches <span class="op">&lt;</span> <span class="dv">20</span> <span class="kw">and</span> <span class="st">""</span>.join(ipa2) <span class="kw">not</span> <span class="kw">in</span> seen:</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>                    n_matches <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>                    seen <span class="op">|=</span> {<span class="st">""</span>.join(ipa2)}</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>                    <span class="bu">print</span>(<span class="st">""</span>.join(ipa2), <span class="ss">f"(</span><span class="sc">{</span>w2<span class="sc">}</span><span class="ss">)"</span>, <span class="st">"+"</span>, <span class="st">"ʃən"</span>, <span class="st">"="</span>, <span class="st">""</span>.join(ipa1), <span class="ss">f"(</span><span class="sc">{</span>w1<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>:</span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">break</span></span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> n_matches <span class="op">&gt;=</span> <span class="dv">20</span>:   </span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">"..."</span>)</span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre data-code-line-numbers=""><code>æbdəkt (abduct) + ʃən = æbdəkʃən (abduction)
+æbɝt (abert) + ʃən = æbɝeɪʃən (aberration)
+əbɔɹt (abort) + ʃən = əbɔɹʃən (abortion)
+æbsəlut (absolut) + ʃən = æbsəluʃən (absolution)
+æbstɹækt (abstract) + ʃən = æbstɹækʃən (abstraction)
+ækt (act) + ʃən = ækʃən (action)
+ədɪkt (addict) + ʃən = ədɪkʃən (addiction)
+ədmɪt (admit) + ʃən = ədmɪʃən (admission(1))
+ədɑpt (adopt) + ʃən = ədɑpʃən (adoption)
+əfɛkt (affect) + ʃən = əfɛkʃən (affection)
+əflɪkt (afflict) + ʃən = əflɪkʃən (affliction)
+ænɛkst (annexed) + ʃən = ænɛkseɪʃən (annexation)
+ænt (ant) + ʃən = ænʃən (anshan)
+əsɛnt (ascent) + ʃən = əsɛnʃən (ascension)
+æt (at) + ʃən = æʃən (ashen)
+əsɝt (assert) + ʃən = əsɝʃən (assertion)
+ətɹækt (attract) + ʃən = ətɹækʃən (attraction)
+ɔkt (oct) + ʃən = ɔkʃən (auction(1))
+bɛnədɪkt (benedict) + ʃən = bɛnədɪkʃən (benediction)
+boʊt (boat) + ʃən = boʊʃən (bocian)
+...</code></pre>
+</div>
+</div>
+<p>To get much better than this, we’d need to start matching on the orthographic representation as well–e.g.&nbsp;matching the <em>ion</em> at the end of the orthographic representation of the word, thus filtering things like /æt/ + /ʃən/ = æʃən.</p>
 
 
 
-</main> <!-- /main -->
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>The dual of <code>$</code> for the beginning of the string is <code>^</code>. Note that this looks like the negation symbol we saw earlier. It is different in that that symbol must be preceded by <code>[</code> to be interpreted as negation. Anywhere else <code>^</code> means the beginning of a string. That in turn means that putting a bare <code>^</code> anywhere besides the beginning of a regular expression is going to result in a regular expression that evaluates to the empty set.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
