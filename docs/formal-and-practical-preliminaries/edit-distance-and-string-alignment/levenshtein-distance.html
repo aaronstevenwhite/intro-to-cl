@@ -633,7 +633,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'dude'</span>, <span class="st">'dude'</span>), editdist(<span class="st">'dude'</span>, <span class="st">'dudette'</span>), editdist(<span class="st">'dudette'</span>, <span class="st">'dude'</span>), editdist(<span class="st">'dude'</span>, <span class="st">''</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre data-code-line-numbers=""><code>3.89 ms ± 13.9 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)</code></pre>
+<pre data-code-line-numbers=""><code>3.84 ms ± 16.4 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)</code></pre>
 </div>
 </div>
 <div class="cell" data-execution_count="6">
@@ -643,7 +643,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'dude'</span>, <span class="st">'dude'</span>), editdist(<span class="st">'dude'</span>, <span class="st">'dudette'</span>), editdist(<span class="st">'dudette'</span>, <span class="st">'dude'</span>), editdist(<span class="st">'dude'</span>, <span class="st">''</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre data-code-line-numbers=""><code>67.1 µs ± 600 ns per loop (mean ± std. dev. of 7 runs, 10000 loops each)</code></pre>
+<pre data-code-line-numbers=""><code>65.7 µs ± 205 ns per loop (mean ± std. dev. of 7 runs, 10000 loops each)</code></pre>
 </div>
 </div>
 <div class="cell" data-execution_count="7">
@@ -1410,465 +1410,469 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
 <div class="sourceCode" id="cb25" data-shortcodes="false" data-code-line-numbers=""><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> Levenshtein distance</span></span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>Okay, so how do we compute edit (or *Levenshtein*) distance? The basic idea is to define it recursively, deciding at each point in the string whether we want to insert/delete an element (each at some cost $c$) or whether we want to try matching the string.</span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>$$d_\text{lev}(\mathbf{a}, \mathbf{b}) = \begin{cases}\min(c_\text{del}, c_\text{ins}) \times \max(|\mathbf{a}|, |\mathbf{b}|) &amp; \text{if } \min(|\mathbf{a}|, |\mathbf{b}|) = 0 <span class="sc">\\</span></span>
-<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>\min \begin{cases}d_\text{lev}(a_1\ldots a_{|\mathbf{a}|-1}, \mathbf{b}) + c_\text{del} <span class="sc">\\</span></span>
-<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>                  d_\text{lev}(\mathbf{a}, b_1\ldots b_{|\mathbf{b}|-1}) + c_\text{ins} <span class="sc">\\</span></span>
-<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>                  d_\text{lev}(a_1\ldots a_{|\mathbf{a}|-1}, b_1\ldots b_{|\mathbf{b}|-1}) + c_\text{sub} \times \mathbb{1}<span class="co">[</span><span class="ot">a_{|\mathbf{a}|-1} \neq b_{|\mathbf{b}|-1}</span><span class="co">]</span>\end{cases} &amp; \text{otherwise}\end{cases}$$</span>
-<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>where $c_\text{sub}$ defaults to $c_\text{del} + c_\text{ins}$. </span>
-<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> collections <span class="im">import</span> defaultdict</span>
-<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> Optional</span>
-<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> StringEdit1:</span>
-<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''Distance between strings</span></span>
-<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="an">highlight-style:</span><span class="co"> oblivion</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="an">format:</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="co">    html:</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a><span class="co">        code-tools: true</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>Okay, so how do we compute edit (or *Levenshtein*) distance? The basic idea is to define it recursively, deciding at each point in the string whether we want to insert/delete an element (each at some cost $c$) or whether we want to try matching the string.</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>$$d_\text{lev}(\mathbf{a}, \mathbf{b}) = \begin{cases}\min(c_\text{del}, c_\text{ins}) \times \max(|\mathbf{a}|, |\mathbf{b}|) &amp; \text{if } \min(|\mathbf{a}|, |\mathbf{b}|) = 0 <span class="sc">\\</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>\min \begin{cases}d_\text{lev}(a_1\ldots a_{|\mathbf{a}|-1}, \mathbf{b}) + c_\text{del} <span class="sc">\\</span></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>                  d_\text{lev}(\mathbf{a}, b_1\ldots b_{|\mathbf{b}|-1}) + c_\text{ins} <span class="sc">\\</span></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>                  d_\text{lev}(a_1\ldots a_{|\mathbf{a}|-1}, b_1\ldots b_{|\mathbf{b}|-1}) + c_\text{sub} \times \mathbb{1}<span class="co">[</span><span class="ot">a_{|\mathbf{a}|-1} \neq b_{|\mathbf{b}|-1}</span><span class="co">]</span>\end{cases} &amp; \text{otherwise}\end{cases}$$</span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>where $c_\text{sub}$ defaults to $c_\text{del} + c_\text{ins}$. </span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> collections <span class="im">import</span> defaultdict</span>
+<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> Optional</span>
 <span id="cb25-23"><a href="#cb25-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-24"><a href="#cb25-24" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
-<span id="cb25-25"><a href="#cb25-25" aria-hidden="true" tabindex="-1"></a><span class="co">    ----------</span></span>
-<span id="cb25-26"><a href="#cb25-26" aria-hidden="true" tabindex="-1"></a><span class="co">    insertion_cost</span></span>
-<span id="cb25-27"><a href="#cb25-27" aria-hidden="true" tabindex="-1"></a><span class="co">    deletion_cost</span></span>
-<span id="cb25-28"><a href="#cb25-28" aria-hidden="true" tabindex="-1"></a><span class="co">    substitution_cost</span></span>
-<span id="cb25-29"><a href="#cb25-29" aria-hidden="true" tabindex="-1"></a><span class="co">    '''</span></span>
-<span id="cb25-30"><a href="#cb25-30" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb25-31"><a href="#cb25-31" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, insertion_cost: <span class="bu">float</span> <span class="op">=</span> <span class="fl">1.</span>,</span>
-<span id="cb25-32"><a href="#cb25-32" aria-hidden="true" tabindex="-1"></a>                 deletion_cost: <span class="bu">float</span> <span class="op">=</span> <span class="fl">1.</span>,</span>
-<span id="cb25-33"><a href="#cb25-33" aria-hidden="true" tabindex="-1"></a>                 substitution_cost: Optional[<span class="bu">float</span>] <span class="op">=</span> <span class="va">None</span>):</span>
-<span id="cb25-34"><a href="#cb25-34" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>._insertion_cost <span class="op">=</span> insertion_cost</span>
-<span id="cb25-35"><a href="#cb25-35" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>._deletion_cost <span class="op">=</span> deletion_cost</span>
-<span id="cb25-36"><a href="#cb25-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-37"><a href="#cb25-37" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> substitution_cost <span class="kw">is</span> <span class="va">None</span>:</span>
-<span id="cb25-38"><a href="#cb25-38" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>._substitution_cost <span class="op">=</span> insertion_cost <span class="op">+</span> deletion_cost</span>
-<span id="cb25-39"><a href="#cb25-39" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
-<span id="cb25-40"><a href="#cb25-40" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>._substitution_cost <span class="op">=</span> substitution_cost</span>
-<span id="cb25-41"><a href="#cb25-41" aria-hidden="true" tabindex="-1"></a>         </span>
-<span id="cb25-42"><a href="#cb25-42" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, source: <span class="bu">str</span>, target: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">float</span>:</span>
-<span id="cb25-43"><a href="#cb25-43" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>._call_counter <span class="op">=</span> defaultdict(<span class="bu">int</span>)</span>
-<span id="cb25-44"><a href="#cb25-44" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>._naive_levenshtein(source, target)</span>
-<span id="cb25-45"><a href="#cb25-45" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb25-46"><a href="#cb25-46" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _naive_levenshtein(<span class="va">self</span>, source, target):</span>
-<span id="cb25-47"><a href="#cb25-47" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>._call_counter[(source, target)] <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb25-48"><a href="#cb25-48" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb25-49"><a href="#cb25-49" aria-hidden="true" tabindex="-1"></a>        cost <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb25-50"><a href="#cb25-50" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb25-51"><a href="#cb25-51" aria-hidden="true" tabindex="-1"></a>        <span class="co"># base case</span></span>
-<span id="cb25-52"><a href="#cb25-52" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">len</span>(source) <span class="op">==</span> <span class="dv">0</span>:</span>
-<span id="cb25-53"><a href="#cb25-53" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="va">self</span>._insertion_cost<span class="op">*</span><span class="bu">len</span>(target)</span>
+<span id="cb25-24"><a href="#cb25-24" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> StringEdit1:</span>
+<span id="cb25-25"><a href="#cb25-25" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''Distance between strings</span></span>
+<span id="cb25-26"><a href="#cb25-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-27"><a href="#cb25-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-28"><a href="#cb25-28" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
+<span id="cb25-29"><a href="#cb25-29" aria-hidden="true" tabindex="-1"></a><span class="co">    ----------</span></span>
+<span id="cb25-30"><a href="#cb25-30" aria-hidden="true" tabindex="-1"></a><span class="co">    insertion_cost</span></span>
+<span id="cb25-31"><a href="#cb25-31" aria-hidden="true" tabindex="-1"></a><span class="co">    deletion_cost</span></span>
+<span id="cb25-32"><a href="#cb25-32" aria-hidden="true" tabindex="-1"></a><span class="co">    substitution_cost</span></span>
+<span id="cb25-33"><a href="#cb25-33" aria-hidden="true" tabindex="-1"></a><span class="co">    '''</span></span>
+<span id="cb25-34"><a href="#cb25-34" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb25-35"><a href="#cb25-35" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, insertion_cost: <span class="bu">float</span> <span class="op">=</span> <span class="fl">1.</span>,</span>
+<span id="cb25-36"><a href="#cb25-36" aria-hidden="true" tabindex="-1"></a>                 deletion_cost: <span class="bu">float</span> <span class="op">=</span> <span class="fl">1.</span>,</span>
+<span id="cb25-37"><a href="#cb25-37" aria-hidden="true" tabindex="-1"></a>                 substitution_cost: Optional[<span class="bu">float</span>] <span class="op">=</span> <span class="va">None</span>):</span>
+<span id="cb25-38"><a href="#cb25-38" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>._insertion_cost <span class="op">=</span> insertion_cost</span>
+<span id="cb25-39"><a href="#cb25-39" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>._deletion_cost <span class="op">=</span> deletion_cost</span>
+<span id="cb25-40"><a href="#cb25-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-41"><a href="#cb25-41" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> substitution_cost <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb25-42"><a href="#cb25-42" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>._substitution_cost <span class="op">=</span> insertion_cost <span class="op">+</span> deletion_cost</span>
+<span id="cb25-43"><a href="#cb25-43" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb25-44"><a href="#cb25-44" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>._substitution_cost <span class="op">=</span> substitution_cost</span>
+<span id="cb25-45"><a href="#cb25-45" aria-hidden="true" tabindex="-1"></a>         </span>
+<span id="cb25-46"><a href="#cb25-46" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, source: <span class="bu">str</span>, target: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">float</span>:</span>
+<span id="cb25-47"><a href="#cb25-47" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>._call_counter <span class="op">=</span> defaultdict(<span class="bu">int</span>)</span>
+<span id="cb25-48"><a href="#cb25-48" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>._naive_levenshtein(source, target)</span>
+<span id="cb25-49"><a href="#cb25-49" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb25-50"><a href="#cb25-50" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _naive_levenshtein(<span class="va">self</span>, source, target):</span>
+<span id="cb25-51"><a href="#cb25-51" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>._call_counter[(source, target)] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb25-52"><a href="#cb25-52" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb25-53"><a href="#cb25-53" aria-hidden="true" tabindex="-1"></a>        cost <span class="op">=</span> <span class="dv">0</span></span>
 <span id="cb25-54"><a href="#cb25-54" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb25-55"><a href="#cb25-55" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">len</span>(target) <span class="op">==</span> <span class="dv">0</span>:</span>
-<span id="cb25-56"><a href="#cb25-56" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="va">self</span>._deletion_cost<span class="op">*</span><span class="bu">len</span>(source)</span>
-<span id="cb25-57"><a href="#cb25-57" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-58"><a href="#cb25-58" aria-hidden="true" tabindex="-1"></a>        <span class="co"># test if last characters of the strings match</span></span>
-<span id="cb25-59"><a href="#cb25-59" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (source[<span class="bu">len</span>(source)<span class="op">-</span><span class="dv">1</span>] <span class="op">==</span> target[<span class="bu">len</span>(target)<span class="op">-</span><span class="dv">1</span>]):</span>
-<span id="cb25-60"><a href="#cb25-60" aria-hidden="true" tabindex="-1"></a>            sub_cost <span class="op">=</span> <span class="fl">0.</span></span>
-<span id="cb25-61"><a href="#cb25-61" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
-<span id="cb25-62"><a href="#cb25-62" aria-hidden="true" tabindex="-1"></a>            sub_cost <span class="op">=</span> <span class="va">self</span>._substitution_cost</span>
-<span id="cb25-63"><a href="#cb25-63" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-64"><a href="#cb25-64" aria-hidden="true" tabindex="-1"></a>        <span class="co"># minimum of delete from source, deletefrom target, and delete from both</span></span>
-<span id="cb25-65"><a href="#cb25-65" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="bu">min</span>(<span class="va">self</span>._naive_levenshtein(source[:<span class="op">-</span><span class="dv">1</span>], target) <span class="op">+</span> <span class="va">self</span>._deletion_cost,</span>
-<span id="cb25-66"><a href="#cb25-66" aria-hidden="true" tabindex="-1"></a>                   <span class="va">self</span>._naive_levenshtein(source, target[:<span class="op">-</span><span class="dv">1</span>]) <span class="op">+</span> <span class="va">self</span>._insertion_cost,</span>
-<span id="cb25-67"><a href="#cb25-67" aria-hidden="true" tabindex="-1"></a>                   <span class="va">self</span>._naive_levenshtein(source[:<span class="op">-</span><span class="dv">1</span>], target[:<span class="op">-</span><span class="dv">1</span>]) <span class="op">+</span> sub_cost)</span>
-<span id="cb25-68"><a href="#cb25-68" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb25-69"><a href="#cb25-69" aria-hidden="true" tabindex="-1"></a>    <span class="at">@property</span></span>
-<span id="cb25-70"><a href="#cb25-70" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> call_counter(<span class="va">self</span>):</span>
-<span id="cb25-71"><a href="#cb25-71" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>._call_counter</span>
-<span id="cb25-72"><a href="#cb25-72" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb25-73"><a href="#cb25-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-76"><a href="#cb25-76" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb25-77"><a href="#cb25-77" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit1(<span class="dv">1</span>, <span class="dv">1</span>)</span>
-<span id="cb25-78"><a href="#cb25-78" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-79"><a href="#cb25-79" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'dude'</span>, <span class="st">'dude'</span>), editdist(<span class="st">'dude'</span>, <span class="st">'dudette'</span>), editdist(<span class="st">'dudette'</span>, <span class="st">'dude'</span>), editdist(<span class="st">'dude'</span>, <span class="st">''</span>)</span>
-<span id="cb25-80"><a href="#cb25-80" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb25-81"><a href="#cb25-81" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-82"><a href="#cb25-82" aria-hidden="true" tabindex="-1"></a>Okay. So here's the thing. This looks nice, but it's actually not that efficient because we're actually redoing a whole ton of work. </span>
-<span id="cb25-83"><a href="#cb25-83" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-86"><a href="#cb25-86" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb25-87"><a href="#cb25-87" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'dudette'</span>, <span class="st">'dude'</span>)</span>
-<span id="cb25-88"><a href="#cb25-88" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-89"><a href="#cb25-89" aria-hidden="true" tabindex="-1"></a>editdist.call_counter</span>
-<span id="cb25-90"><a href="#cb25-90" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb25-91"><a href="#cb25-91" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-92"><a href="#cb25-92" aria-hidden="true" tabindex="-1"></a>We could try to get around this by memoizing using the <span class="in">`lru_cache`</span> decorator.</span>
-<span id="cb25-93"><a href="#cb25-93" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-96"><a href="#cb25-96" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb25-97"><a href="#cb25-97" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> functools <span class="im">import</span> lru_cache</span>
-<span id="cb25-98"><a href="#cb25-98" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-99"><a href="#cb25-99" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> StringEdit2(StringEdit1):</span>
-<span id="cb25-100"><a href="#cb25-100" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''Distance between strings</span></span>
-<span id="cb25-101"><a href="#cb25-101" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-55"><a href="#cb25-55" aria-hidden="true" tabindex="-1"></a>        <span class="co"># base case</span></span>
+<span id="cb25-56"><a href="#cb25-56" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">len</span>(source) <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb25-57"><a href="#cb25-57" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="va">self</span>._insertion_cost<span class="op">*</span><span class="bu">len</span>(target)</span>
+<span id="cb25-58"><a href="#cb25-58" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb25-59"><a href="#cb25-59" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">len</span>(target) <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb25-60"><a href="#cb25-60" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="va">self</span>._deletion_cost<span class="op">*</span><span class="bu">len</span>(source)</span>
+<span id="cb25-61"><a href="#cb25-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-62"><a href="#cb25-62" aria-hidden="true" tabindex="-1"></a>        <span class="co"># test if last characters of the strings match</span></span>
+<span id="cb25-63"><a href="#cb25-63" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (source[<span class="bu">len</span>(source)<span class="op">-</span><span class="dv">1</span>] <span class="op">==</span> target[<span class="bu">len</span>(target)<span class="op">-</span><span class="dv">1</span>]):</span>
+<span id="cb25-64"><a href="#cb25-64" aria-hidden="true" tabindex="-1"></a>            sub_cost <span class="op">=</span> <span class="fl">0.</span></span>
+<span id="cb25-65"><a href="#cb25-65" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb25-66"><a href="#cb25-66" aria-hidden="true" tabindex="-1"></a>            sub_cost <span class="op">=</span> <span class="va">self</span>._substitution_cost</span>
+<span id="cb25-67"><a href="#cb25-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-68"><a href="#cb25-68" aria-hidden="true" tabindex="-1"></a>        <span class="co"># minimum of delete from source, deletefrom target, and delete from both</span></span>
+<span id="cb25-69"><a href="#cb25-69" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="bu">min</span>(<span class="va">self</span>._naive_levenshtein(source[:<span class="op">-</span><span class="dv">1</span>], target) <span class="op">+</span> <span class="va">self</span>._deletion_cost,</span>
+<span id="cb25-70"><a href="#cb25-70" aria-hidden="true" tabindex="-1"></a>                   <span class="va">self</span>._naive_levenshtein(source, target[:<span class="op">-</span><span class="dv">1</span>]) <span class="op">+</span> <span class="va">self</span>._insertion_cost,</span>
+<span id="cb25-71"><a href="#cb25-71" aria-hidden="true" tabindex="-1"></a>                   <span class="va">self</span>._naive_levenshtein(source[:<span class="op">-</span><span class="dv">1</span>], target[:<span class="op">-</span><span class="dv">1</span>]) <span class="op">+</span> sub_cost)</span>
+<span id="cb25-72"><a href="#cb25-72" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb25-73"><a href="#cb25-73" aria-hidden="true" tabindex="-1"></a>    <span class="at">@property</span></span>
+<span id="cb25-74"><a href="#cb25-74" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> call_counter(<span class="va">self</span>):</span>
+<span id="cb25-75"><a href="#cb25-75" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>._call_counter</span>
+<span id="cb25-76"><a href="#cb25-76" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb25-77"><a href="#cb25-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-80"><a href="#cb25-80" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb25-81"><a href="#cb25-81" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit1(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb25-82"><a href="#cb25-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-83"><a href="#cb25-83" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'dude'</span>, <span class="st">'dude'</span>), editdist(<span class="st">'dude'</span>, <span class="st">'dudette'</span>), editdist(<span class="st">'dudette'</span>, <span class="st">'dude'</span>), editdist(<span class="st">'dude'</span>, <span class="st">''</span>)</span>
+<span id="cb25-84"><a href="#cb25-84" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb25-85"><a href="#cb25-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-86"><a href="#cb25-86" aria-hidden="true" tabindex="-1"></a>Okay. So here's the thing. This looks nice, but it's actually not that efficient because we're actually redoing a whole ton of work. </span>
+<span id="cb25-87"><a href="#cb25-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-90"><a href="#cb25-90" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb25-91"><a href="#cb25-91" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'dudette'</span>, <span class="st">'dude'</span>)</span>
+<span id="cb25-92"><a href="#cb25-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-93"><a href="#cb25-93" aria-hidden="true" tabindex="-1"></a>editdist.call_counter</span>
+<span id="cb25-94"><a href="#cb25-94" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb25-95"><a href="#cb25-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-96"><a href="#cb25-96" aria-hidden="true" tabindex="-1"></a>We could try to get around this by memoizing using the <span class="in">`lru_cache`</span> decorator.</span>
+<span id="cb25-97"><a href="#cb25-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-100"><a href="#cb25-100" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb25-101"><a href="#cb25-101" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> functools <span class="im">import</span> lru_cache</span>
 <span id="cb25-102"><a href="#cb25-102" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-103"><a href="#cb25-103" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
-<span id="cb25-104"><a href="#cb25-104" aria-hidden="true" tabindex="-1"></a><span class="co">    ----------</span></span>
-<span id="cb25-105"><a href="#cb25-105" aria-hidden="true" tabindex="-1"></a><span class="co">    insertion_cost</span></span>
-<span id="cb25-106"><a href="#cb25-106" aria-hidden="true" tabindex="-1"></a><span class="co">    deletion_cost</span></span>
-<span id="cb25-107"><a href="#cb25-107" aria-hidden="true" tabindex="-1"></a><span class="co">    substitution_cost</span></span>
-<span id="cb25-108"><a href="#cb25-108" aria-hidden="true" tabindex="-1"></a><span class="co">    '''</span></span>
-<span id="cb25-109"><a href="#cb25-109" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb25-110"><a href="#cb25-110" aria-hidden="true" tabindex="-1"></a>    <span class="at">@lru_cache</span>(<span class="dv">256</span>)</span>
-<span id="cb25-111"><a href="#cb25-111" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _naive_levenshtein(<span class="va">self</span>, source, target):</span>
-<span id="cb25-112"><a href="#cb25-112" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>._call_counter[(source, target)] <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb25-113"><a href="#cb25-113" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb25-114"><a href="#cb25-114" aria-hidden="true" tabindex="-1"></a>        cost <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb25-115"><a href="#cb25-115" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-116"><a href="#cb25-116" aria-hidden="true" tabindex="-1"></a>        <span class="co"># base case</span></span>
-<span id="cb25-117"><a href="#cb25-117" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">len</span>(source) <span class="op">==</span> <span class="dv">0</span>:</span>
-<span id="cb25-118"><a href="#cb25-118" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="va">self</span>._insertion_cost<span class="op">*</span><span class="bu">len</span>(target)</span>
-<span id="cb25-119"><a href="#cb25-119" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb25-120"><a href="#cb25-120" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">len</span>(target) <span class="op">==</span> <span class="dv">0</span>:</span>
-<span id="cb25-121"><a href="#cb25-121" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="va">self</span>._deletion_cost<span class="op">*</span><span class="bu">len</span>(source)</span>
-<span id="cb25-122"><a href="#cb25-122" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-123"><a href="#cb25-123" aria-hidden="true" tabindex="-1"></a>        <span class="co"># test if last characters of the strings match</span></span>
-<span id="cb25-124"><a href="#cb25-124" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (source[<span class="bu">len</span>(source)<span class="op">-</span><span class="dv">1</span>] <span class="op">==</span> target[<span class="bu">len</span>(target)<span class="op">-</span><span class="dv">1</span>]):</span>
-<span id="cb25-125"><a href="#cb25-125" aria-hidden="true" tabindex="-1"></a>            sub_cost <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb25-126"><a href="#cb25-126" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
-<span id="cb25-127"><a href="#cb25-127" aria-hidden="true" tabindex="-1"></a>            sub_cost <span class="op">=</span> <span class="va">self</span>._substitution_cost</span>
-<span id="cb25-128"><a href="#cb25-128" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-129"><a href="#cb25-129" aria-hidden="true" tabindex="-1"></a>        <span class="co"># minimum of delete from source, deletefrom target, and delete from both</span></span>
-<span id="cb25-130"><a href="#cb25-130" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="bu">min</span>(<span class="va">self</span>._naive_levenshtein(source[:<span class="op">-</span><span class="dv">1</span>], target) <span class="op">+</span> <span class="va">self</span>._deletion_cost,</span>
-<span id="cb25-131"><a href="#cb25-131" aria-hidden="true" tabindex="-1"></a>                   <span class="va">self</span>._naive_levenshtein(source, target[:<span class="op">-</span><span class="dv">1</span>]) <span class="op">+</span> <span class="va">self</span>._insertion_cost,</span>
-<span id="cb25-132"><a href="#cb25-132" aria-hidden="true" tabindex="-1"></a>                   <span class="va">self</span>._naive_levenshtein(source[:<span class="op">-</span><span class="dv">1</span>], target[:<span class="op">-</span><span class="dv">1</span>]) <span class="op">+</span> sub_cost)</span>
-<span id="cb25-133"><a href="#cb25-133" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb25-134"><a href="#cb25-134" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-137"><a href="#cb25-137" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb25-138"><a href="#cb25-138" aria-hidden="true" tabindex="-1"></a><span class="op">%%</span>timeit</span>
-<span id="cb25-139"><a href="#cb25-139" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-140"><a href="#cb25-140" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit1(<span class="dv">1</span>, <span class="dv">1</span>)</span>
-<span id="cb25-141"><a href="#cb25-141" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-142"><a href="#cb25-142" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'dude'</span>, <span class="st">'dude'</span>), editdist(<span class="st">'dude'</span>, <span class="st">'dudette'</span>), editdist(<span class="st">'dudette'</span>, <span class="st">'dude'</span>), editdist(<span class="st">'dude'</span>, <span class="st">''</span>)</span>
-<span id="cb25-143"><a href="#cb25-143" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb25-144"><a href="#cb25-144" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-147"><a href="#cb25-147" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb25-148"><a href="#cb25-148" aria-hidden="true" tabindex="-1"></a><span class="op">%%</span>timeit</span>
-<span id="cb25-149"><a href="#cb25-149" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-150"><a href="#cb25-150" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit2(<span class="dv">1</span>, <span class="dv">1</span>)</span>
-<span id="cb25-151"><a href="#cb25-151" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-152"><a href="#cb25-152" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'dude'</span>, <span class="st">'dude'</span>), editdist(<span class="st">'dude'</span>, <span class="st">'dudette'</span>), editdist(<span class="st">'dudette'</span>, <span class="st">'dude'</span>), editdist(<span class="st">'dude'</span>, <span class="st">''</span>)</span>
-<span id="cb25-153"><a href="#cb25-153" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb25-154"><a href="#cb25-154" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-157"><a href="#cb25-157" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb25-158"><a href="#cb25-158" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit2(<span class="dv">1</span>, <span class="dv">1</span>)</span>
-<span id="cb25-159"><a href="#cb25-159" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-160"><a href="#cb25-160" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'dudette'</span>, <span class="st">'dude'</span>)</span>
-<span id="cb25-161"><a href="#cb25-161" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-162"><a href="#cb25-162" aria-hidden="true" tabindex="-1"></a>editdist.call_counter</span>
-<span id="cb25-163"><a href="#cb25-163" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb25-164"><a href="#cb25-164" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-165"><a href="#cb25-165" aria-hidden="true" tabindex="-1"></a>That helps a lot. Why? Because it only every computes the distance for a substring once. This is effectively what the *Wagner–Fischer algorithm* that you read about is doing. This is our first instance of a [*dynamic programming algorithm*](https://en.wikipedia.org/wiki/Dynamic_programming). The basic idea for Wagner-Fisher (and other algorithms we'll use later in the class) is to cache the memoized values for a function within a chart whose rows correspond to positions in the source string and whose columns correspond to positions in the target string.</span>
-<span id="cb25-166"><a href="#cb25-166" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-169"><a href="#cb25-169" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb25-170"><a href="#cb25-170" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb25-171"><a href="#cb25-171" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-172"><a href="#cb25-172" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> StringEdit3(StringEdit2):</span>
-<span id="cb25-173"><a href="#cb25-173" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''Distance between strings</span></span>
-<span id="cb25-174"><a href="#cb25-174" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-103"><a href="#cb25-103" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> StringEdit2(StringEdit1):</span>
+<span id="cb25-104"><a href="#cb25-104" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''Distance between strings</span></span>
+<span id="cb25-105"><a href="#cb25-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-106"><a href="#cb25-106" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-107"><a href="#cb25-107" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
+<span id="cb25-108"><a href="#cb25-108" aria-hidden="true" tabindex="-1"></a><span class="co">    ----------</span></span>
+<span id="cb25-109"><a href="#cb25-109" aria-hidden="true" tabindex="-1"></a><span class="co">    insertion_cost</span></span>
+<span id="cb25-110"><a href="#cb25-110" aria-hidden="true" tabindex="-1"></a><span class="co">    deletion_cost</span></span>
+<span id="cb25-111"><a href="#cb25-111" aria-hidden="true" tabindex="-1"></a><span class="co">    substitution_cost</span></span>
+<span id="cb25-112"><a href="#cb25-112" aria-hidden="true" tabindex="-1"></a><span class="co">    '''</span></span>
+<span id="cb25-113"><a href="#cb25-113" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb25-114"><a href="#cb25-114" aria-hidden="true" tabindex="-1"></a>    <span class="at">@lru_cache</span>(<span class="dv">256</span>)</span>
+<span id="cb25-115"><a href="#cb25-115" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _naive_levenshtein(<span class="va">self</span>, source, target):</span>
+<span id="cb25-116"><a href="#cb25-116" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>._call_counter[(source, target)] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb25-117"><a href="#cb25-117" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb25-118"><a href="#cb25-118" aria-hidden="true" tabindex="-1"></a>        cost <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb25-119"><a href="#cb25-119" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-120"><a href="#cb25-120" aria-hidden="true" tabindex="-1"></a>        <span class="co"># base case</span></span>
+<span id="cb25-121"><a href="#cb25-121" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">len</span>(source) <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb25-122"><a href="#cb25-122" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="va">self</span>._insertion_cost<span class="op">*</span><span class="bu">len</span>(target)</span>
+<span id="cb25-123"><a href="#cb25-123" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb25-124"><a href="#cb25-124" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">len</span>(target) <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb25-125"><a href="#cb25-125" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="va">self</span>._deletion_cost<span class="op">*</span><span class="bu">len</span>(source)</span>
+<span id="cb25-126"><a href="#cb25-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-127"><a href="#cb25-127" aria-hidden="true" tabindex="-1"></a>        <span class="co"># test if last characters of the strings match</span></span>
+<span id="cb25-128"><a href="#cb25-128" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (source[<span class="bu">len</span>(source)<span class="op">-</span><span class="dv">1</span>] <span class="op">==</span> target[<span class="bu">len</span>(target)<span class="op">-</span><span class="dv">1</span>]):</span>
+<span id="cb25-129"><a href="#cb25-129" aria-hidden="true" tabindex="-1"></a>            sub_cost <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb25-130"><a href="#cb25-130" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb25-131"><a href="#cb25-131" aria-hidden="true" tabindex="-1"></a>            sub_cost <span class="op">=</span> <span class="va">self</span>._substitution_cost</span>
+<span id="cb25-132"><a href="#cb25-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-133"><a href="#cb25-133" aria-hidden="true" tabindex="-1"></a>        <span class="co"># minimum of delete from source, deletefrom target, and delete from both</span></span>
+<span id="cb25-134"><a href="#cb25-134" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="bu">min</span>(<span class="va">self</span>._naive_levenshtein(source[:<span class="op">-</span><span class="dv">1</span>], target) <span class="op">+</span> <span class="va">self</span>._deletion_cost,</span>
+<span id="cb25-135"><a href="#cb25-135" aria-hidden="true" tabindex="-1"></a>                   <span class="va">self</span>._naive_levenshtein(source, target[:<span class="op">-</span><span class="dv">1</span>]) <span class="op">+</span> <span class="va">self</span>._insertion_cost,</span>
+<span id="cb25-136"><a href="#cb25-136" aria-hidden="true" tabindex="-1"></a>                   <span class="va">self</span>._naive_levenshtein(source[:<span class="op">-</span><span class="dv">1</span>], target[:<span class="op">-</span><span class="dv">1</span>]) <span class="op">+</span> sub_cost)</span>
+<span id="cb25-137"><a href="#cb25-137" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb25-138"><a href="#cb25-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-141"><a href="#cb25-141" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb25-142"><a href="#cb25-142" aria-hidden="true" tabindex="-1"></a><span class="op">%%</span>timeit</span>
+<span id="cb25-143"><a href="#cb25-143" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-144"><a href="#cb25-144" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit1(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb25-145"><a href="#cb25-145" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-146"><a href="#cb25-146" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'dude'</span>, <span class="st">'dude'</span>), editdist(<span class="st">'dude'</span>, <span class="st">'dudette'</span>), editdist(<span class="st">'dudette'</span>, <span class="st">'dude'</span>), editdist(<span class="st">'dude'</span>, <span class="st">''</span>)</span>
+<span id="cb25-147"><a href="#cb25-147" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb25-148"><a href="#cb25-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-151"><a href="#cb25-151" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb25-152"><a href="#cb25-152" aria-hidden="true" tabindex="-1"></a><span class="op">%%</span>timeit</span>
+<span id="cb25-153"><a href="#cb25-153" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-154"><a href="#cb25-154" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit2(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb25-155"><a href="#cb25-155" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-156"><a href="#cb25-156" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'dude'</span>, <span class="st">'dude'</span>), editdist(<span class="st">'dude'</span>, <span class="st">'dudette'</span>), editdist(<span class="st">'dudette'</span>, <span class="st">'dude'</span>), editdist(<span class="st">'dude'</span>, <span class="st">''</span>)</span>
+<span id="cb25-157"><a href="#cb25-157" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb25-158"><a href="#cb25-158" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-161"><a href="#cb25-161" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb25-162"><a href="#cb25-162" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit2(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb25-163"><a href="#cb25-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-164"><a href="#cb25-164" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'dudette'</span>, <span class="st">'dude'</span>)</span>
+<span id="cb25-165"><a href="#cb25-165" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-166"><a href="#cb25-166" aria-hidden="true" tabindex="-1"></a>editdist.call_counter</span>
+<span id="cb25-167"><a href="#cb25-167" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb25-168"><a href="#cb25-168" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-169"><a href="#cb25-169" aria-hidden="true" tabindex="-1"></a>That helps a lot. Why? Because it only every computes the distance for a substring once. This is effectively what the *Wagner–Fischer algorithm* that you read about is doing. This is our first instance of a [*dynamic programming algorithm*](https://en.wikipedia.org/wiki/Dynamic_programming). The basic idea for Wagner-Fisher (and other algorithms we'll use later in the class) is to cache the memoized values for a function within a chart whose rows correspond to positions in the source string and whose columns correspond to positions in the target string.</span>
+<span id="cb25-170"><a href="#cb25-170" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-173"><a href="#cb25-173" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb25-174"><a href="#cb25-174" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb25-175"><a href="#cb25-175" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-176"><a href="#cb25-176" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
-<span id="cb25-177"><a href="#cb25-177" aria-hidden="true" tabindex="-1"></a><span class="co">    ----------</span></span>
-<span id="cb25-178"><a href="#cb25-178" aria-hidden="true" tabindex="-1"></a><span class="co">    insertion_cost</span></span>
-<span id="cb25-179"><a href="#cb25-179" aria-hidden="true" tabindex="-1"></a><span class="co">    deletion_cost</span></span>
-<span id="cb25-180"><a href="#cb25-180" aria-hidden="true" tabindex="-1"></a><span class="co">    substitution_cost</span></span>
-<span id="cb25-181"><a href="#cb25-181" aria-hidden="true" tabindex="-1"></a><span class="co">    '''</span></span>
-<span id="cb25-182"><a href="#cb25-182" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-183"><a href="#cb25-183" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, source: <span class="bu">str</span>, target: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">float</span>:</span>
-<span id="cb25-184"><a href="#cb25-184" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>._wagner_fisher(source, target)</span>
-<span id="cb25-185"><a href="#cb25-185" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-186"><a href="#cb25-186" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb25-187"><a href="#cb25-187" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _wagner_fisher(<span class="va">self</span>, source: <span class="bu">str</span>, target: <span class="bu">str</span>):</span>
-<span id="cb25-188"><a href="#cb25-188" aria-hidden="true" tabindex="-1"></a>        n, m <span class="op">=</span> <span class="bu">len</span>(source), <span class="bu">len</span>(target)</span>
-<span id="cb25-189"><a href="#cb25-189" aria-hidden="true" tabindex="-1"></a>        source, target <span class="op">=</span> <span class="st">'#'</span><span class="op">+</span>source, <span class="st">'#'</span><span class="op">+</span>target</span>
-<span id="cb25-190"><a href="#cb25-190" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-191"><a href="#cb25-191" aria-hidden="true" tabindex="-1"></a>        distance <span class="op">=</span> np.zeros([n<span class="op">+</span><span class="dv">1</span>, m<span class="op">+</span><span class="dv">1</span>], dtype<span class="op">=</span><span class="bu">float</span>)</span>
-<span id="cb25-192"><a href="#cb25-192" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb25-193"><a href="#cb25-193" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,n<span class="op">+</span><span class="dv">1</span>):</span>
-<span id="cb25-194"><a href="#cb25-194" aria-hidden="true" tabindex="-1"></a>            distance[i,<span class="dv">0</span>] <span class="op">=</span> distance[i<span class="op">-</span><span class="dv">1</span>,<span class="dv">0</span>]<span class="op">+</span><span class="va">self</span>._deletion_cost</span>
-<span id="cb25-195"><a href="#cb25-195" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-196"><a href="#cb25-196" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,m<span class="op">+</span><span class="dv">1</span>):</span>
-<span id="cb25-197"><a href="#cb25-197" aria-hidden="true" tabindex="-1"></a>            distance[<span class="dv">0</span>,j] <span class="op">=</span> distance[<span class="dv">0</span>,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span><span class="va">self</span>._insertion_cost</span>
-<span id="cb25-198"><a href="#cb25-198" aria-hidden="true" tabindex="-1"></a>            </span>
-<span id="cb25-199"><a href="#cb25-199" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,n<span class="op">+</span><span class="dv">1</span>):</span>
-<span id="cb25-200"><a href="#cb25-200" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,m<span class="op">+</span><span class="dv">1</span>):</span>
-<span id="cb25-201"><a href="#cb25-201" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> source[i] <span class="op">==</span> target[j]:</span>
-<span id="cb25-202"><a href="#cb25-202" aria-hidden="true" tabindex="-1"></a>                    substitution_cost <span class="op">=</span> <span class="fl">0.</span></span>
-<span id="cb25-203"><a href="#cb25-203" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>:</span>
-<span id="cb25-204"><a href="#cb25-204" aria-hidden="true" tabindex="-1"></a>                    substitution_cost <span class="op">=</span> <span class="va">self</span>._substitution_cost</span>
-<span id="cb25-205"><a href="#cb25-205" aria-hidden="true" tabindex="-1"></a>                    </span>
-<span id="cb25-206"><a href="#cb25-206" aria-hidden="true" tabindex="-1"></a>                costs <span class="op">=</span> np.array([distance[i<span class="op">-</span><span class="dv">1</span>,j]<span class="op">+</span><span class="va">self</span>._deletion_cost,</span>
-<span id="cb25-207"><a href="#cb25-207" aria-hidden="true" tabindex="-1"></a>                                  distance[i<span class="op">-</span><span class="dv">1</span>,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span>substitution_cost,</span>
-<span id="cb25-208"><a href="#cb25-208" aria-hidden="true" tabindex="-1"></a>                                  distance[i,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span><span class="va">self</span>._insertion_cost])</span>
+<span id="cb25-176"><a href="#cb25-176" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> StringEdit3(StringEdit2):</span>
+<span id="cb25-177"><a href="#cb25-177" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''Distance between strings</span></span>
+<span id="cb25-178"><a href="#cb25-178" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-179"><a href="#cb25-179" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-180"><a href="#cb25-180" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
+<span id="cb25-181"><a href="#cb25-181" aria-hidden="true" tabindex="-1"></a><span class="co">    ----------</span></span>
+<span id="cb25-182"><a href="#cb25-182" aria-hidden="true" tabindex="-1"></a><span class="co">    insertion_cost</span></span>
+<span id="cb25-183"><a href="#cb25-183" aria-hidden="true" tabindex="-1"></a><span class="co">    deletion_cost</span></span>
+<span id="cb25-184"><a href="#cb25-184" aria-hidden="true" tabindex="-1"></a><span class="co">    substitution_cost</span></span>
+<span id="cb25-185"><a href="#cb25-185" aria-hidden="true" tabindex="-1"></a><span class="co">    '''</span></span>
+<span id="cb25-186"><a href="#cb25-186" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-187"><a href="#cb25-187" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, source: <span class="bu">str</span>, target: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">float</span>:</span>
+<span id="cb25-188"><a href="#cb25-188" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>._wagner_fisher(source, target)</span>
+<span id="cb25-189"><a href="#cb25-189" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-190"><a href="#cb25-190" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb25-191"><a href="#cb25-191" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _wagner_fisher(<span class="va">self</span>, source: <span class="bu">str</span>, target: <span class="bu">str</span>):</span>
+<span id="cb25-192"><a href="#cb25-192" aria-hidden="true" tabindex="-1"></a>        n, m <span class="op">=</span> <span class="bu">len</span>(source), <span class="bu">len</span>(target)</span>
+<span id="cb25-193"><a href="#cb25-193" aria-hidden="true" tabindex="-1"></a>        source, target <span class="op">=</span> <span class="st">'#'</span><span class="op">+</span>source, <span class="st">'#'</span><span class="op">+</span>target</span>
+<span id="cb25-194"><a href="#cb25-194" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-195"><a href="#cb25-195" aria-hidden="true" tabindex="-1"></a>        distance <span class="op">=</span> np.zeros([n<span class="op">+</span><span class="dv">1</span>, m<span class="op">+</span><span class="dv">1</span>], dtype<span class="op">=</span><span class="bu">float</span>)</span>
+<span id="cb25-196"><a href="#cb25-196" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb25-197"><a href="#cb25-197" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,n<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb25-198"><a href="#cb25-198" aria-hidden="true" tabindex="-1"></a>            distance[i,<span class="dv">0</span>] <span class="op">=</span> distance[i<span class="op">-</span><span class="dv">1</span>,<span class="dv">0</span>]<span class="op">+</span><span class="va">self</span>._deletion_cost</span>
+<span id="cb25-199"><a href="#cb25-199" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-200"><a href="#cb25-200" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,m<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb25-201"><a href="#cb25-201" aria-hidden="true" tabindex="-1"></a>            distance[<span class="dv">0</span>,j] <span class="op">=</span> distance[<span class="dv">0</span>,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span><span class="va">self</span>._insertion_cost</span>
+<span id="cb25-202"><a href="#cb25-202" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb25-203"><a href="#cb25-203" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,n<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb25-204"><a href="#cb25-204" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,m<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb25-205"><a href="#cb25-205" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> source[i] <span class="op">==</span> target[j]:</span>
+<span id="cb25-206"><a href="#cb25-206" aria-hidden="true" tabindex="-1"></a>                    substitution_cost <span class="op">=</span> <span class="fl">0.</span></span>
+<span id="cb25-207"><a href="#cb25-207" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>:</span>
+<span id="cb25-208"><a href="#cb25-208" aria-hidden="true" tabindex="-1"></a>                    substitution_cost <span class="op">=</span> <span class="va">self</span>._substitution_cost</span>
 <span id="cb25-209"><a href="#cb25-209" aria-hidden="true" tabindex="-1"></a>                    </span>
-<span id="cb25-210"><a href="#cb25-210" aria-hidden="true" tabindex="-1"></a>                distance[i,j] <span class="op">=</span> costs.<span class="bu">min</span>()</span>
-<span id="cb25-211"><a href="#cb25-211" aria-hidden="true" tabindex="-1"></a>                </span>
-<span id="cb25-212"><a href="#cb25-212" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> distance[n,m]</span>
-<span id="cb25-213"><a href="#cb25-213" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb25-214"><a href="#cb25-214" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-217"><a href="#cb25-217" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb25-218"><a href="#cb25-218" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit3(<span class="dv">1</span>, <span class="dv">1</span>)</span>
-<span id="cb25-219"><a href="#cb25-219" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-220"><a href="#cb25-220" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'dude'</span>, <span class="st">'dudette'</span>)</span>
-<span id="cb25-221"><a href="#cb25-221" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb25-222"><a href="#cb25-222" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-223"><a href="#cb25-223" aria-hidden="true" tabindex="-1"></a>So why use Wagner-Fisher when we can just use memoization on the naive algorithm? The reason is that the chart used in Wagner-Fisher allows us to very easily store information about the implicit alignment between string elements. This notion of alignment is the same as the one we saw above when talking about how best to match up a square to the face of a cube when discussing boolean vectors.</span>
-<span id="cb25-224"><a href="#cb25-224" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-225"><a href="#cb25-225" aria-hidden="true" tabindex="-1"></a>*Exercise:* what do we need to do add to our previous implementation of Wagner-Fisher to store backtraces? Importantly, note that you will need to return a list of backtraces because there could be multiple equally good ones. (This point will come up for all of the dynamic programming algorithms we look at and, as we'll see, is actually abstractly related to syntactic ambiguity.)</span>
+<span id="cb25-210"><a href="#cb25-210" aria-hidden="true" tabindex="-1"></a>                costs <span class="op">=</span> np.array([distance[i<span class="op">-</span><span class="dv">1</span>,j]<span class="op">+</span><span class="va">self</span>._deletion_cost,</span>
+<span id="cb25-211"><a href="#cb25-211" aria-hidden="true" tabindex="-1"></a>                                  distance[i<span class="op">-</span><span class="dv">1</span>,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span>substitution_cost,</span>
+<span id="cb25-212"><a href="#cb25-212" aria-hidden="true" tabindex="-1"></a>                                  distance[i,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span><span class="va">self</span>._insertion_cost])</span>
+<span id="cb25-213"><a href="#cb25-213" aria-hidden="true" tabindex="-1"></a>                    </span>
+<span id="cb25-214"><a href="#cb25-214" aria-hidden="true" tabindex="-1"></a>                distance[i,j] <span class="op">=</span> costs.<span class="bu">min</span>()</span>
+<span id="cb25-215"><a href="#cb25-215" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="cb25-216"><a href="#cb25-216" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> distance[n,m]</span>
+<span id="cb25-217"><a href="#cb25-217" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb25-218"><a href="#cb25-218" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-221"><a href="#cb25-221" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb25-222"><a href="#cb25-222" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit3(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb25-223"><a href="#cb25-223" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-224"><a href="#cb25-224" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'dude'</span>, <span class="st">'dudette'</span>)</span>
+<span id="cb25-225"><a href="#cb25-225" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb25-226"><a href="#cb25-226" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-229"><a href="#cb25-229" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb25-230"><a href="#cb25-230" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> Tuple, List</span>
-<span id="cb25-231"><a href="#cb25-231" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-232"><a href="#cb25-232" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> StringEdit4(StringEdit3):</span>
-<span id="cb25-233"><a href="#cb25-233" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''distance, alignment, and edit paths between strings</span></span>
-<span id="cb25-234"><a href="#cb25-234" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-227"><a href="#cb25-227" aria-hidden="true" tabindex="-1"></a>So why use Wagner-Fisher when we can just use memoization on the naive algorithm? The reason is that the chart used in Wagner-Fisher allows us to very easily store information about the implicit alignment between string elements. This notion of alignment is the same as the one we saw above when talking about how best to match up a square to the face of a cube when discussing boolean vectors.</span>
+<span id="cb25-228"><a href="#cb25-228" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-229"><a href="#cb25-229" aria-hidden="true" tabindex="-1"></a>*Exercise:* what do we need to do add to our previous implementation of Wagner-Fisher to store backtraces? Importantly, note that you will need to return a list of backtraces because there could be multiple equally good ones. (This point will come up for all of the dynamic programming algorithms we look at and, as we'll see, is actually abstractly related to syntactic ambiguity.)</span>
+<span id="cb25-230"><a href="#cb25-230" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-233"><a href="#cb25-233" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb25-234"><a href="#cb25-234" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> Tuple, List</span>
 <span id="cb25-235"><a href="#cb25-235" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-236"><a href="#cb25-236" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
-<span id="cb25-237"><a href="#cb25-237" aria-hidden="true" tabindex="-1"></a><span class="co">    ----------</span></span>
-<span id="cb25-238"><a href="#cb25-238" aria-hidden="true" tabindex="-1"></a><span class="co">    insertion_cost : float</span></span>
-<span id="cb25-239"><a href="#cb25-239" aria-hidden="true" tabindex="-1"></a><span class="co">    deletion_cost : float</span></span>
-<span id="cb25-240"><a href="#cb25-240" aria-hidden="true" tabindex="-1"></a><span class="co">    substitution_cost : float | NoneType (default: None)</span></span>
-<span id="cb25-241"><a href="#cb25-241" aria-hidden="true" tabindex="-1"></a><span class="co">    '''</span></span>
-<span id="cb25-242"><a href="#cb25-242" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-243"><a href="#cb25-243" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, source: <span class="bu">str</span>, </span>
-<span id="cb25-244"><a href="#cb25-244" aria-hidden="true" tabindex="-1"></a>                 target: <span class="bu">str</span>) <span class="op">-&gt;</span>  Tuple[<span class="bu">float</span>, List[List[Tuple[<span class="bu">int</span>, <span class="bu">int</span>]]]]:</span>
-<span id="cb25-245"><a href="#cb25-245" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>._wagner_fisher(source, target)</span>
-<span id="cb25-246"><a href="#cb25-246" aria-hidden="true" tabindex="-1"></a>            </span>
-<span id="cb25-247"><a href="#cb25-247" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _wagner_fisher(<span class="va">self</span>, source, target):</span>
-<span id="cb25-248"><a href="#cb25-248" aria-hidden="true" tabindex="-1"></a>        <span class="co">'''compute minimum edit distance and alignment'''</span></span>
-<span id="cb25-249"><a href="#cb25-249" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-250"><a href="#cb25-250" aria-hidden="true" tabindex="-1"></a>        n, m <span class="op">=</span> <span class="bu">len</span>(source), <span class="bu">len</span>(target)</span>
-<span id="cb25-251"><a href="#cb25-251" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-252"><a href="#cb25-252" aria-hidden="true" tabindex="-1"></a>        source, target <span class="op">=</span> <span class="va">self</span>._add_sentinel(source, target)</span>
+<span id="cb25-236"><a href="#cb25-236" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> StringEdit4(StringEdit3):</span>
+<span id="cb25-237"><a href="#cb25-237" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''distance, alignment, and edit paths between strings</span></span>
+<span id="cb25-238"><a href="#cb25-238" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-239"><a href="#cb25-239" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-240"><a href="#cb25-240" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
+<span id="cb25-241"><a href="#cb25-241" aria-hidden="true" tabindex="-1"></a><span class="co">    ----------</span></span>
+<span id="cb25-242"><a href="#cb25-242" aria-hidden="true" tabindex="-1"></a><span class="co">    insertion_cost : float</span></span>
+<span id="cb25-243"><a href="#cb25-243" aria-hidden="true" tabindex="-1"></a><span class="co">    deletion_cost : float</span></span>
+<span id="cb25-244"><a href="#cb25-244" aria-hidden="true" tabindex="-1"></a><span class="co">    substitution_cost : float | NoneType (default: None)</span></span>
+<span id="cb25-245"><a href="#cb25-245" aria-hidden="true" tabindex="-1"></a><span class="co">    '''</span></span>
+<span id="cb25-246"><a href="#cb25-246" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-247"><a href="#cb25-247" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, source: <span class="bu">str</span>, </span>
+<span id="cb25-248"><a href="#cb25-248" aria-hidden="true" tabindex="-1"></a>                 target: <span class="bu">str</span>) <span class="op">-&gt;</span>  Tuple[<span class="bu">float</span>, List[List[Tuple[<span class="bu">int</span>, <span class="bu">int</span>]]]]:</span>
+<span id="cb25-249"><a href="#cb25-249" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>._wagner_fisher(source, target)</span>
+<span id="cb25-250"><a href="#cb25-250" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb25-251"><a href="#cb25-251" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _wagner_fisher(<span class="va">self</span>, source, target):</span>
+<span id="cb25-252"><a href="#cb25-252" aria-hidden="true" tabindex="-1"></a>        <span class="co">'''compute minimum edit distance and alignment'''</span></span>
 <span id="cb25-253"><a href="#cb25-253" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-254"><a href="#cb25-254" aria-hidden="true" tabindex="-1"></a>        distance <span class="op">=</span> np.zeros([n<span class="op">+</span><span class="dv">1</span>, m<span class="op">+</span><span class="dv">1</span>], dtype<span class="op">=</span><span class="bu">float</span>)</span>
-<span id="cb25-255"><a href="#cb25-255" aria-hidden="true" tabindex="-1"></a>        pointers <span class="op">=</span> np.zeros([n<span class="op">+</span><span class="dv">1</span>, m<span class="op">+</span><span class="dv">1</span>], dtype<span class="op">=</span><span class="bu">list</span>)</span>
-<span id="cb25-256"><a href="#cb25-256" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-257"><a href="#cb25-257" aria-hidden="true" tabindex="-1"></a>        pointers[<span class="dv">0</span>,<span class="dv">0</span>] <span class="op">=</span> []</span>
-<span id="cb25-258"><a href="#cb25-258" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb25-259"><a href="#cb25-259" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,n<span class="op">+</span><span class="dv">1</span>):</span>
-<span id="cb25-260"><a href="#cb25-260" aria-hidden="true" tabindex="-1"></a>            distance[i,<span class="dv">0</span>] <span class="op">=</span> distance[i<span class="op">-</span><span class="dv">1</span>,<span class="dv">0</span>]<span class="op">+</span><span class="va">self</span>._deletion_cost</span>
-<span id="cb25-261"><a href="#cb25-261" aria-hidden="true" tabindex="-1"></a>            pointers[i,<span class="dv">0</span>] <span class="op">=</span> [(i<span class="op">-</span><span class="dv">1</span>,<span class="dv">0</span>)]</span>
-<span id="cb25-262"><a href="#cb25-262" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-263"><a href="#cb25-263" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,m<span class="op">+</span><span class="dv">1</span>):</span>
-<span id="cb25-264"><a href="#cb25-264" aria-hidden="true" tabindex="-1"></a>            distance[<span class="dv">0</span>,j] <span class="op">=</span> distance[<span class="dv">0</span>,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span><span class="va">self</span>._insertion_cost</span>
-<span id="cb25-265"><a href="#cb25-265" aria-hidden="true" tabindex="-1"></a>            pointers[<span class="dv">0</span>,j] <span class="op">=</span> [(<span class="dv">0</span>,j<span class="op">-</span><span class="dv">1</span>)]</span>
-<span id="cb25-266"><a href="#cb25-266" aria-hidden="true" tabindex="-1"></a>            </span>
-<span id="cb25-267"><a href="#cb25-267" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,n<span class="op">+</span><span class="dv">1</span>):</span>
-<span id="cb25-268"><a href="#cb25-268" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,m<span class="op">+</span><span class="dv">1</span>):</span>
-<span id="cb25-269"><a href="#cb25-269" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> source[i] <span class="op">==</span> target[j]:</span>
-<span id="cb25-270"><a href="#cb25-270" aria-hidden="true" tabindex="-1"></a>                    substitution_cost <span class="op">=</span> <span class="fl">0.</span></span>
-<span id="cb25-271"><a href="#cb25-271" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>:</span>
-<span id="cb25-272"><a href="#cb25-272" aria-hidden="true" tabindex="-1"></a>                    substitution_cost <span class="op">=</span> <span class="va">self</span>._substitution_cost</span>
-<span id="cb25-273"><a href="#cb25-273" aria-hidden="true" tabindex="-1"></a>                    </span>
-<span id="cb25-274"><a href="#cb25-274" aria-hidden="true" tabindex="-1"></a>                costs <span class="op">=</span> np.array([distance[i<span class="op">-</span><span class="dv">1</span>,j]<span class="op">+</span><span class="va">self</span>._deletion_cost,</span>
-<span id="cb25-275"><a href="#cb25-275" aria-hidden="true" tabindex="-1"></a>                                  distance[i<span class="op">-</span><span class="dv">1</span>,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span>substitution_cost,</span>
-<span id="cb25-276"><a href="#cb25-276" aria-hidden="true" tabindex="-1"></a>                                  distance[i,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span><span class="va">self</span>._insertion_cost])</span>
+<span id="cb25-254"><a href="#cb25-254" aria-hidden="true" tabindex="-1"></a>        n, m <span class="op">=</span> <span class="bu">len</span>(source), <span class="bu">len</span>(target)</span>
+<span id="cb25-255"><a href="#cb25-255" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-256"><a href="#cb25-256" aria-hidden="true" tabindex="-1"></a>        source, target <span class="op">=</span> <span class="va">self</span>._add_sentinel(source, target)</span>
+<span id="cb25-257"><a href="#cb25-257" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-258"><a href="#cb25-258" aria-hidden="true" tabindex="-1"></a>        distance <span class="op">=</span> np.zeros([n<span class="op">+</span><span class="dv">1</span>, m<span class="op">+</span><span class="dv">1</span>], dtype<span class="op">=</span><span class="bu">float</span>)</span>
+<span id="cb25-259"><a href="#cb25-259" aria-hidden="true" tabindex="-1"></a>        pointers <span class="op">=</span> np.zeros([n<span class="op">+</span><span class="dv">1</span>, m<span class="op">+</span><span class="dv">1</span>], dtype<span class="op">=</span><span class="bu">list</span>)</span>
+<span id="cb25-260"><a href="#cb25-260" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-261"><a href="#cb25-261" aria-hidden="true" tabindex="-1"></a>        pointers[<span class="dv">0</span>,<span class="dv">0</span>] <span class="op">=</span> []</span>
+<span id="cb25-262"><a href="#cb25-262" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb25-263"><a href="#cb25-263" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,n<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb25-264"><a href="#cb25-264" aria-hidden="true" tabindex="-1"></a>            distance[i,<span class="dv">0</span>] <span class="op">=</span> distance[i<span class="op">-</span><span class="dv">1</span>,<span class="dv">0</span>]<span class="op">+</span><span class="va">self</span>._deletion_cost</span>
+<span id="cb25-265"><a href="#cb25-265" aria-hidden="true" tabindex="-1"></a>            pointers[i,<span class="dv">0</span>] <span class="op">=</span> [(i<span class="op">-</span><span class="dv">1</span>,<span class="dv">0</span>)]</span>
+<span id="cb25-266"><a href="#cb25-266" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-267"><a href="#cb25-267" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,m<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb25-268"><a href="#cb25-268" aria-hidden="true" tabindex="-1"></a>            distance[<span class="dv">0</span>,j] <span class="op">=</span> distance[<span class="dv">0</span>,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span><span class="va">self</span>._insertion_cost</span>
+<span id="cb25-269"><a href="#cb25-269" aria-hidden="true" tabindex="-1"></a>            pointers[<span class="dv">0</span>,j] <span class="op">=</span> [(<span class="dv">0</span>,j<span class="op">-</span><span class="dv">1</span>)]</span>
+<span id="cb25-270"><a href="#cb25-270" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb25-271"><a href="#cb25-271" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,n<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb25-272"><a href="#cb25-272" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,m<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb25-273"><a href="#cb25-273" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> source[i] <span class="op">==</span> target[j]:</span>
+<span id="cb25-274"><a href="#cb25-274" aria-hidden="true" tabindex="-1"></a>                    substitution_cost <span class="op">=</span> <span class="fl">0.</span></span>
+<span id="cb25-275"><a href="#cb25-275" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>:</span>
+<span id="cb25-276"><a href="#cb25-276" aria-hidden="true" tabindex="-1"></a>                    substitution_cost <span class="op">=</span> <span class="va">self</span>._substitution_cost</span>
 <span id="cb25-277"><a href="#cb25-277" aria-hidden="true" tabindex="-1"></a>                    </span>
-<span id="cb25-278"><a href="#cb25-278" aria-hidden="true" tabindex="-1"></a>                distance[i,j] <span class="op">=</span> costs.<span class="bu">min</span>()</span>
-<span id="cb25-279"><a href="#cb25-279" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-280"><a href="#cb25-280" aria-hidden="true" tabindex="-1"></a>                best_edits <span class="op">=</span> np.where(costs<span class="op">==</span>distance[i,j])[<span class="dv">0</span>]</span>
-<span id="cb25-281"><a href="#cb25-281" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-282"><a href="#cb25-282" aria-hidden="true" tabindex="-1"></a>                indices <span class="op">=</span> [(i<span class="op">-</span><span class="dv">1</span>,j), (i<span class="op">-</span><span class="dv">1</span>,j<span class="op">-</span><span class="dv">1</span>), (i,j<span class="op">-</span><span class="dv">1</span>)]</span>
-<span id="cb25-283"><a href="#cb25-283" aria-hidden="true" tabindex="-1"></a>                pointers[i,j] <span class="op">=</span> [indices[i] <span class="cf">for</span> i <span class="kw">in</span>  best_edits]</span>
-<span id="cb25-284"><a href="#cb25-284" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-285"><a href="#cb25-285" aria-hidden="true" tabindex="-1"></a>        pointer_backtrace <span class="op">=</span> <span class="va">self</span>._construct_backtrace(pointers,</span>
-<span id="cb25-286"><a href="#cb25-286" aria-hidden="true" tabindex="-1"></a>                                                      idx<span class="op">=</span>(n,m))</span>
-<span id="cb25-287"><a href="#cb25-287" aria-hidden="true" tabindex="-1"></a>                </span>
-<span id="cb25-288"><a href="#cb25-288" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> distance[n,m], [[(i<span class="op">-</span><span class="dv">1</span>,j<span class="op">-</span><span class="dv">1</span>) <span class="cf">for</span> i, j <span class="kw">in</span> bt] </span>
-<span id="cb25-289"><a href="#cb25-289" aria-hidden="true" tabindex="-1"></a>                               <span class="cf">for</span> bt <span class="kw">in</span> pointer_backtrace]</span>
-<span id="cb25-290"><a href="#cb25-290" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-291"><a href="#cb25-291" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-292"><a href="#cb25-292" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _construct_backtrace(<span class="va">self</span>, pointers, idx):</span>
-<span id="cb25-293"><a href="#cb25-293" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> idx <span class="op">==</span> (<span class="dv">0</span>,<span class="dv">0</span>):</span>
-<span id="cb25-294"><a href="#cb25-294" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> [[]]</span>
-<span id="cb25-295"><a href="#cb25-295" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
-<span id="cb25-296"><a href="#cb25-296" aria-hidden="true" tabindex="-1"></a>            pointer_backtrace <span class="op">=</span> [backtrace<span class="op">+</span>[idx]</span>
-<span id="cb25-297"><a href="#cb25-297" aria-hidden="true" tabindex="-1"></a>                                 <span class="cf">for</span> prev_idx <span class="kw">in</span> pointers[idx]</span>
-<span id="cb25-298"><a href="#cb25-298" aria-hidden="true" tabindex="-1"></a>                                 <span class="cf">for</span> backtrace <span class="kw">in</span> <span class="va">self</span>._construct_backtrace(pointers,</span>
-<span id="cb25-299"><a href="#cb25-299" aria-hidden="true" tabindex="-1"></a>                                                                            prev_idx)]</span>
-<span id="cb25-300"><a href="#cb25-300" aria-hidden="true" tabindex="-1"></a>            </span>
-<span id="cb25-301"><a href="#cb25-301" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> pointer_backtrace</span>
-<span id="cb25-302"><a href="#cb25-302" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-303"><a href="#cb25-303" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _add_sentinel(<span class="va">self</span>, source, target):</span>
-<span id="cb25-304"><a href="#cb25-304" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">isinstance</span>(source, <span class="bu">str</span>):</span>
-<span id="cb25-305"><a href="#cb25-305" aria-hidden="true" tabindex="-1"></a>            source <span class="op">=</span> <span class="st">'#'</span><span class="op">+</span>source</span>
-<span id="cb25-306"><a href="#cb25-306" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> <span class="bu">isinstance</span>(source, <span class="bu">list</span>):</span>
-<span id="cb25-307"><a href="#cb25-307" aria-hidden="true" tabindex="-1"></a>            source <span class="op">=</span> [<span class="st">'#'</span>] <span class="op">+</span> source</span>
-<span id="cb25-308"><a href="#cb25-308" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> <span class="bu">isinstance</span>(source, <span class="bu">tuple</span>):</span>
-<span id="cb25-309"><a href="#cb25-309" aria-hidden="true" tabindex="-1"></a>            source <span class="op">=</span> (<span class="st">'#'</span>,) <span class="op">+</span> source</span>
-<span id="cb25-310"><a href="#cb25-310" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
-<span id="cb25-311"><a href="#cb25-311" aria-hidden="true" tabindex="-1"></a>            <span class="cf">raise</span> <span class="pp">ValueError</span>(<span class="st">'source must be str, list, or tuple'</span>)</span>
-<span id="cb25-312"><a href="#cb25-312" aria-hidden="true" tabindex="-1"></a>            </span>
-<span id="cb25-313"><a href="#cb25-313" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">isinstance</span>(target, <span class="bu">str</span>):</span>
-<span id="cb25-314"><a href="#cb25-314" aria-hidden="true" tabindex="-1"></a>            target <span class="op">=</span> <span class="st">'#'</span> <span class="op">+</span> target</span>
-<span id="cb25-315"><a href="#cb25-315" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> <span class="bu">isinstance</span>(target, <span class="bu">list</span>):</span>
-<span id="cb25-316"><a href="#cb25-316" aria-hidden="true" tabindex="-1"></a>            target <span class="op">=</span> [<span class="st">'#'</span>] <span class="op">+</span> target</span>
-<span id="cb25-317"><a href="#cb25-317" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> <span class="bu">isinstance</span>(target, <span class="bu">tuple</span>):</span>
-<span id="cb25-318"><a href="#cb25-318" aria-hidden="true" tabindex="-1"></a>            target <span class="op">=</span> (<span class="st">'#'</span>,) <span class="op">+</span> target</span>
-<span id="cb25-319"><a href="#cb25-319" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
-<span id="cb25-320"><a href="#cb25-320" aria-hidden="true" tabindex="-1"></a>            <span class="cf">raise</span> <span class="pp">ValueError</span>(<span class="st">'target must be str, list, or tuple'</span>)</span>
-<span id="cb25-321"><a href="#cb25-321" aria-hidden="true" tabindex="-1"></a>            </span>
-<span id="cb25-322"><a href="#cb25-322" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> source, target</span>
-<span id="cb25-323"><a href="#cb25-323" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb25-324"><a href="#cb25-324" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-327"><a href="#cb25-327" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb25-328"><a href="#cb25-328" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit4(<span class="dv">1</span>, <span class="dv">1</span>)</span>
-<span id="cb25-329"><a href="#cb25-329" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-330"><a href="#cb25-330" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'dudette'</span>, <span class="st">'dude'</span>)</span>
-<span id="cb25-331"><a href="#cb25-331" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb25-332"><a href="#cb25-332" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-333"><a href="#cb25-333" aria-hidden="true" tabindex="-1"></a>This isn't particularly interpretable, so we can postprocess the output slightly to better see what's going on.</span>
-<span id="cb25-334"><a href="#cb25-334" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-337"><a href="#cb25-337" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb25-338"><a href="#cb25-338" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> StringEdit5(StringEdit4):</span>
-<span id="cb25-339"><a href="#cb25-339" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''distance, alignment, and edit paths between strings</span></span>
-<span id="cb25-340"><a href="#cb25-340" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-341"><a href="#cb25-341" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-342"><a href="#cb25-342" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
-<span id="cb25-343"><a href="#cb25-343" aria-hidden="true" tabindex="-1"></a><span class="co">    ----------</span></span>
-<span id="cb25-344"><a href="#cb25-344" aria-hidden="true" tabindex="-1"></a><span class="co">    insertion_cost : float</span></span>
-<span id="cb25-345"><a href="#cb25-345" aria-hidden="true" tabindex="-1"></a><span class="co">    deletion_cost : float</span></span>
-<span id="cb25-346"><a href="#cb25-346" aria-hidden="true" tabindex="-1"></a><span class="co">    substitution_cost : float | NoneType (default: None)</span></span>
-<span id="cb25-347"><a href="#cb25-347" aria-hidden="true" tabindex="-1"></a><span class="co">    '''</span></span>
-<span id="cb25-348"><a href="#cb25-348" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-349"><a href="#cb25-349" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, source: <span class="bu">str</span>, </span>
-<span id="cb25-350"><a href="#cb25-350" aria-hidden="true" tabindex="-1"></a>                 target: <span class="bu">str</span>) <span class="op">-&gt;</span>  Tuple[<span class="bu">float</span>, List[List[Tuple[<span class="bu">str</span>, <span class="bu">str</span>]]]]:</span>
-<span id="cb25-351"><a href="#cb25-351" aria-hidden="true" tabindex="-1"></a>        distance, alignment <span class="op">=</span> <span class="va">self</span>._wagner_fisher(source, target)</span>
-<span id="cb25-352"><a href="#cb25-352" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb25-353"><a href="#cb25-353" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> distance, [[(source[i[<span class="dv">0</span>]]<span class="op">+</span><span class="st">'_'</span><span class="op">+</span><span class="bu">str</span>(i[<span class="dv">0</span>]), </span>
-<span id="cb25-354"><a href="#cb25-354" aria-hidden="true" tabindex="-1"></a>                            target[i[<span class="dv">1</span>]]<span class="op">+</span><span class="st">'_'</span><span class="op">+</span><span class="bu">str</span>(i[<span class="dv">0</span>])) </span>
-<span id="cb25-355"><a href="#cb25-355" aria-hidden="true" tabindex="-1"></a>                           <span class="cf">for</span> i <span class="kw">in</span> a] </span>
-<span id="cb25-356"><a href="#cb25-356" aria-hidden="true" tabindex="-1"></a>                          <span class="cf">for</span> a <span class="kw">in</span> alignment]</span>
-<span id="cb25-357"><a href="#cb25-357" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb25-358"><a href="#cb25-358" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-361"><a href="#cb25-361" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb25-362"><a href="#cb25-362" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit5(<span class="dv">1</span>, <span class="dv">1</span>)</span>
-<span id="cb25-363"><a href="#cb25-363" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-364"><a href="#cb25-364" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'dudette'</span>, <span class="st">'dude'</span>)</span>
-<span id="cb25-365"><a href="#cb25-365" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb25-366"><a href="#cb25-366" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-367"><a href="#cb25-367" aria-hidden="true" tabindex="-1"></a>*Question:* what does it mean to say that the "e" in "dude" is aligned to the first or second "e" in "dudette"? </span>
-<span id="cb25-368"><a href="#cb25-368" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-369"><a href="#cb25-369" aria-hidden="true" tabindex="-1"></a>To figure this out, it's useful to try to figure out which sequences of edits gave rise to this alignment.</span>
+<span id="cb25-278"><a href="#cb25-278" aria-hidden="true" tabindex="-1"></a>                costs <span class="op">=</span> np.array([distance[i<span class="op">-</span><span class="dv">1</span>,j]<span class="op">+</span><span class="va">self</span>._deletion_cost,</span>
+<span id="cb25-279"><a href="#cb25-279" aria-hidden="true" tabindex="-1"></a>                                  distance[i<span class="op">-</span><span class="dv">1</span>,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span>substitution_cost,</span>
+<span id="cb25-280"><a href="#cb25-280" aria-hidden="true" tabindex="-1"></a>                                  distance[i,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span><span class="va">self</span>._insertion_cost])</span>
+<span id="cb25-281"><a href="#cb25-281" aria-hidden="true" tabindex="-1"></a>                    </span>
+<span id="cb25-282"><a href="#cb25-282" aria-hidden="true" tabindex="-1"></a>                distance[i,j] <span class="op">=</span> costs.<span class="bu">min</span>()</span>
+<span id="cb25-283"><a href="#cb25-283" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-284"><a href="#cb25-284" aria-hidden="true" tabindex="-1"></a>                best_edits <span class="op">=</span> np.where(costs<span class="op">==</span>distance[i,j])[<span class="dv">0</span>]</span>
+<span id="cb25-285"><a href="#cb25-285" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-286"><a href="#cb25-286" aria-hidden="true" tabindex="-1"></a>                indices <span class="op">=</span> [(i<span class="op">-</span><span class="dv">1</span>,j), (i<span class="op">-</span><span class="dv">1</span>,j<span class="op">-</span><span class="dv">1</span>), (i,j<span class="op">-</span><span class="dv">1</span>)]</span>
+<span id="cb25-287"><a href="#cb25-287" aria-hidden="true" tabindex="-1"></a>                pointers[i,j] <span class="op">=</span> [indices[i] <span class="cf">for</span> i <span class="kw">in</span>  best_edits]</span>
+<span id="cb25-288"><a href="#cb25-288" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-289"><a href="#cb25-289" aria-hidden="true" tabindex="-1"></a>        pointer_backtrace <span class="op">=</span> <span class="va">self</span>._construct_backtrace(pointers,</span>
+<span id="cb25-290"><a href="#cb25-290" aria-hidden="true" tabindex="-1"></a>                                                      idx<span class="op">=</span>(n,m))</span>
+<span id="cb25-291"><a href="#cb25-291" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="cb25-292"><a href="#cb25-292" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> distance[n,m], [[(i<span class="op">-</span><span class="dv">1</span>,j<span class="op">-</span><span class="dv">1</span>) <span class="cf">for</span> i, j <span class="kw">in</span> bt] </span>
+<span id="cb25-293"><a href="#cb25-293" aria-hidden="true" tabindex="-1"></a>                               <span class="cf">for</span> bt <span class="kw">in</span> pointer_backtrace]</span>
+<span id="cb25-294"><a href="#cb25-294" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-295"><a href="#cb25-295" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-296"><a href="#cb25-296" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _construct_backtrace(<span class="va">self</span>, pointers, idx):</span>
+<span id="cb25-297"><a href="#cb25-297" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> idx <span class="op">==</span> (<span class="dv">0</span>,<span class="dv">0</span>):</span>
+<span id="cb25-298"><a href="#cb25-298" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> [[]]</span>
+<span id="cb25-299"><a href="#cb25-299" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb25-300"><a href="#cb25-300" aria-hidden="true" tabindex="-1"></a>            pointer_backtrace <span class="op">=</span> [backtrace<span class="op">+</span>[idx]</span>
+<span id="cb25-301"><a href="#cb25-301" aria-hidden="true" tabindex="-1"></a>                                 <span class="cf">for</span> prev_idx <span class="kw">in</span> pointers[idx]</span>
+<span id="cb25-302"><a href="#cb25-302" aria-hidden="true" tabindex="-1"></a>                                 <span class="cf">for</span> backtrace <span class="kw">in</span> <span class="va">self</span>._construct_backtrace(pointers,</span>
+<span id="cb25-303"><a href="#cb25-303" aria-hidden="true" tabindex="-1"></a>                                                                            prev_idx)]</span>
+<span id="cb25-304"><a href="#cb25-304" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb25-305"><a href="#cb25-305" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> pointer_backtrace</span>
+<span id="cb25-306"><a href="#cb25-306" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-307"><a href="#cb25-307" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _add_sentinel(<span class="va">self</span>, source, target):</span>
+<span id="cb25-308"><a href="#cb25-308" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">isinstance</span>(source, <span class="bu">str</span>):</span>
+<span id="cb25-309"><a href="#cb25-309" aria-hidden="true" tabindex="-1"></a>            source <span class="op">=</span> <span class="st">'#'</span><span class="op">+</span>source</span>
+<span id="cb25-310"><a href="#cb25-310" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> <span class="bu">isinstance</span>(source, <span class="bu">list</span>):</span>
+<span id="cb25-311"><a href="#cb25-311" aria-hidden="true" tabindex="-1"></a>            source <span class="op">=</span> [<span class="st">'#'</span>] <span class="op">+</span> source</span>
+<span id="cb25-312"><a href="#cb25-312" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> <span class="bu">isinstance</span>(source, <span class="bu">tuple</span>):</span>
+<span id="cb25-313"><a href="#cb25-313" aria-hidden="true" tabindex="-1"></a>            source <span class="op">=</span> (<span class="st">'#'</span>,) <span class="op">+</span> source</span>
+<span id="cb25-314"><a href="#cb25-314" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb25-315"><a href="#cb25-315" aria-hidden="true" tabindex="-1"></a>            <span class="cf">raise</span> <span class="pp">ValueError</span>(<span class="st">'source must be str, list, or tuple'</span>)</span>
+<span id="cb25-316"><a href="#cb25-316" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb25-317"><a href="#cb25-317" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">isinstance</span>(target, <span class="bu">str</span>):</span>
+<span id="cb25-318"><a href="#cb25-318" aria-hidden="true" tabindex="-1"></a>            target <span class="op">=</span> <span class="st">'#'</span> <span class="op">+</span> target</span>
+<span id="cb25-319"><a href="#cb25-319" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> <span class="bu">isinstance</span>(target, <span class="bu">list</span>):</span>
+<span id="cb25-320"><a href="#cb25-320" aria-hidden="true" tabindex="-1"></a>            target <span class="op">=</span> [<span class="st">'#'</span>] <span class="op">+</span> target</span>
+<span id="cb25-321"><a href="#cb25-321" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> <span class="bu">isinstance</span>(target, <span class="bu">tuple</span>):</span>
+<span id="cb25-322"><a href="#cb25-322" aria-hidden="true" tabindex="-1"></a>            target <span class="op">=</span> (<span class="st">'#'</span>,) <span class="op">+</span> target</span>
+<span id="cb25-323"><a href="#cb25-323" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb25-324"><a href="#cb25-324" aria-hidden="true" tabindex="-1"></a>            <span class="cf">raise</span> <span class="pp">ValueError</span>(<span class="st">'target must be str, list, or tuple'</span>)</span>
+<span id="cb25-325"><a href="#cb25-325" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb25-326"><a href="#cb25-326" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> source, target</span>
+<span id="cb25-327"><a href="#cb25-327" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb25-328"><a href="#cb25-328" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-331"><a href="#cb25-331" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb25-332"><a href="#cb25-332" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit4(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb25-333"><a href="#cb25-333" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-334"><a href="#cb25-334" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'dudette'</span>, <span class="st">'dude'</span>)</span>
+<span id="cb25-335"><a href="#cb25-335" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb25-336"><a href="#cb25-336" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-337"><a href="#cb25-337" aria-hidden="true" tabindex="-1"></a>This isn't particularly interpretable, so we can postprocess the output slightly to better see what's going on.</span>
+<span id="cb25-338"><a href="#cb25-338" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-341"><a href="#cb25-341" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb25-342"><a href="#cb25-342" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> StringEdit5(StringEdit4):</span>
+<span id="cb25-343"><a href="#cb25-343" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''distance, alignment, and edit paths between strings</span></span>
+<span id="cb25-344"><a href="#cb25-344" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-345"><a href="#cb25-345" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-346"><a href="#cb25-346" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
+<span id="cb25-347"><a href="#cb25-347" aria-hidden="true" tabindex="-1"></a><span class="co">    ----------</span></span>
+<span id="cb25-348"><a href="#cb25-348" aria-hidden="true" tabindex="-1"></a><span class="co">    insertion_cost : float</span></span>
+<span id="cb25-349"><a href="#cb25-349" aria-hidden="true" tabindex="-1"></a><span class="co">    deletion_cost : float</span></span>
+<span id="cb25-350"><a href="#cb25-350" aria-hidden="true" tabindex="-1"></a><span class="co">    substitution_cost : float | NoneType (default: None)</span></span>
+<span id="cb25-351"><a href="#cb25-351" aria-hidden="true" tabindex="-1"></a><span class="co">    '''</span></span>
+<span id="cb25-352"><a href="#cb25-352" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-353"><a href="#cb25-353" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, source: <span class="bu">str</span>, </span>
+<span id="cb25-354"><a href="#cb25-354" aria-hidden="true" tabindex="-1"></a>                 target: <span class="bu">str</span>) <span class="op">-&gt;</span>  Tuple[<span class="bu">float</span>, List[List[Tuple[<span class="bu">str</span>, <span class="bu">str</span>]]]]:</span>
+<span id="cb25-355"><a href="#cb25-355" aria-hidden="true" tabindex="-1"></a>        distance, alignment <span class="op">=</span> <span class="va">self</span>._wagner_fisher(source, target)</span>
+<span id="cb25-356"><a href="#cb25-356" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb25-357"><a href="#cb25-357" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> distance, [[(source[i[<span class="dv">0</span>]]<span class="op">+</span><span class="st">'_'</span><span class="op">+</span><span class="bu">str</span>(i[<span class="dv">0</span>]), </span>
+<span id="cb25-358"><a href="#cb25-358" aria-hidden="true" tabindex="-1"></a>                            target[i[<span class="dv">1</span>]]<span class="op">+</span><span class="st">'_'</span><span class="op">+</span><span class="bu">str</span>(i[<span class="dv">0</span>])) </span>
+<span id="cb25-359"><a href="#cb25-359" aria-hidden="true" tabindex="-1"></a>                           <span class="cf">for</span> i <span class="kw">in</span> a] </span>
+<span id="cb25-360"><a href="#cb25-360" aria-hidden="true" tabindex="-1"></a>                          <span class="cf">for</span> a <span class="kw">in</span> alignment]</span>
+<span id="cb25-361"><a href="#cb25-361" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb25-362"><a href="#cb25-362" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-365"><a href="#cb25-365" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb25-366"><a href="#cb25-366" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit5(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb25-367"><a href="#cb25-367" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-368"><a href="#cb25-368" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'dudette'</span>, <span class="st">'dude'</span>)</span>
+<span id="cb25-369"><a href="#cb25-369" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb25-370"><a href="#cb25-370" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-371"><a href="#cb25-371" aria-hidden="true" tabindex="-1"></a>*Exercise:* what do we need to do add to our previous implementation of Wagner-Fisher to store edit sequences? (First, you need to figure out how edit sequences should be represented; I've given a type hint below.) </span>
+<span id="cb25-371"><a href="#cb25-371" aria-hidden="true" tabindex="-1"></a>*Question:* what does it mean to say that the "e" in "dude" is aligned to the first or second "e" in "dudette"? </span>
 <span id="cb25-372"><a href="#cb25-372" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-375"><a href="#cb25-375" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb25-376"><a href="#cb25-376" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> StringEdit(StringEdit5):</span>
-<span id="cb25-377"><a href="#cb25-377" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''distance, alignment, and edit paths between strings</span></span>
-<span id="cb25-378"><a href="#cb25-378" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-379"><a href="#cb25-379" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-380"><a href="#cb25-380" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
-<span id="cb25-381"><a href="#cb25-381" aria-hidden="true" tabindex="-1"></a><span class="co">    ----------</span></span>
-<span id="cb25-382"><a href="#cb25-382" aria-hidden="true" tabindex="-1"></a><span class="co">    insertion_cost : float</span></span>
-<span id="cb25-383"><a href="#cb25-383" aria-hidden="true" tabindex="-1"></a><span class="co">    deletion_cost : float</span></span>
-<span id="cb25-384"><a href="#cb25-384" aria-hidden="true" tabindex="-1"></a><span class="co">    substitution_cost : float | NoneType (default: None)</span></span>
-<span id="cb25-385"><a href="#cb25-385" aria-hidden="true" tabindex="-1"></a><span class="co">    '''</span></span>
-<span id="cb25-386"><a href="#cb25-386" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb25-387"><a href="#cb25-387" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, insertion_cost<span class="op">=</span><span class="fl">1.</span>, deletion_cost<span class="op">=</span><span class="fl">1.</span>, substitution_cost<span class="op">=</span><span class="va">None</span>):</span>
-<span id="cb25-388"><a href="#cb25-388" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>._insertion_cost <span class="op">=</span> insertion_cost</span>
-<span id="cb25-389"><a href="#cb25-389" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>._deletion_cost <span class="op">=</span> deletion_cost</span>
-<span id="cb25-390"><a href="#cb25-390" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-391"><a href="#cb25-391" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> substitution_cost <span class="kw">is</span> <span class="va">None</span>:</span>
-<span id="cb25-392"><a href="#cb25-392" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>._substitution_cost <span class="op">=</span> insertion_cost <span class="op">+</span> deletion_cost</span>
-<span id="cb25-393"><a href="#cb25-393" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
-<span id="cb25-394"><a href="#cb25-394" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>._substitution_cost <span class="op">=</span> substitution_cost</span>
-<span id="cb25-395"><a href="#cb25-395" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-396"><a href="#cb25-396" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, source: <span class="bu">str</span>, </span>
-<span id="cb25-397"><a href="#cb25-397" aria-hidden="true" tabindex="-1"></a>                 target: <span class="bu">str</span>) <span class="op">-&gt;</span>  Tuple[<span class="bu">float</span>, </span>
-<span id="cb25-398"><a href="#cb25-398" aria-hidden="true" tabindex="-1"></a>                                        List[List[Tuple[<span class="bu">int</span>, <span class="bu">int</span>]]], </span>
-<span id="cb25-399"><a href="#cb25-399" aria-hidden="true" tabindex="-1"></a>                                             List[List[Tuple[<span class="bu">str</span>, </span>
-<span id="cb25-400"><a href="#cb25-400" aria-hidden="true" tabindex="-1"></a>                                                             Tuple[<span class="bu">str</span>, <span class="bu">str</span>]]]]]:</span>
-<span id="cb25-401"><a href="#cb25-401" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>._wagner_fisher(source, target)</span>
-<span id="cb25-402"><a href="#cb25-402" aria-hidden="true" tabindex="-1"></a>            </span>
-<span id="cb25-403"><a href="#cb25-403" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _wagner_fisher(<span class="va">self</span>, source, target):</span>
-<span id="cb25-404"><a href="#cb25-404" aria-hidden="true" tabindex="-1"></a>        <span class="co">'''compute minimum edit distance, alignment, and edit sequence'''</span></span>
-<span id="cb25-405"><a href="#cb25-405" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-406"><a href="#cb25-406" aria-hidden="true" tabindex="-1"></a>        n, m <span class="op">=</span> <span class="bu">len</span>(source), <span class="bu">len</span>(target)</span>
-<span id="cb25-407"><a href="#cb25-407" aria-hidden="true" tabindex="-1"></a>        source, target <span class="op">=</span> <span class="va">self</span>._add_sentinel(source, target)</span>
-<span id="cb25-408"><a href="#cb25-408" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-409"><a href="#cb25-409" aria-hidden="true" tabindex="-1"></a>        distance <span class="op">=</span> np.zeros([n<span class="op">+</span><span class="dv">1</span>, m<span class="op">+</span><span class="dv">1</span>], dtype<span class="op">=</span><span class="bu">float</span>)</span>
-<span id="cb25-410"><a href="#cb25-410" aria-hidden="true" tabindex="-1"></a>        pointers <span class="op">=</span> np.zeros([n<span class="op">+</span><span class="dv">1</span>, m<span class="op">+</span><span class="dv">1</span>], dtype<span class="op">=</span><span class="bu">list</span>)</span>
-<span id="cb25-411"><a href="#cb25-411" aria-hidden="true" tabindex="-1"></a>        edits <span class="op">=</span> np.zeros([n<span class="op">+</span><span class="dv">1</span>, m<span class="op">+</span><span class="dv">1</span>], dtype<span class="op">=</span><span class="bu">list</span>)</span>
+<span id="cb25-373"><a href="#cb25-373" aria-hidden="true" tabindex="-1"></a>To figure this out, it's useful to try to figure out which sequences of edits gave rise to this alignment.</span>
+<span id="cb25-374"><a href="#cb25-374" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-375"><a href="#cb25-375" aria-hidden="true" tabindex="-1"></a>*Exercise:* what do we need to do add to our previous implementation of Wagner-Fisher to store edit sequences? (First, you need to figure out how edit sequences should be represented; I've given a type hint below.) </span>
+<span id="cb25-376"><a href="#cb25-376" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-379"><a href="#cb25-379" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb25-380"><a href="#cb25-380" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> StringEdit(StringEdit5):</span>
+<span id="cb25-381"><a href="#cb25-381" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''distance, alignment, and edit paths between strings</span></span>
+<span id="cb25-382"><a href="#cb25-382" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-383"><a href="#cb25-383" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-384"><a href="#cb25-384" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
+<span id="cb25-385"><a href="#cb25-385" aria-hidden="true" tabindex="-1"></a><span class="co">    ----------</span></span>
+<span id="cb25-386"><a href="#cb25-386" aria-hidden="true" tabindex="-1"></a><span class="co">    insertion_cost : float</span></span>
+<span id="cb25-387"><a href="#cb25-387" aria-hidden="true" tabindex="-1"></a><span class="co">    deletion_cost : float</span></span>
+<span id="cb25-388"><a href="#cb25-388" aria-hidden="true" tabindex="-1"></a><span class="co">    substitution_cost : float | NoneType (default: None)</span></span>
+<span id="cb25-389"><a href="#cb25-389" aria-hidden="true" tabindex="-1"></a><span class="co">    '''</span></span>
+<span id="cb25-390"><a href="#cb25-390" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb25-391"><a href="#cb25-391" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, insertion_cost<span class="op">=</span><span class="fl">1.</span>, deletion_cost<span class="op">=</span><span class="fl">1.</span>, substitution_cost<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb25-392"><a href="#cb25-392" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>._insertion_cost <span class="op">=</span> insertion_cost</span>
+<span id="cb25-393"><a href="#cb25-393" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>._deletion_cost <span class="op">=</span> deletion_cost</span>
+<span id="cb25-394"><a href="#cb25-394" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-395"><a href="#cb25-395" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> substitution_cost <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb25-396"><a href="#cb25-396" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>._substitution_cost <span class="op">=</span> insertion_cost <span class="op">+</span> deletion_cost</span>
+<span id="cb25-397"><a href="#cb25-397" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb25-398"><a href="#cb25-398" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>._substitution_cost <span class="op">=</span> substitution_cost</span>
+<span id="cb25-399"><a href="#cb25-399" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-400"><a href="#cb25-400" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, source: <span class="bu">str</span>, </span>
+<span id="cb25-401"><a href="#cb25-401" aria-hidden="true" tabindex="-1"></a>                 target: <span class="bu">str</span>) <span class="op">-&gt;</span>  Tuple[<span class="bu">float</span>, </span>
+<span id="cb25-402"><a href="#cb25-402" aria-hidden="true" tabindex="-1"></a>                                        List[List[Tuple[<span class="bu">int</span>, <span class="bu">int</span>]]], </span>
+<span id="cb25-403"><a href="#cb25-403" aria-hidden="true" tabindex="-1"></a>                                             List[List[Tuple[<span class="bu">str</span>, </span>
+<span id="cb25-404"><a href="#cb25-404" aria-hidden="true" tabindex="-1"></a>                                                             Tuple[<span class="bu">str</span>, <span class="bu">str</span>]]]]]:</span>
+<span id="cb25-405"><a href="#cb25-405" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>._wagner_fisher(source, target)</span>
+<span id="cb25-406"><a href="#cb25-406" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb25-407"><a href="#cb25-407" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _wagner_fisher(<span class="va">self</span>, source, target):</span>
+<span id="cb25-408"><a href="#cb25-408" aria-hidden="true" tabindex="-1"></a>        <span class="co">'''compute minimum edit distance, alignment, and edit sequence'''</span></span>
+<span id="cb25-409"><a href="#cb25-409" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-410"><a href="#cb25-410" aria-hidden="true" tabindex="-1"></a>        n, m <span class="op">=</span> <span class="bu">len</span>(source), <span class="bu">len</span>(target)</span>
+<span id="cb25-411"><a href="#cb25-411" aria-hidden="true" tabindex="-1"></a>        source, target <span class="op">=</span> <span class="va">self</span>._add_sentinel(source, target)</span>
 <span id="cb25-412"><a href="#cb25-412" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-413"><a href="#cb25-413" aria-hidden="true" tabindex="-1"></a>        pointers[<span class="dv">0</span>,<span class="dv">0</span>] <span class="op">=</span> []</span>
-<span id="cb25-414"><a href="#cb25-414" aria-hidden="true" tabindex="-1"></a>        edits[<span class="dv">0</span>,<span class="dv">0</span>] <span class="op">=</span> []</span>
-<span id="cb25-415"><a href="#cb25-415" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb25-416"><a href="#cb25-416" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,n<span class="op">+</span><span class="dv">1</span>):</span>
-<span id="cb25-417"><a href="#cb25-417" aria-hidden="true" tabindex="-1"></a>            distance[i,<span class="dv">0</span>] <span class="op">=</span> distance[i<span class="op">-</span><span class="dv">1</span>,<span class="dv">0</span>]<span class="op">+</span><span class="va">self</span>._deletion_cost</span>
-<span id="cb25-418"><a href="#cb25-418" aria-hidden="true" tabindex="-1"></a>            pointers[i,<span class="dv">0</span>] <span class="op">=</span> [(i<span class="op">-</span><span class="dv">1</span>,<span class="dv">0</span>)]</span>
-<span id="cb25-419"><a href="#cb25-419" aria-hidden="true" tabindex="-1"></a>            edits[i,<span class="dv">0</span>] <span class="op">=</span> [(<span class="st">'delete'</span>, source[i])]</span>
-<span id="cb25-420"><a href="#cb25-420" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-421"><a href="#cb25-421" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,m<span class="op">+</span><span class="dv">1</span>):</span>
-<span id="cb25-422"><a href="#cb25-422" aria-hidden="true" tabindex="-1"></a>            distance[<span class="dv">0</span>,j] <span class="op">=</span> distance[<span class="dv">0</span>,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span><span class="va">self</span>._insertion_cost</span>
-<span id="cb25-423"><a href="#cb25-423" aria-hidden="true" tabindex="-1"></a>            pointers[<span class="dv">0</span>,j] <span class="op">=</span> [(<span class="dv">0</span>,j<span class="op">-</span><span class="dv">1</span>)]</span>
-<span id="cb25-424"><a href="#cb25-424" aria-hidden="true" tabindex="-1"></a>            edits[<span class="dv">0</span>,j] <span class="op">=</span> [(<span class="st">'insert'</span>, target[j])]</span>
-<span id="cb25-425"><a href="#cb25-425" aria-hidden="true" tabindex="-1"></a>            </span>
-<span id="cb25-426"><a href="#cb25-426" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,n<span class="op">+</span><span class="dv">1</span>):</span>
-<span id="cb25-427"><a href="#cb25-427" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,m<span class="op">+</span><span class="dv">1</span>):</span>
-<span id="cb25-428"><a href="#cb25-428" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> source[i] <span class="op">==</span> target[j]:</span>
-<span id="cb25-429"><a href="#cb25-429" aria-hidden="true" tabindex="-1"></a>                    substitution_cost <span class="op">=</span> <span class="fl">0.</span></span>
-<span id="cb25-430"><a href="#cb25-430" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>:</span>
-<span id="cb25-431"><a href="#cb25-431" aria-hidden="true" tabindex="-1"></a>                    substitution_cost <span class="op">=</span> <span class="va">self</span>._substitution_cost</span>
-<span id="cb25-432"><a href="#cb25-432" aria-hidden="true" tabindex="-1"></a>                    </span>
-<span id="cb25-433"><a href="#cb25-433" aria-hidden="true" tabindex="-1"></a>                costs <span class="op">=</span> np.array([distance[i<span class="op">-</span><span class="dv">1</span>,j]<span class="op">+</span><span class="va">self</span>._deletion_cost,</span>
-<span id="cb25-434"><a href="#cb25-434" aria-hidden="true" tabindex="-1"></a>                                  distance[i<span class="op">-</span><span class="dv">1</span>,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span>substitution_cost,</span>
-<span id="cb25-435"><a href="#cb25-435" aria-hidden="true" tabindex="-1"></a>                                  distance[i,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span><span class="va">self</span>._insertion_cost])</span>
+<span id="cb25-413"><a href="#cb25-413" aria-hidden="true" tabindex="-1"></a>        distance <span class="op">=</span> np.zeros([n<span class="op">+</span><span class="dv">1</span>, m<span class="op">+</span><span class="dv">1</span>], dtype<span class="op">=</span><span class="bu">float</span>)</span>
+<span id="cb25-414"><a href="#cb25-414" aria-hidden="true" tabindex="-1"></a>        pointers <span class="op">=</span> np.zeros([n<span class="op">+</span><span class="dv">1</span>, m<span class="op">+</span><span class="dv">1</span>], dtype<span class="op">=</span><span class="bu">list</span>)</span>
+<span id="cb25-415"><a href="#cb25-415" aria-hidden="true" tabindex="-1"></a>        edits <span class="op">=</span> np.zeros([n<span class="op">+</span><span class="dv">1</span>, m<span class="op">+</span><span class="dv">1</span>], dtype<span class="op">=</span><span class="bu">list</span>)</span>
+<span id="cb25-416"><a href="#cb25-416" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-417"><a href="#cb25-417" aria-hidden="true" tabindex="-1"></a>        pointers[<span class="dv">0</span>,<span class="dv">0</span>] <span class="op">=</span> []</span>
+<span id="cb25-418"><a href="#cb25-418" aria-hidden="true" tabindex="-1"></a>        edits[<span class="dv">0</span>,<span class="dv">0</span>] <span class="op">=</span> []</span>
+<span id="cb25-419"><a href="#cb25-419" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb25-420"><a href="#cb25-420" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,n<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb25-421"><a href="#cb25-421" aria-hidden="true" tabindex="-1"></a>            distance[i,<span class="dv">0</span>] <span class="op">=</span> distance[i<span class="op">-</span><span class="dv">1</span>,<span class="dv">0</span>]<span class="op">+</span><span class="va">self</span>._deletion_cost</span>
+<span id="cb25-422"><a href="#cb25-422" aria-hidden="true" tabindex="-1"></a>            pointers[i,<span class="dv">0</span>] <span class="op">=</span> [(i<span class="op">-</span><span class="dv">1</span>,<span class="dv">0</span>)]</span>
+<span id="cb25-423"><a href="#cb25-423" aria-hidden="true" tabindex="-1"></a>            edits[i,<span class="dv">0</span>] <span class="op">=</span> [(<span class="st">'delete'</span>, source[i])]</span>
+<span id="cb25-424"><a href="#cb25-424" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-425"><a href="#cb25-425" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,m<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb25-426"><a href="#cb25-426" aria-hidden="true" tabindex="-1"></a>            distance[<span class="dv">0</span>,j] <span class="op">=</span> distance[<span class="dv">0</span>,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span><span class="va">self</span>._insertion_cost</span>
+<span id="cb25-427"><a href="#cb25-427" aria-hidden="true" tabindex="-1"></a>            pointers[<span class="dv">0</span>,j] <span class="op">=</span> [(<span class="dv">0</span>,j<span class="op">-</span><span class="dv">1</span>)]</span>
+<span id="cb25-428"><a href="#cb25-428" aria-hidden="true" tabindex="-1"></a>            edits[<span class="dv">0</span>,j] <span class="op">=</span> [(<span class="st">'insert'</span>, target[j])]</span>
+<span id="cb25-429"><a href="#cb25-429" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb25-430"><a href="#cb25-430" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,n<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb25-431"><a href="#cb25-431" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,m<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb25-432"><a href="#cb25-432" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> source[i] <span class="op">==</span> target[j]:</span>
+<span id="cb25-433"><a href="#cb25-433" aria-hidden="true" tabindex="-1"></a>                    substitution_cost <span class="op">=</span> <span class="fl">0.</span></span>
+<span id="cb25-434"><a href="#cb25-434" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>:</span>
+<span id="cb25-435"><a href="#cb25-435" aria-hidden="true" tabindex="-1"></a>                    substitution_cost <span class="op">=</span> <span class="va">self</span>._substitution_cost</span>
 <span id="cb25-436"><a href="#cb25-436" aria-hidden="true" tabindex="-1"></a>                    </span>
-<span id="cb25-437"><a href="#cb25-437" aria-hidden="true" tabindex="-1"></a>                distance[i,j] <span class="op">=</span> costs.<span class="bu">min</span>()</span>
-<span id="cb25-438"><a href="#cb25-438" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-439"><a href="#cb25-439" aria-hidden="true" tabindex="-1"></a>                best_edits <span class="op">=</span> np.where(costs<span class="op">==</span>distance[i,j])[<span class="dv">0</span>]</span>
-<span id="cb25-440"><a href="#cb25-440" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-441"><a href="#cb25-441" aria-hidden="true" tabindex="-1"></a>                indices <span class="op">=</span> [(i<span class="op">-</span><span class="dv">1</span>,j), (i<span class="op">-</span><span class="dv">1</span>,j<span class="op">-</span><span class="dv">1</span>), (i,j<span class="op">-</span><span class="dv">1</span>)]</span>
-<span id="cb25-442"><a href="#cb25-442" aria-hidden="true" tabindex="-1"></a>                pointers[i,j] <span class="op">=</span> [indices[i] <span class="cf">for</span> i <span class="kw">in</span>  best_edits]</span>
-<span id="cb25-443"><a href="#cb25-443" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-444"><a href="#cb25-444" aria-hidden="true" tabindex="-1"></a>                edit_types <span class="op">=</span> <span class="bu">list</span>(<span class="bu">zip</span>([<span class="st">"delete"</span>, <span class="st">"substitute"</span>, <span class="st">"insert"</span>],</span>
-<span id="cb25-445"><a href="#cb25-445" aria-hidden="true" tabindex="-1"></a>                                      [source[i], (source[i], target[j]), target[j]]))</span>
-<span id="cb25-446"><a href="#cb25-446" aria-hidden="true" tabindex="-1"></a>                edits[i,j] <span class="op">=</span> [edit_types[i] <span class="cf">for</span> i <span class="kw">in</span> best_edits]</span>
+<span id="cb25-437"><a href="#cb25-437" aria-hidden="true" tabindex="-1"></a>                costs <span class="op">=</span> np.array([distance[i<span class="op">-</span><span class="dv">1</span>,j]<span class="op">+</span><span class="va">self</span>._deletion_cost,</span>
+<span id="cb25-438"><a href="#cb25-438" aria-hidden="true" tabindex="-1"></a>                                  distance[i<span class="op">-</span><span class="dv">1</span>,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span>substitution_cost,</span>
+<span id="cb25-439"><a href="#cb25-439" aria-hidden="true" tabindex="-1"></a>                                  distance[i,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span><span class="va">self</span>._insertion_cost])</span>
+<span id="cb25-440"><a href="#cb25-440" aria-hidden="true" tabindex="-1"></a>                    </span>
+<span id="cb25-441"><a href="#cb25-441" aria-hidden="true" tabindex="-1"></a>                distance[i,j] <span class="op">=</span> costs.<span class="bu">min</span>()</span>
+<span id="cb25-442"><a href="#cb25-442" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-443"><a href="#cb25-443" aria-hidden="true" tabindex="-1"></a>                best_edits <span class="op">=</span> np.where(costs<span class="op">==</span>distance[i,j])[<span class="dv">0</span>]</span>
+<span id="cb25-444"><a href="#cb25-444" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-445"><a href="#cb25-445" aria-hidden="true" tabindex="-1"></a>                indices <span class="op">=</span> [(i<span class="op">-</span><span class="dv">1</span>,j), (i<span class="op">-</span><span class="dv">1</span>,j<span class="op">-</span><span class="dv">1</span>), (i,j<span class="op">-</span><span class="dv">1</span>)]</span>
+<span id="cb25-446"><a href="#cb25-446" aria-hidden="true" tabindex="-1"></a>                pointers[i,j] <span class="op">=</span> [indices[i] <span class="cf">for</span> i <span class="kw">in</span>  best_edits]</span>
 <span id="cb25-447"><a href="#cb25-447" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-448"><a href="#cb25-448" aria-hidden="true" tabindex="-1"></a>        pointer_backtrace, edit_backtrace <span class="op">=</span> <span class="va">self</span>._construct_backtrace(pointers,</span>
-<span id="cb25-449"><a href="#cb25-449" aria-hidden="true" tabindex="-1"></a>                                                                      edits,</span>
-<span id="cb25-450"><a href="#cb25-450" aria-hidden="true" tabindex="-1"></a>                                                                      idx<span class="op">=</span>(n,m))</span>
+<span id="cb25-448"><a href="#cb25-448" aria-hidden="true" tabindex="-1"></a>                edit_types <span class="op">=</span> <span class="bu">list</span>(<span class="bu">zip</span>([<span class="st">"delete"</span>, <span class="st">"substitute"</span>, <span class="st">"insert"</span>],</span>
+<span id="cb25-449"><a href="#cb25-449" aria-hidden="true" tabindex="-1"></a>                                      [source[i], (source[i], target[j]), target[j]]))</span>
+<span id="cb25-450"><a href="#cb25-450" aria-hidden="true" tabindex="-1"></a>                edits[i,j] <span class="op">=</span> [edit_types[i] <span class="cf">for</span> i <span class="kw">in</span> best_edits]</span>
 <span id="cb25-451"><a href="#cb25-451" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-452"><a href="#cb25-452" aria-hidden="true" tabindex="-1"></a>        edit_backtrace_filtered <span class="op">=</span> []</span>
-<span id="cb25-453"><a href="#cb25-453" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-454"><a href="#cb25-454" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> bt <span class="kw">in</span> edit_backtrace:</span>
-<span id="cb25-455"><a href="#cb25-455" aria-hidden="true" tabindex="-1"></a>            string_length <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb25-456"><a href="#cb25-456" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> operation, _ <span class="kw">in</span> bt:</span>
-<span id="cb25-457"><a href="#cb25-457" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> operation <span class="kw">in</span> [<span class="st">"substitute"</span>, <span class="st">"insert"</span>]:</span>
-<span id="cb25-458"><a href="#cb25-458" aria-hidden="true" tabindex="-1"></a>                    string_length <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb25-459"><a href="#cb25-459" aria-hidden="true" tabindex="-1"></a>            </span>
-<span id="cb25-460"><a href="#cb25-460" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> string_length <span class="op">==</span> <span class="bu">len</span>(target) <span class="op">-</span> <span class="dv">1</span>:</span>
-<span id="cb25-461"><a href="#cb25-461" aria-hidden="true" tabindex="-1"></a>                edit_backtrace_filtered.append(bt)</span>
-<span id="cb25-462"><a href="#cb25-462" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-463"><a href="#cb25-463" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> distance[n,m], pointer_backtrace, edit_backtrace_filtered</span>
-<span id="cb25-464"><a href="#cb25-464" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-465"><a href="#cb25-465" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-466"><a href="#cb25-466" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _construct_backtrace(<span class="va">self</span>, pointers, edits, idx):</span>
-<span id="cb25-467"><a href="#cb25-467" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> idx <span class="op">==</span> (<span class="dv">0</span>,<span class="dv">0</span>):</span>
-<span id="cb25-468"><a href="#cb25-468" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> [[]], [[]]</span>
-<span id="cb25-469"><a href="#cb25-469" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
-<span id="cb25-470"><a href="#cb25-470" aria-hidden="true" tabindex="-1"></a>            pointer_backtrace <span class="op">=</span> [backtrace<span class="op">+</span>[idx]</span>
-<span id="cb25-471"><a href="#cb25-471" aria-hidden="true" tabindex="-1"></a>                                 <span class="cf">for</span> prev_idx <span class="kw">in</span> pointers[idx]</span>
-<span id="cb25-472"><a href="#cb25-472" aria-hidden="true" tabindex="-1"></a>                                 <span class="cf">for</span> backtrace <span class="kw">in</span> <span class="va">self</span>._construct_backtrace(pointers,</span>
-<span id="cb25-473"><a href="#cb25-473" aria-hidden="true" tabindex="-1"></a>                                                                            edits,</span>
-<span id="cb25-474"><a href="#cb25-474" aria-hidden="true" tabindex="-1"></a>                                                                            prev_idx)[<span class="dv">0</span>]]</span>
-<span id="cb25-475"><a href="#cb25-475" aria-hidden="true" tabindex="-1"></a>            edit_backtrace <span class="op">=</span> [backtrace<span class="op">+</span>[edit]</span>
-<span id="cb25-476"><a href="#cb25-476" aria-hidden="true" tabindex="-1"></a>                              <span class="cf">for</span> prev_idx <span class="kw">in</span> pointers[idx]</span>
-<span id="cb25-477"><a href="#cb25-477" aria-hidden="true" tabindex="-1"></a>                              <span class="cf">for</span> backtrace <span class="kw">in</span> <span class="va">self</span>._construct_backtrace(pointers,</span>
-<span id="cb25-478"><a href="#cb25-478" aria-hidden="true" tabindex="-1"></a>                                                                         edits,</span>
-<span id="cb25-479"><a href="#cb25-479" aria-hidden="true" tabindex="-1"></a>                                                                         prev_idx)[<span class="dv">1</span>]</span>
-<span id="cb25-480"><a href="#cb25-480" aria-hidden="true" tabindex="-1"></a>                              <span class="cf">for</span> edit <span class="kw">in</span> edits[idx]]</span>
-<span id="cb25-481"><a href="#cb25-481" aria-hidden="true" tabindex="-1"></a>            </span>
-<span id="cb25-482"><a href="#cb25-482" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> pointer_backtrace, edit_backtrace</span>
-<span id="cb25-483"><a href="#cb25-483" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb25-484"><a href="#cb25-484" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-487"><a href="#cb25-487" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb25-488"><a href="#cb25-488" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit(<span class="dv">1</span>, <span class="dv">1</span>)</span>
-<span id="cb25-489"><a href="#cb25-489" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-490"><a href="#cb25-490" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'review'</span>, <span class="st">'rereview'</span>)</span>
-<span id="cb25-491"><a href="#cb25-491" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb25-452"><a href="#cb25-452" aria-hidden="true" tabindex="-1"></a>        pointer_backtrace, edit_backtrace <span class="op">=</span> <span class="va">self</span>._construct_backtrace(pointers,</span>
+<span id="cb25-453"><a href="#cb25-453" aria-hidden="true" tabindex="-1"></a>                                                                      edits,</span>
+<span id="cb25-454"><a href="#cb25-454" aria-hidden="true" tabindex="-1"></a>                                                                      idx<span class="op">=</span>(n,m))</span>
+<span id="cb25-455"><a href="#cb25-455" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-456"><a href="#cb25-456" aria-hidden="true" tabindex="-1"></a>        edit_backtrace_filtered <span class="op">=</span> []</span>
+<span id="cb25-457"><a href="#cb25-457" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-458"><a href="#cb25-458" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> bt <span class="kw">in</span> edit_backtrace:</span>
+<span id="cb25-459"><a href="#cb25-459" aria-hidden="true" tabindex="-1"></a>            string_length <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb25-460"><a href="#cb25-460" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> operation, _ <span class="kw">in</span> bt:</span>
+<span id="cb25-461"><a href="#cb25-461" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> operation <span class="kw">in</span> [<span class="st">"substitute"</span>, <span class="st">"insert"</span>]:</span>
+<span id="cb25-462"><a href="#cb25-462" aria-hidden="true" tabindex="-1"></a>                    string_length <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb25-463"><a href="#cb25-463" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb25-464"><a href="#cb25-464" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> string_length <span class="op">==</span> <span class="bu">len</span>(target) <span class="op">-</span> <span class="dv">1</span>:</span>
+<span id="cb25-465"><a href="#cb25-465" aria-hidden="true" tabindex="-1"></a>                edit_backtrace_filtered.append(bt)</span>
+<span id="cb25-466"><a href="#cb25-466" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-467"><a href="#cb25-467" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> distance[n,m], pointer_backtrace, edit_backtrace_filtered</span>
+<span id="cb25-468"><a href="#cb25-468" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-469"><a href="#cb25-469" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-470"><a href="#cb25-470" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _construct_backtrace(<span class="va">self</span>, pointers, edits, idx):</span>
+<span id="cb25-471"><a href="#cb25-471" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> idx <span class="op">==</span> (<span class="dv">0</span>,<span class="dv">0</span>):</span>
+<span id="cb25-472"><a href="#cb25-472" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> [[]], [[]]</span>
+<span id="cb25-473"><a href="#cb25-473" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb25-474"><a href="#cb25-474" aria-hidden="true" tabindex="-1"></a>            pointer_backtrace <span class="op">=</span> [backtrace<span class="op">+</span>[idx]</span>
+<span id="cb25-475"><a href="#cb25-475" aria-hidden="true" tabindex="-1"></a>                                 <span class="cf">for</span> prev_idx <span class="kw">in</span> pointers[idx]</span>
+<span id="cb25-476"><a href="#cb25-476" aria-hidden="true" tabindex="-1"></a>                                 <span class="cf">for</span> backtrace <span class="kw">in</span> <span class="va">self</span>._construct_backtrace(pointers,</span>
+<span id="cb25-477"><a href="#cb25-477" aria-hidden="true" tabindex="-1"></a>                                                                            edits,</span>
+<span id="cb25-478"><a href="#cb25-478" aria-hidden="true" tabindex="-1"></a>                                                                            prev_idx)[<span class="dv">0</span>]]</span>
+<span id="cb25-479"><a href="#cb25-479" aria-hidden="true" tabindex="-1"></a>            edit_backtrace <span class="op">=</span> [backtrace<span class="op">+</span>[edit]</span>
+<span id="cb25-480"><a href="#cb25-480" aria-hidden="true" tabindex="-1"></a>                              <span class="cf">for</span> prev_idx <span class="kw">in</span> pointers[idx]</span>
+<span id="cb25-481"><a href="#cb25-481" aria-hidden="true" tabindex="-1"></a>                              <span class="cf">for</span> backtrace <span class="kw">in</span> <span class="va">self</span>._construct_backtrace(pointers,</span>
+<span id="cb25-482"><a href="#cb25-482" aria-hidden="true" tabindex="-1"></a>                                                                         edits,</span>
+<span id="cb25-483"><a href="#cb25-483" aria-hidden="true" tabindex="-1"></a>                                                                         prev_idx)[<span class="dv">1</span>]</span>
+<span id="cb25-484"><a href="#cb25-484" aria-hidden="true" tabindex="-1"></a>                              <span class="cf">for</span> edit <span class="kw">in</span> edits[idx]]</span>
+<span id="cb25-485"><a href="#cb25-485" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb25-486"><a href="#cb25-486" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> pointer_backtrace, edit_backtrace</span>
+<span id="cb25-487"><a href="#cb25-487" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb25-488"><a href="#cb25-488" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-491"><a href="#cb25-491" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb25-492"><a href="#cb25-492" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb25-493"><a href="#cb25-493" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-494"><a href="#cb25-494" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'review'</span>, <span class="st">'rereview'</span>)</span>
+<span id="cb25-495"><a href="#cb25-495" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
