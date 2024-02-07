@@ -32,8 +32,10 @@ project:
     - formal-and-practical-preliminaries/working-with-annotated-corpora/index.qmd
     - formal-and-practical-preliminaries/edit-distance-and-string-alignment/index.qmd
     - formal-and-practical-preliminaries/text-normalization/index.qmd
-    - formal-and-practical-preliminaries/working-with-annotated-corpora/index.qmd
     - formal-and-practical-preliminaries/edit-distance-and-string-alignment/index.qmd
+    - formal-and-practical-preliminaries/edit-distance-and-string-alignment/distance-in-the-abstract.qmd
+    - formal-and-practical-preliminaries/edit-distance-and-string-alignment/levenshtein-distance.qmd
+    - formal-and-practical-preliminaries/working-with-annotated-corpora/index.qmd
     - finite-state-models/index.qmd
     - context-free-models/index.qmd
     - mildly-context-sensitive-models/index.qmd
@@ -81,8 +83,12 @@ website:
               - formal-and-practical-preliminaries/text-normalization/tokenization.ipynb
               - formal-and-practical-preliminaries/text-normalization/sentence-separation.ipynb
               - formal-and-practical-preliminaries/text-normalization/lemmatization.ipynb
+          - section: "Edit Distance and String Alignment"
+            contents:
+              - formal-and-practical-preliminaries/edit-distance-and-string-alignment/index.qmd
+              - formal-and-practical-preliminaries/edit-distance-and-string-alignment/distance-in-the-abstract.qmd
+              - formal-and-practical-preliminaries/edit-distance-and-string-alignment/levenshtein-distance.qmd
           - formal-and-practical-preliminaries/working-with-annotated-corpora/index.qmd
-          - formal-and-practical-preliminaries/edit-distance-and-string-alignment/index.qmd
       - section: "Finite State Models"
         contents:
           - finite-state-models/index.qmd
@@ -102,6 +108,7 @@ format:
     highlight-style: oblivion
     css: styles.css
     toc: true
+    code-tools: true
 
 filters:
   - include-code-files

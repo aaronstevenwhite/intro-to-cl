@@ -1,9 +1,5 @@
 ---
 title: Overview
-highlight-style: oblivion
-format:
-    html:
-        code-tools: true
 ---
 
 Before getting to the fun parts of this course, we need to develop some basic formal tools. In this submodule, we'll focus on some core concepts in naïve set theory and objects—such as relations and functions—constructed with these concepts. We'll then use these concepts to develop a formal concept of strings on an alphabet and the set of all languages constructed from those strings.

@@ -1,8 +1,18 @@
 ---
-title: Edit Distance and String Alignment
+title: Overview
 bibliography: ../../references.bib
 ---
 
-::: {.callout-caution}
-This submodule will be available around February 14, 2024.
+::: {.callout-tip}
+## Reading
+
+@jurafsky_speech_2023[Ch. 2.5] on edit distance and string alignment. 
 :::
+
+In the regular expressions submodule, we talked about how to describe a language on $\Sigma$–i.e. a set of strings $L \subseteq \Sigma^*$–using a string from some other language–the set of regular expressions. This approach to describing languages allowed us to do a variety of strings–most fundamentally, finding all and only string that are in the language described by the regular expression.
+
+Sometimes, however, we don't know exactly what set of strings we are searching for, but we know we are interested in strings in $\Sigma^*$ that are similar to some string of interest that's also in $\Sigma^*$. For instance, maybe we know we want morphological variants of the word *abstract*, like *abstraction*, *abstracts*, *abstracted*, etc. This task is often referred to as [fuzzy search](https://en.wikipedia.org/wiki/Approximate_string_matching).
+
+In this context, it can be really useful to have a way of measuring the distance/similarity between two strings, where this measurement might help us determine that *abstract* and *abstraction* are more similar than *abstract* and *obstruction* (and maybe also that *abstract* and *abstraction* are exactly as similar as *obstruct* and *obstruction*). 
+
+In addition to deriving a measurement of distance/similarity, we often also want to be able to determine which elements of the two strings give rise to that similarity. For instance, we may furthermore want to know that *abstract* corresponds to the initial substring in *abstraction*; and therefore, that *abstraction* is *abstract* with a suffix *ion* on it. This task is known as *string alignment*, and it turns out that the methods we use to compute distance can be used to compute such alignments as well.
