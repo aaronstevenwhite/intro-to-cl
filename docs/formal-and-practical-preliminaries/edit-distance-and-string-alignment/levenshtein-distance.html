@@ -535,7 +535,7 @@ c_\text{del} \times |\mathbf{a}| &amp; \text{if } |\mathbf{b}| = 0 \\
 <div class="sourceCode cell-code" id="cb2" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit1(<span class="dv">1</span>, <span class="dv">1</span>)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækt'</span>), editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækʃən'</span>), editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>), editdist(<span class="st">'æbstɹækt'</span>, <span class="st">''</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="28">
+<div class="cell-output cell-output-display" data-execution_count="54">
 <pre data-code-line-numbers=""><code>(0.0, 4.0, 4.0, 8)</code></pre>
 </div>
 </div>
@@ -544,7 +544,7 @@ c_\text{del} \times |\mathbf{a}| &amp; \text{if } |\mathbf{b}| = 0 \\
 <div class="sourceCode cell-code" id="cb4" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>editdist.call_counter</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="29">
+<div class="cell-output cell-output-display" data-execution_count="55">
 <pre data-code-line-numbers=""><code>defaultdict(int,
             {('æbstɹækʃən', 'æbstɹækt'): 1,
              ('æbstɹækʃə', 'æbstɹækt'): 1,
@@ -693,7 +693,7 @@ c_\text{del} \times |\mathbf{a}| &amp; \text{if } |\mathbf{b}| = 0 \\
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækt'</span>), editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækʃən'</span>), editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>), editdist(<span class="st">'æbstɹækt'</span>, <span class="st">''</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre data-code-line-numbers=""><code>2.19 s ± 14.8 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)</code></pre>
+<pre data-code-line-numbers=""><code>2.18 s ± 14.3 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)</code></pre>
 </div>
 </div>
 <div class="cell" data-execution_count="6">
@@ -703,7 +703,7 @@ c_\text{del} \times |\mathbf{a}| &amp; \text{if } |\mathbf{b}| = 0 \\
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækt'</span>), editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækʃən'</span>), editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>), editdist(<span class="st">'æbstɹækt'</span>, <span class="st">''</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre data-code-line-numbers=""><code>178 µs ± 2.37 µs per loop (mean ± std. dev. of 7 runs, 10000 loops each)</code></pre>
+<pre data-code-line-numbers=""><code>180 µs ± 2.24 µs per loop (mean ± std. dev. of 7 runs, 10000 loops each)</code></pre>
 </div>
 </div>
 <div class="cell" data-execution_count="7">
@@ -712,7 +712,7 @@ c_\text{del} \times |\mathbf{a}| &amp; \text{if } |\mathbf{b}| = 0 \\
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>)</span>
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>editdist.call_counter</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="33">
+<div class="cell-output cell-output-display" data-execution_count="59">
 <pre data-code-line-numbers=""><code>defaultdict(int,
             {('æbstɹækʃən', 'æbstɹækt'): 1,
              ('æbstɹækʃə', 'æbstɹækt'): 1,
@@ -865,7 +865,7 @@ c_\text{del} \times |\mathbf{a}| &amp; \text{if } |\mathbf{b}| = 0 \\
 <div class="sourceCode cell-code" id="cb14" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit3(<span class="dv">1</span>, <span class="dv">1</span>)</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækʃən'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="35">
+<div class="cell-output cell-output-display" data-execution_count="61">
 <pre data-code-line-numbers=""><code>4.0</code></pre>
 </div>
 </div>
@@ -970,7 +970,7 @@ c_\text{del} \times |\mathbf{a}| &amp; \text{if } |\mathbf{b}| = 0 \\
 <div class="sourceCode cell-code" id="cb17" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit4(<span class="dv">1</span>, <span class="dv">1</span>)</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="37">
+<div class="cell-output cell-output-display" data-execution_count="63">
 <pre data-code-line-numbers=""><code>(4.0,
  [[(0, 0),
    (1, 1),
@@ -1065,8 +1065,8 @@ c_\text{del} \times |\mathbf{a}| &amp; \text{if } |\mathbf{b}| = 0 \\
 <span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>                 target: <span class="bu">str</span>) <span class="op">-&gt;</span>  Tuple[<span class="bu">float</span>, List[List[Tuple[<span class="bu">str</span>, <span class="bu">str</span>]]]]:</span>
 <span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>        distance, alignment <span class="op">=</span> <span class="va">self</span>._wagner_fisher(source, target)</span>
 <span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> distance, [[(source[i[<span class="dv">0</span>]]<span class="op">+</span><span class="st">'_'</span><span class="op">+</span><span class="bu">str</span>(i[<span class="dv">0</span>]), </span>
-<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>                            target[i[<span class="dv">1</span>]]<span class="op">+</span><span class="st">'_'</span><span class="op">+</span><span class="bu">str</span>(i[<span class="dv">0</span>])) </span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> distance, [[(source[i[<span class="dv">0</span>]], </span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>                            target[i[<span class="dv">1</span>]]) </span>
 <span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>                           <span class="cf">for</span> i <span class="kw">in</span> a] </span>
 <span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>                          <span class="cf">for</span> a <span class="kw">in</span> alignment]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -1074,87 +1074,84 @@ c_\text{del} \times |\mathbf{a}| &amp; \text{if } |\mathbf{b}| = 0 \\
 <div class="sourceCode cell-code" id="cb20" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit5(<span class="dv">1</span>, <span class="dv">1</span>)</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="39">
+<div class="cell-output cell-output-display" data-execution_count="65">
 <pre data-code-line-numbers=""><code>(4.0,
- [[('æ_0', 'æ_0'),
-   ('b_1', 'b_1'),
-   ('s_2', 's_2'),
-   ('t_3', 't_3'),
-   ('ɹ_4', 'ɹ_4'),
-   ('æ_5', 'æ_5'),
-   ('k_6', 'k_6'),
-   ('k_6', 't_6'),
-   ('ʃ_7', 't_7'),
-   ('ə_8', 't_8'),
-   ('n_9', 't_9')],
-  [('æ_0', 'æ_0'),
-   ('b_1', 'b_1'),
-   ('s_2', 's_2'),
-   ('t_3', 't_3'),
-   ('ɹ_4', 'ɹ_4'),
-   ('æ_5', 'æ_5'),
-   ('k_6', 'k_6'),
-   ('ʃ_7', 't_7'),
-   ('ə_8', 't_8'),
-   ('n_9', 't_9')],
-  [('æ_0', 'æ_0'),
-   ('b_1', 'b_1'),
-   ('s_2', 's_2'),
-   ('t_3', 't_3'),
-   ('ɹ_4', 'ɹ_4'),
-   ('æ_5', 'æ_5'),
-   ('k_6', 'k_6'),
-   ('ʃ_7', 'k_7'),
-   ('ʃ_7', 't_7'),
-   ('ə_8', 't_8'),
-   ('n_9', 't_9')],
-  [('æ_0', 'æ_0'),
-   ('b_1', 'b_1'),
-   ('s_2', 's_2'),
-   ('t_3', 't_3'),
-   ('ɹ_4', 'ɹ_4'),
-   ('æ_5', 'æ_5'),
-   ('k_6', 'k_6'),
-   ('ʃ_7', 'k_7'),
-   ('ə_8', 't_8'),
-   ('n_9', 't_9')],
-  [('æ_0', 'æ_0'),
-   ('b_1', 'b_1'),
-   ('s_2', 's_2'),
-   ('t_3', 't_3'),
-   ('ɹ_4', 'ɹ_4'),
-   ('æ_5', 'æ_5'),
-   ('k_6', 'k_6'),
-   ('ʃ_7', 'k_7'),
-   ('ə_8', 'k_8'),
-   ('ə_8', 't_8'),
-   ('n_9', 't_9')],
-  [('æ_0', 'æ_0'),
-   ('b_1', 'b_1'),
-   ('s_2', 's_2'),
-   ('t_3', 't_3'),
-   ('ɹ_4', 'ɹ_4'),
-   ('æ_5', 'æ_5'),
-   ('k_6', 'k_6'),
-   ('ʃ_7', 'k_7'),
-   ('ə_8', 'k_8'),
-   ('n_9', 't_9')],
-  [('æ_0', 'æ_0'),
-   ('b_1', 'b_1'),
-   ('s_2', 's_2'),
-   ('t_3', 't_3'),
-   ('ɹ_4', 'ɹ_4'),
-   ('æ_5', 'æ_5'),
-   ('k_6', 'k_6'),
-   ('ʃ_7', 'k_7'),
-   ('ə_8', 'k_8'),
-   ('n_9', 'k_9'),
-   ('n_9', 't_9')]])</code></pre>
+ [[('æ', 'æ'),
+   ('b', 'b'),
+   ('s', 's'),
+   ('t', 't'),
+   ('ɹ', 'ɹ'),
+   ('æ', 'æ'),
+   ('k', 'k'),
+   ('k', 't'),
+   ('ʃ', 't'),
+   ('ə', 't'),
+   ('n', 't')],
+  [('æ', 'æ'),
+   ('b', 'b'),
+   ('s', 's'),
+   ('t', 't'),
+   ('ɹ', 'ɹ'),
+   ('æ', 'æ'),
+   ('k', 'k'),
+   ('ʃ', 't'),
+   ('ə', 't'),
+   ('n', 't')],
+  [('æ', 'æ'),
+   ('b', 'b'),
+   ('s', 's'),
+   ('t', 't'),
+   ('ɹ', 'ɹ'),
+   ('æ', 'æ'),
+   ('k', 'k'),
+   ('ʃ', 'k'),
+   ('ʃ', 't'),
+   ('ə', 't'),
+   ('n', 't')],
+  [('æ', 'æ'),
+   ('b', 'b'),
+   ('s', 's'),
+   ('t', 't'),
+   ('ɹ', 'ɹ'),
+   ('æ', 'æ'),
+   ('k', 'k'),
+   ('ʃ', 'k'),
+   ('ə', 't'),
+   ('n', 't')],
+  [('æ', 'æ'),
+   ('b', 'b'),
+   ('s', 's'),
+   ('t', 't'),
+   ('ɹ', 'ɹ'),
+   ('æ', 'æ'),
+   ('k', 'k'),
+   ('ʃ', 'k'),
+   ('ə', 'k'),
+   ('ə', 't'),
+   ('n', 't')],
+  [('æ', 'æ'),
+   ('b', 'b'),
+   ('s', 's'),
+   ('t', 't'),
+   ('ɹ', 'ɹ'),
+   ('æ', 'æ'),
+   ('k', 'k'),
+   ('ʃ', 'k'),
+   ('ə', 'k'),
+   ('n', 't')],
+  [('æ', 'æ'),
+   ('b', 'b'),
+   ('s', 's'),
+   ('t', 't'),
+   ('ɹ', 'ɹ'),
+   ('æ', 'æ'),
+   ('k', 'k'),
+   ('ʃ', 'k'),
+   ('ə', 'k'),
+   ('n', 'k'),
+   ('n', 't')]])</code></pre>
 </div>
 </div>
-<p><em>Question:</em> what does it mean to say that the “e” in “dude” is aligned to the first or second “e” in “dudette”?</p>
-<p>To figure this out, it’s useful to try to figure out which sequences of edits gave rise to this alignment.</p>
-<p><em>Exercise:</em> what do we need to do add to our previous implementation of Wagner-Fisher to store edit sequences? (First, you need to figure out how edit sequences should be represented; I’ve given a type hint below.)</p>
 
 
 <!-- -->
@@ -1792,8 +1789,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb22-355"><a href="#cb22-355" aria-hidden="true" tabindex="-1"></a>                 target: <span class="bu">str</span>) <span class="op">-&gt;</span>  Tuple[<span class="bu">float</span>, List[List[Tuple[<span class="bu">str</span>, <span class="bu">str</span>]]]]:</span>
 <span id="cb22-356"><a href="#cb22-356" aria-hidden="true" tabindex="-1"></a>        distance, alignment <span class="op">=</span> <span class="va">self</span>._wagner_fisher(source, target)</span>
 <span id="cb22-357"><a href="#cb22-357" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb22-358"><a href="#cb22-358" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> distance, [[(source[i[<span class="dv">0</span>]]<span class="op">+</span><span class="st">'_'</span><span class="op">+</span><span class="bu">str</span>(i[<span class="dv">0</span>]), </span>
-<span id="cb22-359"><a href="#cb22-359" aria-hidden="true" tabindex="-1"></a>                            target[i[<span class="dv">1</span>]]<span class="op">+</span><span class="st">'_'</span><span class="op">+</span><span class="bu">str</span>(i[<span class="dv">0</span>])) </span>
+<span id="cb22-358"><a href="#cb22-358" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> distance, [[(source[i[<span class="dv">0</span>]], </span>
+<span id="cb22-359"><a href="#cb22-359" aria-hidden="true" tabindex="-1"></a>                            target[i[<span class="dv">1</span>]]) </span>
 <span id="cb22-360"><a href="#cb22-360" aria-hidden="true" tabindex="-1"></a>                           <span class="cf">for</span> i <span class="kw">in</span> a] </span>
 <span id="cb22-361"><a href="#cb22-361" aria-hidden="true" tabindex="-1"></a>                          <span class="cf">for</span> a <span class="kw">in</span> alignment]</span>
 <span id="cb22-362"><a href="#cb22-362" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
@@ -1803,12 +1800,6 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb22-368"><a href="#cb22-368" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb22-369"><a href="#cb22-369" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>)</span>
 <span id="cb22-370"><a href="#cb22-370" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb22-371"><a href="#cb22-371" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-372"><a href="#cb22-372" aria-hidden="true" tabindex="-1"></a>*Question:* what does it mean to say that the "e" in "dude" is aligned to the first or second "e" in "dudette"? </span>
-<span id="cb22-373"><a href="#cb22-373" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-374"><a href="#cb22-374" aria-hidden="true" tabindex="-1"></a>To figure this out, it's useful to try to figure out which sequences of edits gave rise to this alignment.</span>
-<span id="cb22-375"><a href="#cb22-375" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-376"><a href="#cb22-376" aria-hidden="true" tabindex="-1"></a>*Exercise:* what do we need to do add to our previous implementation of Wagner-Fisher to store edit sequences? (First, you need to figure out how edit sequences should be represented.)</span>
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

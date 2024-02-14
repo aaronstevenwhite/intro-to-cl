@@ -331,8 +331,8 @@ class StringEdit5(StringEdit4):
                  target: str) ->  Tuple[float, List[List[Tuple[str, str]]]]:
         distance, alignment = self._wagner_fisher(source, target)
         
-        return distance, [[(source[i[0]]+'_'+str(i[0]), 
-                            target[i[1]]+'_'+str(i[0])) 
+        return distance, [[(source[i[0]], 
+                            target[i[1]]) 
                            for i in a] 
                           for a in alignment]
 ```
@@ -342,9 +342,3 @@ editdist = StringEdit5(1, 1)
 
 editdist('æbstɹækʃən', 'æbstɹækt')
 ```
-
-*Question:* what does it mean to say that the "e" in "dude" is aligned to the first or second "e" in "dudette"? 
-
-To figure this out, it's useful to try to figure out which sequences of edits gave rise to this alignment.
-
-*Exercise:* what do we need to do add to our previous implementation of Wagner-Fisher to store edit sequences? (First, you need to figure out how edit sequences should be represented.)
