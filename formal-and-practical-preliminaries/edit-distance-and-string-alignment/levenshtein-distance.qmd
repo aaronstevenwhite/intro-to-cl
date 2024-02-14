@@ -8,7 +8,9 @@ format:
 
 Okay, so how do we compute edit (or *Levenshtein*) distance? The basic idea is to define it recursively, deciding at each point in the string whether we want to insert/delete an element (each at some cost $c$) or whether we want to try matching the string.
 
-$$d_\text{lev}(\mathbf{a}, \mathbf{b}) = \begin{cases}\min(c_\text{del}, c_\text{ins}) \times \max(|\mathbf{a}|, |\mathbf{b}|) & \text{if } \min(|\mathbf{a}|, |\mathbf{b}|) = 0 \\
+$$d_\text{lev}(\mathbf{a}, \mathbf{b}) = \begin{cases}
+c_\text{ins} \times |\mathbf{b}| & \text{if } |\mathbf{a}| = 0 \\
+c_\text{del} \times |\mathbf{a}| & \text{if } |\mathbf{b}| = 0 \\
 \min \begin{cases}d_\text{lev}(a_1\ldots a_{|\mathbf{a}|-1}, \mathbf{b}) + c_\text{del} \\
                   d_\text{lev}(\mathbf{a}, b_1\ldots b_{|\mathbf{b}|-1}) + c_\text{ins} \\
                   d_\text{lev}(a_1\ldots a_{|\mathbf{a}|-1}, b_1\ldots b_{|\mathbf{b}|-1}) + c_\text{sub} \times \mathbb{1}[a_{|\mathbf{a}|-1} \neq b_{|\mathbf{b}|-1}]\end{cases} & \text{otherwise}\end{cases}$$
@@ -21,7 +23,6 @@ from typing import Optional
 
 class StringEdit1:
     '''Distance between strings
-
 
     Parameters
     ----------
@@ -76,13 +77,13 @@ class StringEdit1:
 ```{python}
 editdist = StringEdit1(1, 1)
 
-editdist('dude', 'dude'), editdist('dude', 'dudette'), editdist('dudette', 'dude'), editdist('dude', '')
+editdist('æbstɹækt', 'æbstɹækt'), editdist('æbstɹækt', 'æbstɹækʃən'), editdist('æbstɹækʃən', 'æbstɹækt'), editdist('æbstɹækt', '')
 ```
 
 Okay. So here's the thing. This looks nice, but it's actually not that efficient because we're actually redoing a whole ton of work. 
 
 ```{python}
-editdist('dudette', 'dude')
+editdist('æbstɹækʃən', 'æbstɹækt')
 
 editdist.call_counter
 ```
@@ -133,7 +134,7 @@ class StringEdit2(StringEdit1):
 
 editdist = StringEdit1(1, 1)
 
-editdist('dude', 'dude'), editdist('dude', 'dudette'), editdist('dudette', 'dude'), editdist('dude', '')
+editdist('æbstɹækt', 'æbstɹækt'), editdist('æbstɹækt', 'æbstɹækʃən'), editdist('æbstɹækʃən', 'æbstɹækt'), editdist('æbstɹækt', '')
 ```
 
 ```{python}
@@ -141,13 +142,13 @@ editdist('dude', 'dude'), editdist('dude', 'dudette'), editdist('dudette', 'dude
 
 editdist = StringEdit2(1, 1)
 
-editdist('dude', 'dude'), editdist('dude', 'dudette'), editdist('dudette', 'dude'), editdist('dude', '')
+editdist('æbstɹækt', 'æbstɹækt'), editdist('æbstɹækt', 'æbstɹækʃən'), editdist('æbstɹækʃən', 'æbstɹækt'), editdist('æbstɹækt', '')
 ```
 
 ```{python}
 editdist = StringEdit2(1, 1)
 
-editdist('dudette', 'dude')
+editdist('æbstɹækʃən', 'æbstɹækt')
 
 editdist.call_counter
 ```
@@ -203,12 +204,12 @@ class StringEdit3(StringEdit2):
 ```{python}
 editdist = StringEdit3(1, 1)
 
-editdist('dude', 'dudette')
+editdist('æbstɹækt', 'æbstɹækʃən')
 ```
 
 So why use Wagner-Fisher when we can just use memoization on the naive algorithm? The reason is that the chart used in Wagner-Fisher allows us to very easily store information about the implicit alignment between string elements. This notion of alignment is the same as the one we saw above when talking about how best to match up a square to the face of a cube when discussing boolean vectors.
 
-*Exercise:* what do we need to do add to our previous implementation of Wagner-Fisher to store backtraces? Importantly, note that you will need to return a list of backtraces because there could be multiple equally good ones. (This point will come up for all of the dynamic programming algorithms we look at and, as we'll see, is actually abstractly related to syntactic ambiguity.)
+So what do we need to do add to our previous implementation of Wagner-Fisher to store backtraces? Importantly, note that you will need to return a list of backtraces because there could be multiple equally good ones. (This point will come up for all of the dynamic programming algorithms we look at and, as we'll see, is actually abstractly related to syntactic ambiguity.)
 
 ```{python}
 from typing import Tuple, List
@@ -309,7 +310,7 @@ class StringEdit4(StringEdit3):
 ```{python}
 editdist = StringEdit4(1, 1)
 
-editdist('dudette', 'dude')
+editdist('æbstɹækʃən', 'æbstɹækt')
 ```
 
 This isn't particularly interpretable, so we can postprocess the output slightly to better see what's going on.
@@ -339,127 +340,11 @@ class StringEdit5(StringEdit4):
 ```{python}
 editdist = StringEdit5(1, 1)
 
-editdist('dudette', 'dude')
+editdist('æbstɹækʃən', 'æbstɹækt')
 ```
 
 *Question:* what does it mean to say that the "e" in "dude" is aligned to the first or second "e" in "dudette"? 
 
 To figure this out, it's useful to try to figure out which sequences of edits gave rise to this alignment.
 
-*Exercise:* what do we need to do add to our previous implementation of Wagner-Fisher to store edit sequences? (First, you need to figure out how edit sequences should be represented; I've given a type hint below.) 
-
-```{python}
-class StringEdit(StringEdit5):
-    '''distance, alignment, and edit paths between strings
-
-
-    Parameters
-    ----------
-    insertion_cost : float
-    deletion_cost : float
-    substitution_cost : float | NoneType (default: None)
-    '''
-    
-    def __init__(self, insertion_cost=1., deletion_cost=1., substitution_cost=None):
-        self._insertion_cost = insertion_cost
-        self._deletion_cost = deletion_cost
-
-        if substitution_cost is None:
-            self._substitution_cost = insertion_cost + deletion_cost
-        else:
-            self._substitution_cost = substitution_cost
-
-    def __call__(self, source: str, 
-                 target: str) ->  Tuple[float, 
-                                        List[List[Tuple[int, int]]], 
-                                             List[List[Tuple[str, 
-                                                             Tuple[str, str]]]]]:
-        return self._wagner_fisher(source, target)
-            
-    def _wagner_fisher(self, source, target):
-        '''compute minimum edit distance, alignment, and edit sequence'''
-
-        n, m = len(source), len(target)
-        source, target = self._add_sentinel(source, target)
-
-        distance = np.zeros([n+1, m+1], dtype=float)
-        pointers = np.zeros([n+1, m+1], dtype=list)
-        edits = np.zeros([n+1, m+1], dtype=list)
-
-        pointers[0,0] = []
-        edits[0,0] = []
-        
-        for i in range(1,n+1):
-            distance[i,0] = distance[i-1,0]+self._deletion_cost
-            pointers[i,0] = [(i-1,0)]
-            edits[i,0] = [('delete', source[i])]
-
-        for j in range(1,m+1):
-            distance[0,j] = distance[0,j-1]+self._insertion_cost
-            pointers[0,j] = [(0,j-1)]
-            edits[0,j] = [('insert', target[j])]
-            
-        for i in range(1,n+1):
-            for j in range(1,m+1):
-                if source[i] == target[j]:
-                    substitution_cost = 0.
-                else:
-                    substitution_cost = self._substitution_cost
-                    
-                costs = np.array([distance[i-1,j]+self._deletion_cost,
-                                  distance[i-1,j-1]+substitution_cost,
-                                  distance[i,j-1]+self._insertion_cost])
-                    
-                distance[i,j] = costs.min()
-
-                best_edits = np.where(costs==distance[i,j])[0]
-
-                indices = [(i-1,j), (i-1,j-1), (i,j-1)]
-                pointers[i,j] = [indices[i] for i in  best_edits]
-
-                edit_types = list(zip(["delete", "substitute", "insert"],
-                                      [source[i], (source[i], target[j]), target[j]]))
-                edits[i,j] = [edit_types[i] for i in best_edits]
-
-        pointer_backtrace, edit_backtrace = self._construct_backtrace(pointers,
-                                                                      edits,
-                                                                      idx=(n,m))
-
-        edit_backtrace_filtered = []
-
-        for bt in edit_backtrace:
-            string_length = 0
-            for operation, _ in bt:
-                if operation in ["substitute", "insert"]:
-                    string_length += 1
-            
-            if string_length == len(target) - 1:
-                edit_backtrace_filtered.append(bt)
-
-        return distance[n,m], pointer_backtrace, edit_backtrace_filtered
-
-
-    def _construct_backtrace(self, pointers, edits, idx):
-        if idx == (0,0):
-            return [[]], [[]]
-        else:
-            pointer_backtrace = [backtrace+[idx]
-                                 for prev_idx in pointers[idx]
-                                 for backtrace in self._construct_backtrace(pointers,
-                                                                            edits,
-                                                                            prev_idx)[0]]
-            edit_backtrace = [backtrace+[edit]
-                              for prev_idx in pointers[idx]
-                              for backtrace in self._construct_backtrace(pointers,
-                                                                         edits,
-                                                                         prev_idx)[1]
-                              for edit in edits[idx]]
-            
-            return pointer_backtrace, edit_backtrace
-```
-
-```{python}
-editdist = StringEdit(1, 1)
-
-editdist('review', 'rereview')
-```
+*Exercise:* what do we need to do add to our previous implementation of Wagner-Fisher to store edit sequences? (First, you need to figure out how edit sequences should be represented.)
