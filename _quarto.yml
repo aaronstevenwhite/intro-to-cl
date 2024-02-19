@@ -36,6 +36,7 @@ project:
     - formal-and-practical-preliminaries/edit-distance-and-string-alignment/distance-in-the-abstract.qmd
     - formal-and-practical-preliminaries/edit-distance-and-string-alignment/levenshtein-distance.qmd
     - formal-and-practical-preliminaries/working-with-annotated-corpora/index.qmd
+    - formal-and-practical-preliminaries/working-with-annotated-corpora/trees.ipynb
     - finite-state-models/index.qmd
     - context-free-models/index.qmd
     - mildly-context-sensitive-models/index.qmd
@@ -88,7 +89,10 @@ website:
               - formal-and-practical-preliminaries/edit-distance-and-string-alignment/index.qmd
               - formal-and-practical-preliminaries/edit-distance-and-string-alignment/distance-in-the-abstract.qmd
               - formal-and-practical-preliminaries/edit-distance-and-string-alignment/levenshtein-distance.qmd
-          - formal-and-practical-preliminaries/working-with-annotated-corpora/index.qmd
+          - section: "Working with Annotated Corpora"
+            contents:
+              - formal-and-practical-preliminaries/working-with-annotated-corpora/index.qmd
+              - formal-and-practical-preliminaries/working-with-annotated-corpora/trees.ipynb
       - section: "Finite State Models"
         contents:
           - finite-state-models/index.qmd

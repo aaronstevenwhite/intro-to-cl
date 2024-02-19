@@ -13,7 +13,7 @@ c_\text{ins} \times |\mathbf{b}| & \text{if } |\mathbf{a}| = 0 \\
 c_\text{del} \times |\mathbf{a}| & \text{if } |\mathbf{b}| = 0 \\
 \min \begin{cases}d_\text{lev}(a_1\ldots a_{|\mathbf{a}|-1}, \mathbf{b}) + c_\text{del} \\
                   d_\text{lev}(\mathbf{a}, b_1\ldots b_{|\mathbf{b}|-1}) + c_\text{ins} \\
-                  d_\text{lev}(a_1\ldots a_{|\mathbf{a}|-1}, b_1\ldots b_{|\mathbf{b}|-1}) + c_\text{sub} \times \mathbb{1}[a_{|\mathbf{a}|-1} \neq b_{|\mathbf{b}|-1}]\end{cases} & \text{otherwise}\end{cases}$$
+                  d_\text{lev}(a_1\ldots a_{|\mathbf{a}|-1}, b_1\ldots b_{|\mathbf{b}|-1}) + c_\text{sub} \times \mathbb{1}[a_{|\mathbf{a}|} \neq b_{|\mathbf{b}|}]\end{cases} & \text{otherwise}\end{cases}$$
 
 where $c_\text{sub}$ defaults to $c_\text{del} + c_\text{ins}$. 
 

@@ -473,7 +473,7 @@ c_\text{ins} \times |\mathbf{b}| &amp; \text{if } |\mathbf{a}| = 0 \\
 c_\text{del} \times |\mathbf{a}| &amp; \text{if } |\mathbf{b}| = 0 \\
 \min \begin{cases}d_\text{lev}(a_1\ldots a_{|\mathbf{a}|-1}, \mathbf{b}) + c_\text{del} \\
                   d_\text{lev}(\mathbf{a}, b_1\ldots b_{|\mathbf{b}|-1}) + c_\text{ins} \\
-                  d_\text{lev}(a_1\ldots a_{|\mathbf{a}|-1}, b_1\ldots b_{|\mathbf{b}|-1}) + c_\text{sub} \times \mathbb{1}[a_{|\mathbf{a}|-1} \neq b_{|\mathbf{b}|-1}]\end{cases} &amp; \text{otherwise}\end{cases}\]</span></p>
+                  d_\text{lev}(a_1\ldots a_{|\mathbf{a}|-1}, b_1\ldots b_{|\mathbf{b}|-1}) + c_\text{sub} \times \mathbb{1}[a_{|\mathbf{a}|} \neq b_{|\mathbf{b}|}]\end{cases} &amp; \text{otherwise}\end{cases}\]</span></p>
 <p>where <span class="math inline">\(c_\text{sub}\)</span> defaults to <span class="math inline">\(c_\text{del} + c_\text{ins}\)</span>.</p>
 <div class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> collections <span class="im">import</span> defaultdict</span>
@@ -535,7 +535,7 @@ c_\text{del} \times |\mathbf{a}| &amp; \text{if } |\mathbf{b}| = 0 \\
 <div class="sourceCode cell-code" id="cb2" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit1(<span class="dv">1</span>, <span class="dv">1</span>)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækt'</span>), editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækʃən'</span>), editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>), editdist(<span class="st">'æbstɹækt'</span>, <span class="st">''</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="54">
+<div class="cell-output cell-output-display" data-execution_count="2">
 <pre data-code-line-numbers=""><code>(0.0, 4.0, 4.0, 8)</code></pre>
 </div>
 </div>
@@ -544,7 +544,7 @@ c_\text{del} \times |\mathbf{a}| &amp; \text{if } |\mathbf{b}| = 0 \\
 <div class="sourceCode cell-code" id="cb4" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>editdist.call_counter</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="55">
+<div class="cell-output cell-output-display" data-execution_count="3">
 <pre data-code-line-numbers=""><code>defaultdict(int,
             {('æbstɹækʃən', 'æbstɹækt'): 1,
              ('æbstɹækʃə', 'æbstɹækt'): 1,
@@ -693,7 +693,7 @@ c_\text{del} \times |\mathbf{a}| &amp; \text{if } |\mathbf{b}| = 0 \\
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækt'</span>), editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækʃən'</span>), editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>), editdist(<span class="st">'æbstɹækt'</span>, <span class="st">''</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre data-code-line-numbers=""><code>2.18 s ± 14.3 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)</code></pre>
+<pre data-code-line-numbers=""><code>2.26 s ± 7.05 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)</code></pre>
 </div>
 </div>
 <div class="cell" data-execution_count="6">
@@ -703,7 +703,7 @@ c_\text{del} \times |\mathbf{a}| &amp; \text{if } |\mathbf{b}| = 0 \\
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækt'</span>), editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækʃən'</span>), editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>), editdist(<span class="st">'æbstɹækt'</span>, <span class="st">''</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre data-code-line-numbers=""><code>180 µs ± 2.24 µs per loop (mean ± std. dev. of 7 runs, 10000 loops each)</code></pre>
+<pre data-code-line-numbers=""><code>183 µs ± 1.15 µs per loop (mean ± std. dev. of 7 runs, 10000 loops each)</code></pre>
 </div>
 </div>
 <div class="cell" data-execution_count="7">
@@ -712,7 +712,7 @@ c_\text{del} \times |\mathbf{a}| &amp; \text{if } |\mathbf{b}| = 0 \\
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>)</span>
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>editdist.call_counter</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="59">
+<div class="cell-output cell-output-display" data-execution_count="7">
 <pre data-code-line-numbers=""><code>defaultdict(int,
             {('æbstɹækʃən', 'æbstɹækt'): 1,
              ('æbstɹækʃə', 'æbstɹækt'): 1,
@@ -865,7 +865,7 @@ c_\text{del} \times |\mathbf{a}| &amp; \text{if } |\mathbf{b}| = 0 \\
 <div class="sourceCode cell-code" id="cb14" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit3(<span class="dv">1</span>, <span class="dv">1</span>)</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækʃən'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="61">
+<div class="cell-output cell-output-display" data-execution_count="9">
 <pre data-code-line-numbers=""><code>4.0</code></pre>
 </div>
 </div>
@@ -970,7 +970,7 @@ c_\text{del} \times |\mathbf{a}| &amp; \text{if } |\mathbf{b}| = 0 \\
 <div class="sourceCode cell-code" id="cb17" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit4(<span class="dv">1</span>, <span class="dv">1</span>)</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="63">
+<div class="cell-output cell-output-display" data-execution_count="11">
 <pre data-code-line-numbers=""><code>(4.0,
  [[(0, 0),
    (1, 1),
@@ -1074,7 +1074,7 @@ c_\text{del} \times |\mathbf{a}| &amp; \text{if } |\mathbf{b}| = 0 \\
 <div class="sourceCode cell-code" id="cb20" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit5(<span class="dv">1</span>, <span class="dv">1</span>)</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="65">
+<div class="cell-output cell-output-display" data-execution_count="13">
 <pre data-code-line-numbers=""><code>(4.0,
  [[('æ', 'æ'),
    ('b', 'b'),
@@ -1471,7 +1471,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>c_\text{del} \times |\mathbf{a}| &amp; \text{if } |\mathbf{b}| = 0 <span class="sc">\\</span></span>
 <span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>\min \begin{cases}d_\text{lev}(a_1\ldots a_{|\mathbf{a}|-1}, \mathbf{b}) + c_\text{del} <span class="sc">\\</span></span>
 <span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>                  d_\text{lev}(\mathbf{a}, b_1\ldots b_{|\mathbf{b}|-1}) + c_\text{ins} <span class="sc">\\</span></span>
-<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>                  d_\text{lev}(a_1\ldots a_{|\mathbf{a}|-1}, b_1\ldots b_{|\mathbf{b}|-1}) + c_\text{sub} \times \mathbb{1}<span class="co">[</span><span class="ot">a_{|\mathbf{a}|-1} \neq b_{|\mathbf{b}|-1}</span><span class="co">]</span>\end{cases} &amp; \text{otherwise}\end{cases}$$</span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>                  d_\text{lev}(a_1\ldots a_{|\mathbf{a}|-1}, b_1\ldots b_{|\mathbf{b}|-1}) + c_\text{sub} \times \mathbb{1}<span class="co">[</span><span class="ot">a_{|\mathbf{a}|} \neq b_{|\mathbf{b}|}</span><span class="co">]</span>\end{cases} &amp; \text{otherwise}\end{cases}$$</span>
 <span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>where $c_\text{sub}$ defaults to $c_\text{del} + c_\text{ins}$. </span>
 <span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a></span>
