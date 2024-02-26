@@ -41,6 +41,7 @@ project:
     - context-free-models/index.qmd
     - mildly-context-sensitive-models/index.qmd
     - assignments/assignments-1-and-2.ipynb
+    - assignments/assignments-3-and-4.ipynb
 
 
 website:
@@ -105,6 +106,7 @@ website:
       - section: "Assignments"
         contents:
           - assignments/assignments-1-and-2.ipynb
+          - assignments/assignments-3-and-4.ipynb
 
 format:
   html:
