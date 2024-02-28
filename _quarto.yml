@@ -42,6 +42,13 @@ project:
     - formal-and-practical-preliminaries/working-with-annotated-corpora/finding-data-with-tree-pattern-matching.ipynb
     - formal-and-practical-preliminaries/working-with-annotated-corpora/building-a-corpus-reader.ipynb
     - finite-state-models/index.qmd
+    - finite-state-models/levels-of-abstraction.qmd
+    - finite-state-models/generation.qmd
+    - finite-state-models/the-generativist-conceit.qmd
+    - finite-state-models/formal-definition/index.qmd
+    - finite-state-models/generative-capacity/index.qmd
+    - finite-state-models/recognition-and-parsing/index.qmd
+    - finite-state-models/phonological-rules-as-fsas/index.qmd
     - context-free-models/index.qmd
     - mildly-context-sensitive-models/index.qmd
     - assignments/assignments-1-and-2.ipynb
@@ -105,6 +112,21 @@ website:
       - section: "Finite State Models"
         contents:
           - finite-state-models/index.qmd
+          - finite-state-models/levels-of-abstraction.qmd
+          - finite-state-models/generation.qmd
+          - finite-state-models/the-generativist-conceit.qmd
+          - section: "Formal Definition"
+            contents:
+              - finite-state-models/formal-definition/index.qmd
+          - section: "Generative Capacity"
+            contents:
+              - finite-state-models/generative-capacity/index.qmd
+          - section: "Recognition and Parsing"
+            contents:
+              - finite-state-models/recognition-and-parsing/index.qmd
+          - section: "Phonological Rules as FSAs"
+            contents:
+              - finite-state-models/phonological-rules-as-fsas/index.qmd
       - section: "Context Free Models"
         contents:
           - context-free-models/index.qmd

@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Introduction to Computational Linguistics - Strings</title>
+<title>Introduction to Computational Linguistics - Generation</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -57,25 +57,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 
 
-<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
-<script src="../../site_libs/clipboard/clipboard.min.js"></script>
-<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="../../site_libs/quarto-search/fuse.min.js"></script>
-<script src="../../site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="../../">
-<link href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/languages.html" rel="next">
-<link href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/sequences.html" rel="prev">
-<script src="../../site_libs/quarto-html/quarto.js"></script>
-<script src="../../site_libs/quarto-html/popper.min.js"></script>
-<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="../../site_libs/quarto-html/anchor.min.js"></script>
-<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
-<link href="../../site_libs/quarto-contrib/line-highlight-1.0.0/line-highlight.css" rel="stylesheet">
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../finite-state-models/the-generativist-conceit.html" rel="next">
+<link href="../finite-state-models/levels-of-abstraction.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/quarto-contrib/line-highlight-1.0.0/line-highlight.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -99,7 +99,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
-<link rel="stylesheet" href="../../styles.css">
+<link rel="stylesheet" href="../styles.css">
 </head>
 
 <body class="nav-sidebar docked">
@@ -111,7 +111,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../formal-and-practical-preliminaries/index.html">Formal and Practical Preliminaries</a></li><li class="breadcrumb-item"><a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/index.html">Elementary Mathematical Concepts</a></li><li class="breadcrumb-item"><a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/strings.html">Strings</a></li></ol></nav>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../finite-state-models/index.html">Finite State Models</a></li><li class="breadcrumb-item"><a href="../finite-state-models/generation.html">Generation</a></li></ol></nav>
       <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
       </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -126,7 +126,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation docked overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
-      <a href="../../">Introduction to Computational Linguistics</a> 
+      <a href="../">Introduction to Computational Linguistics</a> 
     </div>
       </div>
         <div class="mt-2 flex-shrink-0 align-items-center">
@@ -138,13 +138,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../index.html" class="sidebar-item-text sidebar-link">
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">About</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../installation.html" class="sidebar-item-text sidebar-link">
+  <a href="../installation.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Installation</span></a>
   </div>
 </li>
@@ -159,82 +159,82 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false">
  <span class="menu-text">Elementary Mathematical Concepts</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth2 show">  
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/elementary-mathematical-concepts/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/sets.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/elementary-mathematical-concepts/sets.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Sets</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/multisets.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/elementary-mathematical-concepts/multisets.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Multisets</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/cardinality.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/elementary-mathematical-concepts/cardinality.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Cardinality</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/set-relations.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/elementary-mathematical-concepts/set-relations.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Set relations</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/power-sets.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/elementary-mathematical-concepts/power-sets.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Power Sets</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/products.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/elementary-mathematical-concepts/products.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Products</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/relations-and-functions.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/elementary-mathematical-concepts/relations-and-functions.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Relations and Functions</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/sequences.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/elementary-mathematical-concepts/sequences.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Sequences</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/strings.html" class="sidebar-item-text sidebar-link active">
+  <a href="../formal-and-practical-preliminaries/elementary-mathematical-concepts/strings.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Strings</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/languages.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/elementary-mathematical-concepts/languages.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Languages</span></a>
   </div>
 </li>
@@ -251,49 +251,49 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/regular-expressions/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/regular-expressions/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/regular-expressions/formal-definition.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/regular-expressions/formal-definition.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Formal Definition</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/regular-expressions/loading-a-lexicon.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/regular-expressions/loading-a-lexicon.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Loading a Lexicon</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/regular-expressions/basic-matching.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/regular-expressions/basic-matching.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Basic Matching</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/regular-expressions/implementing-the-regular-operations.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/regular-expressions/implementing-the-regular-operations.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Implementing the Regular Operations</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/regular-expressions/wild-cards-and-character-ranges.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/regular-expressions/wild-cards-and-character-ranges.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Wild cards and character ranges</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/regular-expressions/quantifiers.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/regular-expressions/quantifiers.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Quantifiers</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/regular-expressions/groups-and-greediness.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/regular-expressions/groups-and-greediness.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Groups and Greediness</span></a>
   </div>
 </li>
@@ -310,25 +310,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/text-normalization/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/text-normalization/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/text-normalization/tokenization.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/text-normalization/tokenization.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Tokenization</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/text-normalization/sentence-separation.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/text-normalization/sentence-separation.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Sentence Separation</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/text-normalization/lemmatization.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/text-normalization/lemmatization.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Lemmatization</span></a>
   </div>
 </li>
@@ -345,19 +345,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/edit-distance-and-string-alignment/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/edit-distance-and-string-alignment/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/edit-distance-and-string-alignment/distance-in-the-abstract.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/edit-distance-and-string-alignment/distance-in-the-abstract.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Distance in the abstract</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/edit-distance-and-string-alignment/levenshtein-distance.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/edit-distance-and-string-alignment/levenshtein-distance.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Levenshtein distance</span></a>
   </div>
 </li>
@@ -374,37 +374,37 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/working-with-annotated-corpora/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/working-with-annotated-corpora/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/working-with-annotated-corpora/trees.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/working-with-annotated-corpora/trees.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Trees</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/working-with-annotated-corpora/containment-tests.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/working-with-annotated-corpora/containment-tests.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Containment Tests</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/working-with-annotated-corpora/indexation.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/working-with-annotated-corpora/indexation.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Indexation</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/working-with-annotated-corpora/finding-data-with-tree-pattern-matching.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/working-with-annotated-corpora/finding-data-with-tree-pattern-matching.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Finding data with tree pattern matching</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../formal-and-practical-preliminaries/working-with-annotated-corpora/building-a-corpus-reader.html" class="sidebar-item-text sidebar-link">
+  <a href="../formal-and-practical-preliminaries/working-with-annotated-corpora/building-a-corpus-reader.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Building a corpus reader</span></a>
   </div>
 </li>
@@ -423,25 +423,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../finite-state-models/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../finite-state-models/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../finite-state-models/levels-of-abstraction.html" class="sidebar-item-text sidebar-link">
+  <a href="../finite-state-models/levels-of-abstraction.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Levels of Abstraction</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../finite-state-models/generation.html" class="sidebar-item-text sidebar-link">
+  <a href="../finite-state-models/generation.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">Generation</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../finite-state-models/the-generativist-conceit.html" class="sidebar-item-text sidebar-link">
+  <a href="../finite-state-models/the-generativist-conceit.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">The Generativist Conceit</span></a>
   </div>
 </li>
@@ -456,7 +456,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../finite-state-models/formal-definition/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../finite-state-models/formal-definition/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
@@ -473,7 +473,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../finite-state-models/generative-capacity/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../finite-state-models/generative-capacity/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
@@ -490,7 +490,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../finite-state-models/recognition-and-parsing/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../finite-state-models/recognition-and-parsing/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
@@ -507,7 +507,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../finite-state-models/phonological-rules-as-fsas/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../finite-state-models/phonological-rules-as-fsas/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
@@ -526,7 +526,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-12" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../context-free-models/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../context-free-models/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
@@ -543,7 +543,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-13" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../mildly-context-sensitive-models/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../mildly-context-sensitive-models/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
@@ -560,13 +560,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-14" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../assignments/assignments-1-and-2.html" class="sidebar-item-text sidebar-link">
+  <a href="../assignments/assignments-1-and-2.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Assignments 1 and 2</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../assignments/assignments-3-and-4.html" class="sidebar-item-text sidebar-link">
+  <a href="../assignments/assignments-3-and-4.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Assignments 3 and 4</span></a>
   </div>
 </li>
@@ -578,14 +578,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#example-regular-expressions" id="toc-example-regular-expressions" class="nav-link active" data-scroll-target="#example-regular-expressions">Example: regular expressions</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<div class="quarto-title-block"><div><h1 class="title">Strings</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li></ul></div></div>
+<div class="quarto-title-block"><div><h1 class="title">Generation</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
 </div>
 
 
@@ -600,276 +606,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<p>We build strings from some alphabet/lexicon <span class="math inline">\(\Sigma\)</span>.</p>
-<p>Strings of length <span class="math inline">\(N\)</span> are given by <span class="math inline">\(\Sigma^N\)</span> and the <strong>Kleene closure</strong> of <span class="math inline">\(\Sigma\)</span>—notated <span class="math inline">\(\Sigma^*\)</span>—gives us the set of all such sets.</p>
-<p><span class="math display">\[\Sigma^* \equiv \bigcup_{i\in\mathbb{N}} \Sigma^i\]</span></p>
-<p>As an infinite set, we need to implement <span class="math inline">\(\Sigma^*\)</span> using a generator. We’ll start by defining a function that produces <span class="math inline">\(\Sigma^i\)</span>.</p>
-<div class="cell" data-executioninfo="{&quot;elapsed&quot;:181,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1643219172265,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;photoUrl&quot;:&quot;https://lh3.googleusercontent.com/a-/AOh14GjIthWcbbAkpz4qrGfqtOGZvudhRK2mQl0LCAJjbw=s64&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="00baa0be-47d1-403f-b8e9-9982f849a890" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb1" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> itertools <span class="im">import</span> product</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> sigma_i(sigma: <span class="bu">set</span>[<span class="bu">str</span>], i: <span class="bu">int</span>) <span class="op">-&gt;</span> product:</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    sigma_repeated <span class="op">=</span> [sigma]<span class="op">*</span>i</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> product(<span class="op">*</span>sigma_repeated)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>sigma <span class="op">=</span> [<span class="st">"ɹ"</span>, <span class="st">"d"</span>, <span class="st">"u"</span>]</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> s <span class="kw">in</span> sigma_i(sigma, <span class="dv">3</span>):</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">''</span>.join(s))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre data-code-line-numbers=""><code>ɹɹɹ
-ɹɹd
-ɹɹu
-ɹdɹ
-ɹdd
-ɹdu
-ɹuɹ
-ɹud
-ɹuu
-dɹɹ
-dɹd
-dɹu
-ddɹ
-ddd
-ddu
-duɹ
-dud
-duu
-uɹɹ
-uɹd
-uɹu
-udɹ
-udd
-udu
-uuɹ
-uud
-uuu</code></pre>
-</div>
-</div>
-<p>We can then define <span class="math inline">\(\Sigma^*\)</span> using a generator comprehension.</p>
-<div class="cell" data-execution_count="1">
-<details>
-<summary>Generator for natural numbers</summary>
-<div class="sourceCode cell-code" id="cb3" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> natural_numbers() <span class="op">-&gt;</span> <span class="bu">int</span>:</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Initialize a generator for the natural numbers"""</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    i <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="va">True</span>:</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">yield</span> i</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>        i <span class="op">+=</span> <span class="dv">1</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
-<div class="cell" data-executioninfo="{&quot;elapsed&quot;:171,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1643219179301,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;photoUrl&quot;:&quot;https://lh3.googleusercontent.com/a-/AOh14GjIthWcbbAkpz4qrGfqtOGZvudhRK2mQl0LCAJjbw=s64&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="3040ebc6-db96-4e19-ad5f-0a1672e7b8bf" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb4" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>sigma_star <span class="op">=</span> (<span class="st">''</span>.join(s) </span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>              <span class="cf">for</span> i <span class="kw">in</span> natural_numbers() </span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>              <span class="cf">for</span> s <span class="kw">in</span> sigma_n(sigma, i))</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> s <span class="kw">in</span> sigma_star:</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(s) <span class="op">&lt;</span> <span class="dv">4</span>:</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(s)</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre data-code-line-numbers=""><code>
-ɹ
-d
-u
-ɹɹ
-ɹd
-ɹu
-dɹ
-dd
-du
-uɹ
-ud
-uu
-ɹɹɹ
-ɹɹd
-ɹɹu
-ɹdɹ
-ɹdd
-ɹdu
-ɹuɹ
-ɹud
-ɹuu
-dɹɹ
-dɹd
-dɹu
-ddɹ
-ddd
-ddu
-duɹ
-dud
-duu
-uɹɹ
-uɹd
-uɹu
-udɹ
-udd
-udu
-uuɹ
-uud
-uuu</code></pre>
-</div>
-</div>
-<div class="callout callout-style-default callout-caution callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Question
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>How many strings are there in <span class="math inline">\(\Sigma^*\)</span> (assuming that <span class="math inline">\(\Sigma\)</span> is finite)? That is, what is <span class="math inline">\(|\Sigma^*| = |\bigcup_{i\in\mathbb{N}} \Sigma^i|\)</span>?</p>
-</div>
-</div>
-<p>It must be at least at least as big as <span class="math inline">\(|\mathbb{N}|\)</span>, since we have a nonempty set <span class="math inline">\(\Sigma^i\)</span> corresponding to each natural number <span class="math inline">\(i\)</span>.</p>
-<p>Surprisingly, <span class="math inline">\(|\Sigma^*|\)</span> turns out to be exactly as big as <span class="math inline">\(|\mathbb{N}|\)</span>, which we can show by demonstrating that there is a <em>bijection</em> from <span class="math inline">\(\mathbb{N}\)</span> to <span class="math inline">\(\Sigma^*\)</span>: for each <span class="math inline">\(i \in \mathbb{N}\)</span> we can map <span class="math inline">\(i\)</span> to a unique string in <span class="math inline">\(\Sigma^*\)</span> and for each string in <span class="math inline">\(\Sigma^*\)</span>, we can map that string to a unique natural number <span class="math inline">\(i\)</span>. This bijection is a total function from <span class="math inline">\(\mathbb{N}\)</span> to <span class="math inline">\(\Sigma^*\)</span>.</p>
-<p>The trick is to notice that each <span class="math inline">\(\Sigma^i\)</span> is itself of finite cardinality. This means that we can always break off a chunk of the natural numbers to allocate for building a sequence of all strings in <span class="math inline">\(\Sigma^i\)</span>. The idea is then that we can then stitch those sequences together to get a sequence of all <span class="math inline">\(\Sigma^*\)</span> that never repeats strings.</p>
-<p>You can get an idea for how this works by enumerating the strings we generate from <code>sigma_star</code>.</p>
-<div class="cell" data-executioninfo="{&quot;elapsed&quot;:226,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1643219187279,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;photoUrl&quot;:&quot;https://lh3.googleusercontent.com/a-/AOh14GjIthWcbbAkpz4qrGfqtOGZvudhRK2mQl0LCAJjbw=s64&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="a33a5267-d0fc-49ed-add2-5f1d14f7f7bd">
-<div class="sourceCode cell-code" id="cb6" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>N <span class="op">=</span> natural_numbers()</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>sigma_star <span class="op">=</span> (<span class="st">''</span>.join(s) </span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>              <span class="cf">for</span> i <span class="kw">in</span> N </span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>              <span class="cf">for</span> s <span class="kw">in</span> sigma_n(sigma, i))</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> j, s <span class="kw">in</span> <span class="bu">enumerate</span>(sigma_star):</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(s) <span class="op">&lt;</span> <span class="dv">5</span>:</span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(j, s)</span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre data-code-line-numbers=""><code>0 
-1 ɹ
-2 d
-3 u
-4 ɹɹ
-5 ɹd
-6 ɹu
-7 dɹ
-8 dd
-9 du
-10 uɹ
-11 ud
-12 uu
-13 ɹɹɹ
-14 ɹɹd
-15 ɹɹu
-16 ɹdɹ
-17 ɹdd
-18 ɹdu
-19 ɹuɹ
-20 ɹud
-21 ɹuu
-22 dɹɹ
-23 dɹd
-24 dɹu
-25 ddɹ
-26 ddd
-27 ddu
-28 duɹ
-29 dud
-30 duu
-31 uɹɹ
-32 uɹd
-33 uɹu
-34 udɹ
-35 udd
-36 udu
-37 uuɹ
-38 uud
-39 uuu
-40 ɹɹɹɹ
-41 ɹɹɹd
-42 ɹɹɹu
-43 ɹɹdɹ
-44 ɹɹdd
-45 ɹɹdu
-46 ɹɹuɹ
-47 ɹɹud
-48 ɹɹuu
-49 ɹdɹɹ
-50 ɹdɹd
-51 ɹdɹu
-52 ɹddɹ
-53 ɹddd
-54 ɹddu
-55 ɹduɹ
-56 ɹdud
-57 ɹduu
-58 ɹuɹɹ
-59 ɹuɹd
-60 ɹuɹu
-61 ɹudɹ
-62 ɹudd
-63 ɹudu
-64 ɹuuɹ
-65 ɹuud
-66 ɹuuu
-67 dɹɹɹ
-68 dɹɹd
-69 dɹɹu
-70 dɹdɹ
-71 dɹdd
-72 dɹdu
-73 dɹuɹ
-74 dɹud
-75 dɹuu
-76 ddɹɹ
-77 ddɹd
-78 ddɹu
-79 dddɹ
-80 dddd
-81 dddu
-82 dduɹ
-83 ddud
-84 dduu
-85 duɹɹ
-86 duɹd
-87 duɹu
-88 dudɹ
-89 dudd
-90 dudu
-91 duuɹ
-92 duud
-93 duuu
-94 uɹɹɹ
-95 uɹɹd
-96 uɹɹu
-97 uɹdɹ
-98 uɹdd
-99 uɹdu
-100 uɹuɹ
-101 uɹud
-102 uɹuu
-103 udɹɹ
-104 udɹd
-105 udɹu
-106 uddɹ
-107 uddd
-108 uddu
-109 uduɹ
-110 udud
-111 uduu
-112 uuɹɹ
-113 uuɹd
-114 uuɹu
-115 uudɹ
-116 uudd
-117 uudu
-118 uuuɹ
-119 uuud
-120 uuuu</code></pre>
-</div>
-</div>
-<p>So for instance, in the above, you can think of the enumeration as setting aside <span class="math inline">\(\{1, 2, 3\}\)</span> for the strings of length 1, <span class="math inline">\(\{4, \ldots, 12\}\)</span> for the strings of length 2, and so on.</p>
-<p>More formally, we’ll set aside a chunk of natural numbers <span class="math inline">\(N_i \equiv \left\{\left[\max N_{i-1}\right] + 1, ..., [\max N_{i-1}] + |\Sigma^i| + 1\right\}\)</span>–with <span class="math inline">\(N_0 \equiv \{|\Sigma^0| - 1\} = \{0\}\)</span>–for each <span class="math inline">\(\Sigma^i\)</span>. Note that this definition ensures that <span class="math inline">\(N_i \cap N_j = \emptyset\)</span> for all <span class="math inline">\(i \neq j\)</span>. That is, the chunk of natural numbers <span class="math inline">\(N_i\)</span> we set aside for <span class="math inline">\(\Sigma^i\)</span> is disjoint from the chunk of natural numbers <span class="math inline">\(N_j\)</span> we set aside for <span class="math inline">\(\Sigma^j\)</span> when <span class="math inline">\(i \neq j\)</span>, and <span class="math inline">\(|N_i| = |\Sigma^i|\)</span>.</p>
-<p>We then use <span class="math inline">\(N_i\)</span> to construct a sequence <span class="math inline">\(S_i: N_i \rightarrow \Sigma ^i\)</span>. Finally, we can stitch those sequences together by defining <span class="math inline">\(S_*: \mathbb{N} \rightarrow \Sigma^*\)</span> in terms of those <span class="math inline">\(S_i\)</span> along with a function <span class="math inline">\(k: \mathbb{N} \rightarrow \mathbb{N}\)</span> that satisfies <span class="math inline">\(k^{-1}(\{i\}) = N_i\)</span> for all <span class="math inline">\(i \in \mathbb{N}\)</span>–i.e.&nbsp;the preimage of <span class="math inline">\(\{i\}\)</span> under <span class="math inline">\(k\)</span> is <span class="math inline">\(N_i\)</span>.</p>
-<p><span class="math display">\[S_*(n) = S_{k(n)}(n)\]</span></p>
-<p>One question you might have is how do we know how to build the sequence <span class="math inline">\(S_i\)</span> for an arbitrary set of strings <span class="math inline">\(\Sigma^i\)</span> of length <span class="math inline">\(i\)</span>. As long as the alphabet/lexicon <span class="math inline">\(\Sigma\)</span> is finite, we can do this by imposing an order on <span class="math inline">\(\Sigma\)</span> itself, then use that to order sort the elements of <span class="math inline">\(\Sigma^i\)</span> in lexicographic order.</p>
+<p>We will characterize the relationship between grammars and languages as one of <em>generation</em>: a grammars <span class="math inline">\(G\)</span> generates a language <span class="math inline">\(L\)</span> if <span class="math inline">\(G\)</span> is a description of that language. To express that <span class="math inline">\(G\)</span> generates <span class="math inline">\(L\)</span>, we will say that <span class="math inline">\(\mathbb{L}(G) = L\)</span>, where <span class="math inline">\(\mathbb{L}\)</span> is some function from grammars to languages. (It is important to note that generation sounds like a <a href="https://en.wikipedia.org/wiki/Procedural_programming">procedural</a> concept, but it is really <a href="https://en.wikipedia.org/wiki/Declarative_programming">declarative</a>. Know that <span class="math inline">\(G\)</span> generates a language <span class="math inline">\(L\)</span> does not require us to know how to build <span class="math inline">\(L\)</span> from <span class="math inline">\(G\)</span>.)</p>
+<section id="example-regular-expressions" class="level2">
+<h2 class="anchored" data-anchor-id="example-regular-expressions">Example: regular expressions</h2>
+<p>We’ve already seen one kind of grammar under this definition: regulars expressions. Remember that regular expressions <span class="math inline">\(R(\Sigma)\)</span> on <span class="math inline">\(\Sigma\)</span> themselves are strings of a language on <span class="math inline">\(\Sigma \cup\{\epsilon, \emptyset, \cup, \circ, (, ), *\}\)</span>. We formally define these strings recursively.</p>
+<p><span class="math inline">\(\rho\)</span> is a regular expression if and only if:</p>
+<ol type="1">
+<li><span class="math inline">\(\rho \in \Sigma \cup \{\epsilon, \emptyset\}\)</span></li>
+<li><span class="math inline">\(\rho\)</span> is <span class="math inline">\((\rho_1 \cup \rho_2)\)</span> for some regular expressions <span class="math inline">\(\rho_1\)</span> and <span class="math inline">\(\rho_2\)</span></li>
+<li><span class="math inline">\(\rho\)</span> is <span class="math inline">\((\rho_1 \circ \rho_2)\)</span> for some regular expressions <span class="math inline">\(\rho_1\)</span> and <span class="math inline">\(\rho_2\)</span></li>
+<li><span class="math inline">\(\rho\)</span> is <span class="math inline">\(\rho_1^*\)</span> for some regular expression <span class="math inline">\(\rho_1\)</span></li>
+</ol>
+<p>We can generate all the regular expressions given an alphabet.</p>
+<p>Regular expressions (so defined) <em>evaluate</em> to sets of strings on <span class="math inline">\(\Sigma\)</span>–i.e.&nbsp;languages on <span class="math inline">\(\Sigma\)</span>. Another way of thinking about this is that a regular expression on <span class="math inline">\(\Sigma\)</span> <em>describes</em> a language on <span class="math inline">\(\Sigma\)</span>.</p>
+<p>We can define this evaluation procedure formally as a function <span class="math inline">\(\text{eval}: R(\Sigma) \rightarrow 2^{\Sigma^*}\)</span>, where <span class="math inline">\(R(\Sigma)\)</span> is the set of regular expressions on <span class="math inline">\(\Sigma\)</span>.</p>
+<p><span class="math inline">\(\text{eval}(\rho) = \begin{cases}\{\} &amp; \text{if } \rho = \emptyset \\\{\_\} &amp; \text{if } \rho = \epsilon \\ \{\rho\} &amp; \text{if } \rho \in \Sigma\\ \text{eval}(\rho_1) \times \text{eval}(\rho_2) &amp; \text{if } \rho = (\rho_1 \circ \rho_2) \\ \text{eval}(\rho_1) \cup \text{eval}(\rho_2) &amp; \text{if } \rho = (\rho_1 \cup \rho_2)\\ \bigcup_{i = 0}^\infty \text{eval}(\rho_1)^i &amp; \text{if } \rho = \rho_1^*\\ \end{cases}\)</span></p>
+<p>Each regular expression is thus a grammar; the set of all regular expressions is a class of grammars; and <span class="math inline">\(\text{eval}\)</span> is an implementation of <span class="math inline">\(\mathbb{L}\)</span>. We will call the class of languages <span class="math inline">\(\mathcal{R}\)</span> generated by the regular expressions the <em>regular languages</em>: <span class="math display">\[\mathcal{R} \equiv \mathbb{L}(R(\Sigma)) = \{\mathbb{L}(r) \mid r \in R(\Sigma)\} = \{\text{eval}(r) \mid r \in R(\Sigma)\}\]</span></p>
+<p>We will be studying these languages in depth, because as I’ve mentiond before and as you will read about in Heinz 2018, it seems very likely that all phonological grammars of natural languages are a subset of this class. To study these languages, it will be useful to introduce a class of grammars that are equivalent to the regular expressions in that they generate exactly the same set of languages–i.e.&nbsp;the regular languages. These grammars are known as <em>finite state automata</em>.</p>
+<p>We will refer to this sort of equivalence–i.e.&nbsp;that <span class="math inline">\(\mathbb{L}(\mathcal{G}_1) = \mathbb{L}(\mathcal{G}_2)\)</span> for classes <span class="math inline">\(\mathcal{G}_1\)</span> and <span class="math inline">\(\mathcal{G}_2\)</span>–as <em>weak equivalence</em> or <em>equivalence in weak generative capacity</em>. We will discuss another notion–<em>strong equivalence</em>–later. First, though we should discuss the broader context.</p>
 
 
+<!-- -->
+
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -1160,19 +919,50 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/sequences.html" class="pagination-link">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Sequences</span>
+      <a href="../finite-state-models/levels-of-abstraction.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Levels of Abstraction</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../../formal-and-practical-preliminaries/elementary-mathematical-concepts/languages.html" class="pagination-link">
-        <span class="nav-page-text">Languages</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../finite-state-models/the-generativist-conceit.html" class="pagination-link">
+        <span class="nav-page-text">The Generativist Conceit</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
-</nav>
+</nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="sourceCode" id="cb1" data-shortcodes="false" data-code-line-numbers=""><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> Generation</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>We will characterize the relationship between grammars and languages as one of *generation*: a grammars $G$ generates a language $L$ if $G$ is a description of that language. To express that $G$ generates $L$, we will say that $\mathbb{L}(G) = L$, where $\mathbb{L}$ is some function from grammars to languages. (It is important to note that generation sounds like a <span class="co">[</span><span class="ot">procedural</span><span class="co">](https://en.wikipedia.org/wiki/Procedural_programming)</span> concept, but it is really <span class="co">[</span><span class="ot">declarative</span><span class="co">](https://en.wikipedia.org/wiki/Declarative_programming)</span>. Know that $G$ generates a language $L$ does not require us to know how to build $L$ from $G$.)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">## Example: regular expressions</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>We've already seen one kind of grammar under this definition: regulars expressions. Remember that regular expressions $R(\Sigma)$ on $\Sigma$ themselves are strings of a language on $\Sigma \cup<span class="sc">\{</span>\epsilon, \emptyset, \cup, \circ, (, ), *<span class="sc">\}</span>$. We formally define these strings recursively.</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>$\rho$ is a regular expression if and only if:</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>$\rho \in \Sigma \cup <span class="sc">\{</span>\epsilon, \emptyset<span class="sc">\}</span>$</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>$\rho$ is $(\rho_1 \cup \rho_2)$ for some regular expressions $\rho_1$ and $\rho_2$</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>$\rho$ is $(\rho_1 \circ \rho_2)$ for some regular expressions $\rho_1$ and $\rho_2$</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>$\rho$ is $\rho_1^*$ for some regular expression $\rho_1$</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>We can generate all the regular expressions given an alphabet.</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>Regular expressions (so defined) *evaluate* to sets of strings on $\Sigma$–i.e. languages on $\Sigma$. Another way of thinking about this is that a regular expression on $\Sigma$ *describes* a language on $\Sigma$.</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>We can define this evaluation procedure formally as a function $\text{eval}: R(\Sigma) \rightarrow 2^{\Sigma^*}$, where $R(\Sigma)$ is the set of regular expressions on $\Sigma$.</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>$\text{eval}(\rho) = \begin{cases}<span class="sc">\{\}</span> &amp; \text{if } \rho = \emptyset <span class="sc">\\\{\_\}</span> &amp; \text{if } \rho = \epsilon <span class="sc">\\</span> <span class="sc">\{</span>\rho<span class="sc">\}</span> &amp; \text{if } \rho \in \Sigma<span class="sc">\\</span> \text{eval}(\rho_1) \times \text{eval}(\rho_2) &amp; \text{if } \rho = (\rho_1 \circ \rho_2) <span class="sc">\\</span> \text{eval}(\rho_1) \cup \text{eval}(\rho_2) &amp; \text{if } \rho = (\rho_1 \cup \rho_2)<span class="sc">\\</span>  \bigcup_{i = 0}^\infty \text{eval}(\rho_1)^i &amp; \text{if } \rho = \rho_1^*<span class="sc">\\</span> \end{cases}$</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>Each regular expression is thus a grammar; the set of all regular expressions is a class of grammars; and $\text{eval}$ is an implementation of $\mathbb{L}$. We will call the class of languages $\mathcal{R}$ generated by the regular expressions the *regular languages*: $$\mathcal{R} \equiv \mathbb{L}(R(\Sigma)) = <span class="sc">\{</span>\mathbb{L}(r) \mid r \in R(\Sigma)<span class="sc">\}</span> = <span class="sc">\{</span>\text{eval}(r) \mid r \in R(\Sigma)<span class="sc">\}</span>$$</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>We will be studying these languages in depth, because as I've mentiond before and as you will read about in Heinz 2018, it seems very likely that all phonological grammars of natural languages are a subset of this class. To study these languages, it will be useful to introduce a class of grammars that are equivalent to the regular expressions in that they generate exactly the same set of languages–i.e. the regular languages. These grammars are known as *finite state automata*.</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>We will refer to this sort of equivalence–i.e. that $\mathbb{L}(\mathcal{G}_1) = \mathbb{L}(\mathcal{G}_2)$ for classes $\mathcal{G}_1$ and $\mathcal{G}_2$–as *weak equivalence* or *equivalence in weak generative capacity*. We will discuss another notion–*strong equivalence*–later. First, though we should discuss the broader context.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div></div></div></div></div>
 </div> <!-- /content -->
 
 
 
-<script src="../../site_libs/quarto-contrib/line-highlight-1.0.0/line-highlight.js" defer="true"></script>
+<script src="../site_libs/quarto-contrib/line-highlight-1.0.0/line-highlight.js" defer="true"></script>
 </body></html>

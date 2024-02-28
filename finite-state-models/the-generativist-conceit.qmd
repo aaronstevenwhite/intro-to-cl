@@ -1,0 +1,25 @@
+---
+title: The Generativist Conceit
+---
+
+Why would we want to do all this? In the first lecture, I discussed what I called the *Generativist Conceit*: that we can understand natural language by studying the class of grammars that generate all + only the classes of natural languages. Though certain strong ideas associated with the Generativist Conceit are controversial, as I have stated it (relatively weakly) here, it is relatively uncontroversial: if our aim is to provide a scientific theory that characterizes natural language (whatever that might be: a colection of actual utterances, an aspect of human psychology or some abstract object with an existence independent of human minds), we at least need some method for encoding that theory in a way that makes testable predictions. Grammars are definitionally such a method as I've described them.
+
+Another relatively uncontroversial observation that drives the Generativist Conceit is that children must be able to start without a language and come to know one, and the one they come to know is determined in some important way from their environment (rather than their genetics) in a finite amount of time on the basis of a finite number of observations of actual language use. Why this observation is important is that it means that natural languages must be *learnable* from a finite number of examples. Grammars are usually finite objects that (may) describe countably infinite languages, and so they might be a useful tool for describing the process by which a child comes to know a language.
+
+More formally, we may say that children have some method $c$ for mapping sequences of strings (or *texts*) $\mathbf{t} \in \Sigma^{**}$ along with some extralinguistic experience $E \in \mathcal{E}$ into a grammar $G \in \mathcal{G}$: $$c: \Sigma^{**} \times \mathcal{E} \rightarrow \mathcal{G}$$. A child's extralinguistic experience is nontrivial to represent, so to make the problem more tractable, we will often ignore that part.
+
+To demonstrate that the problem of learning a grammar from a text, consider the following formal model, known as [*language identification in the limit*](https://en.wikipedia.org/wiki/Language_identification_in_the_limit), due to [Gold 1964](https://www.rand.org/pubs/research_memoranda/RM4136.html). 
+
+We start from the idea that a *learner* should be modeled as a function $f: \Sigma^{**} \rightarrow 2^{\Sigma^*}$ that maps an *environment* $E = \langle \boldsymbol\sigma_1, \boldsymbol\sigma_2, \ldots \rangle \in \Sigma^{**}$ to a language $L$, where an environment is a sequence of strings in $L$. We will say that a learner $f$ learns a language $L$ given an *environment* (or *text*) $E \subset L^*$ if the learner outputs $L$ after seeing enough examples from the environment and that it learns a language $L$ if it learns that language in any environment. That is, $f$ learns $L$ if it doesn't matter which sequence you give it: $f \text{ learns } L \leftrightarrow \forall \mathbf{e} \in L^*: f(\mathbf{e}) = L$. A language family $\mathcal{L}$ is learnable if there exists a language learner that can learn all languages in the family: $f \text{ learns } \mathcal{L} \leftrightarrow \forall L \in \mathcal{L}: \forall \mathbf{e} \in L^*: f(\mathbf{e}) = L$.
+
+[Gold (1967)](https://www.sciencedirect.com/science/article/pii/S0019995867911655) showed that, if a language family $\mathcal{L}$ contains languages $L_1, L_2, \ldots, L_\infty$, such that $L_1 \subset L_2 \subset \ldots \subset L_\infty \bigcup _{i=1}^\infty L_i$, then it is not learnable. Here's the idea behind the proof: suppose $f$ is a learner that can learn $L_1, L_2, \ldots, L_\infty$; we'll show that it cannot learn $L_\infty$, by constructing an environment for $L_\infty$ that "tricks" $f$. 
+
+First, we construct environments $E_1, E_2, \ldots$ such that $f(E_i) = L_i$. Next, we construct environment $E_\infty$ for $L_\infty$ inductively as follows:
+
+1. Present $f$ with $E_1$ until it outputs $L_{1}$.
+2. Switch to presenting $f$ with an environment that alternates the rest of $E_1$ and the entirety of $E_2$. Since $L_1 \subset L_2$, this concatenated environment is still an environment for $L_2$, so $f$ must eventually output $L_2$.
+3. Switch to presenting the rest of $E_1 \circ E_2$ and the entirety of $E_3$ alternatively. And so on for all $i$.
+
+By construction, the resulting environment $E$ contains the entirety of $E_{1},E_{2},\ldots$, thus it contains $L_\infty$, so it is an environment for $L_\infty$. But since the learner always switches to $L_{i}$ for some finite $i$, it never converges to $L_{\infty}$.
+
+The point here is that we need to be careful about the class of languages we pick out as possible ones the learner might select from. We'll explore this idea in the context of finite state automata, which are equivalent to regular expressions. Importantly, the full class of finite state automata have the problematic containment structure above, but the hope is that if we constrain these grammars in particular ways, we can avoid these sorts of issues while retaining coverage of natural languages.
