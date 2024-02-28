@@ -4,5 +4,7 @@ bibliography: ../references.bib
 ---
 
 ::: {.callout-caution}
-This module will be available around February 21, 2024.
+## Availability
+
+This module will be available around March 4, 2024.
 :::
