@@ -3,8 +3,4 @@ title: Overview
 bibliography: ../../references.bib
 ---
 
-::: {.callout-caution}
-## Availability
-
-This module will be available around March 4, 2024.
-:::
+We'll start with an application of [FSAs to modeling licit English syllables](https://drive.google.com/file/d/1OreZ2dUdyDYRIKet7bzn617rYDG2NbIz/view?usp=share_link) to get a sense for what they look like, then we'll formalize them. To visualize FSAs, we'll use [`pynini`](https://www.openfst.org/twiki/bin/view/GRM/Pynini) (We'll also use `pynini` later when we define finite state transducers.)

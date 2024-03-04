@@ -4,7 +4,7 @@
     "href": "finite-state-models/formal-definition/index.html",
     "title": "Overview",
     "section": "",
-    "text": "Availability\n\n\n\nThis module will be available around March 4, 2024."
+    "text": "We’ll start with an application of FSAs to modeling licit English syllables to get a sense for what they look like, then we’ll formalize them. To visualize FSAs, we’ll use pynini (We’ll also use pynini later when we define finite state transducers.)"
   },
   {
     "objectID": "finite-state-models/generative-capacity/index.html",
