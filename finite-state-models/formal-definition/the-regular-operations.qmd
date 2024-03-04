@@ -1,0 +1,205 @@
+---
+title: The regular operations
+bibliography: ../../references.bib
+---
+
+## Union
+
+Given NFAs $M_1 = \langle Q_1, \Sigma_1, \delta_1, q_1, F_1 \rangle$ recognizing $A = \mathbb{L}(M_1)$ and $M_2 = \langle Q_2, \Sigma_2, \delta_2, q_2, F_2 \rangle$ recognizing $B = \mathbb{L}(M_2)$, we construct $M = \text{union}(M_1, M_2) = \langle Q, \Sigma, \delta, q_0, F \rangle$ recognizing $A \cup B = \mathbb{L}(M) = \mathbb{L}(\text{union}(M_1, M_2))$:
+
+1. Relabel $Q_1$ and $Q_2$ so they are mutually exclusive and do not contain $q_0$; $Q = Q'_1 \cup Q'_2 \cup \{q_0\}$ and $\Sigma = \Sigma_1 \cup \Sigma_2$
+2. Define $$\delta(q, \sigma) = \begin{cases}
+\{q_1, q_2\} & \text{if } q=q_0 \land \sigma=\epsilon \\
+\delta_1(q, \sigma) & \text{if } q\in Q_1 \\
+\delta_2(q, \sigma) & \text{if } q\in Q_2 \\
+\text{undefined} & \text{otherwise} \\
+\end{cases}$$
+3. Define $F = F_1 \cup F_2$
+
+```{python}
+class FiniteStateAutomaton:
+    pass
+
+class FiniteStateAutomaton(FiniteStateAutomaton):
+    """A finite state automaton
+
+    Parameters
+    ----------
+    alphabet
+    states
+    initial_state
+    final states
+    transition_graph
+    """
+
+    def __or__(self, other):
+        return self.union(other)
+
+    def _deepcopy(self):
+        fsa = copy(self)
+        del fsa._generator
+
+        return deepcopy(fsa)
+        
+    def _relabel_fsas(self, other):
+        """
+        append tag to the input/ouput states throughout two FSAs
+
+        Parameters
+        ----------
+        other : FiniteStateAutomaton
+        """
+
+        fsa1 = self._deepcopy()._relabel_states(str(id(self)))
+        fsa2 = other._deepcopy()._relabel_states(str(id(other)))
+
+        return fsa1, fsa2
+
+    def _relabel_states(self, tag):
+        """
+        append tag to the input/ouput states throughout the FSA
+
+        Parameters
+        ----------
+        tag : str
+        """
+
+        state_map = {s: s+'_'+tag for s in self._states}
+        
+        self._states = {state_map[s] for s in self._states}    
+        self._initial_state += '_'+tag
+        self._final_states = {state_map[s] for s in self._final_states}
+
+        self._transition_function = self._transition_function
+        self._transition_function.relabel_states(state_map)
+        
+        return self
+
+    def union(self, other: 'FiniteStateAutomaton') -> 'FiniteStateAutomaton':
+        """
+        union this FSA with another
+
+        Parameters
+        ----------
+        other : FiniteStateAutomaton
+
+        Returns
+        -------
+        FiniteStateAutomaton
+        """
+        msg = "you still need to implement FiniteStateAutomaton.union"
+        raise NotImplementedError(msg)
+```
+
+## Concatenation
+
+Given NFAs $M_1 = \langle Q_1, \Sigma_1, \delta_1, q_1, F_1 \rangle$ recognizing $A = \mathbb{L}(M_1)$ and $M_2 = \langle Q_2, \Sigma_2, \delta_2, q_2, F_2 \rangle$ recognizing $B = \mathbb{L}(M_2)$, we construct $M = \text{concatenate}(M_1, M_2) = \langle Q, \Sigma, \delta, q_1, F_2 \rangle$ recognizing $A \circ B = \mathbb{L}(M) = \mathbb{L}(\text{concatenate}(M_1, M_2))$:
+
+1. Relabel $Q_1$ and $Q_2$ so they are mutually exclusive; $Q = Q'_1 \cup Q'_2$ and $\Sigma = \Sigma_1 \cup \Sigma_2$
+2. Define $$\delta(q, \sigma) = \begin{cases}
+\delta_1(q, \sigma) & \text{if } q\in Q_1 \land q\not\in F_1 \\
+\delta_1(q, \sigma) & \text{if } q\in F_1 \land \sigma \neq \epsilon \\
+\delta_1(q, \sigma) \cup \{q_2\} & \text{if } q\in F_1 \land \sigma = \epsilon \\
+\delta_2(q, \sigma)& \text{if } q\in Q_2 \\
+\end{cases}$$
+
+```{python}
+class FiniteStateAutomaton(FiniteStateAutomaton):
+    """A finite state automaton
+
+    Parameters
+    ----------
+    alphabet
+    states
+    initial_state
+    final states
+    transition_graph
+    """
+        
+    def __add__(self, other):
+        return self.concatenate(other)
+
+    def __pow__(self, k):
+        return self.exponentiate(k)
+
+    def concatenate(self, other: 'FiniteStateAutomaton'):
+        """
+        concatenate this FSA with another
+
+        Parameters
+        ----------
+        other : FiniteStateAutomaton
+
+        Returns
+        -------
+        FiniteStateAutomaton
+        """
+        msg = "you still need to implement FiniteStateAutomaton.concatenate"
+        raise NotImplementedError(msg)
+
+    def exponentiate(self, k: int) -> 'FiniteStateAutomaton':
+        """
+        concatenate this FSA k times
+
+        Parameters
+        ----------
+        k : int
+            the number of times to repeat; must be >1
+
+        Returns
+        -------
+        FiniteStateAutomaton
+        """
+        if k <= 1:
+            raise ValueError("must be >1")
+
+        new = self
+
+        for i in range(1,k):
+            new += self
+
+        return new
+```
+
+
+## Kleene Closure
+
+Given an NFA $M = \langle Q, \Sigma, \delta, q_0, F \rangle$ recognizing $A = \mathbb{L}(M)$, the NFA $N = \text{kleene}(M) = \langle Q \cup \{q'_0\}, \Sigma, \delta', q'_0\not\in Q, F' \rangle$ recognizing $A^* = \mathbb{L}(N) = \mathbb{L}(\text{kleene}(M))$:
+
+1. Define $$\delta'(q, \sigma) = \begin{cases}
+q_0 & \text{if } (q = q'_0 \lor q \in F) \land \sigma = \epsilon \\
+\delta(q, \sigma) & \text{otherwise} \\
+\end{cases}$$
+
+
+```{python}
+class FiniteStateAutomaton(FiniteStateAutomaton):
+    """A finite state automaton
+
+    Parameters
+    ----------
+    alphabet
+    states
+    initial_state
+    final states
+    transition_graph
+    """
+
+    def kleene_star(self)  -> 'FiniteStateAutomaton':
+        """
+        construct the kleene closure machine
+
+        Returns
+        -------
+        FiniteStateAutomaton
+        """
+        fsa = self._deepcopy()
+        
+        new_transition = fsa._transition_function
+        new_transition.add_transitions({(s, ''): fsa._initial_state
+                                        for s in fsa._final_states})
+
+        return FiniteStateAutomaton(fsa._alphabet, fsa._states,
+                                    fsa._initial_state, fsa._final_states,
+                                    new_transition.transition_graph)
+```

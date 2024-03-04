@@ -46,6 +46,8 @@ project:
     - finite-state-models/generation.qmd
     - finite-state-models/the-generativist-conceit.qmd
     - finite-state-models/formal-definition/index.qmd
+    - finite-state-models/formal-definition/two-equivalent-definitions.qmd
+    - finite-state-models/formal-definition/the-regular-operations.qmd
     - finite-state-models/generative-capacity/index.qmd
     - finite-state-models/recognition-and-parsing/index.qmd
     - finite-state-models/phonological-rules-as-fsas/index.qmd
@@ -118,6 +120,8 @@ website:
           - section: "Formal Definition"
             contents:
               - finite-state-models/formal-definition/index.qmd
+              - finite-state-models/formal-definition/two-equivalent-definitions.qmd
+              - finite-state-models/formal-definition/the-regular-operations.qmd
           - section: "Generative Capacity"
             contents:
               - finite-state-models/generative-capacity/index.qmd

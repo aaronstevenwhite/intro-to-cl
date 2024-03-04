@@ -1,0 +1,441 @@
+---
+title: Two equivalent definitions
+bibliography: ../../references.bib
+---
+
+A Deterministic Finite State Automaton (DFA) is a grammar with 5 components:
+
+1. A set of states $Q$
+2. An alphabet $\Sigma$
+3. A transition function $\delta : Q \times \Sigma \rightarrow Q$
+4. An initial state $q_0 \in Q$
+5. A set of final states $F \subseteq Q$
+
+A Nondeterministic Finite State Automaton (NFA) is also a grammar with 5 components:
+
+1. A set of states $Q$
+2. An alphabet $\Sigma$
+3. A transition function $\delta : Q \times (\Sigma\,\color{red}{\cup \{\epsilon\}}) \rightarrow \color{red}{\mathcal{P}(Q)}$
+4. An initial state $q_0 \in Q$
+5. A set of final states $F \subseteq Q$
+
+```{python}
+from copy import copy, deepcopy
+from typing import Union, Optional, Dict, List
+from functools import lru_cache
+
+class TransitionFunction:
+    """A finite state machine transition function
+
+    Parameters
+    ----------
+    transition_graph
+
+    Attributes
+    ----------
+    isdeterministic
+    istotalfunction
+    transition_graph
+
+    Methods
+    -------
+    validate(alphabet, states)
+    relable_states(state_map)
+    totalize()
+    """
+
+    def __init__(self, transition_graph: dict[tuple[str, str], set[str]]):
+        self._transition_graph = transition_graph
+
+    def __call__(self, state: str, symbol: str) -> set[str]:
+        try:
+            return self._transition_graph[(state, symbol)]
+        except KeyError:
+            return set({})
+
+    def __or__(self, other):
+        return TransitionFunction(dict(self._transition_graph, 
+                                       **other._transition_graph))
+        
+    def add_transitions(self, transition_graph):
+        self._transition_graph.update(transition_graph)
+
+    def validate(self, alphabet, states):
+        self._validate_input_values(alphabet, states)
+        self._validate_output_types()
+        self._homogenize_output_types()
+        self._validate_output_values(states)
+
+    def _validate_input_values(self, alphabet, states):
+        for state, symbol in self._transition_graph.keys():
+            try:
+                assert symbol in alphabet
+
+            except AssertionError:
+                msg = 'all input symbols in transition function ' +\
+                      'must be in alphabet'
+                raise ValueError(msg)
+
+            try:
+                assert state in states
+
+            except AssertionError:
+                msg = 'all input states in transition function ' +\
+                      'must be in set of states'
+                raise ValueError(msg)
+
+    def _validate_output_types(self):
+        for states in self._transition_graph.values():
+            try:
+                t = type(states)
+                assert t is str or t is set
+
+            except AssertionError:
+                msg = 'all outputs in transition function' +\
+                      'must be specified via str or set'
+                raise ValueError(msg)            
+
+    def _homogenize_output_types(self):
+        outputs = self._transition_graph.values()
+
+        for inp, out in self._transition_graph.items():
+            if type(out) is str:
+                self._transition_graph[inp] = {out}
+
+    def _validate_output_values(self, states):
+        for out in self._transition_graph.values():
+            try:
+                assert all([state in states for state in out])
+            except AssertionError:
+                msg = 'all output symbols in transition function' +\
+                      'must be in states'
+                raise ValueError(msg)
+
+    @property
+    def transition_graph(self):
+        return self._transition_graph
+
+class FiniteStateAutomaton:
+    """A finite state automaton
+
+    Parameters
+    ----------
+    alphabet
+    states
+    initial_state
+    final states
+    transition_graph
+    """
+
+    def __init__(self, alphabet: set[str], states: set[str], 
+                 initial_state: str, final_states: set[str], 
+                 transition_graph: 'TransitionFunction'):
+        self._alphabet = {''} | alphabet
+        self._states = states
+        self._initial_state = initial_state
+        self._final_states = final_states
+        self._transition_function = TransitionFunction(transition_graph)
+
+        self._validate_initial_state()
+        self._validate_final_states()
+        self._transition_function.validate(self._alphabet, states)
+
+        self._generator = self._build_generator()
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        return next(self._generator)
+
+    def _build_generator(self):
+        string_buffer = [(self._initial_state, '')]
+        
+        if self._initial_state in self._final_states:
+            stack = ['']
+        else:
+            stack = []
+
+        while string_buffer:
+            if stack:
+                yield stack.pop()
+
+            else:
+                # this is very inefficient when we have total
+                # transition functions with many transitions to the
+                # sink state; could be optimized by removing a string
+                # if it's looping in a sink state, but we don't know
+                # in general what the sink state is
+                new_buffer = []
+                for symb in self._alphabet:
+                    for old_state, string in string_buffer:
+                        new_states = self._transition_function(old_state, symb)
+                        for st in new_states:
+                            new_elem = (st, string+symb)
+                            new_buffer.append(new_elem)
+
+                stack += [string
+                          for state, string in new_buffer
+                          if state in self._final_states]
+
+                string_buffer = new_buffer
+```
+
+
+We often define (and draw) FSAs s.t. their transition functions are partial. We can assume all FSA transition functions $\delta$ are in fact total by adding a *sink state* $q_\text{sink} \not\in F$ to the FSA and mapping all $\langle q, \sigma \rangle$ pairs for which $\delta$ is undefined to $q_\text{sink}$.
+
+```{python}
+class TransitionFunction(TransitionFunction):
+    """A finite state machine transition function
+
+    Parameters
+    ----------
+    transition_graph
+
+    Attributes
+    ----------
+    isdeterministic
+    istotalfunction
+    transition_graph
+
+    Methods
+    -------
+    validate(alphabet, states)
+    relable_states(state_map)
+    totalize()
+    """
+
+    def istotalfunction(self, states, alphabet):
+        return all((s, a) in self._transition_graph
+                    for s in states
+                    for a in alphabet)
+
+    def totalize(self, states, alphabet):
+        if not self.istotalfunction(states, alphabet):
+            domain = {(s, a) for s in states for a in alphabet}
+
+            sink_state = 'qsink'
+
+            while sink_state in states:
+                sink_state += 'sink'
+
+            for inp in domain:
+                if inp not in self._transition_graph:
+                    self._transition_graph[inp] = {sink_state}
+```
+
+It turns out that these two ways of defining FSAs are at least weakly equivalent. That is, the class of languages generated by NFAs is the same as the class generated by DFAs; therefore, both generate exactly the regular languages.
+
+## DFAs are (strongly) equivalent to NFAs 
+
+Every DFA can be converted to a strongly equivalent NFA. A DFA $G = \langle Q, \Sigma, \delta, q_0, F \rangle$ can be converted to an NFA $G' = \langle Q', \Sigma, \delta', q'_0, F' \rangle$ by defining the $G'$ transition function $\delta'(q,\sigma) = \{\delta(q,\sigma)\}$
+
+```{python}
+class TransitionFunction(TransitionFunction):
+    """A finite state machine transition function
+
+    Parameters
+    ----------
+    transition_graph
+
+    Attributes
+    ----------
+    isdeterministic
+    istotalfunction
+    transition_graph
+
+    Methods
+    -------
+    validate(alphabet, states)
+    relable_states(state_map)
+    totalize()
+    """
+
+    @property
+    def isdeterministic(self):
+        return all(len(v) < 2 for v in self._transition_graph.values())
+
+class FiniteStateAutomaton(FiniteStateAutomaton):
+    """A finite state automaton
+
+    Parameters
+    ----------
+    alphabet
+    states
+    initial_state
+    final states
+    transition_graph
+    """
+
+    @property
+    def isdeterministic(self) -> bool:
+        return self._transition_function.isdeterministic
+```
+
+
+
+## NFAs are (at least weakly) equivalent to DFAs
+
+Every NFA can be converted to a weakly equivalent DFA
+
+The $\epsilon$-closure of $\delta$ is $$\delta_\epsilon(q, \sigma) =
+\begin{cases}
+\emptyset & \text{if }  \delta(q, \sigma) \text{ is undefined}\\
+\delta(q, \sigma) \cup \bigcup_{r \in \delta(q, \sigma)} \delta_\epsilon(r, \epsilon) & \text{otherwise} \\
+\end{cases}$$
+
+An NFA $G = \langle Q, \Sigma, \delta, q_0, F \rangle$ can be converted to a DFA $G' = \langle Q', \Sigma, \delta', q'_0, F' \rangle$ by defining:
+
+1. $Q' = \mathcal{P}(Q)$
+2. $\delta'(R, \sigma) = \bigcup_{r\in R}\delta_\epsilon(r, \sigma)$
+3. $q'_0 = \{q_0\} \cup \delta_\epsilon(q_0, \epsilon)$
+4. $F' = \{R\;|\; \exists r \in R: r \in F\}$
+
+
+```{python}
+from functools import reduce
+from itertools import chain, combinations
+
+def powerset(iterable):
+    """https://docs.python.org/3/library/itertools.html#recipes"""
+    s = list(iterable)
+    return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
+
+def transitive_closure(edges: set[tuple[str]]) -> set[tuple[str]]:
+    """
+    the transitive closure of a graph
+
+    Parameters
+    ----------
+    edges
+        the graph to compute the closure of
+
+    Returns
+    ----------
+    set(tuple)
+    """
+    while True:
+        new_edges = {(x, w)
+                     for x, y in edges
+                     for q, w in edges
+                     if q == y}
+
+        all_edges = edges | new_edges
+
+        if all_edges == edges:
+            return edges
+
+        edges = all_edges
+
+class TransitionFunction(TransitionFunction):
+    """A finite state machine transition function
+
+    Parameters
+    ----------
+    transition_graph
+
+    Attributes
+    ----------
+    isdeterministic
+    istotalfunction
+    transition_graph
+
+    Methods
+    -------
+    validate(alphabet, states)
+    relable_states(state_map)
+    totalize()
+    """
+
+    def validate(self, alphabet, states):
+        self._validate_input_values(alphabet, states)
+        self._validate_output_types()
+        self._homogenize_output_types()
+        self._validate_output_values(states)
+
+        self._add_epsilon_transitive_closure()
+
+    def _add_epsilon_transitive_closure(self):
+        # get the state graph of all epsilon transitions
+        transitions = {(instate, outstate)
+                       for (instate, insymb), outs in self._transition_graph.items()
+                       for outstate in outs if not insymb}
+        
+        # compute the transitive closure of the epsilon transition
+        # state graph; requires homogenization beforehand
+        for instate, outstate in transitive_closure(transitions):
+            self._transition_graph[(instate, '')] |= {outstate}
+
+        new_graph = dict(self._transition_graph)
+
+        # add alphabet transitions from all states q_i that exit
+        # with an alphabet transition (q_i, a) and enter states q_j
+        # with epsilon transitions to states q_k
+        for (instate1, insymb1), outs1 in self._transition_graph.items():
+            for (instate2, insymb2), outs2 in self._transition_graph.items():
+                if instate2 in outs1 and not insymb2:
+                    # vacuously adds the already added epsilon
+                    # transitions as well
+                    try:
+                        new_graph[(instate1,insymb1)] |= outs2
+                    except KeyError:
+                        new_graph[(instate1,insymb1)] = outs2
+
+        self._transition_graph = new_graph
+
+    def determinize(self, initial_state):
+        new_initial_state = {initial_state} | self(initial_state, "")
+        new_transition_graph = {(instate, insymb): outstates
+                                for (instate, insymb), outstates 
+                                in self._transition_graph.items()
+                                if insymb}
+        
+        return new_initial_state, TransitionFunction(new_transition_graph)
+
+
+class FiniteStateAutomaton(FiniteStateAutomaton):
+    """A finite state automaton
+
+    Parameters
+    ----------
+    alphabet
+    states
+    initial_state
+    final states
+    transition_graph
+    """
+        
+    def determinize(self) -> 'FiniteStateAutomaton':
+        """
+        if nondeterministic, determinize the FSA
+
+        Returns
+        -------
+        FiniteStateAutomaton
+        """
+        new_states = {'_'.join(sorted(s)) for s in powerset(self._states) if s}
+        # doesn't handle epsilons coming from the start state
+        new_init, new_trans = self._transition_function.determinize(self._initial_state)
+        new_final = {'_'.join(sorted(s)) for s in powerset(self._states)
+                     if any([t in s for t in self._final_states])
+                     if s}
+        
+        new_transition = {('_'.join(sorted(s)), a): {'_'.join(sorted(t))}
+                          for s in powerset(self._states)
+                          for t in powerset(self._states)
+                          for a in self._alphabet
+                          if any([tprime in new_trans(sprime,a)
+                                  for sprime in s for tprime in t])
+                          if s and t}
+
+        return FiniteStateAutomaton(self._alphabet-{''}, new_states,
+                                    '_'.join(sorted(new_init)), new_final,
+                                    new_transition)
+
+    @property
+    def isdeterministic(self) -> bool:
+        return self._transition_function.isdeterministic
+```
+
+
+
