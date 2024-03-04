@@ -271,5 +271,54 @@
     "title": "Two equivalent definitions",
     "section": "NFAs are (at least weakly) equivalent to DFAs",
     "text": "NFAs are (at least weakly) equivalent to DFAs\nEvery NFA can be converted to a weakly equivalent DFA\nThe \\(\\epsilon\\)-closure of \\(\\delta\\) is \\[\\delta_\\epsilon(q, \\sigma) =\n\\begin{cases}\n\\emptyset & \\text{if }  \\delta(q, \\sigma) \\text{ is undefined}\\\\\n\\delta(q, \\sigma) \\cup \\bigcup_{r \\in \\delta(q, \\sigma)} \\delta_\\epsilon(r, \\epsilon) & \\text{otherwise} \\\\\n\\end{cases}\\]\nAn NFA \\(G = \\langle Q, \\Sigma, \\delta, q_0, F \\rangle\\) can be converted to a DFA \\(G' = \\langle Q', \\Sigma, \\delta', q'_0, F' \\rangle\\) by defining:\n\n\\(Q' = \\mathcal{P}(Q)\\)\n\\(\\delta'(R, \\sigma) = \\bigcup_{r\\in R}\\delta_\\epsilon(r, \\sigma)\\)\n\\(q'_0 = \\{q_0\\} \\cup \\delta_\\epsilon(q_0, \\epsilon)\\)\n\\(F' = \\{R\\;|\\; \\exists r \\in R: r \\in F\\}\\)\n\n\nfrom functools import reduce\nfrom itertools import chain, combinations\n\ndef powerset(iterable):\n    \"\"\"https://docs.python.org/3/library/itertools.html#recipes\"\"\"\n    s = list(iterable)\n    return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))\n\ndef transitive_closure(edges: set[tuple[str]]) -&gt; set[tuple[str]]:\n    \"\"\"\n    the transitive closure of a graph\n\n    Parameters\n    ----------\n    edges\n        the graph to compute the closure of\n\n    Returns\n    ----------\n    set(tuple)\n    \"\"\"\n    while True:\n        new_edges = {(x, w)\n                     for x, y in edges\n                     for q, w in edges\n                     if q == y}\n\n        all_edges = edges | new_edges\n\n        if all_edges == edges:\n            return edges\n\n        edges = all_edges\n\nclass TransitionFunction(TransitionFunction):\n    \"\"\"A finite state machine transition function\n\n    Parameters\n    ----------\n    transition_graph\n\n    Attributes\n    ----------\n    isdeterministic\n    istotalfunction\n    transition_graph\n\n    Methods\n    -------\n    validate(alphabet, states)\n    relable_states(state_map)\n    totalize()\n    \"\"\"\n\n    def validate(self, alphabet, states):\n        self._validate_input_values(alphabet, states)\n        self._validate_output_types()\n        self._homogenize_output_types()\n        self._validate_output_values(states)\n\n        self._add_epsilon_transitive_closure()\n\n    def _add_epsilon_transitive_closure(self):\n        # get the state graph of all epsilon transitions\n        transitions = {(instate, outstate)\n                       for (instate, insymb), outs in self._transition_graph.items()\n                       for outstate in outs if not insymb}\n        \n        # compute the transitive closure of the epsilon transition\n        # state graph; requires homogenization beforehand\n        for instate, outstate in transitive_closure(transitions):\n            self._transition_graph[(instate, '')] |= {outstate}\n\n        new_graph = dict(self._transition_graph)\n\n        # add alphabet transitions from all states q_i that exit\n        # with an alphabet transition (q_i, a) and enter states q_j\n        # with epsilon transitions to states q_k\n        for (instate1, insymb1), outs1 in self._transition_graph.items():\n            for (instate2, insymb2), outs2 in self._transition_graph.items():\n                if instate2 in outs1 and not insymb2:\n                    # vacuously adds the already added epsilon\n                    # transitions as well\n                    try:\n                        new_graph[(instate1,insymb1)] |= outs2\n                    except KeyError:\n                        new_graph[(instate1,insymb1)] = outs2\n\n        self._transition_graph = new_graph\n\n    def determinize(self, initial_state):\n        new_initial_state = {initial_state} | self(initial_state, \"\")\n        new_transition_graph = {(instate, insymb): outstates\n                                for (instate, insymb), outstates \n                                in self._transition_graph.items()\n                                if insymb}\n        \n        return new_initial_state, TransitionFunction(new_transition_graph)\n\n\nclass FiniteStateAutomaton(FiniteStateAutomaton):\n    \"\"\"A finite state automaton\n\n    Parameters\n    ----------\n    alphabet\n    states\n    initial_state\n    final states\n    transition_graph\n    \"\"\"\n        \n    def determinize(self) -&gt; 'FiniteStateAutomaton':\n        \"\"\"\n        if nondeterministic, determinize the FSA\n\n        Returns\n        -------\n        FiniteStateAutomaton\n        \"\"\"\n        new_states = {'_'.join(sorted(s)) for s in powerset(self._states) if s}\n        # doesn't handle epsilons coming from the start state\n        new_init, new_trans = self._transition_function.determinize(self._initial_state)\n        new_final = {'_'.join(sorted(s)) for s in powerset(self._states)\n                     if any([t in s for t in self._final_states])\n                     if s}\n        \n        new_transition = {('_'.join(sorted(s)), a): {'_'.join(sorted(t))}\n                          for s in powerset(self._states)\n                          for t in powerset(self._states)\n                          for a in self._alphabet\n                          if any([tprime in new_trans(sprime,a)\n                                  for sprime in s for tprime in t])\n                          if s and t}\n\n        return FiniteStateAutomaton(self._alphabet-{''}, new_states,\n                                    '_'.join(sorted(new_init)), new_final,\n                                    new_transition)\n\n    @property\n    def isdeterministic(self) -&gt; bool:\n        return self._transition_function.isdeterministic"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "About",
+    "section": "",
+    "text": "This site contains materials for Introduction to Computational Linguistics–a course given by Aaron Steven White at the University of Rochester."
+  },
+  {
+    "objectID": "index.html#about-the-course",
+    "href": "index.html#about-the-course",
+    "title": "About",
+    "section": "About the course",
+    "text": "About the course\nThis course covers foundational concepts in computational linguistics. Major focus is placed on the use of formal languages as a tool for understanding natural language as well as on developing students’ ability to implement foundational algorithms pertaining to those formal languages. Topics include basic formal language theory, finite state phonological and morphological parsing, and syntactic parsing for context free grammars and mildly context sensitive formalisms."
+  },
+  {
+    "objectID": "index.html#prerequisites",
+    "href": "index.html#prerequisites",
+    "title": "About",
+    "section": "Prerequisites",
+    "text": "Prerequisites\nThis course relies on concepts covered in an introductory linguistics course and an introductory programming course. With respect to the latter, it specifically assumes that you can competently write scripts that do non-trivial things and can work competently with Python’s object-oriented programming facilities but maybe not develop a package on your own."
+  },
+  {
+    "objectID": "index.html#about-the-instructor",
+    "href": "index.html#about-the-instructor",
+    "title": "About",
+    "section": "About the instructor",
+    "text": "About the instructor\nAaron Steven White is an Associate Professor of Linguistics and Computer Science at the University of Rochester, where he directs the Formal and Computational Semantics lab (FACTS.lab). His research investigates the relationship between linguistic expressions and conceptual categories that undergird the human ability to convey information about possible past, present, and future configurations of things in the world.\nIn addition to being a principal investigator on numerous federally funded grants and contracts, White is the recipient of a National Science Foundation Faculty Early Career Development (CAREER) award. His work has appeared in a variety linguistics, cognitive science, and natural language processing venues, including Semantics & Pragmatics, Glossa, Language Acquisition, Cognitive Science, Cognitive Psychology, Transactions of the Association for Computational Linguistics, and Empirical Methods in Natural Language Processing."
+  },
+  {
+    "objectID": "index.html#about-the-site",
+    "href": "index.html#about-the-site",
+    "title": "About",
+    "section": "About the site",
+    "text": "About the site\nThe site itself is built using Quarto. The source files for this site are available on github at aaronstevenwhite/intro-to-cl. See Installation for information on how to run the code documented here."
+  },
+  {
+    "objectID": "index.html#acknowledgments",
+    "href": "index.html#acknowledgments",
+    "title": "About",
+    "section": "Acknowledgments",
+    "text": "Acknowledgments\nThe development of these materials was supported by the University of Rochester and a National Science Foundation grant: CAREER: Logical Form Induction (BCS/IIS-2237175)."
+  },
+  {
+    "objectID": "index.html#license",
+    "href": "index.html#license",
+    "title": "About",
+    "section": "License ",
+    "text": "License \nIntroduction to Computational Linguistics by Aaron Steven White is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License. Based on a work at https://github.com/aaronstevenwhite/intro-to-cl."
   }
 ]
