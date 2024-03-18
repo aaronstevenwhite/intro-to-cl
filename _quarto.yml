@@ -55,6 +55,7 @@ project:
     - mildly-context-sensitive-models/index.qmd
     - assignments/assignments-1-and-2.ipynb
     - assignments/assignments-3-and-4.ipynb
+    - assignments/assignments-5-and-6.ipynb
 
 
 website:
@@ -141,6 +142,7 @@ website:
         contents:
           - assignments/assignments-1-and-2.ipynb
           - assignments/assignments-3-and-4.ipynb
+          - assignments/assignments-5-and-6.ipynb
 
 format:
   html:
