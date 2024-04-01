@@ -56,6 +56,8 @@ project:
     - assignments/assignments-1-and-2.ipynb
     - assignments/assignments-3-and-4.ipynb
     - assignments/assignments-5-and-6.ipynb
+    - assignments/assignments-7-and-8.ipynb
+    - assignments/assignments-9-and-10.ipynb
 
 
 website:
@@ -143,6 +145,8 @@ website:
           - assignments/assignments-1-and-2.ipynb
           - assignments/assignments-3-and-4.ipynb
           - assignments/assignments-5-and-6.ipynb
+          - assignments/assignments-7-and-8.ipynb
+          - assignments/assignments-9-and-10.ipynb
 
 format:
   html:
