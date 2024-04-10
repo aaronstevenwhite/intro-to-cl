@@ -807,7 +807,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-115"><a href="#cb3-115" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-116"><a href="#cb3-116" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _add_epsilon_extensions(<span class="va">self</span>, paths: <span class="bu">set</span>[<span class="bu">tuple</span>[<span class="bu">str</span>]]) <span class="op">-&gt;</span> <span class="bu">set</span>[<span class="bu">tuple</span>[<span class="bu">str</span>]]:</span>
 <span id="cb3-117"><a href="#cb3-117" aria-hidden="true" tabindex="-1"></a>        paths_extended <span class="op">=</span> {</span>
-<span id="cb3-118"><a href="#cb3-118" aria-hidden="true" tabindex="-1"></a>            (s1, s2) </span>
+<span id="cb3-118"><a href="#cb3-118" aria-hidden="true" tabindex="-1"></a>            s1 <span class="op">+</span> (s2,) </span>
 <span id="cb3-119"><a href="#cb3-119" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> s1 <span class="kw">in</span> paths </span>
 <span id="cb3-120"><a href="#cb3-120" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> s2 <span class="kw">in</span> <span class="va">self</span>._transition_function(s1[<span class="op">-</span><span class="dv">1</span>], <span class="st">''</span>)</span>
 <span id="cb3-121"><a href="#cb3-121" aria-hidden="true" tabindex="-1"></a>        }</span>
