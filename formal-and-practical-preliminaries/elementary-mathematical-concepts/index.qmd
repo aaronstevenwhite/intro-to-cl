@@ -1,7 +1,0 @@
----
-title: Overview
----
-
-Before getting to the fun parts of this course, we need to develop some basic formal tools. In this submodule, we'll focus on some core concepts in naïve set theory and objects—such as relations and functions—constructed with these concepts. We'll then use these concepts to develop a formal concept of strings on an alphabet and the set of all languages constructed from those strings.
-
-As we develop these formal tools, we will also see how they are implemented in Python. I'm going to assume that you have some basic Python under your belt: that you can competently write scripts that do non-trivial things and can work competently with Python's object-oriented programming facilities but maybe not develop a package on your own.
