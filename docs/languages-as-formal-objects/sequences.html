@@ -177,6 +177,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../languages-as-formal-objects/tuples.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Tuples</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../languages-as-formal-objects/cardinality.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Cardinality</span></a>
   </div>
@@ -419,11 +425,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 205 &amp; \rightarrow &amp; \text{d}\\
 \end{Bmatrix}\]</span></p>
 <p>We will generally assume that our sequences map the first <span class="math inline">\(|S^{-1}(\Sigma)|\)</span> natural numbers to <span class="math inline">\(\Sigma\)</span>, because these “gappy” sequences can always be mapped to one where <span class="math inline">\(S^{-1}(\Sigma) = \{0, ..., |S^{-1}(\Sigma)|-1\}\)</span>. But there are cases—one discussed below—where we don’t necessarily want our sequences to start at 0.</p>
-<p>We often denote the <span class="math inline">\(i^{th}\)</span> element of a sequence using a subscript rather than function notation.</p>
-<p><span class="math display">\[s_i \equiv S(i)\]</span></p>
 <p>Functions can be represented as sets of pairs and therefore sequences can be too.</p>
 <p><span class="math display">\[S = \{\langle 0, \text{d} \rangle, \langle 1, \text{u} \rangle, \langle 2, \text{d} \rangle\} \subseteq \mathbb{N}\times \Sigma\]</span></p>
-<p>We can also represent sequences as elements of <span class="math inline">\(\Sigma^{|S^{-1}(\Sigma)|}\)</span>.</p>
+<p>We often denote the <span class="math inline">\(i^{th}\)</span> element of a sequence using a subscript rather than function notation.</p>
+<p><span class="math display">\[s_i \equiv S(i)\]</span></p>
+<p>This notation should remind you of the notation we use for indexing tuples. This is no coincidence: we can always map a sequence <span class="math inline">\(S\)</span> to a <span class="math inline">\(|S^{-1}(\Sigma)|\)</span>-tuple <span class="math inline">\(\mathbf{s}\)</span> without losing any information. That is, we can map sequences to elements of <span class="math inline">\(\Sigma^{|S^{-1}(\Sigma)|}\)</span>.</p>
 <p><span class="math display">\[\mathrm{func2tuple}(S, i) = \begin{cases}\langle S(i), \mathrm{func2tuple}(S, i+1) \rangle &amp; \text{if } i + 1 \in S^{-1}(\Sigma) \\
 S(i) &amp; \text{otherwise}
            \end{cases}\]</span></p>

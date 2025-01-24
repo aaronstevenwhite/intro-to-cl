@@ -8,6 +8,7 @@ project:
     - languages-as-formal-objects/index.qmd
     - languages-as-formal-objects/sets.ipynb
     - languages-as-formal-objects/multisets.ipynb
+    - languages-as-formal-objects/tuples.ipynb
     - languages-as-formal-objects/cardinality.ipynb
     - languages-as-formal-objects/set-relations.ipynb
     - languages-as-formal-objects/power-sets.ipynb
@@ -40,6 +41,7 @@ website:
           - languages-as-formal-objects/index.qmd
           - languages-as-formal-objects/sets.ipynb
           - languages-as-formal-objects/multisets.ipynb
+          - languages-as-formal-objects/tuples.ipynb
           - languages-as-formal-objects/cardinality.ipynb
           - languages-as-formal-objects/set-relations.ipynb
           - languages-as-formal-objects/power-sets.ipynb
