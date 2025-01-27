@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Introduction to Computational Linguistics - Overview</title>
+<title>Introduction to Computational Linguistics - Defining Regular Expressions</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -64,8 +64,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
-<link href="../phonological-patterns/index.html" rel="next">
-<link href="../languages-in-terms-of-strings/index.html" rel="prev">
+<link href="../grammars-as-languages/evaluating-regular-expressions.html" rel="next">
+<link href="../grammars-as-languages/index.html" rel="prev">
 <script src="../site_libs/quarto-html/quarto.js"></script>
 <script src="../site_libs/quarto-html/popper.min.js"></script>
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -96,6 +96,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 <link rel="stylesheet" href="../styles.css">
 </head>
@@ -109,7 +111,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../languages-and-their-use/index.html">Languages and their use</a></li><li class="breadcrumb-item"><a href="../languages-and-their-use/index.html">Overview</a></li></ol></nav>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../grammars-as-languages/index.html">Grammars as languages</a></li><li class="breadcrumb-item"><a href="../grammars-as-languages/defining-regular-expressions.html">Defining Regular Expressions</a></li></ol></nav>
       <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
       </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -246,7 +248,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../grammars-as-languages/defining-regular-expressions.html" class="sidebar-item-text sidebar-link">
+  <a href="../grammars-as-languages/defining-regular-expressions.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">Defining Regular Expressions</span></a>
   </div>
 </li>
@@ -339,7 +341,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../languages-and-their-use/index.html" class="sidebar-item-text sidebar-link active">
+  <a href="../languages-and-their-use/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
@@ -443,7 +445,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<div class="quarto-title-block"><div><h1 class="title">Overview</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+<h1 class="title">Defining Regular Expressions</h1>
 </div>
 
 
@@ -458,22 +460,181 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<div class="callout callout-style-default callout-caution callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
+<p>Regular expressions themselves are strings. We formally define these strings recursively, starting with an alphabet <span class="math inline">\(\Sigma\)</span>, a symbol for the empty string <span class="math inline">\(\epsilon\)</span>, and a symbol for the empty set <span class="math inline">\(\emptyset\)</span>. Let’s assume the alphabet is the set of English phonemes:</p>
+<p><span class="math display">\[\Sigma \equiv \{\text{ɑ, æ, ʌ, ɔ, aʊ, aɪ, b, tʃ, d, ð,} \ldots\}\]</span></p>
+<p><span class="math inline">\(\rho\)</span> is a regular expression if and only if:</p>
+<ol type="1">
+<li><span class="math inline">\(\rho \in \Sigma \cup \{\epsilon, \emptyset\}\)</span></li>
+<li><span class="math inline">\(\rho\)</span> is <span class="math inline">\((\rho_1 \cup \rho_2)\)</span> for some regular expressions <span class="math inline">\(\rho_1\)</span> and <span class="math inline">\(\rho_2\)</span></li>
+<li><span class="math inline">\(\rho\)</span> is <span class="math inline">\((\rho_1 \circ \rho_2)\)</span> for some regular expressions <span class="math inline">\(\rho_1\)</span> and <span class="math inline">\(\rho_2\)</span></li>
+<li><span class="math inline">\(\rho\)</span> is <span class="math inline">\(\rho_1^*\)</span> for some regular expression <span class="math inline">\(\rho_1\)</span></li>
+</ol>
+<p>Thus, given the <span class="math inline">\(\Sigma\)</span> above, the following are all regular expressions.</p>
+<ol type="1">
+<li>æ</li>
+<li>b</li>
+<li>(æ <span class="math inline">\(\cup\)</span> b)</li>
+<li>(æ <span class="math inline">\(\circ\)</span> b<span class="math inline">\(^*\)</span>)</li>
+<li>(æ <span class="math inline">\(\circ\)</span> b)<span class="math inline">\(^*\)</span></li>
+<li>((æ <span class="math inline">\(\circ\)</span> b) <span class="math inline">\(\cup\)</span> b)</li>
+<li>(æ <span class="math inline">\(\circ\)</span> (b <span class="math inline">\(\cup\)</span> b))</li>
+</ol>
+<p>The following are <em>not</em> regular expressions.</p>
+<ol type="1">
+<li>æ <span class="math inline">\(\cup\)</span> b</li>
+<li>æ <span class="math inline">\(\circ\)</span> b<span class="math inline">\(^*\)</span></li>
+<li>æ <span class="math inline">\(\circ\)</span> b <span class="math inline">\(\cup\)</span> b</li>
+</ol>
+<p>Another way of saying this is that the regular expressions on <span class="math inline">\(\Sigma\)</span> are a language on <span class="math inline">\(\Sigma \cup\{\epsilon, \emptyset, \cup, \circ, (, ), *\}\)</span>. Note that, based on the recursive definition above, the set of regular expressions is infinite. Thus, the regular expressions on <span class="math inline">\(\Sigma\)</span> are the first infinite language we’ve described (besides <span class="math inline">\(\Sigma^*\)</span> itself).</p>
+<p>We can generate all the regular expressions given an alphabet. Note that because the set of regular expressions is infinite, we need to use a generator.</p>
+<div class="cell" data-executioninfo="{&quot;elapsed&quot;:141,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675099872833,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb1" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> collections.abc <span class="im">import</span> Iterable</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> regular_expressions(sigma: <span class="bu">set</span>[<span class="bu">str</span>]) <span class="op">-&gt;</span> Iterable[<span class="bu">str</span>]:</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    old_regex_set <span class="op">=</span> <span class="bu">frozenset</span>(sigma <span class="op">|</span> {<span class="st">'∅'</span>, <span class="st">'𝜖'</span>})</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> rho <span class="kw">in</span> old_regex_set:</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">yield</span> rho</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="va">True</span>:</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        new_regex_set <span class="op">=</span> <span class="bu">set</span>(old_regex_set)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> rho <span class="kw">in</span> old_regex_set:</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>            elem <span class="op">=</span> rho<span class="op">+</span><span class="st">'*'</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>            new_regex_set <span class="op">|=</span> {elem}</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>            <span class="cf">yield</span> elem</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> rho1 <span class="kw">in</span> old_regex_set:</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> rho2 <span class="kw">in</span> old_regex_set:</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>                elem <span class="op">=</span> <span class="st">'('</span><span class="op">+</span>rho1<span class="op">+</span><span class="st">' ∪ '</span><span class="op">+</span>rho2<span class="op">+</span><span class="st">')'</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>                new_regex_set <span class="op">|=</span> {elem}</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>                <span class="cf">yield</span> elem</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> rho1 <span class="kw">in</span> old_regex_set:</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> rho2 <span class="kw">in</span> old_regex_set:</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>                elem <span class="op">=</span> <span class="st">'('</span><span class="op">+</span>rho1<span class="op">+</span><span class="st">' ∘ '</span><span class="op">+</span>rho2<span class="op">+</span><span class="st">')'</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>                new_regex_set <span class="op">|=</span> {elem}</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>                <span class="cf">yield</span> elem</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>        old_regex_set <span class="op">=</span> <span class="bu">frozenset</span>(new_regex_set)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="callout-title-container flex-fill">
-Availability
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>This module will be available on February 19, 2025.</p>
+<div class="cell" data-executioninfo="{&quot;elapsed&quot;:3934,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675099876765,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="babeefbd-7970-4005-985c-0eb4aa189eb3" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb2" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>english_phonemes <span class="op">=</span> {<span class="st">"ɑ"</span>, <span class="st">"æ"</span>, <span class="st">"ə"</span>, <span class="st">"ʌ"</span>, <span class="st">"ɔ"</span>, <span class="st">"aʊ"</span>, <span class="st">"aɪ"</span>, <span class="st">"b"</span>, <span class="st">"tʃ"</span>, <span class="st">"d"</span>, <span class="st">"ð"</span>, <span class="st">"ɛ"</span>, </span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"ɝ"</span>, <span class="st">"eɪ"</span>, <span class="st">"f"</span>, <span class="st">"g"</span>, <span class="st">"h"</span>, <span class="st">"ɪ"</span>, <span class="st">"i"</span>, <span class="st">"dʒ"</span>, <span class="st">"k"</span>, <span class="st">"l"</span>, <span class="st">"m"</span>, </span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"n"</span>, <span class="st">"ŋ"</span>, <span class="st">"oʊ"</span>, <span class="st">"ɔɪ"</span>, <span class="st">"p"</span>, <span class="st">"ɹ"</span>, <span class="st">"s"</span>, <span class="st">"ʃ"</span>, <span class="st">"t"</span>, <span class="st">"θ"</span>, <span class="st">"ʊ"</span>, </span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"u"</span>, <span class="st">"v"</span>, <span class="st">"w"</span>, <span class="st">"j"</span>, <span class="st">"z"</span>, <span class="st">"ʒ"</span>}</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, r <span class="kw">in</span> <span class="bu">enumerate</span>(regular_expressions(english_phonemes)):</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(r)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> i <span class="op">&gt;</span> <span class="dv">100</span>:</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>      <span class="cf">break</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre data-code-line-numbers=""><code>h
+s
+b
+ɑ
+f
+∅
+θ
+n
+u
+p
+dʒ
+ɔɪ
+ɛ
+𝜖
+eɪ
+ŋ
+oʊ
+z
+g
+ʃ
+tʃ
+l
+ɔ
+æ
+ə
+ɝ
+ɪ
+ʒ
+i
+ʊ
+j
+d
+ɹ
+ð
+t
+ʌ
+v
+m
+k
+aʊ
+w
+aɪ
+h*
+s*
+b*
+ɑ*
+f*
+∅*
+θ*
+n*
+u*
+p*
+dʒ*
+ɔɪ*
+ɛ*
+𝜖*
+eɪ*
+ŋ*
+oʊ*
+z*
+g*
+ʃ*
+tʃ*
+l*
+ɔ*
+æ*
+ə*
+ɝ*
+ɪ*
+ʒ*
+i*
+ʊ*
+j*
+d*
+ɹ*
+ð*
+t*
+ʌ*
+v*
+m*
+k*
+aʊ*
+w*
+aɪ*
+(h ∪ h)
+(h ∪ s)
+(h ∪ b)
+(h ∪ ɑ)
+(h ∪ f)
+(h ∪ ∅)
+(h ∪ θ)
+(h ∪ n)
+(h ∪ u)
+(h ∪ p)
+(h ∪ dʒ)
+(h ∪ ɔɪ)
+(h ∪ ɛ)
+(h ∪ 𝜖)
+(h ∪ eɪ)
+(h ∪ ŋ)
+(h ∪ oʊ)
+(h ∪ z)</code></pre>
 </div>
 </div>
 
-
-<!-- -->
 
 
 </main> <!-- /main -->
@@ -765,27 +926,16 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../languages-in-terms-of-strings/index.html" class="pagination-link">
+      <a href="../grammars-as-languages/index.html" class="pagination-link">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Overview</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../phonological-patterns/index.html" class="pagination-link">
-        <span class="nav-page-text">Overview</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../grammars-as-languages/evaluating-regular-expressions.html" class="pagination-link">
+        <span class="nav-page-text">Evaluating Regular Expressions</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
-</nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb1" data-shortcodes="false" data-code-line-numbers=""><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> Overview</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="an">bibliography:</span><span class="co"> ../references.bib</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>::: {.callout-caution}</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">## Availability</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>This module will be available on February 19, 2025.</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>:::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div></div></div></div></div>
+</nav>
 </div> <!-- /content -->
 
 

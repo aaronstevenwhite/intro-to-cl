@@ -2,29 +2,37 @@ project:
   type: website
   output-dir: docs
   render: 
-    - index.qmd
-    - installation.qmd
-    - languages-as-formal-objects/index.qmd
-    - languages-as-formal-objects/index.qmd
-    - languages-as-formal-objects/sets.ipynb
-    - languages-as-formal-objects/multisets.ipynb
-    - languages-as-formal-objects/tuples.ipynb
-    - languages-as-formal-objects/cardinality.ipynb
-    - languages-as-formal-objects/set-relations.ipynb
-    - languages-as-formal-objects/power-sets.ipynb
-    - languages-as-formal-objects/products.ipynb
-    - languages-as-formal-objects/relations-and-functions.ipynb
-    - languages-as-formal-objects/sequences.ipynb
-    - languages-as-formal-objects/strings.ipynb
-    - languages-as-formal-objects/languages.ipynb
-    - grammars-as-languages/index.qmd
-    - languages-in-terms-of-strings/index.qmd
-    - languages-and-their-use/index.qmd
-    - uncertainty-about-languages/index.qmd
-    - phonological-patterns/index.qmd
-    - syntactic-patterns/index.qmd
-    - analysis-as-deduction/index.qmd
-    - assignments/assignments-1-and-2.ipynb
+  - index.qmd
+  - installation.qmd
+  - languages-as-formal-objects/index.qmd
+  - languages-as-formal-objects/index.qmd
+  - languages-as-formal-objects/sets.ipynb
+  - languages-as-formal-objects/multisets.ipynb
+  - languages-as-formal-objects/tuples.ipynb
+  - languages-as-formal-objects/cardinality.ipynb
+  - languages-as-formal-objects/set-relations.ipynb
+  - languages-as-formal-objects/power-sets.ipynb
+  - languages-as-formal-objects/products.ipynb
+  - languages-as-formal-objects/relations-and-functions.ipynb
+  - languages-as-formal-objects/sequences.ipynb
+  - languages-as-formal-objects/strings.ipynb
+  - languages-as-formal-objects/languages.ipynb
+  - grammars-as-languages/index.qmd
+  - grammars-as-languages/defining-regular-expressions.ipynb
+  - grammars-as-languages/evaluating-regular-expressions.ipynb
+  - grammars-as-languages/loading-a-lexicon.ipynb
+  - grammars-as-languages/basic-matching.ipynb
+  - grammars-as-languages/implementing-the-regular-operations.ipynb
+  - grammars-as-languages/wild-cards-and-character-ranges.ipynb
+  - grammars-as-languages/quantifiers.ipynb
+  - grammars-as-languages/groups-and-greediness.ipynb
+  - uncertainty-about-languages/index.qmd
+  - languages-in-terms-of-strings/index.qmd
+  - languages-and-their-use/index.qmd
+  - phonological-patterns/index.qmd
+  - syntactic-patterns/index.qmd
+  - analysis-as-deduction/index.qmd
+  - assignments/assignments-1-and-2.ipynb
 
 
 website:
@@ -38,45 +46,53 @@ website:
       - installation.qmd
       - section: "Languages as formal objects"
         contents:
-          - languages-as-formal-objects/index.qmd
-          - languages-as-formal-objects/sets.ipynb
-          - languages-as-formal-objects/multisets.ipynb
-          - languages-as-formal-objects/tuples.ipynb
-          - languages-as-formal-objects/cardinality.ipynb
-          - languages-as-formal-objects/set-relations.ipynb
-          - languages-as-formal-objects/power-sets.ipynb
-          - languages-as-formal-objects/products.ipynb
-          - languages-as-formal-objects/relations-and-functions.ipynb
-          - languages-as-formal-objects/sequences.ipynb
-          - languages-as-formal-objects/strings.ipynb
-          - languages-as-formal-objects/languages.ipynb
+        - languages-as-formal-objects/index.qmd
+        - languages-as-formal-objects/sets.ipynb
+        - languages-as-formal-objects/multisets.ipynb
+        - languages-as-formal-objects/tuples.ipynb
+        - languages-as-formal-objects/cardinality.ipynb
+        - languages-as-formal-objects/set-relations.ipynb
+        - languages-as-formal-objects/power-sets.ipynb
+        - languages-as-formal-objects/products.ipynb
+        - languages-as-formal-objects/relations-and-functions.ipynb
+        - languages-as-formal-objects/sequences.ipynb
+        - languages-as-formal-objects/strings.ipynb
+        - languages-as-formal-objects/languages.ipynb
       - section: "Grammars as languages"
         contents:
-          - grammars-as-languages/index.qmd
-      - section: "Languages in terms of Strings"
-        contents:
-          - languages-in-terms-of-strings/index.qmd
-      - section: "Languages and their use"
-        contents:
-          - languages-and-their-use/index.qmd
+        - grammars-as-languages/index.qmd
+        - grammars-as-languages/defining-regular-expressions.ipynb
+        - grammars-as-languages/evaluating-regular-expressions.ipynb
+        - grammars-as-languages/loading-a-lexicon.ipynb
+        - grammars-as-languages/basic-matching.ipynb
+        - grammars-as-languages/implementing-the-regular-operations.ipynb
+        - grammars-as-languages/wild-cards-and-character-ranges.ipynb
+        - grammars-as-languages/quantifiers.ipynb
+        - grammars-as-languages/groups-and-greediness.ipynb
       - section: "Uncertainty about Languages"
         contents:
-          - uncertainty-about-languages/index.qmd
+        - uncertainty-about-languages/index.qmd
+      - section: "Languages in terms of Strings"
+        contents:
+        - languages-in-terms-of-strings/index.qmd
+      - section: "Languages and their use"
+        contents:
+        - languages-and-their-use/index.qmd
       - section: "The nature of phonological patterns"
         contents:
-          - phonological-patterns/index.qmd
+        - phonological-patterns/index.qmd
       - section: "The nature of morphological patterns"
         contents:
-          - syntactic-patterns/index.qmd
+        - syntactic-patterns/index.qmd
       - section: "Analysis as deduction"
         contents:
-          - analysis-as-deduction/index.qmd
+        - analysis-as-deduction/index.qmd
       - section: "The nature of syntactic patterns"
         contents:
-          - syntactic-patterns/index.qmd
+        - syntactic-patterns/index.qmd
       - section: "Assignments"
         contents:
-          - assignments/assignments-1-and-2.ipynb
+        - assignments/assignments-1-and-2.ipynb
 
 format:
   html:

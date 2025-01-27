@@ -3,8 +3,24 @@ title: Overview
 bibliography: ../references.bib
 ---
 
-::: {.callout-caution}
-## Availability
+::: {.callout-tip}
+## Reading
 
-This module will be available on January 29, 2025.
+@jurafsky_speech_2023[Ch. 2.1] on regular expressions. 
 :::
+
+In the last submodule, we defined the set of strings on an alphabet $\Sigma$ as:
+
+$$\Sigma^* = \bigcup_{i=0}^\infty \Sigma^i$$
+
+We then defined a language $L$ on $\Sigma$ to be some (possibly improper) subset of the set of strings:
+
+$$L \subseteq \Sigma^*$$
+
+The set of all languages on $\Sigma$ is thus the powerset $2^{\Sigma^*}$ of the set of strings $\Sigma^*$.
+
+In this submodule, we're going to discuss one way that we can compactly describe (a subset of) the languages in $2^{\Sigma^*}$: *regular expressions*. 
+
+Regular expressions are foundational both from an applied and from a scientific perspective. From an applied perspective, they allow us to effectively query and modify text in a compact programmatic way. From a scientific perspective, they provide a way of stating phonological grammars in an efficient way.
+
+We'll first cover their formal definition. This formal definition will constitute our first example of a grammar. We'll then see how this formal definition relates to applications of regular expressions for querying and modifying text.

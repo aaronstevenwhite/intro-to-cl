@@ -6,5 +6,5 @@ bibliography: ../references.bib
 ::: {.callout-caution}
 ## Availability
 
-This module will be available on February 19, 2025.
+This module will be available on February 5, 2025.
 :::
