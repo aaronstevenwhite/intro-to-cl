@@ -27,6 +27,14 @@ project:
   - grammars-as-languages/quantifiers.ipynb
   - grammars-as-languages/groups-and-greediness.ipynb
   - uncertainty-about-languages/index.qmd
+  - uncertainty-about-languages/what-is-a-probability.ipynb
+  - uncertainty-about-languages/how-we-model-possibilities.ipynb
+  - uncertainty-about-languages/what-it-means-to-measure-a-possibility.ipynb
+  - uncertainty-about-languages/some-useful-definitions.qmd
+  - uncertainty-about-languages/random-variables.qmd
+  - uncertainty-about-languages/probability-distributions.qmd
+  - uncertainty-about-languages/some-more-useful-definitions.qmd
+  - uncertainty-about-languages/statistical-inference.qmd
   - languages-in-terms-of-strings/index.qmd
   - languages-and-their-use/index.qmd
   - phonological-patterns/index.qmd
@@ -72,6 +80,14 @@ website:
       - section: "Uncertainty about Languages"
         contents:
         - uncertainty-about-languages/index.qmd
+        - uncertainty-about-languages/what-is-a-probability.ipynb
+        - uncertainty-about-languages/how-we-model-possibilities.ipynb
+        - uncertainty-about-languages/what-it-means-to-measure-a-possibility.ipynb
+        - uncertainty-about-languages/some-useful-definitions.qmd
+        - uncertainty-about-languages/random-variables.qmd
+        - uncertainty-about-languages/probability-distributions.qmd
+        - uncertainty-about-languages/some-more-useful-definitions.qmd
+        - uncertainty-about-languages/statistical-inference.qmd
       - section: "Languages in terms of Strings"
         contents:
         - languages-in-terms-of-strings/index.qmd

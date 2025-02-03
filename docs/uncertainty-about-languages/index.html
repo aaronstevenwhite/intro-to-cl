@@ -64,7 +64,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
-<link href="../languages-in-terms-of-strings/index.html" rel="next">
+<link href="../uncertainty-about-languages/what-is-a-probability.html" rel="next">
 <link href="../grammars-as-languages/groups-and-greediness.html" rel="prev">
 <script src="../site_libs/quarto-html/quarto.js"></script>
 <script src="../site_libs/quarto-html/popper.min.js"></script>
@@ -311,6 +311,54 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/what-is-a-probability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">What is a probability?</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/how-we-model-possibilities.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">How we model possibilities</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/what-it-means-to-measure-a-possibility.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">What it means to measure a possibility</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/some-useful-definitions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Some more useful definitions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/random-variables.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Random variables</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/probability-distributions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Probability distributions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/some-more-useful-definitions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Some useful definitions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/statistical-inference.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Statistical Inference</span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
@@ -465,6 +513,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>One challenge to evaluating such hypotheses is that we don’t always know which strings are in a language. To see what I mean, let’s contrast two languages we might be interested in: (i) the set of all actual phonological forms you know for English morphemes; and (ii) the set of all possible phonological forms for English morphemes.</p>
 <p>Because you presumably know a finite number of morphemes, the first language must be finite. Any finite language is describable by a regular expression: we can list out all all the strings in the language; then for each string, we can construct the regular expression that evaluates to the language containing only that string; and finally, we can combine those regular expressions using <span class="math inline">\(\cup\)</span>.</p>
 <p>The second language is almost certainly infinite. We can’t list out all the possible phonological forms for English morphemes, but we may still be able construct a regular expression that evaluates to the relevant language. The challenge is that, for some strings, it’s clear they should be in this language–e.g.&nbsp;any of the strings in the set of all actual phonological forms you know for English morphemes has got to be in there; for other strings, it’s clear they shouldn’t be in this language–e.g.&nbsp;any string starting with a voiced stop followed by a voiceless sibillant, <span class="math inline">\(\text{bs}\)</span> or <span class="math inline">\(\text{gs}\)</span>; but for other strings, it’s not clear whether they should be in the language or not–e.g.&nbsp;any string starting with a voiced stop followed by a nasal, like <span class="math inline">\(\text{bn}\)</span> or <span class="math inline">\(\text{gn}\)</span> seems better than the analogous string starting with a voiced stop followed by a voiceless sibillant.</p>
+<p>How do we capture the graded nature of judgments about <span class="math inline">\(\text{bs}\)</span> and <span class="math inline">\(\text{gs}\)</span> in comparison to <span class="math inline">\(\text{bn}\)</span> and <span class="math inline">\(\text{gn}\)</span>? In this module and the next, we’ll investigate this question from two different perspectives. One perspective will model this gradation as a kind of uncertainty about what is in the set of all possible phonological forms for English morphemes, for which we will use the tools of probability theory. The other perspective, which is not mutually exclusive, is to model this uncertainty as a function of a strings similarity to known words. We will investigate this perspective in the next module.</p>
 
 
 <!-- -->
@@ -764,8 +813,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../languages-in-terms-of-strings/index.html" class="pagination-link">
-        <span class="nav-page-text">Overview</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../uncertainty-about-languages/what-is-a-probability.html" class="pagination-link">
+        <span class="nav-page-text">What is a probability?</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
@@ -782,7 +831,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>Because you presumably know a finite number of morphemes, the first language must be finite. Any finite language is describable by a regular expression: we can list out all all the strings in the language; then for each string, we can construct the regular expression that evaluates to the language containing only that string; and finally, we can combine those regular expressions using $\cup$.</span>
 <span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>The second language is almost certainly infinite. We can't list out all the possible phonological forms for English morphemes, but we may still be able construct a regular expression that evaluates to the relevant language. The challenge is that, for some strings, it's clear they should be in this language–e.g. any of the strings in the set of all actual phonological forms you know for English morphemes has got to be in there; for other strings, it's clear they shouldn't be in this language–e.g. any string starting with a voiced stop followed by a voiceless sibillant, $\text{bs}$ or $\text{gs}$; but for other strings, it's not clear whether they should be in the language or not–e.g. any string starting with a voiced stop followed by a nasal, like $\text{bn}$ or $\text{gn}$ seems better than the analogous string starting with a voiced stop followed by a voiceless sibillant.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>The second language is almost certainly infinite. We can't list out all the possible phonological forms for English morphemes, but we may still be able construct a regular expression that evaluates to the relevant language. The challenge is that, for some strings, it's clear they should be in this language–e.g. any of the strings in the set of all actual phonological forms you know for English morphemes has got to be in there; for other strings, it's clear they shouldn't be in this language–e.g. any string starting with a voiced stop followed by a voiceless sibillant, $\text{bs}$ or $\text{gs}$; but for other strings, it's not clear whether they should be in the language or not–e.g. any string starting with a voiced stop followed by a nasal, like $\text{bn}$ or $\text{gn}$ seems better than the analogous string starting with a voiced stop followed by a voiceless sibillant.</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>How do we capture the graded nature of judgments about $\text{bs}$ and $\text{gs}$ in comparison to $\text{bn}$ and $\text{gn}$? In this module and the next, we'll investigate this question from two different perspectives. One perspective will model this gradation as a kind of uncertainty about what is in the set of all possible phonological forms for English morphemes, for which we will use the tools of probability theory. The other perspective, which is not mutually exclusive, is to model this uncertainty as a function of a strings similarity to known words. We will investigate this perspective in the next module.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 
