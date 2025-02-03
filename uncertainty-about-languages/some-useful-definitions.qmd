@@ -1,0 +1,10 @@
+---
+title: Some more useful definitions
+bibliography: ../references.bib
+---
+
+::: {.callout-caution}
+## Availability
+
+This submodule will be available on February 10, 2025.
+:::

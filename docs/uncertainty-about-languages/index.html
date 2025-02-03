@@ -64,7 +64,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
-<link href="../languages-in-terms-of-strings/index.html" rel="next">
+<link href="../uncertainty-about-languages/what-is-a-probability.html" rel="next">
 <link href="../grammars-as-languages/groups-and-greediness.html" rel="prev">
 <script src="../site_libs/quarto-html/quarto.js"></script>
 <script src="../site_libs/quarto-html/popper.min.js"></script>
@@ -96,6 +96,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 <link rel="stylesheet" href="../styles.css">
 </head>
@@ -309,6 +311,54 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/what-is-a-probability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">What is a probability?</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/how-we-model-possibilities.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">How we model possibilities</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/what-it-means-to-measure-a-possibility.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">What it means to measure a possibility</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/some-useful-definitions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Some more useful definitions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/random-variables.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Random variables</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/probability-distributions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Probability distributions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/some-more-useful-definitions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Some useful definitions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/statistical-inference.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Statistical Inference</span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
@@ -458,19 +508,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<div class="callout callout-style-default callout-caution callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Availability
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>This module will be available on February 5, 2025.</p>
-</div>
-</div>
+<p>In the last submodule, we explored one way that we can compactly describe (a subset of) the languages on an alphabet <span class="math inline">\(\Sigma\)</span>: the <em>regular expressions</em> <span class="math inline">\(R(\Sigma) \subset 2^{[\Sigma \cup \{\epsilon, \emptyset, \cup, \circ, (, ), *\}]^*}\)</span>. Regular expressions <span class="math inline">\(\mathbf{r} \in R(\Sigma)\)</span> evaluate to languages <span class="math inline">\(\text{eval}(\mathbf{r}) \in 2^{\Sigma^*}\)</span>, and we refer to the image of <span class="math inline">\(R(\Sigma)\)</span> under <span class="math inline">\(\text{eval}\)</span>–i.e.&nbsp;all languages describable by a regular expression on <span class="math inline">\(\Sigma\)</span>–as the <em>regular languages</em> on <span class="math inline">\(\Sigma\)</span>.</p>
+<p>One hypothesis we will talk about a bit later in the course is that all phonological systems are <em>subregular</em>. Effectively, this hypothesis posits that all phonological grammars are describable by a strict subset of the regular expressions on the phones of a language.</p>
+<p>One challenge to evaluating such hypotheses is that we don’t always know which strings are in a language. To see what I mean, let’s contrast two languages we might be interested in: (i) the set of all actual phonological forms you know for English morphemes; and (ii) the set of all possible phonological forms for English morphemes.</p>
+<p>Because you presumably know a finite number of morphemes, the first language must be finite. Any finite language is describable by a regular expression: we can list out all all the strings in the language; then for each string, we can construct the regular expression that evaluates to the language containing only that string; and finally, we can combine those regular expressions using <span class="math inline">\(\cup\)</span>.</p>
+<p>The second language is almost certainly infinite. We can’t list out all the possible phonological forms for English morphemes, but we may still be able construct a regular expression that evaluates to the relevant language. The challenge is that, for some strings, it’s clear they should be in this language–e.g.&nbsp;any of the strings in the set of all actual phonological forms you know for English morphemes has got to be in there; for other strings, it’s clear they shouldn’t be in this language–e.g.&nbsp;any string starting with a voiced stop followed by a voiceless sibillant, <span class="math inline">\(\text{bs}\)</span> or <span class="math inline">\(\text{gs}\)</span>; but for other strings, it’s not clear whether they should be in the language or not–e.g.&nbsp;any string starting with a voiced stop followed by a nasal, like <span class="math inline">\(\text{bn}\)</span> or <span class="math inline">\(\text{gn}\)</span> seems better than the analogous string starting with a voiced stop followed by a voiceless sibillant.</p>
+<p>How do we capture the graded nature of judgments about <span class="math inline">\(\text{bs}\)</span> and <span class="math inline">\(\text{gs}\)</span> in comparison to <span class="math inline">\(\text{bn}\)</span> and <span class="math inline">\(\text{gn}\)</span>? In this module and the next, we’ll investigate this question from two different perspectives. One perspective will model this gradation as a kind of uncertainty about what is in the set of all possible phonological forms for English morphemes, for which we will use the tools of probability theory. The other perspective, which is not mutually exclusive, is to model this uncertainty as a function of a strings similarity to known words. We will investigate this perspective in the next module.</p>
 
 
 <!-- -->
@@ -770,8 +813,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../languages-in-terms-of-strings/index.html" class="pagination-link">
-        <span class="nav-page-text">Overview</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../uncertainty-about-languages/what-is-a-probability.html" class="pagination-link">
+        <span class="nav-page-text">What is a probability?</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
@@ -780,11 +823,17 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="an">bibliography:</span><span class="co"> ../references.bib</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>::: {.callout-caution}</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">## Availability</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>This module will be available on February 5, 2025.</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>:::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>In the last submodule, we explored one way that we can compactly describe (a subset of) the languages on an alphabet $\Sigma$: the *regular expressions* $R(\Sigma) \subset 2^{[\Sigma \cup \{\epsilon, \emptyset, \cup, \circ, (, ), *\}]^*}$.  Regular expressions $\mathbf{r} \in R(\Sigma)$ evaluate to languages $\text{eval}(\mathbf{r}) \in 2^{\Sigma^*}$, and we refer to the image of $R(\Sigma)$ under $\text{eval}$–i.e. all languages describable by a regular expression on $\Sigma$–as the *regular languages* on $\Sigma$.</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>One hypothesis we will talk about a bit later in the course is that all phonological systems are *subregular*. Effectively, this hypothesis posits that all phonological grammars are describable by a strict subset of the regular expressions on the phones of a language.</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>One challenge to evaluating such hypotheses is that we don't always know which strings are in a language. To see what I mean, let's contrast two languages we might be interested in: (i) the set of all actual phonological forms you know for English morphemes; and (ii) the set of all possible phonological forms for English morphemes. </span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>Because you presumably know a finite number of morphemes, the first language must be finite. Any finite language is describable by a regular expression: we can list out all all the strings in the language; then for each string, we can construct the regular expression that evaluates to the language containing only that string; and finally, we can combine those regular expressions using $\cup$.</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>The second language is almost certainly infinite. We can't list out all the possible phonological forms for English morphemes, but we may still be able construct a regular expression that evaluates to the relevant language. The challenge is that, for some strings, it's clear they should be in this language–e.g. any of the strings in the set of all actual phonological forms you know for English morphemes has got to be in there; for other strings, it's clear they shouldn't be in this language–e.g. any string starting with a voiced stop followed by a voiceless sibillant, $\text{bs}$ or $\text{gs}$; but for other strings, it's not clear whether they should be in the language or not–e.g. any string starting with a voiced stop followed by a nasal, like $\text{bn}$ or $\text{gn}$ seems better than the analogous string starting with a voiced stop followed by a voiceless sibillant.</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>How do we capture the graded nature of judgments about $\text{bs}$ and $\text{gs}$ in comparison to $\text{bn}$ and $\text{gn}$? In this module and the next, we'll investigate this question from two different perspectives. One perspective will model this gradation as a kind of uncertainty about what is in the set of all possible phonological forms for English morphemes, for which we will use the tools of probability theory. The other perspective, which is not mutually exclusive, is to model this uncertainty as a function of a strings similarity to known words. We will investigate this perspective in the next module.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 

@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Introduction to Computational Linguistics - Loading a Lexicon</title>
+<title>Introduction to Computational Linguistics - How we model possibilities</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -64,8 +64,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
-<link href="../grammars-as-languages/basic-matching.html" rel="next">
-<link href="../grammars-as-languages/evaluating-regular-expressions.html" rel="prev">
+<link href="../uncertainty-about-languages/what-it-means-to-measure-a-possibility.html" rel="next">
+<link href="../uncertainty-about-languages/what-is-a-probability.html" rel="prev">
 <script src="../site_libs/quarto-html/quarto.js"></script>
 <script src="../site_libs/quarto-html/popper.min.js"></script>
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -96,6 +96,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 <link rel="stylesheet" href="../styles.css">
 </head>
@@ -109,7 +111,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../grammars-as-languages/index.html">Grammars as languages</a></li><li class="breadcrumb-item"><a href="../grammars-as-languages/loading-a-lexicon.html">Loading a Lexicon</a></li></ol></nav>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../uncertainty-about-languages/index.html">Uncertainty about Languages</a></li><li class="breadcrumb-item"><a href="../uncertainty-about-languages/how-we-model-possibilities.html">How we model possibilities</a></li></ol></nav>
       <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
       </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -258,7 +260,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../grammars-as-languages/loading-a-lexicon.html" class="sidebar-item-text sidebar-link active">
+  <a href="../grammars-as-languages/loading-a-lexicon.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Loading a Lexicon</span></a>
   </div>
 </li>
@@ -317,7 +319,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../uncertainty-about-languages/how-we-model-possibilities.html" class="sidebar-item-text sidebar-link">
+  <a href="../uncertainty-about-languages/how-we-model-possibilities.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">How we model possibilities</span></a>
   </div>
 </li>
@@ -491,7 +493,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<div class="quarto-title-block"><div><h1 class="title">Loading a Lexicon</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li></ul></div></div>
+<h1 class="title">How we model possibilities</h1>
 </div>
 
 
@@ -506,309 +508,209 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<p>One use case for regular expressions in the context of computational linguistics is querying a lexicon. To look at this use case, we will use the lexicon of word forms found in the <a href="https://web.archive.org/web/20210216211828/http://www.speech.cs.cmu.edu/cgi-bin/cmudict">CMU Pronouncing Dictionary</a>.</p>
-<div class="cell" data-executioninfo="{&quot;elapsed&quot;:945,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675099878882,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="3ed7f9ba-4da5-4139-f7f0-5b09b66fb61c" data-execution_count="2">
-<div class="sourceCode cell-code" id="cb1" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="op">!</span>wget https:<span class="op">//</span>raw.githubusercontent.com<span class="op">/</span>Alexir<span class="op">/</span>CMUdict<span class="op">/</span>master<span class="op">/</span>cmudict<span class="op">-</span><span class="fl">0.7</span><span class="er">b</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>The Kolmogorov axioms start by specifying a set <span class="math inline">\(\Omega\)</span> that contains all and only the things that can possibly happen. This set is known as the <em>sample space</em>. So what it means to be a possibility is a brute fact: it’s all and only the things in <span class="math inline">\(\Omega\)</span>.</p>
+<p>That’s very abstract, so let’s consider a few examples:</p>
+<ol type="1">
+<li><span class="math inline">\(\Omega\)</span> could be the set of all vowel types in a language–e.g.&nbsp;for English <span class="math inline">\(\Omega = \{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\}\)</span>.</li>
+<li><span class="math inline">\(\Omega\)</span> could be the set of all strings of phonemes in a language–e.g.&nbsp;if <span class="math inline">\(\Sigma\)</span> is the set of phonemes, then <span class="math inline">\(\Omega = \Sigma^* = \bigcup_{i=0}^\infty \Sigma^i\)</span>.</li>
+<li><span class="math inline">\(\Omega\)</span> could be the set of all regular expressions in a language–e.g.&nbsp;if <span class="math inline">\(\Sigma\)</span> is the set of phonemes, then <span class="math inline">\(\Omega = R(\Sigma)\)</span>. That is, <span class="math inline">\(\Omega\)</span> could be possible grammars, which in turn correspond to possible languages.</li>
+</ol>
+<p>The axioms then move forward by defining a way of classifying possibilities <span class="math inline">\(\mathcal{F} \subseteq 2^\Omega\)</span>. These classes of possibilities are known as <em>events</em> and the set of said classes is known as the <em>event space</em>. It is events, which can contain just a single possibility, that we measure the probability of. (Don’t ask me why, but <span class="math inline">\(\mathcal{F}\)</span> is standard notation for the event space. Why we don’t use <span class="math inline">\(\mathcal{E}\)</span> is beyond me. It might be some convention from measure theory I’m not aware of; or it might have to do with not confusing the event space with the expectation <span class="math inline">\(\mathbb{E}\)</span>, which we’ll review below.)</p>
+<p>The event space is where interesting linguistic structure enters the picture. Let’s look at a few examples of event spaces that assume our first example of a sample space above: <span class="math inline">\(\Omega = \{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\}\)</span>.</p>
+<ol type="1">
+<li>One possible event space distinguishes vowels with respect to highness: <span class="math inline">\(\mathcal{F}_\text{highness} = \{H, L, \Omega, \emptyset\}\)</span>, with <span class="math inline">\(H = \{\text{i, u, ɪ, ʊ}\}\)</span> and <span class="math inline">\(L = \Omega - H\)</span>.</li>
+<li>Another possible event space distinguishes vowels with respect to backness: <span class="math inline">\(\mathcal{F}_\text{backness} = \{B, F, \Omega, \emptyset\}\)</span>, with <span class="math inline">\(B = \{\text{u, ʊ, o, ɔ}\}\)</span> and <span class="math inline">\(F = \Omega - B\)</span>.</li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>emptyset <span class="op">=</span> <span class="bu">frozenset</span>()</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>vowels <span class="op">=</span> <span class="bu">frozenset</span>({<span class="st">'e'</span>, <span class="st">'i'</span>, <span class="st">'o'</span>, <span class="st">'u'</span>, <span class="st">'æ'</span>, <span class="st">'ɑ'</span>, <span class="st">'ɔ'</span>, <span class="st">'ə'</span>, <span class="st">'ɛ'</span>, <span class="st">'ɪ'</span>, <span class="st">'ʊ'</span>})</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># high v. nonhigh</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>high <span class="op">=</span> <span class="bu">frozenset</span>({<span class="st">'i'</span>, <span class="st">'u'</span>, <span class="st">'ɪ'</span>, <span class="st">'ʊ'</span>})</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>nonhigh <span class="op">=</span> vowels <span class="op">-</span> high</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>f_highness <span class="op">=</span> <span class="bu">frozenset</span>({</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">frozenset</span>(emptyset),</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="bu">frozenset</span>(high), <span class="bu">frozenset</span>(nonhigh),</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="bu">frozenset</span>(vowels)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"># back v. nonback</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>back <span class="op">=</span> <span class="bu">frozenset</span>({<span class="st">'u'</span>, <span class="st">'ʊ'</span>, <span class="st">'o'</span>, <span class="st">'ɔ'</span>})</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>nonback <span class="op">=</span> vowels <span class="op">-</span> back</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>f_backness <span class="op">=</span> <span class="bu">frozenset</span>({</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="bu">frozenset</span>(emptyset),</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="bu">frozenset</span>(back), <span class="bu">frozenset</span>(nonback),</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="bu">frozenset</span>(vowels)</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>You’ll notice that beyond having just the set of high v. non-high vowels, or the set of back v. non-back vowels in these event spaces, we also have the entire set of vowels itself alongside the empty set. The reasons for this are technical: to make certain aspects of the formalization of what it means to measure probabilties work out nicely, we need the event space <span class="math inline">\(\mathcal{F}\)</span> to form what is known as a <a href="https://en.wikipedia.org/wiki/%CE%A3-algebra"><span class="math inline">\(\sigma\)</span>-algebra</a> on the sample space <span class="math inline">\(\Omega\)</span>. All this means is that:</p>
+<ol type="1">
+<li><span class="math inline">\(\mathcal{F} \subseteq 2^\Omega\)</span></li>
+<li><span class="math inline">\(E \in \mathcal{F}\)</span> iff <span class="math inline">\(\Omega - E \in \mathcal{F}\)</span> (<em>closure under complement</em>)</li>
+<li><span class="math inline">\(\bigcup \mathcal{E} \in \mathcal{F}\)</span> for all countable <span class="math inline">\(\mathcal{E} \subseteq \mathcal{F}\)</span> (<em>closure under countable union</em>)</li>
+<li><span class="math inline">\(\bigcap \mathcal{E} \in \mathcal{F}\)</span> for all countable <span class="math inline">\(\mathcal{E} \subseteq \mathcal{F}\)</span> (<em>closure under countable intersection</em>)</li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> Set, FrozenSet, Iterable</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> itertools <span class="im">import</span> chain, combinations</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> functools <span class="im">import</span> <span class="bu">reduce</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>SampleSpace <span class="op">=</span> FrozenSet[<span class="bu">str</span>]</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>Event <span class="op">=</span> FrozenSet[<span class="bu">str</span>]</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>SigmaAlgebra <span class="op">=</span> FrozenSet[Event]</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> powerset(iterable: Iterable) <span class="op">-&gt;</span> Iterable:</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""The power set of a set</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co">    See https://docs.python.org/3/library/itertools.html#itertools-recipes</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">    ----------</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co">    iterable</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co">      The set to take the power set of</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    s <span class="op">=</span> <span class="bu">list</span>(iterable)</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> chain.from_iterable(combinations(s, r) <span class="cf">for</span> r <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(s)<span class="op">+</span><span class="dv">1</span>))</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> FiniteMeasurableSpace:</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  <span class="co">"""A finite measurable space</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="co">  Parameters</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="co">  ----------</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="co">  atoms</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a><span class="co">    The atoms of the space</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="co">  sigma_algebra</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a><span class="co">    The σ-algebra of the space</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="co">  """</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, atoms: SampleSpace, sigma_algebra: SigmaAlgebra):</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>._atoms <span class="op">=</span> atoms</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>._sigma_algebra <span class="op">=</span> sigma_algebra</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>._validate()</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> _validate(<span class="va">self</span>):</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> subset <span class="kw">in</span> <span class="va">self</span>._sigma_algebra:</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>      <span class="co"># check powerset condition</span></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> <span class="kw">not</span> subset <span class="op">&lt;=</span> <span class="va">self</span>._atoms:</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> <span class="pp">ValueError</span>(<span class="st">"All events must be a subset of the atoms"</span>)</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>      <span class="co"># check closure under complement</span></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> <span class="kw">not</span> (<span class="va">self</span>._atoms <span class="op">-</span> subset) <span class="kw">in</span> <span class="va">self</span>._sigma_algebra:</span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> <span class="pp">ValueError</span>(<span class="st">"The σ-algebra must be closed under complements"</span>)</span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> subsets <span class="kw">in</span> powerset(<span class="va">self</span>._sigma_algebra):</span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>      subsets <span class="op">=</span> <span class="bu">list</span>(subsets)</span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>      <span class="co"># python doesn't like to reduce empty iterables</span></span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> <span class="kw">not</span> subsets:</span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>        <span class="cf">continue</span></span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>      <span class="co"># check closure under finite union</span></span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>      union <span class="op">=</span> <span class="bu">frozenset</span>(<span class="bu">reduce</span>(<span class="bu">frozenset</span>.union, subsets))</span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> union <span class="kw">not</span> <span class="kw">in</span> <span class="va">self</span>._sigma_algebra:</span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> <span class="pp">ValueError</span>(</span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>            <span class="st">"The σ-algebra must be closed under countable union"</span></span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a>      <span class="co"># check closure under finite intersection</span></span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a>      intersection <span class="op">=</span> <span class="bu">frozenset</span>(<span class="bu">reduce</span>(<span class="bu">frozenset</span>.intersection, subsets))</span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> intersection <span class="kw">not</span> <span class="kw">in</span> <span class="va">self</span>._sigma_algebra:</span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> <span class="pp">ValueError</span>(</span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a>            <span class="st">"The σ-algebra must be closed under countable intersection"</span></span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a>  <span class="at">@property</span></span>
+<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> atoms(<span class="va">self</span>) <span class="op">-&gt;</span> SampleSpace:</span>
+<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="va">self</span>._atoms</span>
+<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a>  <span class="at">@property</span></span>
+<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> sigma_algebra(<span class="va">self</span>) <span class="op">-&gt;</span> SigmaAlgebra:</span>
+<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="va">self</span>._sigma_algebra</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>You can check that all of these conditions are satisfied for our two examples above as long as <span class="math inline">\(\Omega\)</span> and <span class="math inline">\(\emptyset\)</span> are both in <span class="math inline">\(\mathcal{F}\)</span>. When <span class="math inline">\(\mathcal{F} \subseteq 2^\Omega\)</span> is a <span class="math inline">\(\sigma\)</span>-algebra, the pair <span class="math inline">\(\langle \Omega, \mathcal{F} \rangle\)</span> is referred to as a <a href="https://en.wikipedia.org/wiki/Measurable_space">measurable space</a>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>highness_space <span class="op">=</span> FiniteMeasurableSpace(vowels, f_highness)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>backness_space <span class="op">=</span> FiniteMeasurableSpace(vowels, f_backness)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The two examples above are close to trivial in the sense that the only “interesting” events are complements of each other. But what if we put both together, distinguishing vowels with respect to both highness and backness? Both have the same sample space, so nothing needs to change there.</p>
+<p><em>Question:</em> Can we simply define <span class="math inline">\(\mathcal{F}_\text{highness-backness} = \mathcal{F}_\text{highness} \cup \mathcal{F}_\text{backness}\)</span>?</p>
+<p><em>Answer</em>: No.&nbsp;While Condition 1 above would be satisfied (that’s easy), we would be missing quite a few sets that Conditions 2-4 require: e.g.&nbsp;the high back vowels <span class="math inline">\(H \cap B\)</span> and the high and/or back vowels <span class="math inline">\(H \cup B\)</span>.</p>
+<div class="cell" data-outputid="930414ce-e929-4bab-8581-11c4718ee218">
+<div class="sourceCode cell-code" id="cb4" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  highness_space <span class="op">=</span> FiniteMeasurableSpace(vowels, f_highness.union(f_backness))</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> <span class="pp">ValueError</span> <span class="im">as</span> e:</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="bu">print</span>(<span class="ss">f"ValueError: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre data-code-line-numbers=""><code>--2024-01-31 12:13:47--  https://raw.githubusercontent.com/Alexir/CMUdict/master/cmudict-0.7b
-Resolving raw.githubusercontent.com (raw.githubusercontent.com)... 185.199.111.133, 185.199.110.133, 185.199.108.133, ...
-Connecting to raw.githubusercontent.com (raw.githubusercontent.com)|185.199.111.133|:443... connected.
-HTTP request sent, awaiting response... 200 OK
-Length: 3865710 (3.7M) [text/plain]
-Saving to: ‘cmudict-0.7b.1’
-
-cmudict-0.7b.1      100%[===================&gt;]   3.69M  14.0MB/s    in 0.3s    
-
-2024-01-31 12:13:48 (14.0 MB/s) - ‘cmudict-0.7b.1’ saved [3865710/3865710]
-</code></pre>
+<pre data-code-line-numbers=""><code>ValueError: The σ-algebra must be closed under countable union</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb3" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="op">!</span>head <span class="op">-</span>n <span class="dv">200</span> cmudict<span class="op">-</span><span class="fl">0.7</span><span class="er">b</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre data-code-line-numbers=""><code>;;; # CMUdict  --  Major Version: 0.07
-;;; 
-;;; # $HeadURL: https://svn.code.sf.net/p/cmusphinx/code/branches/cmudict/cmudict-0.7b $
-;;; # $Date:: 2015-07-15 12:34:30 -0400 (Wed, 15 Jul 2015)      $:
-;;; # $Id:: cmudict-0.7b 13083 2015-07-15 16:34:30Z air         $:
-;;; # $Rev:: 13083                                              $: 
-;;; # $Author:: air                                             $:
-;;;
-;;; #
-;;; # ========================================================================
-;;; # Copyright (C) 1993-2015 Carnegie Mellon University. All rights reserved.
-;;; #
-;;; # Redistribution and use in source and binary forms, with or without
-;;; # modification, are permitted provided that the following conditions
-;;; # are met:
-;;; #
-;;; # 1. Redistributions of source code must retain the above copyright
-;;; #    notice, this list of conditions and the following disclaimer.
-;;; #    The contents of this file are deemed to be source code.
-;;; #
-;;; # 2. Redistributions in binary form must reproduce the above copyright
-;;; #    notice, this list of conditions and the following disclaimer in
-;;; #    the documentation and/or other materials provided with the
-;;; #    distribution.
-;;; #
-;;; # This work was supported in part by funding from the Defense Advanced
-;;; # Research Projects Agency, the Office of Naval Research and the National
-;;; # Science Foundation of the United States of America, and by member
-;;; # companies of the Carnegie Mellon Sphinx Speech Consortium. We acknowledge
-;;; # the contributions of many volunteers to the expansion and improvement of
-;;; # this dictionary.
-;;; #
-;;; # THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
-;;; # ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-;;; # THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-;;; # PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
-;;; # NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-;;; # SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-;;; # LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-;;; # DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-;;; # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-;;; # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-;;; # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-;;; #
-;;; # ========================================================================
-;;; #
-;;;
-;;;  NOTES  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; 
-;;;  [20080401] (air)  New dict file format introduced 
-;;;   - comments (like this section) are allowed
-;;;   - file name is major version; vers/rev information is now in the header
-;;;
-;;; 
-;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; 
-!EXCLAMATION-POINT  EH2 K S K L AH0 M EY1 SH AH0 N P OY2 N T
-"CLOSE-QUOTE  K L OW1 Z K W OW1 T
-"DOUBLE-QUOTE  D AH1 B AH0 L K W OW1 T
-"END-OF-QUOTE  EH1 N D AH0 V K W OW1 T
-"END-QUOTE  EH1 N D K W OW1 T
-"IN-QUOTES  IH1 N K W OW1 T S
-"QUOTE  K W OW1 T
-"UNQUOTE  AH1 N K W OW1 T
-#HASH-MARK  HH AE1 M AA2 R K
-#POUND-SIGN  P AW1 N D S AY2 N
-#SHARP-SIGN  SH AA1 R P S AY2 N
-%PERCENT  P ER0 S EH1 N T
-&amp;AMPERSAND  AE1 M P ER0 S AE2 N D
-'ALLO  AA2 L OW1
-'APOSTROPHE  AH0 P AA1 S T R AH0 F IY0
-'BOUT  B AW1 T
-'CAUSE  K AH0 Z
-'COURSE  K AO1 R S
-'CUSE  K Y UW1 Z
-'EM  AH0 M
-'END-INNER-QUOTE  EH1 N D IH1 N ER0 K W OW1 T
-'END-QUOTE  EH1 N D K W OW1 T
-'FRISCO  F R IH1 S K OW0
-'GAIN  G EH1 N
-'INNER-QUOTE  IH1 N ER0 K W OW1 T
-'KAY  K EY1
-'M  AH0 M
-'N  AH0 N
-'QUOTE  K W OW1 T
-'ROUND  R AW1 N D
-'S  EH1 S
-'SINGLE-QUOTE  S IH1 NG G AH0 L K W OW1 T
-'TIL  T IH1 L
-'TIS  T IH1 Z
-'TWAS  T W AH1 Z
-(BEGIN-PARENS  B IH0 G IH1 N P ER0 EH1 N Z
-(IN-PARENTHESES  IH1 N P ER0 EH1 N TH AH0 S IY2 Z
-(LEFT-PAREN  L EH1 F T P ER0 EH1 N
-(OPEN-PARENTHESES  OW1 P AH0 N P ER0 EH1 N TH AH0 S IY2 Z
-(PAREN  P ER0 EH1 N
-(PARENS  P ER0 EH1 N Z
-(PARENTHESES  P ER0 EH1 N TH AH0 S IY2 Z
-)CLOSE-PAREN  K L OW1 Z P ER0 EH1 N
-)CLOSE-PARENTHESES  K L OW1 Z P ER0 EH1 N TH AH0 S IY2 Z
-)END-PAREN  EH1 N D P ER0 EH1 N
-)END-PARENS  EH1 N D P ER0 EH1 N Z
-)END-PARENTHESES  EH1 N D P ER0 EH1 N TH AH0 S IY2 Z
-)END-THE-PAREN  EH1 N D DH AH0 P ER0 EH1 N
-)PAREN  P ER0 EH1 N
-)PARENS  P ER0 EH1 N Z
-)RIGHT-PAREN  R AY1 T P EH2 R AH0 N
-)UN-PARENTHESES  AH1 N P ER0 EH1 N TH AH0 S IY1 Z
-+PLUS  P L UH1 S
-,COMMA  K AA1 M AH0
---DASH  D AE1 SH
--DASH  D AE1 SH
--HYPHEN  HH AY1 F AH0 N
-...ELLIPSIS  IH2 L IH1 P S IH0 S
-.DECIMAL  D EH1 S AH0 M AH0 L
-.DOT  D AA1 T
-.FULL-STOP  F UH1 L S T AA1 P
-.PERIOD  P IH1 R IY0 AH0 D
-.POINT  P OY1 N T
-/SLASH  S L AE1 SH
-3-D  TH R IY1 D IY2
-3D  TH R IY1 D IY2
-:COLON  K OW1 L AH0 N
-;SEMI-COLON  S EH1 M IY0 K OW1 L AH0 N
-;SEMI-COLON(1)  S EH1 M IH0 K OW2 L AH0 N
-?QUESTION-MARK  K W EH1 S CH AH0 N M AA1 R K
-A  AH0
-A(1)  EY1
-A'S  EY1 Z
-A.  EY1
-A.'S  EY1 Z
-A.D.  EY2 D IY1
-A.M.  EY2 EH1 M
-A.S  EY1 Z
-A42128  EY1 F AO1 R T UW1 W AH1 N T UW1 EY1 T
-AA  EY2 EY1
-AAA  T R IH2 P AH0 L EY1
-AAAI  T R IH2 P AH0 L EY2 AY1
-AABERG  AA1 B ER0 G
-AACHEN  AA1 K AH0 N
-AACHENER  AA1 K AH0 N ER0
-AAH  AA1
-AAKER  AA1 K ER0
-AALIYAH  AA2 L IY1 AA2
-AALSETH  AA1 L S EH0 TH
-AAMODT  AA1 M AH0 T
-AANCOR  AA1 N K AO2 R
-AARDEMA  AA0 R D EH1 M AH0
-AARDVARK  AA1 R D V AA2 R K
-AARDVARKS  AA1 R D V AA2 R K S
-AARGH  AA1 R G
-AARHUS  AA2 HH UW1 S
-AARON  EH1 R AH0 N
-AARON'S  EH1 R AH0 N Z
-AARONS  EH1 R AH0 N Z
-AARONSON  EH1 R AH0 N S AH0 N
-AARONSON(1)  AA1 R AH0 N S AH0 N
-AARONSON'S  EH1 R AH0 N S AH0 N Z
-AARONSON'S(1)  AA1 R AH0 N S AH0 N Z
-AARTI  AA1 R T IY2
-AASE  AA1 S
-AASEN  AA1 S AH0 N
-AB  AE1 B
-ABA  EY2 B IY2 EY1
-ABABA  AH0 B AA1 B AH0
-ABABA(1)  AA1 B AH0 B AH0
-ABACHA  AE1 B AH0 K AH0
-ABACK  AH0 B AE1 K
-ABACO  AE1 B AH0 K OW2
-ABACUS  AE1 B AH0 K AH0 S
-ABAD  AH0 B AA1 D
-ABADAKA  AH0 B AE1 D AH0 K AH0
-ABADI  AH0 B AE1 D IY0
-ABADIE  AH0 B AE1 D IY0
-ABAIR  AH0 B EH1 R
-ABALKIN  AH0 B AA1 L K IH0 N
-ABALONE  AE2 B AH0 L OW1 N IY0
-ABALONES  AE2 B AH0 L OW1 N IY0 Z
-ABALOS  AA0 B AA1 L OW0 Z
-ABANDON  AH0 B AE1 N D AH0 N
-ABANDONED  AH0 B AE1 N D AH0 N D
-ABANDONING  AH0 B AE1 N D AH0 N IH0 NG
-ABANDONMENT  AH0 B AE1 N D AH0 N M AH0 N T
-ABANDONMENTS  AH0 B AE1 N D AH0 N M AH0 N T S
-ABANDONS  AH0 B AE1 N D AH0 N Z
-ABANTO  AH0 B AE1 N T OW0
-ABARCA  AH0 B AA1 R K AH0
-ABARE  AA0 B AA1 R IY0
-ABASCAL  AE1 B AH0 S K AH0 L
-ABASH  AH0 B AE1 SH
-ABASHED  AH0 B AE1 SH T
-ABASIA  AH0 B EY1 ZH Y AH0
-ABATE  AH0 B EY1 T
-ABATED  AH0 B EY1 T IH0 D
-ABATEMENT  AH0 B EY1 T M AH0 N T
-ABATEMENTS  AH0 B EY1 T M AH0 N T S
-ABATES  AH0 B EY1 T S
-ABATING  AH0 B EY1 T IH0 NG
-ABATTOIR  AE2 B AH0 T W AA1 R
-ABBA  AE1 B AH0</code></pre>
+<p>This point demonstrates an important fact about <span class="math inline">\(\sigma\)</span>-algebras: if you design a classification based on some (countable) set of features like highness and backness, the constraint that <span class="math inline">\(\mathcal{F}\)</span> be a <span class="math inline">\(\sigma\)</span>-algebra on <span class="math inline">\(\Omega\)</span> implies that <span class="math inline">\(\mathcal{F}\)</span> contains events corresponding to all possible conjunctions (e.g.&nbsp;high and back) and disjunctions (e.g.&nbsp;high and/or back) of those features. So we need to extend <span class="math inline">\(\mathcal{F}_\text{highness} \cup \mathcal{F}_\text{backness}\)</span> with additional sets. We call this extension the <span class="math inline">\(\sigma\)</span>-algebra <em>generated by the family of sets</em> <span class="math inline">\(\mathcal{F}_\text{highness} \cup \mathcal{F}_\text{backness}\)</span>, denoted <span class="math inline">\(\sigma\left(\mathcal{F}_\text{highness} \cup \mathcal{F}_\text{backness}\right)\)</span>.</p>
+<div class="cell" data-outputid="73f585f7-b3ad-4d73-c852-425dfd570166">
+<div class="sourceCode cell-code" id="cb6" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> generate_sigma_algebra(family: SigmaAlgebra) <span class="op">-&gt;</span> SigmaAlgebra:</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">"""Generate a σ-algebra from a family of sets</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co">  Parameters</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co">  ----------</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co">  family</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co">    The family of sets from which to generate the σ-algebra</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co">  """</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  sigma_algebra <span class="op">=</span> <span class="bu">set</span>(family)</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  old_sigma_algebra <span class="op">=</span> <span class="bu">set</span>(family)</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  complete <span class="op">=</span> <span class="va">False</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">while</span> <span class="kw">not</span> complete:</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> subsets <span class="kw">in</span> powerset(old_sigma_algebra):</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>      subsets <span class="op">=</span> <span class="bu">list</span>(subsets)</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> <span class="kw">not</span> subsets:</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">continue</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>      union <span class="op">=</span> <span class="bu">reduce</span>(<span class="bu">frozenset</span>.union, subsets)</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>      sigma_algebra.add(union)</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>      intersection <span class="op">=</span> <span class="bu">reduce</span>(<span class="bu">frozenset</span>.intersection, subsets)</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>      sigma_algebra.add(intersection)</span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>    complete <span class="op">=</span> sigma_algebra <span class="op">==</span> old_sigma_algebra</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>    old_sigma_algebra <span class="op">=</span> <span class="bu">set</span>(sigma_algebra)</span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="bu">frozenset</span>(sigma_algebra)</span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>f_highness_backness <span class="op">=</span> generate_sigma_algebra(f_highness <span class="op">|</span> f_backness)</span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>f_highness_backness</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<pre data-code-line-numbers=""><code>frozenset({frozenset(),
+           frozenset({'u', 'ʊ'}),
+           frozenset({'i', 'o', 'ɔ', 'ɪ'}),
+           frozenset({'i', 'o', 'u', 'ɔ', 'ɪ', 'ʊ'}),
+           frozenset({'e', 'o', 'æ', 'ɑ', 'ɔ', 'ə', 'ɛ'}),
+           frozenset({'e', 'i', 'o', 'æ', 'ɑ', 'ɔ', 'ə', 'ɛ', 'ɪ'}),
+           frozenset({'e', 'u', 'æ', 'ɑ', 'ə', 'ɛ', 'ʊ'}),
+           frozenset({'i', 'ɪ'}),
+           frozenset({'e', 'i', 'u', 'æ', 'ɑ', 'ə', 'ɛ', 'ɪ', 'ʊ'}),
+           frozenset({'o', 'ɔ'}),
+           frozenset({'o', 'u', 'ɔ', 'ʊ'}),
+           frozenset({'i', 'u', 'ɪ', 'ʊ'}),
+           frozenset({'e', 'æ', 'ɑ', 'ə', 'ɛ'}),
+           frozenset({'e', 'o', 'u', 'æ', 'ɑ', 'ɔ', 'ə', 'ɛ', 'ʊ'}),
+           frozenset({'e', 'i', 'æ', 'ɑ', 'ə', 'ɛ', 'ɪ'}),
+           frozenset({'e', 'i', 'o', 'u', 'æ', 'ɑ', 'ɔ', 'ə', 'ɛ', 'ɪ', 'ʊ'})})</code></pre>
 </div>
 </div>
-<div class="cell" data-executioninfo="{&quot;elapsed&quot;:1816,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675099880695,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="62f854bc-6bab-4061-f274-77038c46c107" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb5" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">'cmudict-0.7b'</span>, encoding <span class="op">=</span> <span class="st">"ISO-8859-1"</span>) <span class="im">as</span> f:</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    cmudict <span class="op">=</span> [l.split() <span class="cf">for</span> l <span class="kw">in</span> f <span class="cf">if</span> l[:<span class="dv">3</span>] <span class="op">!=</span> <span class="st">";;;"</span>]</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    cmudict <span class="op">=</span> {w[<span class="dv">0</span>].lower(): w[<span class="dv">1</span>:] <span class="cf">for</span> w <span class="kw">in</span> cmudict}</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>cmudict[<span class="st">"abstraction"</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="4">
-<pre data-code-line-numbers=""><code>['AE0', 'B', 'S', 'T', 'R', 'AE1', 'K', 'SH', 'AH0', 'N']</code></pre>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>highness_backness_space <span class="op">=</span> FiniteMeasurableSpace(vowels, f_highness_backness)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>When the sample space is finite–as it is here–we’ll often just assume that <span class="math inline">\(\mathcal{F} = 2^\Omega\)</span>, which is the “finest” event space on <span class="math inline">\(\Omega\)</span> we can muster–i.e.&nbsp;it is a superset of all other possible sample spaces. This sort of event space, which is often referred to as the <em>discrete event space</em> on <span class="math inline">\(\Omega\)</span>, will tend to ignore potentially useful prior knowledge we have about the sample space–e.g.&nbsp;phonological features that vowels have–though it is possible to represent that knowledge elsewhere, as we’ll see.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># we won't try to validate this because it'd take forever</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>f_discrete <span class="op">=</span> <span class="bu">set</span>(<span class="bu">frozenset</span>(subset) <span class="cf">for</span> subset <span class="kw">in</span> powerset(vowels))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>This dictionary uses what’s known as the <a href="https://en.wikipedia.org/wiki/ARPABET">ARPABET</a> and represents stress using numeric indicators: 0 for no stress, 1 for primary stress, and 2 for secondary stress. The ARPABET maps to more recognizable IPA representations in the following way.</p>
-<div class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb7" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>arpabet_to_phoneme <span class="op">=</span> {<span class="st">'AA'</span>: <span class="st">'ɑ'</span>, </span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'AE'</span>: <span class="st">'æ'</span>, </span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'AH'</span>: <span class="st">'ə'</span>, </span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'AO'</span>: <span class="st">'ɔ'</span>, </span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'AW'</span>: <span class="st">'aʊ'</span>, </span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'AY'</span>: <span class="st">'aɪ'</span>, </span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'B'</span>: <span class="st">'b'</span>, </span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'CH'</span>: <span class="st">'tʃ'</span>, </span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'D'</span>: <span class="st">'d'</span>, </span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'DH'</span>: <span class="st">'ð'</span>, </span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'EH'</span>: <span class="st">'ɛ'</span>,</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'ER'</span>: <span class="st">'ɝ'</span>, </span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'EY'</span>: <span class="st">'eɪ'</span>, </span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'F'</span>: <span class="st">'f'</span>, </span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'G'</span>: <span class="st">'g'</span>, </span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'HH'</span>: <span class="st">'h'</span>, </span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'IH'</span>: <span class="st">'ɪ'</span>, </span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'IY'</span>: <span class="st">'i'</span>, </span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'JH'</span>: <span class="st">'dʒ'</span>, </span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'K'</span>: <span class="st">'k'</span>, </span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'L'</span>: <span class="st">'l'</span>, </span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'M'</span>: <span class="st">'m'</span>, </span>
-<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'N'</span>: <span class="st">'n'</span>,</span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'NG'</span>: <span class="st">'ŋ'</span>, </span>
-<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'OW'</span>: <span class="st">'oʊ'</span>, </span>
-<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'OY'</span>: <span class="st">'ɔɪ'</span>, </span>
-<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'P'</span>: <span class="st">'p'</span>, </span>
-<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'R'</span>: <span class="st">'ɹ'</span>, </span>
-<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'S'</span>: <span class="st">'s'</span>, </span>
-<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'SH'</span>: <span class="st">'ʃ'</span>, </span>
-<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'T'</span>: <span class="st">'t'</span>, </span>
-<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'TH'</span>: <span class="st">'θ'</span>, </span>
-<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'UH'</span>: <span class="st">'ʊ'</span>, </span>
-<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'UW'</span>: <span class="st">'u'</span>, </span>
-<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'V'</span>: <span class="st">'v'</span>,</span>
-<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'W'</span>: <span class="st">'w'</span>, </span>
-<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'Y'</span>: <span class="st">'j'</span>, </span>
-<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'Z'</span>: <span class="st">'z'</span>, </span>
-<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'ZH'</span>: <span class="st">'ʒ'</span>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>We’ll use this mapping to construct the IPA representation from the ARPABET representation.</p>
-<div class="cell" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb8" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> re</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>entries: <span class="bu">dict</span>[<span class="bu">str</span>, <span class="bu">list</span>[<span class="bu">str</span>]] <span class="op">=</span> {</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    w: [arpabet_to_phoneme[<span class="st">''</span>.join(re.findall(<span class="st">'[A-z]'</span>, phoneme))]</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> phoneme <span class="kw">in</span> transcription]</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> w, transcription <span class="kw">in</span> cmudict.items()</span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">len</span>({c <span class="cf">for</span> c <span class="kw">in</span> w})<span class="op">&gt;</span><span class="dv">1</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">len</span>(transcription)<span class="op">&gt;</span><span class="dv">1</span> </span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="kw">not</span> re.findall(<span class="st">'[^A-z]'</span>, w[<span class="dv">0</span>])</span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>For instance, the IPA representation for the word <em>abstraction</em> can be accessed in the following way.</p>
-<div class="cell" data-execution_count="7">
-<div class="sourceCode cell-code" id="cb9" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>entries[<span class="st">"abstraction"</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="7">
-<pre data-code-line-numbers=""><code>['æ', 'b', 's', 't', 'ɹ', 'æ', 'k', 'ʃ', 'ʌ', 'n']</code></pre>
-</div>
-</div>
-<div class="cell" data-execution_count="9">
-<details>
-<summary>Dump IPA representation to file</summary>
-<div class="sourceCode cell-code" id="cb11" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">"cmudict-ipa"</span>, <span class="st">"w"</span>) <span class="im">as</span> f:</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> w, ipa <span class="kw">in</span> entries.items():</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>        ipa <span class="op">=</span> <span class="st">" "</span>.join(ipa)</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>        f.write(<span class="ss">f"</span><span class="sc">{</span>w<span class="sc">}</span><span class="ss">,</span><span class="sc">{</span>ipa<span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
+<p>When the sample space is infinite, things get a bit trickier: the powerset is uncountable for even a countably infinite sample space–something that we need to consider in the context of working with strings and derivations. (Remember that <span class="math inline">\(2^{\Sigma^*}\)</span> is the set of all languages on <span class="math inline">\(\Sigma\)</span>; and the set of all languages, even when <span class="math inline">\(\Sigma\)</span> is finite, is uncountable.) This property can be a problem for reasons I’ll gesture at in a second. So in general, we won’t work with event spaces that are power sets of their corresponding sample space in in this context. We’ll instead work with what are called <a href="https://en.wikipedia.org/wiki/Borel_set">Borel <span class="math inline">\(\sigma\)</span>-algebras</a>. It’s not important to understand the intricacies of what a Borel <span class="math inline">\(\sigma\)</span>-algebra is; I’ll try to give you an intuition below.</p>
 
 
 
@@ -1101,13 +1003,13 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../grammars-as-languages/evaluating-regular-expressions.html" class="pagination-link">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Evaluating Regular Expressions</span>
+      <a href="../uncertainty-about-languages/what-is-a-probability.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">What is a probability?</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../grammars-as-languages/basic-matching.html" class="pagination-link">
-        <span class="nav-page-text">Basic Matching</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../uncertainty-about-languages/what-it-means-to-measure-a-possibility.html" class="pagination-link">
+        <span class="nav-page-text">What it means to measure a possibility</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
