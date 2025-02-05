@@ -755,7 +755,7 @@ Answer
 <div class="sourceCode cell-code" id="cb9" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># we won't try to validate this because it'd take forever</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>f_discrete <span class="op">=</span> <span class="bu">set</span>(<span class="bu">frozenset</span>(subset) <span class="cf">for</span> subset <span class="kw">in</span> powerset(vowels))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>One interesting thing to note is that the discrete event space is that, if our sample space is the set of all strings <span class="math inline">\(\Sigma^*\)</span>, then the discrete event space is the set of all languages on <span class="math inline">\(\Sigma\)</span>.</p>
+<p>One interesting thing to note is that the discrete event space is that, if our sample space is the set of all strings <span class="math inline">\(\Sigma^*\)</span>, then the discrete event space is the set of all languages on <span class="math inline">\(\Sigma\)</span>.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
 <div class="callout callout-style-default callout-caution callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -785,7 +785,6 @@ Answer
 </div>
 </div>
 </div>
-<p>When the sample space is infinite, things get a bit trickier: the powerset is uncountable for even a countably infinite sample space–something that we need to consider in the context of working with strings and derivations. (Remember that <span class="math inline">\(2^{\Sigma^*}\)</span> is the set of all languages on <span class="math inline">\(\Sigma\)</span>; and the set of all languages, even when <span class="math inline">\(\Sigma\)</span> is finite, is uncountable.) This property can be a problem for reasons I’ll gesture at in a second. So in general, we won’t work with event spaces that are power sets of their corresponding sample space in in this context. We’ll instead work with what are called <a href="https://en.wikipedia.org/wiki/Borel_set">Borel <span class="math inline">\(\sigma\)</span>-algebras</a>. It’s not important to understand the intricacies of what a Borel <span class="math inline">\(\sigma\)</span>-algebra is; I’ll try to give you an intuition below.</p>
 
 
 
@@ -794,6 +793,7 @@ Answer
 
 <ol>
 <li id="fn1"><p>Don’t ask me why, but <span class="math inline">\(\mathcal{F}\)</span> is standard notation for the event space. Why we don’t use <span class="math inline">\(\mathcal{E}\)</span> is beyond me. It might be some convention from measure theory I’m not aware of; or it might have to do with not confusing the event space with the expectation <span class="math inline">\(\mathbb{E}\)</span>, which we’ll review below.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>When the sample space is infinite–as it is if we define <span class="math inline">\(\Omega\)</span> to be the set of all strings <span class="math inline">\(\Sigma^*\)</span>–things get a bit trickier: the powerset is uncountable for even a countably infinite sample space–something that we need to consider in the context of working with strings and derivations. This property can be a problem for reasons I’ll gesture at in a second. So in general, we won’t work with event spaces that are power sets of their corresponding sample space in this context. We’ll instead work with what are called <a href="https://en.wikipedia.org/wiki/Borel_set">Borel <span class="math inline">\(\sigma\)</span>-algebras</a>. It’s not important to understand the intricacies of what a Borel <span class="math inline">\(\sigma\)</span>-algebra is; I’ll try to give you an intuition below.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
