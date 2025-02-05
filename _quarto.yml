@@ -30,9 +30,10 @@ project:
   - uncertainty-about-languages/what-is-a-probability.ipynb
   - uncertainty-about-languages/how-we-model-possibilities.ipynb
   - uncertainty-about-languages/what-it-means-to-measure-a-possibility.ipynb
-  - uncertainty-about-languages/some-useful-definitions.qmd
-  - uncertainty-about-languages/random-variables.qmd
-  - uncertainty-about-languages/probability-distributions.qmd
+  - uncertainty-about-languages/some-useful-definitions.ipynb
+  - uncertainty-about-languages/random-variables-and-probability-distributions/index.qmd
+  - uncertainty-about-languages/random-variables-and-probability-distributions/random-variables.qmd
+  - uncertainty-about-languages/random-variables-and-probability-distributions/probability-distributions.ipynb
   - uncertainty-about-languages/some-more-useful-definitions.qmd
   - uncertainty-about-languages/statistical-inference.qmd
   - languages-in-terms-of-strings/index.qmd
@@ -83,9 +84,12 @@ website:
         - uncertainty-about-languages/what-is-a-probability.ipynb
         - uncertainty-about-languages/how-we-model-possibilities.ipynb
         - uncertainty-about-languages/what-it-means-to-measure-a-possibility.ipynb
-        - uncertainty-about-languages/some-useful-definitions.qmd
-        - uncertainty-about-languages/random-variables.qmd
-        - uncertainty-about-languages/probability-distributions.qmd
+        - uncertainty-about-languages/some-useful-definitions.ipynb
+        - section: "Random Variables and Probability Distributions"
+          contents:
+          - uncertainty-about-languages/random-variables-and-probability-distributions/index.qmd
+          - uncertainty-about-languages/random-variables-and-probability-distributions/random-variables.qmd
+          - uncertainty-about-languages/random-variables-and-probability-distributions/probability-distributions.ipynb
         - uncertainty-about-languages/some-more-useful-definitions.qmd
         - uncertainty-about-languages/statistical-inference.qmd
       - section: "Languages in terms of Strings"

@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.321">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Introduction to Computational Linguistics - Probability distributions</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../uncertainty-about-languages/some-more-useful-definitions.html" rel="next">
+<link href="../../uncertainty-about-languages/random-variables-and-probability-distributions/random-variables.html" rel="prev">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/quarto-contrib/line-highlight-1.0.0/line-highlight.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-sidebar docked">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../uncertainty-about-languages/index.html">Uncertainty about Languages</a></li><li class="breadcrumb-item"><a href="../../uncertainty-about-languages/random-variables-and-probability-distributions/index.html">Random Variables and Probability Distributions</a></li><li class="breadcrumb-item"><a href="../../uncertainty-about-languages/random-variables-and-probability-distributions/probability-distributions.html">Probability distributions</a></li></ol></nav>
+      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+      </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../../">Introduction to Computational Linguistics</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">About</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../installation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Installation</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">
+ <span class="menu-text">Languages as formal objects</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../languages-as-formal-objects/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../languages-as-formal-objects/sets.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Sets</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../languages-as-formal-objects/multisets.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Multisets</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../languages-as-formal-objects/tuples.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Tuples</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../languages-as-formal-objects/cardinality.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Cardinality</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../languages-as-formal-objects/set-relations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Set relations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../languages-as-formal-objects/power-sets.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Power Sets</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../languages-as-formal-objects/products.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Products</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../languages-as-formal-objects/relations-and-functions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Relations and Functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../languages-as-formal-objects/sequences.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Sequences</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../languages-as-formal-objects/strings.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Strings</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../languages-as-formal-objects/languages.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Languages</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true">
+ <span class="menu-text">Grammars as languages</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../grammars-as-languages/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../grammars-as-languages/defining-regular-expressions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Defining Regular Expressions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../grammars-as-languages/evaluating-regular-expressions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Evaluating Regular Expressions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../grammars-as-languages/loading-a-lexicon.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Loading a Lexicon</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../grammars-as-languages/basic-matching.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Basic Matching</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../grammars-as-languages/implementing-the-regular-operations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Implementing the Regular Operations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../grammars-as-languages/wild-cards-and-character-ranges.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Wild cards and character ranges</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../grammars-as-languages/quantifiers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Quantifiers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../grammars-as-languages/groups-and-greediness.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Groups and Greediness</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true">
+ <span class="menu-text">Uncertainty about Languages</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../uncertainty-about-languages/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../uncertainty-about-languages/what-is-a-probability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">What is a probability?</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../uncertainty-about-languages/how-we-model-possibilities.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">How we model possibilities</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../uncertainty-about-languages/what-it-means-to-measure-a-possibility.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">What it means to measure a possibility</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../uncertainty-about-languages/some-useful-definitions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Some useful definitions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true">
+ <span class="menu-text">Random Variables and Probability Distributions</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth2 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../uncertainty-about-languages/random-variables-and-probability-distributions/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Classifying probability spaces</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../uncertainty-about-languages/random-variables-and-probability-distributions/random-variables.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Random variables</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../uncertainty-about-languages/random-variables-and-probability-distributions/probability-distributions.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Probability distributions</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../uncertainty-about-languages/some-more-useful-definitions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Some useful definitions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../uncertainty-about-languages/statistical-inference.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Statistical Inference</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">
+ <span class="menu-text">Languages in terms of Strings</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../languages-in-terms-of-strings/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true">
+ <span class="menu-text">Languages and their use</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../languages-and-their-use/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true">
+ <span class="menu-text">The nature of phonological patterns</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../phonological-patterns/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="true">
+ <span class="menu-text">The nature of morphological patterns</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../syntactic-patterns/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="true">
+ <span class="menu-text">Analysis as deduction</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../analysis-as-deduction/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="true">
+ <span class="menu-text">The nature of syntactic patterns</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../syntactic-patterns/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" aria-expanded="true">
+ <span class="menu-text">Assignments</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../assignments/assignments-1-and-2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Assignments 1 and 2</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#discrete-probability-distributions" id="toc-discrete-probability-distributions" class="nav-link active" data-scroll-target="#discrete-probability-distributions">Discrete probability distributions</a>
+  <ul class="collapse">
+  <li><a href="#finite-distributions" id="toc-finite-distributions" class="nav-link" data-scroll-target="#finite-distributions">Finite distributions</a></li>
+  <li><a href="#countably-infinite-distributions" id="toc-countably-infinite-distributions" class="nav-link" data-scroll-target="#countably-infinite-distributions">Countably infinite distributions</a></li>
+  </ul></li>
+  <li><a href="#continuous-probability-distributions" id="toc-continuous-probability-distributions" class="nav-link" data-scroll-target="#continuous-probability-distributions">Continuous probability distributions</a>
+  <ul class="collapse">
+  <li><a href="#beta-distribution" id="toc-beta-distribution" class="nav-link" data-scroll-target="#beta-distribution">Beta distribution</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Probability distributions</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<p>A probability distribution is a compact description of a probability space <span class="math inline">\(\langle \Omega, \mathcal{F}, \mathbb{P} \rangle\)</span> in conjunction with a random variable whose domain is <span class="math inline">\(\Omega\)</span> (relative to <span class="math inline">\(\mathcal{F}\)</span>).</p>
+<section id="discrete-probability-distributions" class="level1">
+<h1>Discrete probability distributions</h1>
+<p>In the case of a discrete random variable <span class="math inline">\(X\)</span> (e.g.&nbsp;our vowel phoneme and string-length examples), we can fully describe its probability distribution using a <a href="https://en.wikipedia.org/wiki/Probability_mass_function">probability mass function</a> (PMF) <span class="math inline">\(p_X: \text{cod}(X) \rightarrow \mathbb{R}_+\)</span>. This function is defined directly in terms of the random variable and the probability function <span class="math inline">\(\mathbb{P}\)</span>:</p>
+<p><span class="math display">\[p_X(x) \equiv \mathbb{P}(\{\omega \in \Omega \mid X(\omega) = x\})\]</span></p>
+<p>These definitions are related to a notation that you might be familiar with: <span class="math inline">\(\mathbb{P}(X = x) \equiv p_X(x)\)</span>. This notation is often extended to other relations <span class="math inline">\(\mathbb{P}(X \in E) = \mathbb{P}(\{\omega \in \Omega \mid \omega \in X^{-1}(E)\})\)</span> or <span class="math inline">\(\mathbb{P}(X \leq x) \equiv \mathbb{P}(\{\omega: X(\omega) \leq x\})\)</span>.</p>
+<p>The latter of these is often used in defining the <a href="https://en.wikipedia.org/wiki/Cumulative_distribution_function">cumulative distribution function</a> (CDF) <span class="math inline">\(F_X: \text{cod}(X) \rightarrow \mathbb{R}_+\)</span>:</p>
+<p><span class="math display">\[F_X(x) = \mathbb{P}(X \leq x) = \sum_{y \in X(\Omega):y&lt;x} p_X(y)\]</span></p>
+<p>The PMF (and by extension the CDF) is <em>parameterized</em> in terms of the information necessary to define their outputs for all possible inputs <span class="math inline">\(x \in X(\Omega)\)</span>. This parameterization allows us to talk about <em>families of distributions</em>, which all share a functional form (modulo the values of the parameters). We’ll see a few examples of this below.</p>
+<p>In <code>scipy</code>, discrete distributions are implemented using <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.rv_discrete.html"><code>scipy.rv_discrete</code></a>, either by direct instantiation or subclassing.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> rv_discrete</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="finite-distributions" class="level2">
+<h2 class="anchored" data-anchor-id="finite-distributions">Finite distributions</h2>
+<p>When there are a finite number of values that the random variables can take, as in the example of <span class="math inline">\(V\)</span> above, the probability of each possibility can simply be listed. One such distribution—or really family of distributions—that we will make extensive use of—indeed, the distribution that our vowel random variable <span class="math inline">\(V\)</span> from above has—is the <a href="https://en.wikipedia.org/wiki/Categorical_distribution">categorical distribution</a>. (It is common to talk about <em>the</em> categorical distribution, when we really mean <em>the family of</em> categorical distributions.) This distribution is parameterized by a list of probabilities <span class="math inline">\(\boldsymbol\theta\)</span>, where <span class="math inline">\(\theta_i\)</span> gives <span class="math inline">\(p_V(i) = \mathbb{P}(V = i) = \mathbb{P}(\{\omega \in \Omega \mid V(\omega) = i\}) = \theta_i\)</span> and <span class="math inline">\(\sum_{i \in V(\Omega)} \theta_i\)</span>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># this theta is totally made up</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>idx <span class="op">=</span> np.arange(<span class="dv">11</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>theta <span class="op">=</span> (<span class="fl">0.05</span>, <span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="fl">0.05</span>, <span class="fl">0.05</span>, <span class="fl">0.25</span>, <span class="fl">0.15</span>, <span class="fl">0.1</span>, <span class="fl">0.075</span>, <span class="fl">0.025</span>, <span class="fl">0.05</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>categorical <span class="op">=</span> rv_discrete(name<span class="op">=</span><span class="st">'categorical'</span>, values<span class="op">=</span>(idx, theta))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The PMF is implemented as an instance method <code>rv_discrete.pmf</code> on this distribution.</p>
+<div class="cell" data-outputid="1c90f4b1-fa7c-41e4-f618-f2e30d87d833">
+<div class="sourceCode cell-code" id="cb3" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>ax.plot(<span class="bu">list</span>(vowels), categorical.pmf(idx), <span class="st">'ro'</span>, ms<span class="op">=</span><span class="dv">12</span>, mec<span class="op">=</span><span class="st">'r'</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>ax.vlines(<span class="bu">list</span>(vowels), <span class="dv">0</span>, categorical.pmf(idx), colors<span class="op">=</span><span class="st">'r'</span>, lw<span class="op">=</span><span class="dv">4</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-4-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>The <a href="https://en.wikipedia.org/wiki/Bernoulli_distribution">Bernoulli distribution</a>, which we will also make extensive use of, is a special case of the categorical distribution where <span class="math inline">\(|X(\Omega)| = 2\)</span>. By convention, <span class="math inline">\(X(\Omega) = \{0, 1\}\)</span> In this case, we need to specify the probability <span class="math inline">\(\pi\)</span> for only one value of <span class="math inline">\(X\)</span>, since the probability of the other must be <span class="math inline">\(1- \pi\)</span>. Indeed, more generally, we need to specify only <span class="math inline">\(|X(\Omega)| - 1\)</span> values for a random variable <span class="math inline">\(X\)</span> that is distributed categorical.</p>
+<div class="cell" data-outputid="5ea994f6-e792-43e1-c780-42f1c516df68">
+<div class="sourceCode cell-code" id="cb4" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> bernoulli</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>bern <span class="op">=</span> bernoulli(<span class="fl">0.25</span>)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co"># annoyingly, `bernoulli.pmf` seems to be implemented</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co"># to treat `p` as as the probability of 0</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>ax.plot([<span class="dv">1</span>, <span class="dv">0</span>], categorical.pmf([<span class="dv">0</span>, <span class="dv">1</span>]), <span class="st">'ro'</span>, ms<span class="op">=</span><span class="dv">12</span>, mec<span class="op">=</span><span class="st">'r'</span>)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>ax.vlines([<span class="dv">1</span>, <span class="dv">0</span>], <span class="dv">0</span>, categorical.pmf([<span class="dv">0</span>, <span class="dv">1</span>]), colors<span class="op">=</span><span class="st">'r'</span>, lw<span class="op">=</span><span class="dv">4</span>)</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-5-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>I’ll follow the convention of denoting the PMF of a particular kind of distribution using (usually shortened versions of) the distribution’s name, with the parameters following a semicolon. (The semicolon notation wil become important as we move through Module 1.)</p>
+<p><span class="math display">\[\text{Cat}(x; \boldsymbol\theta) = p_X(x) = \mathbb{P}(X = x) = \mathbb{P}(\{\omega \in \Omega \mid X(\omega) = x\}) = \theta_x\]</span></p>
+<p>To express the above equivalences, I’ll often write:</p>
+<p><span class="math display">\[X \sim \text{Cat}(\boldsymbol{\theta})\]</span></p>
+<p>This statement is read “<span class="math inline">\(X\)</span> is distributed categorical with parameters <span class="math inline">\(\boldsymbol{\theta}\)</span>.”</p>
+<p>So then the Bernoulli distribution would just be:</p>
+<p><span class="math display">\[\text{Bern}(x; \pi) = \begin{cases}\pi &amp; \text{if } x = 1\\1 - \pi &amp; \text{if } x = 0\end{cases}\]</span></p>
+<p>And if a random variable <span class="math inline">\(X\)</span> is distributed Bernoulli with parameter <span class="math inline">\(\pi\)</span>, we would write:</p>
+<p><span class="math display">\[X \sim \text{Bern}(\pi)\]</span></p>
+<p>It’s sometimes useful to write the PMF for the categorical and Bernoulli distributions as:</p>
+<p><span class="math display">\[\text{Cat}(x; \boldsymbol\theta) = \prod_{i \in V(\Omega)} \theta_i^{1_{\{x\}}[i]}\]</span></p>
+<p><span class="math display">\[\text{Bern}(x; \pi) = \pi^{x}(1-\pi)^{1-x}\]</span></p>
+<p>where</p>
+<p><span class="math display">\[1_A[x] = \begin{cases}1 &amp; \text{if } x \in A\\ 0 &amp; \text{otherwise}\\ \end{cases}\]</span></p>
+<p>In an abuse of notation, I will sometimes write:</p>
+<p><span class="math display">\[\text{Cat}(x; \boldsymbol\theta) = \prod_{i \in V(\Omega)} \theta_i^{1_{x}[i]}\]</span></p>
+<p>Categorical and Bernoulli distributions won’t be the only finite distributions we work with, but they will be the most common.</p>
+</section>
+<section id="countably-infinite-distributions" class="level2">
+<h2 class="anchored" data-anchor-id="countably-infinite-distributions">Countably infinite distributions</h2>
+<p>When there are a countably infinite number of values that a random variable can take, as in the example of string length <span class="math inline">\(L\)</span> above, the probability of each possibility cannot simply be listed: we need some way of computing it for any value.</p>
+<p>However we compute these values, they must sum to one as required by the assumption of unit measure: <span class="math inline">\(\mathbb{P}(\Omega) = 1\)</span>. Since <span class="math inline">\(\mathbb{P}(\Omega) = \sum_{x \in X(\Omega)} p_X(x)\)</span>, another way of stating this requirement is to say that the series <span class="math inline">\(\sum_{x \in X(\Omega)} p_X(x)\)</span> must converge to 1.</p>
+<p>One example of such a series is a geometric series, such as <span class="math inline">\(\sum_{k=1}^\infty \frac{1}{2^k} = \frac{1}{2} + \frac{1}{4} + \frac{1}{8} + \ldots = 1\)</span>. This series gives us our first example of a probability distribution with <em>infinite support</em>–i.e.&nbsp;one that assigns a non-zero probability to an infinite (but countable) number of values of a random variable. So for instance, if we are considering our random variable <span class="math inline">\(L\)</span> mapping strings to their lengths, <span class="math inline">\(p_X(k) = \frac{1}{2^k}\)</span> is a possible PMF for <span class="math inline">\(L\)</span>. (This assumes that strings cannot have zero length, meaning that <span class="math inline">\(\Omega = \Sigma^+\)</span> rather than <span class="math inline">\(\Sigma^*\)</span>; if we want to allow zero-length strings <span class="math inline">\(\epsilon\)</span>, we would need <span class="math inline">\(p_X(k) = \frac{1}{2^{k+1}}\)</span>.)</p>
+<div class="cell" data-outputid="66ed0e1f-c34e-4fe7-b0b9-639b53625081">
+<div class="sourceCode cell-code" id="cb5" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> parameterless_geometric_gen(rv_discrete):</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"A special case of the geometric distribution without parameters"</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _pmf(<span class="va">self</span>, k):</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="fl">2.0</span> <span class="op">**</span> <span class="op">-</span>(k<span class="op">+</span><span class="dv">1</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>parameterless_geometric <span class="op">=</span> parameterless_geometric_gen(name<span class="op">=</span><span class="st">"parameterless_geometric"</span>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> np.arange(<span class="dv">10</span>)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>ax.plot(k, parameterless_geometric.pmf(k), <span class="st">'ro'</span>, ms<span class="op">=</span><span class="dv">12</span>, mec<span class="op">=</span><span class="st">'r'</span>)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>ax.vlines(k, <span class="dv">0</span>, parameterless_geometric.pmf(k), colors<span class="op">=</span><span class="st">'r'</span>, lw<span class="op">=</span><span class="dv">4</span>)</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-6-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>As it stands, this distribution has no parameters, meaning that we have no control over how quickly the probabilities drop off. The geometric distribution provides us this control using a parameter to <span class="math inline">\(\pi \in (0, 1]\)</span>:</p>
+<p><span class="math display">\[\text{Geom}(x; \pi) = (1-\pi)^k\pi\]</span></p>
+<p>When <span class="math inline">\(\pi = \frac{1}{2}\)</span>, we get exactly the distribution above.</p>
+<div class="cell" data-outputid="0a298213-8dd3-4a15-9216-9867a0b4859a">
+<div class="sourceCode cell-code" id="cb6" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> geom</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="fl">0.5</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>ax.plot(k, geom(p).pmf(k<span class="op">+</span><span class="dv">1</span>), <span class="st">'ro'</span>, ms<span class="op">=</span><span class="dv">12</span>, mec<span class="op">=</span><span class="st">'r'</span>)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>ax.vlines(k, <span class="dv">0</span>, geom(p).pmf(k<span class="op">+</span><span class="dv">1</span>), colors<span class="op">=</span><span class="st">'r'</span>, lw<span class="op">=</span><span class="dv">4</span>)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-7-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>As <span class="math inline">\(\pi \rightarrow 0\)</span>, the distribution flattens out (or becomes <em>denser</em>).</p>
+<div class="cell" data-outputid="b2e5d3e3-4633-4737-c864-f0cc1dfd94b7">
+<div class="sourceCode cell-code" id="cb7" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="fl">0.1</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>ax.plot(k, geom(p).pmf(k<span class="op">+</span><span class="dv">1</span>), <span class="st">'ro'</span>, ms<span class="op">=</span><span class="dv">12</span>, mec<span class="op">=</span><span class="st">'r'</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>ax.vlines(k, <span class="dv">0</span>, geom(p).pmf(k<span class="op">+</span><span class="dv">1</span>), colors<span class="op">=</span><span class="st">'r'</span>, lw<span class="op">=</span><span class="dv">4</span>)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-8-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>And as <span class="math inline">\(\pi \rightarrow 1\)</span>, it becomes sharper (or <em>sparser</em>).</p>
+<div class="cell" data-outputid="f3f09786-e28a-4f61-b528-1e6fdb0437a8">
+<div class="sourceCode cell-code" id="cb8" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="fl">0.9</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>ax.plot(k, geom(p).pmf(k<span class="op">+</span><span class="dv">1</span>), <span class="st">'ro'</span>, ms<span class="op">=</span><span class="dv">12</span>, mec<span class="op">=</span><span class="st">'r'</span>)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>ax.vlines(k, <span class="dv">0</span>, geom(p).pmf(k<span class="op">+</span><span class="dv">1</span>), colors<span class="op">=</span><span class="st">'r'</span>, lw<span class="op">=</span><span class="dv">4</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-9-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>At this point, it’s useful to pause for a moment to think about what exactly a parameter like <span class="math inline">\(\pi\)</span> is. I said above that random variables and probability distributions together provide a way of classifying probability spaces: in saying that <span class="math inline">\(p_X(k) = (1-\pi)^k\pi\)</span> we are <em>describing</em> <span class="math inline">\(\mathbb{P}: \mathcal{F} \rightarrow \mathbb{R}_+\)</span> by using <span class="math inline">\(X\)</span> to abstract across whatever the underlying measurable space <span class="math inline">\(\langle \Omega, \mathcal{F} \rangle\)</span> is. The distribution gives you the form of that description; the parameter <span class="math inline">\(\pi\)</span> gives the content of the description. Because the use of <span class="math inline">\(X\)</span> is always implied, unless it really matters, I’m going to start dropping <span class="math inline">\(X\)</span> from <span class="math inline">\(p_X\)</span> unless I’m emphasizing the random variable in some way.</p>
+<p>The <span class="math inline">\(\pi\)</span> parameter of a geometric distribution allows us to describe distributions that have a very particular shape–namely, ones where <span class="math inline">\(\forall k \in \mathbb{N}: p(k) &gt; p(k + 1)\)</span>. But this isn’t always a good way of describing a particular distribution. For instance, for our string-length variable <span class="math inline">\(L\)</span>, it’s probably a pretty bad description regardless of what particular distribution on string lengths (type or token) we’re describing because 1 grapheme/phoneme words just aren’t more frequent than two grapheme/phoneme words. This point can be seen if we look at the distribution of word lengths at the type level in the <a href="http://www.speech.cs.cmu.edu/cgi-bin/cmudict">CMU Pronouncing Dictionary</a>, which contains phonemic transcriptions of English words and which we’ll use extensively in Module 2.</p>
+<div class="cell" data-outputid="c3a41fd7-2c21-4684-bbf4-84964b8c90a5">
+<div class="sourceCode cell-code" id="cb9" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> urllib.request <span class="im">import</span> urlopen</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>cmudict_url <span class="op">=</span> <span class="st">"http://svn.code.sf.net/p/cmusphinx/code/trunk/cmudict/cmudict-0.7b"</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> urlopen(cmudict_url) <span class="im">as</span> cmudict:</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  words <span class="op">=</span> [</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>      line.split()[<span class="dv">1</span>:] <span class="cf">for</span> line <span class="kw">in</span> cmudict <span class="cf">if</span> line[<span class="dv">0</span>] <span class="op">!=</span> <span class="dv">59</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  ]</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.hist([<span class="bu">len</span>(w) <span class="cf">for</span> w <span class="kw">in</span> words], bins<span class="op">=</span><span class="dv">32</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-10-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>One such distribution that give us more flexibility in this respect is the <a href="https://en.wikipedia.org/wiki/Negative_binomial_distribution">negative binomial distribution</a>, which is a very useful for <a href="https://doi.org/10.1017/S1351324900000139">modeling token frequency in text</a>. This distribution effectively generalizes the geometric by allowing us to control the exponent on <span class="math inline">\(\pi\)</span> with a new parameter <span class="math inline">\(r\)</span>.</p>
+<p><span class="math display">\[\text{NegBin}(k; \pi, r) = {k+r-1 \choose r-1}(1-\pi)^{k}\pi^{r}\]</span></p>
+<p>This added flexibility in turn requires us to add an additional term <span class="math inline">\({k+r-1 \choose r-1} = \frac{(k+r-1)!}{(r-1)!\,(k)!}\)</span> that ensures that the series <span class="math inline">\(\sum_{k=0}^\infty \text{NegBin}(k; \pi, r)\)</span> converges to <span class="math inline">\(1\)</span>. The pieces of this term that do not include the value we’re computing the probability of–i.e.&nbsp;<span class="math inline">\(\frac{1}{(r-1)!}\)</span>–are often called the <em>normalizing constant</em>. We will make extensive use of this concept as the course moves forward.</p>
+<p>When <span class="math inline">\(r = 1\)</span>, we of course just get the geometric distribution. As such, if we keep <span class="math inline">\(r = 1\)</span>, manipulating <span class="math inline">\(\pi\)</span> will have the same effect we saw above.</p>
+<div class="cell" data-outputid="1bacf3e3-7fea-44e2-a82a-4ef48acc5247">
+<div class="sourceCode cell-code" id="cb10" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> nbinom</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="fl">0.5</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>r <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>ax.plot(k, nbinom(r, p).pmf(k<span class="op">+</span><span class="dv">1</span>), <span class="st">'ro'</span>, ms<span class="op">=</span><span class="dv">12</span>, mec<span class="op">=</span><span class="st">'r'</span>)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>ax.vlines(k, <span class="dv">0</span>, nbinom(r, p).pmf(k<span class="op">+</span><span class="dv">1</span>), colors<span class="op">=</span><span class="st">'r'</span>, lw<span class="op">=</span><span class="dv">4</span>)</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-11-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>As <span class="math inline">\(r\)</span> grows, though, we get very different behavior: <span class="math inline">\(p(k)\)</span> is no longer always greater than <span class="math inline">\(p(k + 1)\)</span>. Another way of saying this is that we can use <span class="math inline">\(r\)</span> to shift the probability mass rightward.</p>
+<div class="cell" data-outputid="74db893f-451d-417d-adf3-0d2130aec407">
+<div class="sourceCode cell-code" id="cb11" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="fl">0.5</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>r <span class="op">=</span> <span class="dv">5</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>ax.plot(k, nbinom(r, p).pmf(k<span class="op">+</span><span class="dv">1</span>), <span class="st">'ro'</span>, ms<span class="op">=</span><span class="dv">12</span>, mec<span class="op">=</span><span class="st">'r'</span>)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>ax.vlines(k, <span class="dv">0</span>, nbinom(r, p).pmf(k<span class="op">+</span><span class="dv">1</span>), colors<span class="op">=</span><span class="st">'r'</span>, lw<span class="op">=</span><span class="dv">4</span>)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-12-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>The mass-shifting effect is modulated by <span class="math inline">\(\pi\)</span>: it accelerates with small <span class="math inline">\(\pi\)</span>…</p>
+<div class="cell" data-outputid="61b05284-928c-46c0-bc8d-ff05d6c6d04d">
+<div class="sourceCode cell-code" id="cb12" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="fl">0.1</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>r <span class="op">=</span> <span class="dv">5</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>ax.plot(k, nbinom(r, p).pmf(k<span class="op">+</span><span class="dv">1</span>), <span class="st">'ro'</span>, ms<span class="op">=</span><span class="dv">12</span>, mec<span class="op">=</span><span class="st">'r'</span>)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>ax.vlines(k, <span class="dv">0</span>, nbinom(r, p).pmf(k<span class="op">+</span><span class="dv">1</span>), colors<span class="op">=</span><span class="st">'r'</span>, lw<span class="op">=</span><span class="dv">4</span>)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-13-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>…but decelerates with large <span class="math inline">\(\pi\)</span>.</p>
+<div class="cell" data-outputid="9fe2e6b8-54d4-4182-a589-949faeaa5277">
+<div class="sourceCode cell-code" id="cb13" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="fl">0.9</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>r <span class="op">=</span> <span class="dv">5</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>ax.plot(k, nbinom(r, p).pmf(k<span class="op">+</span><span class="dv">1</span>), <span class="st">'ro'</span>, ms<span class="op">=</span><span class="dv">12</span>, mec<span class="op">=</span><span class="st">'r'</span>)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>ax.vlines(k, <span class="dv">0</span>, nbinom(r, p).pmf(k<span class="op">+</span><span class="dv">1</span>), colors<span class="op">=</span><span class="st">'r'</span>, lw<span class="op">=</span><span class="dv">4</span>)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-14-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<div class="cell" data-outputid="c9b4467e-31e7-4be4-a043-120566da58ae">
+<div class="sourceCode cell-code" id="cb14" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="fl">0.9</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>r <span class="op">=</span> <span class="dv">40</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>ax.plot(k, nbinom(r, p).pmf(k<span class="op">+</span><span class="dv">1</span>), <span class="st">'ro'</span>, ms<span class="op">=</span><span class="dv">12</span>, mec<span class="op">=</span><span class="st">'r'</span>)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>ax.vlines(k, <span class="dv">0</span>, nbinom(r, p).pmf(k<span class="op">+</span><span class="dv">1</span>), colors<span class="op">=</span><span class="st">'r'</span>, lw<span class="op">=</span><span class="dv">4</span>)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-15-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>We won’t talk about how to fit a distribution to some data until later, when we talk about parameter estimation; but the negative binomial distribution can provide a reasonably good description of the <a href="https://en.wikipedia.org/wiki/Empirical_distribution_function">empirical distribution</a> of word lengths. One way to visualize this is to compare the empirical CDF with the CDF of the best fitting negative binomial.</p>
+<div class="cell" data-outputid="3d4d76d0-f213-4d4c-f0f8-2abb9cb8e39e">
+<div class="sourceCode cell-code" id="cb15" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statsmodels.distributions.empirical_distribution <span class="im">import</span> ECDF</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statsmodels.discrete.discrete_model <span class="im">import</span> NegativeBinomial</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>ecdf <span class="op">=</span> ECDF([<span class="bu">len</span>(w) <span class="cf">for</span> w <span class="kw">in</span> words])</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>negbin_fit <span class="op">=</span> NegativeBinomial([<span class="bu">len</span>(w) <span class="cf">for</span> w <span class="kw">in</span> words], np.ones(<span class="bu">len</span>(words))).fit()</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="dv">1</span><span class="op">/</span>np.exp(<span class="dv">1</span><span class="op">+</span>negbin_fit.params[<span class="dv">0</span>]<span class="op">*</span>negbin_fit.params[<span class="dv">1</span>])</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>r <span class="op">=</span> np.exp(negbin_fit.params[<span class="dv">0</span>])<span class="op">*</span>p<span class="op">/</span>(<span class="dv">1</span><span class="op">-</span>p)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"p = </span><span class="sc">{</span>np<span class="sc">.</span><span class="bu">round</span>(p, <span class="dv">2</span>)<span class="sc">}</span><span class="ss">, r = </span><span class="sc">{</span>np<span class="sc">.</span><span class="bu">round</span>(r, <span class="dv">2</span>)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> np.arange(<span class="dv">30</span>)</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>plt.plot(np.mgrid[<span class="dv">1</span>:<span class="dv">30</span>:<span class="fl">0.1</span>], ecdf(np.mgrid[<span class="dv">1</span>:<span class="dv">30</span>:<span class="fl">0.1</span>]))</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>plt.plot(np.mgrid[<span class="dv">1</span>:<span class="dv">30</span>:<span class="fl">0.1</span>], nbinom(r, p).cdf(np.mgrid[<span class="dv">1</span>:<span class="dv">30</span>:<span class="fl">0.1</span>]))</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre data-code-line-numbers=""><code>Optimization terminated successfully.
+         Current function value: 2.180477
+         Iterations: 22
+         Function evaluations: 24
+         Gradient evaluations: 24
+p = 0.37, r = 3.71</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre data-code-line-numbers=""><code>/usr/local/lib/python3.7/dist-packages/statsmodels/base/model.py:548: HessianInversionWarning: Inverting hessian failed, no bse or cov_params available
+  'available', HessianInversionWarning)</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-16-output-3.png" class="img-fluid"></p>
+</div>
+</div>
+<p>A <a href="https://en.wikipedia.org/wiki/Negative_binomial_distribution#Poisson_distribution">limiting case</a> of the negative binomial distribution that you may be familiar with is the <a href="https://en.wikipedia.org/wiki/Poisson_distribution">Poisson distribution</a>.</p>
+<p><span class="math display">\[\text{Pois}(k; \lambda) = \frac{\lambda^k\exp(-\lambda)}{k!}\]</span></p>
+<p>The Poisson distribution arises as <span class="math inline">\(\text{Pois}(k; \lambda) = \lim_{r \rightarrow \infty} \text{NegBin} \left(k; r, \frac{\lambda}{r + \lambda}\right)\)</span>.</p>
+</section>
+</section>
+<section id="continuous-probability-distributions" class="level1">
+<h1>Continuous probability distributions</h1>
+<p>Once we move to working with random variables that have an uncountable number of values–as in the case of our formant value example above, where <span class="math inline">\(X: \mathbb{R}_+^2 \rightarrow \mathbb{R}^2\)</span> is the identity function–we can no longer assign a non-zero probability to every value that variable takes. The intuition for why this is is that there are just too many numbers (e.g.&nbsp;too many posible formant values); and if we assigned non-zero probability to more than countably many of them, we’d end up with a sum across those numbers that doesn’t satisfy the the assumption of <span class="math inline">\(\sigma\)</span>-additivity. (You’ll need to take my word on this point if you haven’t proved it before.)</p>
+<p>This fact is why we require the event space for an uncountable sample space to be a Borel 𝜎-algebra. Remember that a Borel 𝜎-algebra for the reals will contain all the intervals we might want but not single real numbers. This assumption about the event space in turn means that we don’t need to worry about assigning non-zero probability to uncountably many values: indeed, we will <em>always</em> assign exactly zero probability to any particular real. (Well. Most of the time.) To restate this: every possibility in a real-valued sample space has probability zero: <span class="math inline">\(\forall x \in \Omega: \mathbb{P}(x) = 0\)</span>. This in turn means that a PMF isn’t going to be useful here.</p>
+<p>What we work with instead is a <a href="https://en.wikipedia.org/wiki/Probability_density_function">probability density function</a> (PDF) <span class="math inline">\(f_X: \Omega \rightarrow \mathbb{R}_+\)</span>. Note that the PMF, which I will usually denote <span class="math inline">\(p\)</span> or <span class="math inline">\(p_X\)</span>, and the PDF, which I will usually denote <span class="math inline">\(f\)</span> or <span class="math inline">\(f_X\)</span>, have the same function signature. It is important to note that they provide very different information: where the PMF tells you the probability of a particular possibility, the PDF does not, though it can be used to compute a probability: specifically, the probability of <span class="math inline">\(X\)</span> taking on a value in some set. So it can be used to tell you <span class="math inline">\(\mathbb{P}(X \in A)\)</span>:</p>
+<p><span class="math display">\[\mathbb{P}(X \in A) = \int_A f_X(x) \, \mathrm{d}x\]</span></p>
+<p>When the codomain of <span class="math inline">\(X\)</span> is a single value (rather than a vector), we call the distribution univariate; otherwise, we call it multivariate. We can express univariate continuous distributions as:</p>
+<p><span class="math display">\[\mathbb{P}(a &lt; X &lt; b) = \int_a^b f_X(x) \, \mathrm{d}x\]</span></p>
+<p>This expressions is a special case of the first:</p>
+<p><span class="math display">\[\mathbb{P}(a &lt; X &lt; b) = \mathbb{P}(X \in (a, b)) = \int_{(a, b)} f_X(x) \, \mathrm{d}x\]</span></p>
+<p>We can in turn express the cumulative distribution function <span class="math inline">\(F_X\)</span> in a similar way, but without a lower bound:</p>
+<p><span class="math display">\[F_X(b) = \mathbb{P}(X &lt; b) = \int_{-\infty}^b f_X(x) \, \mathrm{d}x\]</span></p>
+<p>It can sometimes be useful to express <span class="math inline">\(\mathbb{P}(a &lt; X &lt; b)\)</span> and <span class="math inline">\(\mathbb{P}(X &gt; x)\)</span> in terms of <span class="math inline">\(F_X\)</span>:</p>
+<p><span class="math display">\[\mathbb{P}(a &lt; X &lt; b) = F_X(b) - F_X(a)\]</span> <span class="math display">\[\mathbb{P}(X &gt; x) = 1 - F_X(x)\]</span></p>
+<section id="univariate-continuous-uniform-distribution" class="level4">
+<h4 class="anchored" data-anchor-id="univariate-continuous-uniform-distribution">Univariate continuous uniform distribution</h4>
+<p>The simplest example of a continuous distribution is the univariate uniform distribution, which is parameterized by an infimum <span class="math inline">\(a\)</span> and a supremum <span class="math inline">\(b\)</span> and has a PDF:</p>
+<p><span class="math display">\[\mathcal{U}(x; a, b) = \begin{cases}\frac{1}{b - a} &amp; \text{if } x \in [a, b] \\ 0 &amp; \text{otherwise}\end{cases}\]</span></p>
+<div class="cell" data-outputid="e8bfd4c7-fc9a-4f05-e65f-9addb2274ac9">
+<div class="sourceCode cell-code" id="cb18" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> uniform</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>u <span class="op">=</span> uniform(<span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot(</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    np.mgrid[<span class="op">-</span><span class="dv">1</span>:<span class="dv">2</span>:<span class="fl">0.01</span>],</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    u.pdf(np.mgrid[<span class="op">-</span><span class="dv">1</span>:<span class="dv">2</span>:<span class="fl">0.01</span>])</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-17-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>You’ll note that I’m using <span class="math inline">\(\mathcal{U}\)</span>–rather than something like <span class="math inline">\(\text{Unif}\)</span>–for the name of the PDF. Certain distributions, including the continuous uniform and the normal or gaussian, canonically have such names.</p>
+<p>You’ll also note that <span class="math inline">\(\mathcal{U}(x; a, b)\)</span> is the PDF, not the PMF. This notational convention is common: for discrete distributions like the negative binomial <span class="math inline">\(\text{NegBin}\)</span> will be used to denote the PMF (or to express that a random variable has a particular distribution), while for continuous distributions like the continuous uniform, <span class="math inline">\(\mathcal{U}\)</span> will be used to denote the PDF (or to express that a random variable has a particular distribution).</p>
+<p>Remember that <strong>the PDF does not give you the probability of a value</strong>: the probability of a (continuous) uniformly distributed value <span class="math inline">\(x\)</span> is not <span class="math inline">\(\frac{1}{b - a}\)</span>, it is <span class="math inline">\(0\)</span>; <span class="math inline">\(\frac{1}{b - a}\)</span> is the value of the density at <span class="math inline">\(x\)</span>. This means that:</p>
+<p><span class="math display">\[\mathbb{P}(x &lt; X &lt; y) = \int_x^y f_X(z)\,\mathrm{d}z = \frac{\min(y, b) - \max(x, a)}{b - a}\]</span></p>
+<p>where <span class="math inline">\(a = \inf \{x \in X(\Omega) \mid f_X(x) &gt; 0\}\)</span> and <span class="math inline">\(b = \sup \{x \in X(\Omega) \mid f_X(x) &gt; 0\}\)</span>. So then, if <span class="math inline">\(a=0\)</span> and <span class="math inline">\(b=1\)</span>, <span class="math inline">\(\mathbb{P}(0.25 &lt; X &lt; 0.75) = 0.5\)</span>. This can be visualized by filling in the area we’re integrating.</p>
+<div class="cell" data-outputid="b5df24d1-23b2-4634-b696-0846ad37753d">
+<div class="sourceCode cell-code" id="cb19" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot(np.mgrid[<span class="op">-</span><span class="dv">1</span>:<span class="dv">2</span>:<span class="fl">0.01</span>], u.pdf(np.mgrid[<span class="op">-</span><span class="dv">1</span>:<span class="dv">2</span>:<span class="fl">0.01</span>]))</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.fill_between(np.mgrid[<span class="fl">0.25</span>:<span class="fl">0.75</span>:<span class="fl">0.01</span>], u.pdf(np.mgrid[<span class="fl">0.25</span>:<span class="fl">0.75</span>:<span class="fl">0.01</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-18-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>Rather than define parameters relative to <span class="math inline">\(X\)</span> every time we want to specify a probability, I’ll often write:</p>
+<p><span class="math display">\[\mathbb{P}(x &lt; X &lt; y; a, b) = \int_x^y f_X(z)\,\mathrm{d}z = \frac{\min(y, b) - \max(x, a)}{b - a}\]</span></p>
+<p>Or:</p>
+<p><span class="math display">\[\mathbb{P}(x &lt; X &lt; y \mid a, b) = \int_x^y f_X(z)\,\mathrm{d}z = \frac{\min(y, b) - \max(x, a)}{b - a}\]</span></p>
+<p>Whether I use the semicolon or pipe will depend on context, as we’ll discuss below: it basically comes down to whether I’m assuming that <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span> are the values of some underlying random variables–in which case, <span class="math inline">\(\mathbb{P}(x &lt; X &lt; y \mid a, b)\)</span> is really shorthand for something like <span class="math inline">\(\mathbb{P}(x &lt; X &lt; y \mid A=a, B=b)\)</span>–or whether they’re fixed values given by some oracle.</p>
+<p>The CDF <span class="math inline">\(F_X\)</span> for a uniform random variable <span class="math inline">\(X\)</span> is then:</p>
+<p><span class="math display">\[F_X(x) = \mathbb{P}(X &lt; x; a, b) = \int_{-\infty}^x f_X(z)\,\mathrm{d}z = \frac{\min(\max(x, a), b) - a}{b - a}\]</span></p>
+<div class="cell" data-outputid="9a63efef-1fe6-464f-d77d-0563b345ac09">
+<div class="sourceCode cell-code" id="cb20" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot(</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    np.mgrid[<span class="op">-</span><span class="dv">1</span>:<span class="dv">2</span>:<span class="fl">0.01</span>],</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    uniform(<span class="dv">0</span>, <span class="dv">1</span>).cdf(np.mgrid[<span class="op">-</span><span class="dv">1</span>:<span class="dv">2</span>:<span class="fl">0.01</span>])</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-19-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+</section>
+<section id="beta-distribution" class="level2">
+<h2 class="anchored" data-anchor-id="beta-distribution">Beta distribution</h2>
+<p>Like the geometric distribution, the continuous uniform distribution doesn’t give us all the control we might want over the shape of the distribution. We can gain that additional control using a Beta distribution.</p>
+<p><span class="math display">\[\text{Beta}(x; \alpha, \beta) = \begin{cases}\frac{x^{\alpha-1}(1-x)^{\beta-1}} {\mathrm{B}(\alpha,\beta)} &amp; \text{if } x \in (0, 1)\\0 &amp; \text{otherwise}\end{cases}\]</span></p>
+<p>where <span class="math inline">\(\mathrm{B}(\alpha,\beta) = \frac {\Gamma (\alpha)\Gamma (\beta)}{\Gamma (\alpha+\beta)}\)</span>, the normalizing constant, is known as the <a href="https://en.wikipedia.org/wiki/Beta_function">beta function</a> and <span class="math inline">\(\Gamma\)</span> (the <a href="https://en.wikipedia.org/wiki/Gamma_function">gamma function</a>) generalizes the factorial function to real numbers: <span class="math inline">\(\Gamma(x+1) = x\Gamma(x) = x!\)</span> for all positive natural numbers; and more generally, for positive really numbers <span class="math inline">\(\Gamma(x) = \int_0^\infty t^{x-1} e^{-t}\,\mathrm{d}t\)</span>.</p>
+<p>The beta distribution can be thought of as a generalization of the uniform distribution <span class="math inline">\(\mathcal{U}(0, 1)\)</span>, since it is equivalent when <span class="math inline">\(\alpha = \beta = 1\)</span>.</p>
+<div class="cell" data-outputid="c253f991-fbff-467f-8fe5-5cf5f210cc63">
+<div class="sourceCode cell-code" id="cb21" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> beta</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>b <span class="op">=</span> beta(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot(</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>    np.mgrid[<span class="op">-</span><span class="dv">1</span>:<span class="dv">2</span>:<span class="fl">0.01</span>],</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    b.pdf(np.mgrid[<span class="op">-</span><span class="dv">1</span>:<span class="dv">2</span>:<span class="fl">0.01</span>])</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-20-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>Defined this way, the beta distribution has support on (assigns non-zero values) only intervals in <span class="math inline">\((0, 1)\)</span>, but if we ever need support over an arbitrary finite interval <span class="math inline">\((a, b)\)</span>, we can simply add the bounds <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span> to the parameterization.</p>
+<p><span class="math display">\[\text{Beta}(x; \alpha, \beta, a, b) = \begin{cases}\frac{\left(\frac{x - a}{b - a}\right)^{\alpha-1}\left(1-\frac{x - a}{b - a}\right)^{\beta-1}} {\mathrm{B}(\alpha,\beta)} &amp; \text{if } x \in (a, b)\\0 &amp; \text{otherwise}\end{cases}\]</span></p>
+<p>This definition makes the beta distribution a true generalization of <span class="math inline">\(\mathcal{U}(a, b) = \text{Beta}(1, 1, a, b)\)</span>. We’ll mainly work with the two-parameter version for the sake of simplicity, and because for most use cases, we actually only need support on <span class="math inline">\((0, 1)\)</span>.</p>
+<p>Manipulating the <em>shape</em> parameters <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span> introduces bias toward <span class="math inline">\(0\)</span>, <span class="math inline">\(1\)</span>, or <span class="math inline">\(\frac{\alpha}{\alpha + \beta}\)</span>. When <span class="math inline">\(\alpha = \beta &gt; 1\)</span>, we get more and more density closer to <span class="math inline">\(\frac{\alpha}{\alpha + \beta} = 0.5\)</span>.</p>
+<div class="cell" data-outputid="998b3941-9ebc-439f-9ebb-79310bd6be77">
+<div class="sourceCode cell-code" id="cb22" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot(</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    np.mgrid[<span class="dv">0</span>:<span class="dv">1</span>:<span class="fl">0.01</span>],</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    beta(<span class="dv">3</span>, <span class="dv">3</span>).pdf(np.mgrid[<span class="dv">0</span>:<span class="dv">1</span>:<span class="fl">0.01</span>])</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot(</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>    np.mgrid[<span class="dv">0</span>:<span class="dv">1</span>:<span class="fl">0.01</span>],</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>    beta(<span class="dv">5</span>, <span class="dv">5</span>).pdf(np.mgrid[<span class="dv">0</span>:<span class="dv">1</span>:<span class="fl">0.01</span>])</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot(</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>    np.mgrid[<span class="dv">0</span>:<span class="dv">1</span>:<span class="fl">0.01</span>],</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>    beta(<span class="dv">10</span>, <span class="dv">10</span>).pdf(np.mgrid[<span class="dv">0</span>:<span class="dv">1</span>:<span class="fl">0.01</span>])</span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-21-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>If we increase <span class="math inline">\(\alpha\)</span> relative to <span class="math inline">\(\beta &gt; 1\)</span>, we shift this density to the right.</p>
+<div class="cell" data-outputid="a7435620-a60e-46cc-e3a2-61c5a30c7674">
+<div class="sourceCode cell-code" id="cb23" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot(</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>    np.mgrid[<span class="dv">0</span>:<span class="dv">1</span>:<span class="fl">0.01</span>],</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    beta(<span class="dv">5</span>, <span class="dv">3</span>).pdf(np.mgrid[<span class="dv">0</span>:<span class="dv">1</span>:<span class="fl">0.01</span>])</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-22-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>And if we increase <span class="math inline">\(\beta\)</span> relative to <span class="math inline">\(\alpha &gt; 1\)</span>, we shift the density toward the left.</p>
+<div class="cell" data-outputid="822b76ff-6d4d-4160-ea23-3ba36ee1cd66">
+<div class="sourceCode cell-code" id="cb24" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot(</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>    np.mgrid[<span class="dv">0</span>:<span class="dv">1</span>:<span class="fl">0.01</span>],</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>    beta(<span class="dv">3</span>, <span class="dv">5</span>).pdf(np.mgrid[<span class="dv">0</span>:<span class="dv">1</span>:<span class="fl">0.01</span>])</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-23-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>In both cases, we have a bias against values nearer to <span class="math inline">\(0\)</span> and <span class="math inline">\(1\)</span> in proportion to how much greater than one the smaller of <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span> are. We refer to all of these distributions as <em>dense</em>.</p>
+<p>When either <span class="math inline">\(\alpha &gt; 1 \geq \beta\)</span>…</p>
+<div class="cell" data-outputid="0d89249e-c5b5-4382-91f6-3c01f01c78e2">
+<div class="sourceCode cell-code" id="cb25" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot(</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>    np.mgrid[<span class="dv">0</span>:<span class="dv">1</span>:<span class="fl">0.01</span>],</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>    beta(<span class="dv">5</span>, <span class="dv">1</span>).pdf(np.mgrid[<span class="dv">0</span>:<span class="dv">1</span>:<span class="fl">0.01</span>])</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-24-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>…or <span class="math inline">\(\alpha \leq 1 &lt; \beta\)</span>, we get bias toward values nearer to <span class="math inline">\(1\)</span> or <span class="math inline">\(0\)</span>, respectively.</p>
+<div class="cell" data-outputid="6f2c86f9-7747-47ab-a1d8-6fc7fa54fb5e">
+<div class="sourceCode cell-code" id="cb26" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot(</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>    np.mgrid[<span class="dv">0</span>:<span class="dv">1</span>:<span class="fl">0.01</span>],</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>    beta(<span class="dv">1</span>, <span class="dv">5</span>).pdf(np.mgrid[<span class="dv">0</span>:<span class="dv">1</span>:<span class="fl">0.01</span>])</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-25-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>And when <span class="math inline">\(\alpha, \beta &lt; 1\)</span>, we get a bias toward values near both <span class="math inline">\(0\)</span> and <span class="math inline">\(1\)</span>…</p>
+<div class="cell" data-outputid="7ff04401-9f30-4b49-f833-09e42653c49c">
+<div class="sourceCode cell-code" id="cb27" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot(</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>    np.mgrid[<span class="dv">0</span>:<span class="dv">1</span>:<span class="fl">0.01</span>],</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    beta(<span class="fl">0.5</span>, <span class="fl">0.5</span>).pdf(np.mgrid[<span class="dv">0</span>:<span class="dv">1</span>:<span class="fl">0.01</span>])</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-26-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>…with more density shifted toward <span class="math inline">\(1\)</span> if <span class="math inline">\(\alpha\)</span> is larger…</p>
+<div class="cell" data-outputid="d4a7acff-a824-4ed9-8261-4a90ac041161">
+<div class="sourceCode cell-code" id="cb28" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot(</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>    np.mgrid[<span class="dv">0</span>:<span class="dv">1</span>:<span class="fl">0.01</span>],</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    beta(<span class="fl">0.6</span>, <span class="fl">0.4</span>).pdf(np.mgrid[<span class="dv">0</span>:<span class="dv">1</span>:<span class="fl">0.01</span>])</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-27-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>…and more density shifted toward <span class="math inline">\(0\)</span> if <span class="math inline">\(\beta\)</span> is larger.</p>
+<div class="cell" data-outputid="e6000348-ab47-447c-e1b9-ef2f5bec7a81">
+<div class="sourceCode cell-code" id="cb29" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot(</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>    np.mgrid[<span class="dv">0</span>:<span class="dv">1</span>:<span class="fl">0.01</span>],</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>    beta(<span class="fl">0.4</span>, <span class="fl">0.6</span>).pdf(np.mgrid[<span class="dv">0</span>:<span class="dv">1</span>:<span class="fl">0.01</span>])</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-28-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<section id="univariate-gaussian-distribution" class="level4">
+<h4 class="anchored" data-anchor-id="univariate-gaussian-distribution">Univariate Gaussian distribution</h4>
+<p>One continuous distribution we will work with extensively in Module 1 is the Gaussian or normal distribution, which we’ll use in modeling the distribution of vowels’ formant values. Unlike the continuous uniform and beta distributions,</p>
+<p><span class="math display">\[\mathcal{N}(x; \mu, \sigma^2) = \frac{1}{\sigma\sqrt{2\pi}}\exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)\]</span></p>
+<p>where <span class="math inline">\(\mu\)</span> is referred to as the <em>mean</em> and <span class="math inline">\(\sigma^2\)</span> as the <em>variance</em>.</p>
+<div class="cell" data-outputid="d1afdba8-c419-43fe-b917-1dd8984fb8c1">
+<div class="sourceCode cell-code" id="cb30" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> norm</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> norm(<span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot(np.mgrid[<span class="op">-</span><span class="dv">3</span>:<span class="dv">3</span>:<span class="fl">0.01</span>], n.pdf(np.mgrid[<span class="op">-</span><span class="dv">3</span>:<span class="dv">3</span>:<span class="fl">0.01</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-29-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>The mean controls the position and the variance controls the width–specifically, the wideness.</p>
+<div class="cell" data-outputid="62540596-0bd5-4594-849c-0f755d492871">
+<div class="sourceCode cell-code" id="cb31" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># mu = 0, sigma^2 = 1</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot(</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>    np.mgrid[<span class="op">-</span><span class="dv">3</span>:<span class="dv">3</span>:<span class="fl">0.01</span>],</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>    norm(<span class="dv">0</span>, <span class="dv">1</span>).pdf(np.mgrid[<span class="op">-</span><span class="dv">3</span>:<span class="dv">3</span>:<span class="fl">0.01</span>])</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a><span class="co"># mu = 1, sigma^2 = 1</span></span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot(</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>    np.mgrid[<span class="op">-</span><span class="dv">3</span>:<span class="dv">3</span>:<span class="fl">0.01</span>],</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>    norm(<span class="dv">1</span>, <span class="dv">1</span>).pdf(np.mgrid[<span class="op">-</span><span class="dv">3</span>:<span class="dv">3</span>:<span class="fl">0.01</span>])</span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a><span class="co"># mu = 0, sigma^2 = 2</span></span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot(</span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a>    np.mgrid[<span class="op">-</span><span class="dv">3</span>:<span class="dv">3</span>:<span class="fl">0.01</span>],</span>
+<span id="cb31-16"><a href="#cb31-16" aria-hidden="true" tabindex="-1"></a>    norm(<span class="dv">0</span>, <span class="dv">2</span>).pdf(np.mgrid[<span class="op">-</span><span class="dv">3</span>:<span class="dv">3</span>:<span class="fl">0.01</span>])</span>
+<span id="cb31-17"><a href="#cb31-17" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-30-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>We say that the distribution is standard normal if the mean <span class="math inline">\(\mu = 0\)</span> and the variance <span class="math inline">\(\sigma^2 = 1\)</span>.</p>
+<p>As with all continuous distributions, we can compute the cumulative distribution function as:</p>
+<p><span class="math display">\[\Phi(x) = \int_{-\infty}^x \mathcal{N}(y; \mu, \sigma^2)\,\mathrm{d}y\]</span></p>
+<p>where <span class="math inline">\(\Phi\)</span> is a common notation for <span class="math inline">\(F_X\)</span>, when <span class="math inline">\(X\)</span> is a Gaussian random variable.</p>
+<div class="cell" data-outputid="f043d41d-090c-4f05-9953-d4b3fb992050">
+<div class="sourceCode cell-code" id="cb32" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot(np.mgrid[<span class="op">-</span><span class="dv">3</span>:<span class="dv">3</span>:<span class="fl">0.01</span>], norm(<span class="dv">0</span>, <span class="dv">1</span>).cdf(np.mgrid[<span class="op">-</span><span class="dv">3</span>:<span class="dv">3</span>:<span class="fl">0.01</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-31-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p><span class="math inline">\(\Phi\)</span> is often referred to as <em>sigmoidal</em> or a <em>sigmoid</em> for its S shape. These sorts of functions will be very important moving forward–most proximally because they play an important role in models of human perception.</p>
+<p>The Gaussian CDF is only one of many continuous CDFs with this shape. The beta CDF is also sigmoidal when <span class="math inline">\(\alpha, \beta \neq 1\)</span>.</p>
+<div class="cell" data-outputid="8a4c1527-032a-4b94-8c3b-b5f14e30e7b0">
+<div class="sourceCode cell-code" id="cb33" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot(np.mgrid[<span class="dv">0</span>:<span class="dv">1</span>:<span class="fl">0.01</span>], beta(<span class="dv">5</span>, <span class="dv">5</span>).cdf(np.mgrid[<span class="dv">0</span>:<span class="dv">1</span>:<span class="fl">0.01</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="probability-distributions_files/figure-html/cell-32-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+</section>
+<section id="multivariate-normal-distribution" class="level4">
+<h4 class="anchored" data-anchor-id="multivariate-normal-distribution">Multivariate normal distribution</h4>
+<p>Perhaps unsurprisingly, a multivariate normal is a generalization of the univariate normal to real-valued vectors <span class="math inline">\(\mathbf{x} \in \mathbb{R}^k\)</span>. It’s probability density function is:</p>
+<p><span class="math display">\[\mathcal{N}(\mathbf{x}; \boldsymbol\mu, \boldsymbol\Sigma) = \frac{1}{\sqrt{(2\pi)^k |\boldsymbol\Sigma|}}\exp\left(-\frac{1}{2} ({\mathbf x}-{\boldsymbol\mu})^\top{\boldsymbol\Sigma}^{-1}({\mathbf x}-{\boldsymbol\mu})\right)\]</span></p>
+<p>where the mean <span class="math inline">\(\boldsymbol\mu \in \mathbb{R}^k\)</span> and the <em>covariance</em> <span class="math inline">\(\boldsymbol\Sigma \in \mathbb{R}^{k \times k}\)</span></p>
+<p>We’re going to spend a lot of time with multivariate normals when we turn to modeling phoneme perception and learning in Module 1, so I’ll defer discussion of them until then.</p>
+
+
+</section>
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  const viewSource = window.document.getElementById('quarto-view-source') ||
+                     window.document.getElementById('quarto-code-tools-source');
+  if (viewSource) {
+    const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+    viewSource.addEventListener("click", function(e) {
+      if (sourceUrl) {
+        // rstudio viewer pane
+        if (/\bcapabilities=\b/.test(window.location)) {
+          window.open(sourceUrl);
+        } else {
+          window.location.href = sourceUrl;
+        }
+      } else {
+        const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+        modal.show();
+      }
+      return false;
+    });
+  }
+  function toggleCodeHandler(show) {
+    return function(e) {
+      const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+      for (let i=0; i<detailsSrc.length; i++) {
+        const details = detailsSrc[i].parentElement;
+        if (show) {
+          details.open = true;
+        } else {
+          details.removeAttribute("open");
+        }
+      }
+      const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+      const fromCls = show ? "hidden" : "unhidden";
+      const toCls = show ? "unhidden" : "hidden";
+      for (let i=0; i<cellCodeDivs.length; i++) {
+        const codeDiv = cellCodeDivs[i];
+        if (codeDiv.classList.contains(fromCls)) {
+          codeDiv.classList.remove(fromCls);
+          codeDiv.classList.add(toCls);
+        } 
+      }
+      return false;
+    }
+  }
+  const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+  if (hideAllCode) {
+    hideAllCode.addEventListener("click", toggleCodeHandler(false));
+  }
+  const showAllCode = window.document.getElementById("quarto-show-all-code");
+  if (showAllCode) {
+    showAllCode.addEventListener("click", toggleCodeHandler(true));
+  }
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<script src="https://giscus.app/client.js" data-repo="aaronstevenwhite/intro-to-cl" data-repo-id="R_kgDOLDRKkw" data-category="General" data-category-id="DIC_kwDOLDRKk84CcfKw" data-mapping="title" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="top" data-theme="light" data-lang="en" crossorigin="anonymous" async="">
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../../uncertainty-about-languages/random-variables-and-probability-distributions/random-variables.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Random variables</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../../uncertainty-about-languages/some-more-useful-definitions.html" class="pagination-link">
+        <span class="nav-page-text">Some useful definitions</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+<script src="../../site_libs/quarto-contrib/line-highlight-1.0.0/line-highlight.js" defer="true"></script>
+</body></html>

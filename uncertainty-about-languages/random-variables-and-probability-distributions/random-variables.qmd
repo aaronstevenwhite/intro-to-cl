@@ -1,0 +1,40 @@
+---
+title: Random variables
+bibliography: ../../references.bib
+---
+
+We tend to think of random variables as fundamentally indeterminate in nature. We model this indeterminacy using a function. Specifically, we use a [measurable function](https://en.wikipedia.org/wiki/Measurable_function) $X: \Omega \rightarrow A$, where $\langle \Omega, \mathcal{F} \rangle$ and $\langle A, \mathcal{G} \rangle$ are both measurable spaces, which just means that $\Omega$ and $A$ are sets associated with $\sigma$-algebras $\mathcal{F}$ and $\mathcal{G}$, respectively. Given $\sigma$-algebras $\mathcal{F}$ and $\mathcal{G}$, this function must satisfy the constraint that:
+
+$$\{X^{-1}(E) \mid E \in \mathcal{G}\} \subseteq \mathcal{F}$$
+
+That is, every event $E$ in the codomain space $\mathcal{G} \subseteq 2^A$ must have a corresponding event $X^{-1}(E)$ as its pre-image in the domain space $\mathcal{F} \subseteq 2^\Omega$.
+
+I'm using $\langle \Omega, \mathcal{F} \rangle$ for the domain space to signal that the domain of a random variable is always the sample and event space of some probability space, which means that there will always be some probability space $\langle \Omega, \mathcal{F}, \mathbb{P} \rangle$ implicit in a random variable $X$.
+
+For our purposes, the codomain $A$ of $X$ will almost always be the real numbers $\mathbb{R}$ and $\mathcal{G}$ will be almost always be the [Borel $\sigma$-algebra](https://en.wikipedia.org/wiki/Borel_set) on $\mathbb{R}$. As I mentioned above, knowing the fine details of what a Borel $\sigma$-algebra is is not going to be necessary: all you really need to know is that it's got every real interval, so $E \in \mathcal{G}$ will always be an interval (and crucially, not just a single real number).
+
+To ground this out, we can consider our running example of English vowels again, where $\Omega = \{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\}$. So $X(\omega)$, where $\omega$ is some vowel, will be a real number. It's important to note that $X$ is being applied to directly to a vowel (rather than a set of vowels in the event space) and resulting in a single real number (rather than an interval in the Borel $\sigma$-algebra on the reals). I'm pointing this out because of the way we defined a random variable: in terms of the pre-image $X^{-1}(E)$ of $E$ under $X$ (relativized to $\sigma$-algebras $\mathcal{F}$ and $\mathcal{G}$). $X^{-1}(E)$ is a pre-image, not the value of an inverse, which will be important when we discuss discrete v. continuous random variables.  
+
+One possible (arbitrarily ordered) random variable is:
+
+$$V = \begin{bmatrix} \text{e} \rightarrow 1 \\ \text{i} \rightarrow 2 \\ \text{o} \rightarrow 3 \\ \text{u} \rightarrow 4 \\ \text{æ} \rightarrow 5 \\ \text{ɑ} \rightarrow 6 \\ \text{ɔ} \rightarrow 7 \\ \text{ə} \rightarrow 8 \\ \text{ɛ} \rightarrow 9 \\ \text{ɪ} \rightarrow 10 \\ \text{ʊ} \rightarrow 11 \\ \end{bmatrix}$$
+
+So then, for example, $V^{-1}((-\infty, 4)) = \{\text{e, i, o}\}$, $V^{-1}((1, 5)) = \{\text{i, o, u}\}$, and $V^{-1}((11, \infty)) = V^{-1}((-\infty, 1)) = V^{-1}((1, 2)) = \emptyset$, all of which are in $\mathcal{F} = 2^\Omega$.
+
+# Discrete v. continuous random variables
+
+An important distinction among random variables is whether they are *discrete* or *continuous*.
+
+## Discrete random variables
+
+A discrete random variable is one whose range $X(\Omega)$—i.e. the image of its domain—is countable. The random variable given above is thus countable, since $V(\Omega) = \{1, ..., 11\}$ is finite and therefore countable.
+
+A discrete random variable need not be finite. For instance, sample spaces consisting of all strings $\Sigma^*$ of phonemes $\Sigma$ in a language are not finite. In this case, we might be concerned with modeling the length of a string, and so we we might define a random variable $L: \Sigma^* \rightarrow \mathbb{R}$ that maps a string $\omega$ to its length $L(\omega)$. Unlike $V$, $L$ has an infinite but countable range (assuming lengths are isomorphic with the natural numbers); and unlike $V$, $L$ is not [injective](https://en.wikipedia.org/wiki/Injective_function): if $L(\omega_1) = L(\omega_2)$, it is *not* guaranteed that $\omega_1 = \omega_2$, since many strings share a length with other strings.
+
+## Continuous random variables
+
+A continuous random variable is a random variable whose range is uncountable. An example of a continuous random variables is one where $\Omega$ is the set of all pairs of first and second formant values. As I said above, I'll briefly review what a formant is in a few weeks; but in this case, we'll assume that $\Omega$ is just all pairs of possitive real numbers $\mathbb{R}_+^2$.
+
+(The event space for $\Omega = \mathbb{R}_+^2$ is analogous to the Borel $\sigma$-algebra for $\mathbb{R}$. Basically, it contains all pairs of real intervals. The technical details aren't really going to be important for our purposes beyond knowing that $\mathbb{R}_+^2$ is going to act like $\mathbb{R}$ in the ways we care about.)
+
+If we assume that the random variable $F: \mathbb{R}_+^2 \rightarrow \mathbb{R}^2$ is the identity function $F(\mathbf{x}) = \mathbf{x}$, we get that $F$ is a continuous random variable, since $\mathbb{R}$ is uncountable and $F^{-1}(E) = E \in \mathcal{F}$.
