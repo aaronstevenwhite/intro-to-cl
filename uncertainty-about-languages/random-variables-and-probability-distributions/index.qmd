@@ -1,0 +1,8 @@
+---
+title: Classifying probability spaces
+bibliography: ../../references.bib
+---
+
+[Random variables](https://en.wikipedia.org/wiki/Random_variable) and [probability distributions](https://en.wikipedia.org/wiki/Probability_distribution) together provide a way of classifying probability spaces. One reason this classification is useful for our purposes is that it makes it straightforward to decompose probability spaces with complex event spaces (e.g. event spaces on grammatical derivations) into a collection of simpler probability spaces.
+
+When actually working with random variables and probability distributions, the line between the two is often blurred. This fact is particularly apparent when we consider how popular libraries like [`scipy`](https://scipy.org/) (and its dependents) model the two. For this reason, I'm going to walk through some technicalities before showing any code.
