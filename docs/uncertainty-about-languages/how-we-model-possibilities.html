@@ -750,12 +750,8 @@ Answer
 <div class="cell">
 <div class="sourceCode cell-code" id="cb8" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>highness_backness_space <span class="op">=</span> FiniteMeasurableSpace(vowels, f_highness_backness)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>When the sample space is finite–as it is here–we’ll often just assume that <span class="math inline">\(\mathcal{F} = 2^\Omega\)</span>, which is the “finest” event space on <span class="math inline">\(\Omega\)</span> we can muster–i.e.&nbsp;it is a superset of all other possible sample spaces. This sort of event space, which is often referred to as the <em>discrete event space</em> on <span class="math inline">\(\Omega\)</span>, will tend to ignore potentially useful prior knowledge we have about the sample space–e.g.&nbsp;phonological features that vowels have–though it is possible to represent that knowledge elsewhere, as we’ll see.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb9" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># we won't try to validate this because it'd take forever</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>f_discrete <span class="op">=</span> <span class="bu">set</span>(<span class="bu">frozenset</span>(subset) <span class="cf">for</span> subset <span class="kw">in</span> powerset(vowels))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>One interesting thing to note is that the discrete event space is that, if our sample space is the set of all strings <span class="math inline">\(\Sigma^*\)</span>, then the discrete event space is the set of all languages on <span class="math inline">\(\Sigma\)</span>.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
+<p>So far, we’ve seen a case where the sample space is finite. How about when the sample space is infinite? For example, what if we define <span class="math inline">\(\Omega\)</span> to be the set of all strings <span class="math inline">\(\Sigma^*\)</span>? In that case, our event space will be a subset of <span class="math inline">\(2^{\Sigma^*}\)</span>–i.e.&nbsp;it will consist of languages on <span class="math inline">\(\Sigma\)</span>. This pairing of a sample space (the strings on <span class="math inline">\(\Sigma\)</span>) and an event space (the languages on <span class="math inline">\(\Sigma\)</span>) is what underlies all <a href="https://en.wikipedia.org/wiki/Language_model">language models</a>.</p>
+<p>Because an event space on <span class="math inline">\(\Sigma^*\)</span> is simply a set of languages, one natural way to define the event space is using a grammar.</p>
 <div class="callout callout-style-default callout-caution callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -766,7 +762,7 @@ Question
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Do the regular languages on <span class="math inline">\(\Sigma\)</span> form a <span class="math inline">\(\sigma\)</span>-algebra?</p>
+<p>Do the regular languages on <span class="math inline">\(\Sigma\)</span>–i.e.&nbsp;the image of <span class="math inline">\(R(\Sigma)\)</span> under <span class="math inline">\(t\text{eval}\)</span>–form a <span class="math inline">\(\sigma\)</span>-algebra?</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-tip callout-titled">
@@ -785,6 +781,7 @@ Answer
 </div>
 </div>
 </div>
+<p>An alternative way to do it is to assume that the event space is simply all possible languages on <span class="math inline">\(\Sigma\)</span>. In that case, the event space gets a bit trickier to define: the powerset is uncountable for even a countably infinite sample space–something that we need to consider in the context of working with strings and derivations. This property can be a problem for reasons I’ll gesture at in a second. So in general, we won’t work with event spaces that are power sets of their corresponding sample space in this context. We’ll instead work with what are called <a href="https://en.wikipedia.org/wiki/Borel_set">Borel <span class="math inline">\(\sigma\)</span>-algebras</a>. It’s not important to understand the intricacies of what a Borel <span class="math inline">\(\sigma\)</span>-algebra is; I’ll try to give you an intuition in a second.</p>
 
 
 
@@ -793,7 +790,6 @@ Answer
 
 <ol>
 <li id="fn1"><p>Don’t ask me why, but <span class="math inline">\(\mathcal{F}\)</span> is standard notation for the event space. Why we don’t use <span class="math inline">\(\mathcal{E}\)</span> is beyond me. It might be some convention from measure theory I’m not aware of; or it might have to do with not confusing the event space with the expectation <span class="math inline">\(\mathbb{E}\)</span>, which we’ll review below.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn2"><p>When the sample space is infinite–as it is if we define <span class="math inline">\(\Omega\)</span> to be the set of all strings <span class="math inline">\(\Sigma^*\)</span>–things get a bit trickier: the powerset is uncountable for even a countably infinite sample space–something that we need to consider in the context of working with strings and derivations. This property can be a problem for reasons I’ll gesture at in a second. So in general, we won’t work with event spaces that are power sets of their corresponding sample space in this context. We’ll instead work with what are called <a href="https://en.wikipedia.org/wiki/Borel_set">Borel <span class="math inline">\(\sigma\)</span>-algebras</a>. It’s not important to understand the intricacies of what a Borel <span class="math inline">\(\sigma\)</span>-algebra is; I’ll try to give you an intuition below.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
