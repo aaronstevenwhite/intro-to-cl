@@ -3,8 +3,22 @@ title: Overview
 bibliography: ../references.bib
 ---
 
-::: {.callout-caution}
-## Availability
+::: {.callout-tip}
+## Reading
 
-This module will be available on February 12, 2025.
+@jurafsky_speech_2023[Ch. 2.5] on edit distance and string alignment. 
 :::
+
+In the regular expressions submodule, we talked about how to describe a language on $\Sigma$–i.e. a set of strings $L \subseteq \Sigma^*$–using a string from some other language–the set of regular expressions. This approach to describing languages allowed us to do a variety of strings–most fundamentally, finding all and only string that are in the language described by the regular expression.
+
+In the last submodule, we explored describing uncertainty about what's in a language by taking some defined set of languages–e.g. the *regular languages*–and assigning those languages probabilities. This allowed us to capture graded intuitions about which strings are in a language of interest–e.g. which strings are possible phonological or morphological words.
+
+In this submodule, we will explore an alternative way of describing languages–one that doesn't start from a grammar, but rather from strings themselves. We will do this by defining a way of computing the similarity/distance between strings. There are a variety of ways of doing this. 
+
+In this submodule, we will explore the idea of *edit distance*, which is a way of measuring how many edits are needed to transform one string into another. We will then explore the idea of *string alignment*, which is a way of representing the relationship between two strings in terms of the edits that are needed to transform one into the other.
+
+As a practical matter, these concepts have additional uses–e.g. when we are searching for a string but only know that we are interested in strings in $\Sigma^*$ that are similar to some string of interest that's also in $\Sigma^*$. For instance, maybe we know we want morphological variants of the word *abstract*, like *abstraction*, *abstracts*, *abstracted*, etc. This task is often referred to as [fuzzy search](https://en.wikipedia.org/wiki/Approximate_string_matching).
+
+In this context, it can be really useful to have a way of measuring the distance/similarity between two strings, where this measurement might help us determine that *abstract* and *abstraction* are more similar than *abstract* and *obstruction* (and maybe also that *abstract* and *abstraction* are exactly as similar as *obstruct* and *obstruction*). 
+
+In addition to deriving a measurement of distance/similarity, we often also want to be able to determine which elements of the two strings give rise to that similarity. For instance, we may furthermore want to know that *abstract* corresponds to the initial substring in *abstraction*; and therefore, that *abstraction* is *abstract* with a suffix *ion* on it. This task is known as *string alignment*, and it turns out that the methods we use to compute distance can be used to compute such alignments as well.

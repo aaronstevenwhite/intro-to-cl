@@ -54,7 +54,26 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -64,7 +83,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
-<link href="../languages-and-their-use/index.html" rel="next">
+<link href="../languages-in-terms-of-strings/distance-in-the-abstract.html" rel="next">
 <link href="../uncertainty-about-languages/statistical-inference.html" rel="prev">
 <script src="../site_libs/quarto-html/quarto.js"></script>
 <script src="../site_libs/quarto-html/popper.min.js"></script>
@@ -96,6 +115,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 <link rel="stylesheet" href="../styles.css">
 </head>
@@ -391,6 +412,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-in-terms-of-strings/distance-in-the-abstract.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Distance in the abstract</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-in-terms-of-strings/levenshtein-distance.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Levenshtein distance</span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
@@ -523,25 +556,37 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<div class="callout callout-style-default callout-caution callout-titled">
+<div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Availability
+Reading
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>This module will be available on February 12, 2025.</p>
+<p><span class="citation" data-cites="jurafsky_speech_2023">Jurafsky and Martin (<a href="#ref-jurafsky_speech_2023" role="doc-biblioref">2023</a>, Ch. 2.5)</span> on edit distance and string alignment.</p>
 </div>
 </div>
+<p>In the regular expressions submodule, we talked about how to describe a language on <span class="math inline">\(\Sigma\)</span>–i.e.&nbsp;a set of strings <span class="math inline">\(L \subseteq \Sigma^*\)</span>–using a string from some other language–the set of regular expressions. This approach to describing languages allowed us to do a variety of strings–most fundamentally, finding all and only string that are in the language described by the regular expression.</p>
+<p>In the last submodule, we explored describing uncertainty about what’s in a language by taking some defined set of languages–e.g.&nbsp;the <em>regular languages</em>–and assigning those languages probabilities. This allowed us to capture graded intuitions about which strings are in a language of interest–e.g.&nbsp;which strings are possible phonological or morphological words.</p>
+<p>In this submodule, we will explore an alternative way of describing languages–one that doesn’t start from a grammar, but rather from strings themselves. We will do this by defining a way of computing the similarity/distance between strings. There are a variety of ways of doing this.</p>
+<p>In this submodule, we will explore the idea of <em>edit distance</em>, which is a way of measuring how many edits are needed to transform one string into another. We will then explore the idea of <em>string alignment</em>, which is a way of representing the relationship between two strings in terms of the edits that are needed to transform one into the other.</p>
+<p>As a practical matter, these concepts have additional uses–e.g.&nbsp;when we are searching for a string but only know that we are interested in strings in <span class="math inline">\(\Sigma^*\)</span> that are similar to some string of interest that’s also in <span class="math inline">\(\Sigma^*\)</span>. For instance, maybe we know we want morphological variants of the word <em>abstract</em>, like <em>abstraction</em>, <em>abstracts</em>, <em>abstracted</em>, etc. This task is often referred to as <a href="https://en.wikipedia.org/wiki/Approximate_string_matching">fuzzy search</a>.</p>
+<p>In this context, it can be really useful to have a way of measuring the distance/similarity between two strings, where this measurement might help us determine that <em>abstract</em> and <em>abstraction</em> are more similar than <em>abstract</em> and <em>obstruction</em> (and maybe also that <em>abstract</em> and <em>abstraction</em> are exactly as similar as <em>obstruct</em> and <em>obstruction</em>).</p>
+<p>In addition to deriving a measurement of distance/similarity, we often also want to be able to determine which elements of the two strings give rise to that similarity. For instance, we may furthermore want to know that <em>abstract</em> corresponds to the initial substring in <em>abstraction</em>; and therefore, that <em>abstraction</em> is <em>abstract</em> with a suffix <em>ion</em> on it. This task is known as <em>string alignment</em>, and it turns out that the methods we use to compute distance can be used to compute such alignments as well.</p>
 
 
 <!-- -->
 
 
-</main> <!-- /main -->
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-jurafsky_speech_2023" class="csl-entry" role="listitem">
+Jurafsky, Daniel, and James H. Martin. 2023. <em>Speech and Language Processing</em>.
+</div>
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
@@ -835,8 +880,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../languages-and-their-use/index.html" class="pagination-link">
-        <span class="nav-page-text">Overview</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../languages-in-terms-of-strings/distance-in-the-abstract.html" class="pagination-link">
+        <span class="nav-page-text">Distance in the abstract</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
@@ -845,11 +890,25 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="an">bibliography:</span><span class="co"> ../references.bib</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>::: {.callout-caution}</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">## Availability</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip}</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">## Reading</span></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>This module will be available on February 12, 2025.</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>:::</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>@jurafsky_speech_2023<span class="co">[</span><span class="ot">Ch. 2.5</span><span class="co">]</span> on edit distance and string alignment. </span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>In the regular expressions submodule, we talked about how to describe a language on $\Sigma$–i.e. a set of strings $L \subseteq \Sigma^*$–using a string from some other language–the set of regular expressions. This approach to describing languages allowed us to do a variety of strings–most fundamentally, finding all and only string that are in the language described by the regular expression.</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>In the last submodule, we explored describing uncertainty about what's in a language by taking some defined set of languages–e.g. the *regular languages*–and assigning those languages probabilities. This allowed us to capture graded intuitions about which strings are in a language of interest–e.g. which strings are possible phonological or morphological words.</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>In this submodule, we will explore an alternative way of describing languages–one that doesn't start from a grammar, but rather from strings themselves. We will do this by defining a way of computing the similarity/distance between strings. There are a variety of ways of doing this. </span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>In this submodule, we will explore the idea of *edit distance*, which is a way of measuring how many edits are needed to transform one string into another. We will then explore the idea of *string alignment*, which is a way of representing the relationship between two strings in terms of the edits that are needed to transform one into the other.</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>As a practical matter, these concepts have additional uses–e.g. when we are searching for a string but only know that we are interested in strings in $\Sigma^*$ that are similar to some string of interest that's also in $\Sigma^*$. For instance, maybe we know we want morphological variants of the word *abstract*, like *abstraction*, *abstracts*, *abstracted*, etc. This task is often referred to as <span class="co">[</span><span class="ot">fuzzy search</span><span class="co">](https://en.wikipedia.org/wiki/Approximate_string_matching)</span>.</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>In this context, it can be really useful to have a way of measuring the distance/similarity between two strings, where this measurement might help us determine that *abstract* and *abstraction* are more similar than *abstract* and *obstruction* (and maybe also that *abstract* and *abstraction* are exactly as similar as *obstruct* and *obstruction*). </span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>In addition to deriving a measurement of distance/similarity, we often also want to be able to determine which elements of the two strings give rise to that similarity. For instance, we may furthermore want to know that *abstract* corresponds to the initial substring in *abstraction*; and therefore, that *abstraction* is *abstract* with a suffix *ion* on it. This task is known as *string alignment*, and it turns out that the methods we use to compute distance can be used to compute such alignments as well.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 

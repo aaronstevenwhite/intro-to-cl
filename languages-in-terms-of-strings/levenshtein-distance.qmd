@@ -257,22 +257,21 @@ class StringEdit4(StringEdit3):
                     substitution_cost = self._substitution_cost
                     
                 costs = np.array([distance[i-1,j]+self._deletion_cost,
-                                distance[i-1,j-1]+substitution_cost,
-                                distance[i,j-1]+self._insertion_cost])
+                                  distance[i-1,j-1]+substitution_cost,
+                                  distance[i,j-1]+self._insertion_cost])
                     
                 distance[i,j] = costs.min()
 
                 best_edits = np.where(costs==distance[i,j])[0]
 
                 indices = [(i-1,j), (i-1,j-1), (i,j-1)]
-                pointers[i,j] = [indices[i] for i in best_edits]
+                pointers[i,j] = [indices[i] for i in  best_edits]
 
         pointer_backtrace = self._construct_backtrace(pointers,
-                                                    idx=(n,m))
+                                                      idx=(n,m))
                 
-        # adjust indices to account for sentinel and make them 0-based
-        return distance[n,m], [[(i,j) for i, j in bt[1:]] 
-                              for bt in pointer_backtrace]
+        return distance[n,m], [[(i-1,j-1) for i, j in bt] 
+                               for bt in pointer_backtrace]
 
 
     def _construct_backtrace(self, pointers, idx):
@@ -280,9 +279,9 @@ class StringEdit4(StringEdit3):
             return [[]]
         else:
             pointer_backtrace = [backtrace+[idx]
-                               for prev_idx in pointers[idx]
-                               for backtrace in self._construct_backtrace(pointers,
-                                                                        prev_idx)]
+                                 for prev_idx in pointers[idx]
+                                 for backtrace in self._construct_backtrace(pointers,
+                                                                            prev_idx)]
             
             return pointer_backtrace
 
