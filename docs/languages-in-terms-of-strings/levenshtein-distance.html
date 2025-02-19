@@ -1,0 +1,1880 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.321">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Introduction to Computational Linguistics - Levenshtein distance</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../languages-and-their-use/index.html" rel="next">
+<link href="../languages-in-terms-of-strings/distance-in-the-abstract.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/quarto-contrib/line-highlight-1.0.0/line-highlight.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar docked">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../languages-in-terms-of-strings/index.html">Languages in terms of Strings</a></li><li class="breadcrumb-item"><a href="../languages-in-terms-of-strings/levenshtein-distance.html">Levenshtein distance</a></li></ol></nav>
+      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+      </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">Introduction to Computational Linguistics</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">About</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../installation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Installation</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">
+ <span class="menu-text">Languages as formal objects</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-as-formal-objects/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-as-formal-objects/sets.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Sets</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-as-formal-objects/multisets.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Multisets</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-as-formal-objects/tuples.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Tuples</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-as-formal-objects/cardinality.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Cardinality</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-as-formal-objects/set-relations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Set relations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-as-formal-objects/power-sets.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Power Sets</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-as-formal-objects/products.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Products</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-as-formal-objects/relations-and-functions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Relations and Functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-as-formal-objects/sequences.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Sequences</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-as-formal-objects/strings.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Strings</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-as-formal-objects/languages.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Languages</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true">
+ <span class="menu-text">Grammars as languages</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../grammars-as-languages/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../grammars-as-languages/defining-regular-expressions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Defining Regular Expressions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../grammars-as-languages/evaluating-regular-expressions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Evaluating Regular Expressions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../grammars-as-languages/loading-a-lexicon.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Loading a Lexicon</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../grammars-as-languages/basic-matching.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Basic Matching</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../grammars-as-languages/implementing-the-regular-operations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Implementing the Regular Operations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../grammars-as-languages/wild-cards-and-character-ranges.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Wild cards and character ranges</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../grammars-as-languages/quantifiers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Quantifiers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../grammars-as-languages/groups-and-greediness.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Groups and Greediness</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true">
+ <span class="menu-text">Uncertainty about Languages</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/what-is-a-probability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">What is a probability?</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/how-we-model-possibilities.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">How we model possibilities</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/what-it-means-to-measure-a-possibility.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">What it means to measure a possibility</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/some-useful-definitions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Some useful definitions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="false">
+ <span class="menu-text">Random Variables and Probability Distributions</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/random-variables-and-probability-distributions/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Classifying probability spaces</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/random-variables-and-probability-distributions/random-variables.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Random variables</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/random-variables-and-probability-distributions/probability-distributions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Probability distributions</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/some-more-useful-definitions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Some useful definitions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/statistical-inference.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Statistical Inference</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">
+ <span class="menu-text">Languages in terms of Strings</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-in-terms-of-strings/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-in-terms-of-strings/distance-in-the-abstract.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Distance in the abstract</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-in-terms-of-strings/levenshtein-distance.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Levenshtein distance</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true">
+ <span class="menu-text">Languages and their use</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-and-their-use/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true">
+ <span class="menu-text">The nature of phonological patterns</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../phonological-patterns/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="true">
+ <span class="menu-text">The nature of morphological patterns</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../syntactic-patterns/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="true">
+ <span class="menu-text">Analysis as deduction</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../analysis-as-deduction/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="true">
+ <span class="menu-text">The nature of syntactic patterns</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../syntactic-patterns/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" aria-expanded="true">
+ <span class="menu-text">Assignments</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../assignments/assignments-1-and-2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Assignments 1 and 2</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title">Levenshtein distance</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<p>Okay, so how do we compute edit (or <em>Levenshtein</em>) distance? The basic idea is to define it recursively, deciding at each point in the string whether we want to insert/delete an element (each at some cost <span class="math inline">\(c\)</span>) or whether we want to try matching the string.</p>
+<p><span class="math display">\[d_\text{lev}(\mathbf{a}, \mathbf{b}) = \begin{cases}
+c_\text{ins} \times |\mathbf{b}| &amp; \text{if } |\mathbf{a}| = 0 \\
+c_\text{del} \times |\mathbf{a}| &amp; \text{if } |\mathbf{b}| = 0 \\
+\min \begin{cases}d_\text{lev}(a_1\ldots a_{|\mathbf{a}|-1}, \mathbf{b}) + c_\text{del} \\
+                  d_\text{lev}(\mathbf{a}, b_1\ldots b_{|\mathbf{b}|-1}) + c_\text{ins} \\
+                  d_\text{lev}(a_1\ldots a_{|\mathbf{a}|-1}, b_1\ldots b_{|\mathbf{b}|-1}) + c_\text{sub} \times \mathbb{1}[a_{|\mathbf{a}|} \neq b_{|\mathbf{b}|}]\end{cases} &amp; \text{otherwise}\end{cases}\]</span></p>
+<p>where <span class="math inline">\(c_\text{sub}\)</span> defaults to <span class="math inline">\(c_\text{del} + c_\text{ins}\)</span>.</p>
+<div class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> collections <span class="im">import</span> defaultdict</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> Optional</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> StringEdit1:</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''Distance between strings</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">    ----------</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">    insertion_cost</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co">    deletion_cost</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co">    substitution_cost</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co">    '''</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, insertion_cost: <span class="bu">float</span> <span class="op">=</span> <span class="fl">1.</span>,</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>                 deletion_cost: <span class="bu">float</span> <span class="op">=</span> <span class="fl">1.</span>,</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>                 substitution_cost: Optional[<span class="bu">float</span>] <span class="op">=</span> <span class="va">None</span>):</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>._insertion_cost <span class="op">=</span> insertion_cost</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>._deletion_cost <span class="op">=</span> deletion_cost</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> substitution_cost <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>._substitution_cost <span class="op">=</span> insertion_cost <span class="op">+</span> deletion_cost</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>._substitution_cost <span class="op">=</span> substitution_cost</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>         </span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, source: <span class="bu">str</span>, target: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">float</span>:</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>._call_counter <span class="op">=</span> defaultdict(<span class="bu">int</span>)</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>._naive_levenshtein(source, target)</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _naive_levenshtein(<span class="va">self</span>, source, target):</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>._call_counter[(source, target)] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>        cost <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>        <span class="co"># base case</span></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">len</span>(source) <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="va">self</span>._insertion_cost<span class="op">*</span><span class="bu">len</span>(target)</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">len</span>(target) <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="va">self</span>._deletion_cost<span class="op">*</span><span class="bu">len</span>(source)</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>        <span class="co"># test if last characters of the strings match</span></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (source[<span class="bu">len</span>(source)<span class="op">-</span><span class="dv">1</span>] <span class="op">==</span> target[<span class="bu">len</span>(target)<span class="op">-</span><span class="dv">1</span>]):</span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>            sub_cost <span class="op">=</span> <span class="fl">0.</span></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>            sub_cost <span class="op">=</span> <span class="va">self</span>._substitution_cost</span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>        <span class="co"># minimum of delete from source, deletefrom target, and delete from both</span></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="bu">min</span>(<span class="va">self</span>._naive_levenshtein(source[:<span class="op">-</span><span class="dv">1</span>], target) <span class="op">+</span> <span class="va">self</span>._deletion_cost,</span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>                   <span class="va">self</span>._naive_levenshtein(source, target[:<span class="op">-</span><span class="dv">1</span>]) <span class="op">+</span> <span class="va">self</span>._insertion_cost,</span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>                   <span class="va">self</span>._naive_levenshtein(source[:<span class="op">-</span><span class="dv">1</span>], target[:<span class="op">-</span><span class="dv">1</span>]) <span class="op">+</span> sub_cost)</span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>    <span class="at">@property</span></span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> call_counter(<span class="va">self</span>):</span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>._call_counter</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit1(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækt'</span>), editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækʃən'</span>), editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>), editdist(<span class="st">'æbstɹækt'</span>, <span class="st">''</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="2">
+<pre data-code-line-numbers=""><code>(0.0, 4.0, 4.0, 8)</code></pre>
+</div>
+</div>
+<p>Okay. So here’s the thing. This looks nice, but it’s actually not that efficient because we’re actually redoing a whole ton of work.</p>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb4" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>editdist.call_counter</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<pre data-code-line-numbers=""><code>defaultdict(int,
+            {('æbstɹækʃən', 'æbstɹækt'): 1,
+             ('æbstɹækʃə', 'æbstɹækt'): 1,
+             ('æbstɹækʃ', 'æbstɹækt'): 1,
+             ('æbstɹæk', 'æbstɹækt'): 1,
+             ('æbstɹæ', 'æbstɹækt'): 1,
+             ('æbstɹ', 'æbstɹækt'): 1,
+             ('æbst', 'æbstɹækt'): 1,
+             ('æbs', 'æbstɹækt'): 1,
+             ('æb', 'æbstɹækt'): 1,
+             ('æ', 'æbstɹækt'): 1,
+             ('', 'æbstɹækt'): 1,
+             ('æ', 'æbstɹæk'): 19,
+             ('', 'æbstɹæk'): 20,
+             ('æ', 'æbstɹæ'): 181,
+             ('', 'æbstɹæ'): 200,
+             ('æ', 'æbstɹ'): 1159,
+             ('', 'æbstɹ'): 1340,
+             ('æ', 'æbst'): 5641,
+             ('', 'æbst'): 6800,
+             ('æ', 'æbs'): 22363,
+             ('', 'æbs'): 28004,
+             ('æ', 'æb'): 75517,
+             ('', 'æb'): 97880,
+             ('æ', 'æ'): 224143,
+             ('', 'æ'): 299660,
+             ('æ', ''): 332688,
+             ('', ''): 224143,
+             ('æb', 'æbstɹæk'): 17,
+             ('æb', 'æbstɹæ'): 145,
+             ('æb', 'æbstɹ'): 833,
+             ('æb', 'æbst'): 3649,
+             ('æb', 'æbs'): 13073,
+             ('æb', 'æb'): 40081,
+             ('æb', 'æ'): 108545,
+             ('æb', ''): 157184,
+             ('æbs', 'æbstɹæk'): 15,
+             ('æbs', 'æbstɹæ'): 113,
+             ('æbs', 'æbstɹ'): 575,
+             ('æbs', 'æbst'): 2241,
+             ('æbs', 'æbs'): 7183,
+             ('æbs', 'æb'): 19825,
+             ('æbs', 'æ'): 48639,
+             ('æbs', ''): 68464,
+             ('æbst', 'æbstɹæk'): 13,
+             ('æbst', 'æbstɹæ'): 85,
+             ('æbst', 'æbstɹ'): 377,
+             ('æbst', 'æbst'): 1289,
+             ('æbst', 'æbs'): 3653,
+             ('æbst', 'æb'): 8989,
+             ('æbst', 'æ'): 19825,
+             ('æbst', ''): 27008,
+             ('æbstɹ', 'æbstɹæk'): 11,
+             ('æbstɹ', 'æbstɹæ'): 61,
+             ('æbstɹ', 'æbstɹ'): 231,
+             ('æbstɹ', 'æbst'): 681,
+             ('æbstɹ', 'æbs'): 1683,
+             ('æbstɹ', 'æb'): 3653,
+             ('æbstɹ', 'æ'): 7183,
+             ('æbstɹ', ''): 9424,
+             ('æbstɹæ', 'æbstɹæk'): 9,
+             ('æbstɹæ', 'æbstɹæ'): 41,
+             ('æbstɹæ', 'æbstɹ'): 129,
+             ('æbstɹæ', 'æbst'): 321,
+             ('æbstɹæ', 'æbs'): 681,
+             ('æbstɹæ', 'æb'): 1289,
+             ('æbstɹæ', 'æ'): 2241,
+             ('æbstɹæ', ''): 2816,
+             ('æbstɹæk', 'æbstɹæk'): 7,
+             ('æbstɹæk', 'æbstɹæ'): 25,
+             ('æbstɹæk', 'æbstɹ'): 63,
+             ('æbstɹæk', 'æbst'): 129,
+             ('æbstɹæk', 'æbs'): 231,
+             ('æbstɹæk', 'æb'): 377,
+             ('æbstɹæk', 'æ'): 575,
+             ('æbstɹæk', ''): 688,
+             ('æbstɹækʃ', 'æbstɹæk'): 5,
+             ('æbstɹækʃ', 'æbstɹæ'): 13,
+             ('æbstɹækʃ', 'æbstɹ'): 25,
+             ('æbstɹækʃ', 'æbst'): 41,
+             ('æbstɹækʃ', 'æbs'): 61,
+             ('æbstɹækʃ', 'æb'): 85,
+             ('æbstɹækʃ', 'æ'): 113,
+             ('æbstɹækʃ', ''): 128,
+             ('æbstɹækʃə', 'æbstɹæk'): 3,
+             ('æbstɹækʃə', 'æbstɹæ'): 5,
+             ('æbstɹækʃə', 'æbstɹ'): 7,
+             ('æbstɹækʃə', 'æbst'): 9,
+             ('æbstɹækʃə', 'æbs'): 11,
+             ('æbstɹækʃə', 'æb'): 13,
+             ('æbstɹækʃə', 'æ'): 15,
+             ('æbstɹækʃə', ''): 16,
+             ('æbstɹækʃən', 'æbstɹæk'): 1,
+             ('æbstɹækʃən', 'æbstɹæ'): 1,
+             ('æbstɹækʃən', 'æbstɹ'): 1,
+             ('æbstɹækʃən', 'æbst'): 1,
+             ('æbstɹækʃən', 'æbs'): 1,
+             ('æbstɹækʃən', 'æb'): 1,
+             ('æbstɹækʃən', 'æ'): 1,
+             ('æbstɹækʃən', ''): 1})</code></pre>
+</div>
+</div>
+<p>We could try to get around this by memoizing using the <code>lru_cache</code> decorator.</p>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb6" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> functools <span class="im">import</span> lru_cache</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> StringEdit2(StringEdit1):</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''Distance between strings</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co">    ----------</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co">    insertion_cost</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="co">    deletion_cost</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="co">    substitution_cost</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="co">    '''</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">@lru_cache</span>(<span class="dv">256</span>)</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _naive_levenshtein(<span class="va">self</span>, source, target):</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>._call_counter[(source, target)] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>        cost <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>        <span class="co"># base case</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">len</span>(source) <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="va">self</span>._insertion_cost<span class="op">*</span><span class="bu">len</span>(target)</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">len</span>(target) <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="va">self</span>._deletion_cost<span class="op">*</span><span class="bu">len</span>(source)</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>        <span class="co"># test if last characters of the strings match</span></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (source[<span class="bu">len</span>(source)<span class="op">-</span><span class="dv">1</span>] <span class="op">==</span> target[<span class="bu">len</span>(target)<span class="op">-</span><span class="dv">1</span>]):</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>            sub_cost <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>            sub_cost <span class="op">=</span> <span class="va">self</span>._substitution_cost</span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>        <span class="co"># minimum of delete from source, deletefrom target, and delete from both</span></span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="bu">min</span>(<span class="va">self</span>._naive_levenshtein(source[:<span class="op">-</span><span class="dv">1</span>], target) <span class="op">+</span> <span class="va">self</span>._deletion_cost,</span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>                   <span class="va">self</span>._naive_levenshtein(source, target[:<span class="op">-</span><span class="dv">1</span>]) <span class="op">+</span> <span class="va">self</span>._insertion_cost,</span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>                   <span class="va">self</span>._naive_levenshtein(source[:<span class="op">-</span><span class="dv">1</span>], target[:<span class="op">-</span><span class="dv">1</span>]) <span class="op">+</span> sub_cost)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb7" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="op">%%</span>timeit</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit1(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækt'</span>), editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækʃən'</span>), editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>), editdist(<span class="st">'æbstɹækt'</span>, <span class="st">''</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre data-code-line-numbers=""><code>2.19 s ± 37.5 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb9" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="op">%%</span>timeit</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit2(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækt'</span>), editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækʃən'</span>), editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>), editdist(<span class="st">'æbstɹækt'</span>, <span class="st">''</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre data-code-line-numbers=""><code>252 µs ± 3.66 µs per loop (mean ± std. dev. of 7 runs, 1000 loops each)</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb11" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit2(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>editdist.call_counter</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<pre data-code-line-numbers=""><code>defaultdict(int,
+            {('æbstɹækʃən', 'æbstɹækt'): 1,
+             ('æbstɹækʃə', 'æbstɹækt'): 1,
+             ('æbstɹækʃ', 'æbstɹækt'): 1,
+             ('æbstɹæk', 'æbstɹækt'): 1,
+             ('æbstɹæ', 'æbstɹækt'): 1,
+             ('æbstɹ', 'æbstɹækt'): 1,
+             ('æbst', 'æbstɹækt'): 1,
+             ('æbs', 'æbstɹækt'): 1,
+             ('æb', 'æbstɹækt'): 1,
+             ('æ', 'æbstɹækt'): 1,
+             ('', 'æbstɹækt'): 1,
+             ('æ', 'æbstɹæk'): 1,
+             ('', 'æbstɹæk'): 1,
+             ('æ', 'æbstɹæ'): 1,
+             ('', 'æbstɹæ'): 1,
+             ('æ', 'æbstɹ'): 1,
+             ('', 'æbstɹ'): 1,
+             ('æ', 'æbst'): 1,
+             ('', 'æbst'): 1,
+             ('æ', 'æbs'): 1,
+             ('', 'æbs'): 1,
+             ('æ', 'æb'): 1,
+             ('', 'æb'): 1,
+             ('æ', 'æ'): 1,
+             ('', 'æ'): 1,
+             ('æ', ''): 1,
+             ('', ''): 1,
+             ('æb', 'æbstɹæk'): 1,
+             ('æb', 'æbstɹæ'): 1,
+             ('æb', 'æbstɹ'): 1,
+             ('æb', 'æbst'): 1,
+             ('æb', 'æbs'): 1,
+             ('æb', 'æb'): 1,
+             ('æb', 'æ'): 1,
+             ('æb', ''): 1,
+             ('æbs', 'æbstɹæk'): 1,
+             ('æbs', 'æbstɹæ'): 1,
+             ('æbs', 'æbstɹ'): 1,
+             ('æbs', 'æbst'): 1,
+             ('æbs', 'æbs'): 1,
+             ('æbs', 'æb'): 1,
+             ('æbs', 'æ'): 1,
+             ('æbs', ''): 1,
+             ('æbst', 'æbstɹæk'): 1,
+             ('æbst', 'æbstɹæ'): 1,
+             ('æbst', 'æbstɹ'): 1,
+             ('æbst', 'æbst'): 1,
+             ('æbst', 'æbs'): 1,
+             ('æbst', 'æb'): 1,
+             ('æbst', 'æ'): 1,
+             ('æbst', ''): 1,
+             ('æbstɹ', 'æbstɹæk'): 1,
+             ('æbstɹ', 'æbstɹæ'): 1,
+             ('æbstɹ', 'æbstɹ'): 1,
+             ('æbstɹ', 'æbst'): 1,
+             ('æbstɹ', 'æbs'): 1,
+             ('æbstɹ', 'æb'): 1,
+             ('æbstɹ', 'æ'): 1,
+             ('æbstɹ', ''): 1,
+             ('æbstɹæ', 'æbstɹæk'): 1,
+             ('æbstɹæ', 'æbstɹæ'): 1,
+             ('æbstɹæ', 'æbstɹ'): 1,
+             ('æbstɹæ', 'æbst'): 1,
+             ('æbstɹæ', 'æbs'): 1,
+             ('æbstɹæ', 'æb'): 1,
+             ('æbstɹæ', 'æ'): 1,
+             ('æbstɹæ', ''): 1,
+             ('æbstɹæk', 'æbstɹæk'): 1,
+             ('æbstɹæk', 'æbstɹæ'): 1,
+             ('æbstɹæk', 'æbstɹ'): 1,
+             ('æbstɹæk', 'æbst'): 1,
+             ('æbstɹæk', 'æbs'): 1,
+             ('æbstɹæk', 'æb'): 1,
+             ('æbstɹæk', 'æ'): 1,
+             ('æbstɹæk', ''): 1,
+             ('æbstɹækʃ', 'æbstɹæk'): 1,
+             ('æbstɹækʃ', 'æbstɹæ'): 1,
+             ('æbstɹækʃ', 'æbstɹ'): 1,
+             ('æbstɹækʃ', 'æbst'): 1,
+             ('æbstɹækʃ', 'æbs'): 1,
+             ('æbstɹækʃ', 'æb'): 1,
+             ('æbstɹækʃ', 'æ'): 1,
+             ('æbstɹækʃ', ''): 1,
+             ('æbstɹækʃə', 'æbstɹæk'): 1,
+             ('æbstɹækʃə', 'æbstɹæ'): 1,
+             ('æbstɹækʃə', 'æbstɹ'): 1,
+             ('æbstɹækʃə', 'æbst'): 1,
+             ('æbstɹækʃə', 'æbs'): 1,
+             ('æbstɹækʃə', 'æb'): 1,
+             ('æbstɹækʃə', 'æ'): 1,
+             ('æbstɹækʃə', ''): 1,
+             ('æbstɹækʃən', 'æbstɹæk'): 1,
+             ('æbstɹækʃən', 'æbstɹæ'): 1,
+             ('æbstɹækʃən', 'æbstɹ'): 1,
+             ('æbstɹækʃən', 'æbst'): 1,
+             ('æbstɹækʃən', 'æbs'): 1,
+             ('æbstɹækʃən', 'æb'): 1,
+             ('æbstɹækʃən', 'æ'): 1,
+             ('æbstɹækʃən', ''): 1})</code></pre>
+</div>
+</div>
+<p>That helps a lot. Why? Because it only every computes the distance for a substring once. This is effectively what the <em>Wagner–Fischer algorithm</em> that you read about is doing. This is our first instance of a <a href="https://en.wikipedia.org/wiki/Dynamic_programming"><em>dynamic programming algorithm</em></a>. The basic idea for Wagner-Fisher (and other algorithms we’ll use later in the class) is to cache the memoized values for a function within a chart whose rows correspond to positions in the source string and whose columns correspond to positions in the target string.</p>
+<div class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb13" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> StringEdit3(StringEdit2):</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''Distance between strings</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="co">    ----------</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="co">    insertion_cost</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="co">    deletion_cost</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="co">    substitution_cost</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="co">    '''</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, source: <span class="bu">str</span>, target: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">float</span>:</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>._wagner_fisher(source, target)</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _wagner_fisher(<span class="va">self</span>, source: <span class="bu">str</span>, target: <span class="bu">str</span>):</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>        n, m <span class="op">=</span> <span class="bu">len</span>(source), <span class="bu">len</span>(target)</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>        source, target <span class="op">=</span> <span class="st">'#'</span><span class="op">+</span>source, <span class="st">'#'</span><span class="op">+</span>target</span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>        distance <span class="op">=</span> np.zeros([n<span class="op">+</span><span class="dv">1</span>, m<span class="op">+</span><span class="dv">1</span>], dtype<span class="op">=</span><span class="bu">float</span>)</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,n<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>            distance[i,<span class="dv">0</span>] <span class="op">=</span> distance[i<span class="op">-</span><span class="dv">1</span>,<span class="dv">0</span>]<span class="op">+</span><span class="va">self</span>._deletion_cost</span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,m<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>            distance[<span class="dv">0</span>,j] <span class="op">=</span> distance[<span class="dv">0</span>,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span><span class="va">self</span>._insertion_cost</span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,n<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,m<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> source[i] <span class="op">==</span> target[j]:</span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>                    substitution_cost <span class="op">=</span> <span class="fl">0.</span></span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>:</span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>                    substitution_cost <span class="op">=</span> <span class="va">self</span>._substitution_cost</span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>                    </span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a>                costs <span class="op">=</span> np.array([distance[i<span class="op">-</span><span class="dv">1</span>,j]<span class="op">+</span><span class="va">self</span>._deletion_cost,</span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a>                                  distance[i<span class="op">-</span><span class="dv">1</span>,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span>substitution_cost,</span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a>                                  distance[i,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span><span class="va">self</span>._insertion_cost])</span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a>                    </span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a>                distance[i,j] <span class="op">=</span> costs.<span class="bu">min</span>()</span>
+<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> distance[n,m]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb14" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit3(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækʃən'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<pre data-code-line-numbers=""><code>4.0</code></pre>
+</div>
+</div>
+<p>So why use Wagner-Fisher when we can just use memoization on the naive algorithm? The reason is that the chart used in Wagner-Fisher allows us to very easily store information about the implicit alignment between string elements. This notion of alignment is the same as the one we saw above when talking about how best to match up a square to the face of a cube when discussing boolean vectors.</p>
+<p>So what do we need to do add to our previous implementation of Wagner-Fisher to store backtraces? Importantly, note that you will need to return a list of backtraces because there could be multiple equally good ones. (This point will come up for all of the dynamic programming algorithms we look at and, as we’ll see, is actually abstractly related to syntactic ambiguity.)</p>
+<div class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb16" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> Tuple, List</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> StringEdit4(StringEdit3):</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''distance, alignment, and edit paths between strings</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="co">    ----------</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="co">    insertion_cost : float</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="co">    deletion_cost : float</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="co">    substitution_cost : float | NoneType (default: None)</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="co">    '''</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, source: <span class="bu">str</span>, </span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>                 target: <span class="bu">str</span>) <span class="op">-&gt;</span>  Tuple[<span class="bu">float</span>, List[List[Tuple[<span class="bu">int</span>, <span class="bu">int</span>]]]]:</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>._wagner_fisher(source, target)</span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _wagner_fisher(<span class="va">self</span>, source, target):</span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>        <span class="co">'''compute minimum edit distance and alignment'''</span></span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>        n, m <span class="op">=</span> <span class="bu">len</span>(source), <span class="bu">len</span>(target)</span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>        source, target <span class="op">=</span> <span class="va">self</span>._add_sentinel(source, target)</span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a>        distance <span class="op">=</span> np.zeros([n<span class="op">+</span><span class="dv">1</span>, m<span class="op">+</span><span class="dv">1</span>], dtype<span class="op">=</span><span class="bu">float</span>)</span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>        pointers <span class="op">=</span> np.zeros([n<span class="op">+</span><span class="dv">1</span>, m<span class="op">+</span><span class="dv">1</span>], dtype<span class="op">=</span><span class="bu">list</span>)</span>
+<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a>        pointers[<span class="dv">0</span>,<span class="dv">0</span>] <span class="op">=</span> []</span>
+<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,n<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a>            distance[i,<span class="dv">0</span>] <span class="op">=</span> distance[i<span class="op">-</span><span class="dv">1</span>,<span class="dv">0</span>]<span class="op">+</span><span class="va">self</span>._deletion_cost</span>
+<span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a>            pointers[i,<span class="dv">0</span>] <span class="op">=</span> [(i<span class="op">-</span><span class="dv">1</span>,<span class="dv">0</span>)]</span>
+<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-34"><a href="#cb16-34" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,m<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb16-35"><a href="#cb16-35" aria-hidden="true" tabindex="-1"></a>            distance[<span class="dv">0</span>,j] <span class="op">=</span> distance[<span class="dv">0</span>,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span><span class="va">self</span>._insertion_cost</span>
+<span id="cb16-36"><a href="#cb16-36" aria-hidden="true" tabindex="-1"></a>            pointers[<span class="dv">0</span>,j] <span class="op">=</span> [(<span class="dv">0</span>,j<span class="op">-</span><span class="dv">1</span>)]</span>
+<span id="cb16-37"><a href="#cb16-37" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb16-38"><a href="#cb16-38" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,n<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb16-39"><a href="#cb16-39" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,m<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb16-40"><a href="#cb16-40" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> source[i] <span class="op">==</span> target[j]:</span>
+<span id="cb16-41"><a href="#cb16-41" aria-hidden="true" tabindex="-1"></a>                    substitution_cost <span class="op">=</span> <span class="fl">0.</span></span>
+<span id="cb16-42"><a href="#cb16-42" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>:</span>
+<span id="cb16-43"><a href="#cb16-43" aria-hidden="true" tabindex="-1"></a>                    substitution_cost <span class="op">=</span> <span class="va">self</span>._substitution_cost</span>
+<span id="cb16-44"><a href="#cb16-44" aria-hidden="true" tabindex="-1"></a>                    </span>
+<span id="cb16-45"><a href="#cb16-45" aria-hidden="true" tabindex="-1"></a>                costs <span class="op">=</span> np.array([distance[i<span class="op">-</span><span class="dv">1</span>,j]<span class="op">+</span><span class="va">self</span>._deletion_cost,</span>
+<span id="cb16-46"><a href="#cb16-46" aria-hidden="true" tabindex="-1"></a>                                  distance[i<span class="op">-</span><span class="dv">1</span>,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span>substitution_cost,</span>
+<span id="cb16-47"><a href="#cb16-47" aria-hidden="true" tabindex="-1"></a>                                  distance[i,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span><span class="va">self</span>._insertion_cost])</span>
+<span id="cb16-48"><a href="#cb16-48" aria-hidden="true" tabindex="-1"></a>                    </span>
+<span id="cb16-49"><a href="#cb16-49" aria-hidden="true" tabindex="-1"></a>                distance[i,j] <span class="op">=</span> costs.<span class="bu">min</span>()</span>
+<span id="cb16-50"><a href="#cb16-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-51"><a href="#cb16-51" aria-hidden="true" tabindex="-1"></a>                best_edits <span class="op">=</span> np.where(costs<span class="op">==</span>distance[i,j])[<span class="dv">0</span>]</span>
+<span id="cb16-52"><a href="#cb16-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-53"><a href="#cb16-53" aria-hidden="true" tabindex="-1"></a>                indices <span class="op">=</span> [(i<span class="op">-</span><span class="dv">1</span>,j), (i<span class="op">-</span><span class="dv">1</span>,j<span class="op">-</span><span class="dv">1</span>), (i,j<span class="op">-</span><span class="dv">1</span>)]</span>
+<span id="cb16-54"><a href="#cb16-54" aria-hidden="true" tabindex="-1"></a>                pointers[i,j] <span class="op">=</span> [indices[i] <span class="cf">for</span> i <span class="kw">in</span>  best_edits]</span>
+<span id="cb16-55"><a href="#cb16-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-56"><a href="#cb16-56" aria-hidden="true" tabindex="-1"></a>        pointer_backtrace <span class="op">=</span> <span class="va">self</span>._construct_backtrace(pointers,</span>
+<span id="cb16-57"><a href="#cb16-57" aria-hidden="true" tabindex="-1"></a>                                                      idx<span class="op">=</span>(n,m))</span>
+<span id="cb16-58"><a href="#cb16-58" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="cb16-59"><a href="#cb16-59" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> distance[n,m], [[(i<span class="op">-</span><span class="dv">1</span>,j<span class="op">-</span><span class="dv">1</span>) <span class="cf">for</span> i, j <span class="kw">in</span> bt] </span>
+<span id="cb16-60"><a href="#cb16-60" aria-hidden="true" tabindex="-1"></a>                               <span class="cf">for</span> bt <span class="kw">in</span> pointer_backtrace]</span>
+<span id="cb16-61"><a href="#cb16-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-62"><a href="#cb16-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-63"><a href="#cb16-63" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _construct_backtrace(<span class="va">self</span>, pointers, idx):</span>
+<span id="cb16-64"><a href="#cb16-64" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> idx <span class="op">==</span> (<span class="dv">0</span>,<span class="dv">0</span>):</span>
+<span id="cb16-65"><a href="#cb16-65" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> [[]]</span>
+<span id="cb16-66"><a href="#cb16-66" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb16-67"><a href="#cb16-67" aria-hidden="true" tabindex="-1"></a>            pointer_backtrace <span class="op">=</span> [backtrace<span class="op">+</span>[idx]</span>
+<span id="cb16-68"><a href="#cb16-68" aria-hidden="true" tabindex="-1"></a>                                 <span class="cf">for</span> prev_idx <span class="kw">in</span> pointers[idx]</span>
+<span id="cb16-69"><a href="#cb16-69" aria-hidden="true" tabindex="-1"></a>                                 <span class="cf">for</span> backtrace <span class="kw">in</span> <span class="va">self</span>._construct_backtrace(pointers,</span>
+<span id="cb16-70"><a href="#cb16-70" aria-hidden="true" tabindex="-1"></a>                                                                            prev_idx)]</span>
+<span id="cb16-71"><a href="#cb16-71" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb16-72"><a href="#cb16-72" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> pointer_backtrace</span>
+<span id="cb16-73"><a href="#cb16-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-74"><a href="#cb16-74" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _add_sentinel(<span class="va">self</span>, source, target):</span>
+<span id="cb16-75"><a href="#cb16-75" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">isinstance</span>(source, <span class="bu">str</span>):</span>
+<span id="cb16-76"><a href="#cb16-76" aria-hidden="true" tabindex="-1"></a>            source <span class="op">=</span> <span class="st">'#'</span><span class="op">+</span>source</span>
+<span id="cb16-77"><a href="#cb16-77" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> <span class="bu">isinstance</span>(source, <span class="bu">list</span>):</span>
+<span id="cb16-78"><a href="#cb16-78" aria-hidden="true" tabindex="-1"></a>            source <span class="op">=</span> [<span class="st">'#'</span>] <span class="op">+</span> source</span>
+<span id="cb16-79"><a href="#cb16-79" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> <span class="bu">isinstance</span>(source, <span class="bu">tuple</span>):</span>
+<span id="cb16-80"><a href="#cb16-80" aria-hidden="true" tabindex="-1"></a>            source <span class="op">=</span> (<span class="st">'#'</span>,) <span class="op">+</span> source</span>
+<span id="cb16-81"><a href="#cb16-81" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb16-82"><a href="#cb16-82" aria-hidden="true" tabindex="-1"></a>            <span class="cf">raise</span> <span class="pp">ValueError</span>(<span class="st">'source must be str, list, or tuple'</span>)</span>
+<span id="cb16-83"><a href="#cb16-83" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb16-84"><a href="#cb16-84" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">isinstance</span>(target, <span class="bu">str</span>):</span>
+<span id="cb16-85"><a href="#cb16-85" aria-hidden="true" tabindex="-1"></a>            target <span class="op">=</span> <span class="st">'#'</span> <span class="op">+</span> target</span>
+<span id="cb16-86"><a href="#cb16-86" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> <span class="bu">isinstance</span>(target, <span class="bu">list</span>):</span>
+<span id="cb16-87"><a href="#cb16-87" aria-hidden="true" tabindex="-1"></a>            target <span class="op">=</span> [<span class="st">'#'</span>] <span class="op">+</span> target</span>
+<span id="cb16-88"><a href="#cb16-88" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> <span class="bu">isinstance</span>(target, <span class="bu">tuple</span>):</span>
+<span id="cb16-89"><a href="#cb16-89" aria-hidden="true" tabindex="-1"></a>            target <span class="op">=</span> (<span class="st">'#'</span>,) <span class="op">+</span> target</span>
+<span id="cb16-90"><a href="#cb16-90" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb16-91"><a href="#cb16-91" aria-hidden="true" tabindex="-1"></a>            <span class="cf">raise</span> <span class="pp">ValueError</span>(<span class="st">'target must be str, list, or tuple'</span>)</span>
+<span id="cb16-92"><a href="#cb16-92" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb16-93"><a href="#cb16-93" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> source, target</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb17" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit4(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="11">
+<pre data-code-line-numbers=""><code>(4.0,
+ [[(0, 0),
+   (1, 1),
+   (2, 2),
+   (3, 3),
+   (4, 4),
+   (5, 5),
+   (6, 6),
+   (6, 7),
+   (7, 7),
+   (8, 7),
+   (9, 7)],
+  [(0, 0),
+   (1, 1),
+   (2, 2),
+   (3, 3),
+   (4, 4),
+   (5, 5),
+   (6, 6),
+   (7, 7),
+   (8, 7),
+   (9, 7)],
+  [(0, 0),
+   (1, 1),
+   (2, 2),
+   (3, 3),
+   (4, 4),
+   (5, 5),
+   (6, 6),
+   (7, 6),
+   (7, 7),
+   (8, 7),
+   (9, 7)],
+  [(0, 0),
+   (1, 1),
+   (2, 2),
+   (3, 3),
+   (4, 4),
+   (5, 5),
+   (6, 6),
+   (7, 6),
+   (8, 7),
+   (9, 7)],
+  [(0, 0),
+   (1, 1),
+   (2, 2),
+   (3, 3),
+   (4, 4),
+   (5, 5),
+   (6, 6),
+   (7, 6),
+   (8, 6),
+   (8, 7),
+   (9, 7)],
+  [(0, 0),
+   (1, 1),
+   (2, 2),
+   (3, 3),
+   (4, 4),
+   (5, 5),
+   (6, 6),
+   (7, 6),
+   (8, 6),
+   (9, 7)],
+  [(0, 0),
+   (1, 1),
+   (2, 2),
+   (3, 3),
+   (4, 4),
+   (5, 5),
+   (6, 6),
+   (7, 6),
+   (8, 6),
+   (9, 6),
+   (9, 7)]])</code></pre>
+</div>
+</div>
+<p>This isn’t particularly interpretable, so we can postprocess the output slightly to better see what’s going on.</p>
+<div class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb19" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> StringEdit5(StringEdit4):</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''distance, alignment, and edit paths between strings</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="co">    ----------</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="co">    insertion_cost : float</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a><span class="co">    deletion_cost : float</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="co">    substitution_cost : float | NoneType (default: None)</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a><span class="co">    '''</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, source: <span class="bu">str</span>, </span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>                 target: <span class="bu">str</span>) <span class="op">-&gt;</span>  Tuple[<span class="bu">float</span>, List[List[Tuple[<span class="bu">str</span>, <span class="bu">str</span>]]]]:</span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>        distance, alignment <span class="op">=</span> <span class="va">self</span>._wagner_fisher(source, target)</span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> distance, [[(source[i[<span class="dv">0</span>]], </span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>                            target[i[<span class="dv">1</span>]]) </span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>                           <span class="cf">for</span> i <span class="kw">in</span> a] </span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>                          <span class="cf">for</span> a <span class="kw">in</span> alignment]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb20" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit5(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="13">
+<pre data-code-line-numbers=""><code>(4.0,
+ [[('æ', 'æ'),
+   ('b', 'b'),
+   ('s', 's'),
+   ('t', 't'),
+   ('ɹ', 'ɹ'),
+   ('æ', 'æ'),
+   ('k', 'k'),
+   ('k', 't'),
+   ('ʃ', 't'),
+   ('ə', 't'),
+   ('n', 't')],
+  [('æ', 'æ'),
+   ('b', 'b'),
+   ('s', 's'),
+   ('t', 't'),
+   ('ɹ', 'ɹ'),
+   ('æ', 'æ'),
+   ('k', 'k'),
+   ('ʃ', 't'),
+   ('ə', 't'),
+   ('n', 't')],
+  [('æ', 'æ'),
+   ('b', 'b'),
+   ('s', 's'),
+   ('t', 't'),
+   ('ɹ', 'ɹ'),
+   ('æ', 'æ'),
+   ('k', 'k'),
+   ('ʃ', 'k'),
+   ('ʃ', 't'),
+   ('ə', 't'),
+   ('n', 't')],
+  [('æ', 'æ'),
+   ('b', 'b'),
+   ('s', 's'),
+   ('t', 't'),
+   ('ɹ', 'ɹ'),
+   ('æ', 'æ'),
+   ('k', 'k'),
+   ('ʃ', 'k'),
+   ('ə', 't'),
+   ('n', 't')],
+  [('æ', 'æ'),
+   ('b', 'b'),
+   ('s', 's'),
+   ('t', 't'),
+   ('ɹ', 'ɹ'),
+   ('æ', 'æ'),
+   ('k', 'k'),
+   ('ʃ', 'k'),
+   ('ə', 'k'),
+   ('ə', 't'),
+   ('n', 't')],
+  [('æ', 'æ'),
+   ('b', 'b'),
+   ('s', 's'),
+   ('t', 't'),
+   ('ɹ', 'ɹ'),
+   ('æ', 'æ'),
+   ('k', 'k'),
+   ('ʃ', 'k'),
+   ('ə', 'k'),
+   ('n', 't')],
+  [('æ', 'æ'),
+   ('b', 'b'),
+   ('s', 's'),
+   ('t', 't'),
+   ('ɹ', 'ɹ'),
+   ('æ', 'æ'),
+   ('k', 'k'),
+   ('ʃ', 'k'),
+   ('ə', 'k'),
+   ('n', 'k'),
+   ('n', 't')]])</code></pre>
+</div>
+</div>
+
+
+<!-- -->
+
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  const viewSource = window.document.getElementById('quarto-view-source') ||
+                     window.document.getElementById('quarto-code-tools-source');
+  if (viewSource) {
+    const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+    viewSource.addEventListener("click", function(e) {
+      if (sourceUrl) {
+        // rstudio viewer pane
+        if (/\bcapabilities=\b/.test(window.location)) {
+          window.open(sourceUrl);
+        } else {
+          window.location.href = sourceUrl;
+        }
+      } else {
+        const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+        modal.show();
+      }
+      return false;
+    });
+  }
+  function toggleCodeHandler(show) {
+    return function(e) {
+      const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+      for (let i=0; i<detailsSrc.length; i++) {
+        const details = detailsSrc[i].parentElement;
+        if (show) {
+          details.open = true;
+        } else {
+          details.removeAttribute("open");
+        }
+      }
+      const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+      const fromCls = show ? "hidden" : "unhidden";
+      const toCls = show ? "unhidden" : "hidden";
+      for (let i=0; i<cellCodeDivs.length; i++) {
+        const codeDiv = cellCodeDivs[i];
+        if (codeDiv.classList.contains(fromCls)) {
+          codeDiv.classList.remove(fromCls);
+          codeDiv.classList.add(toCls);
+        } 
+      }
+      return false;
+    }
+  }
+  const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+  if (hideAllCode) {
+    hideAllCode.addEventListener("click", toggleCodeHandler(false));
+  }
+  const showAllCode = window.document.getElementById("quarto-show-all-code");
+  if (showAllCode) {
+    showAllCode.addEventListener("click", toggleCodeHandler(true));
+  }
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<script src="https://giscus.app/client.js" data-repo="aaronstevenwhite/intro-to-cl" data-repo-id="R_kgDOLDRKkw" data-category="General" data-category-id="DIC_kwDOLDRKk84CcfKw" data-mapping="title" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="top" data-theme="light" data-lang="en" crossorigin="anonymous" async="">
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../languages-in-terms-of-strings/distance-in-the-abstract.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Distance in the abstract</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../languages-and-their-use/index.html" class="pagination-link">
+        <span class="nav-page-text">Overview</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="sourceCode" id="cb22" data-shortcodes="false" data-code-line-numbers=""><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> Levenshtein distance</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="an">highlight-style:</span><span class="co"> oblivion</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="an">format:</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="co">    html:</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a><span class="co">        code-tools: true</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>Okay, so how do we compute edit (or *Levenshtein*) distance? The basic idea is to define it recursively, deciding at each point in the string whether we want to insert/delete an element (each at some cost $c$) or whether we want to try matching the string.</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>$$d_\text{lev}(\mathbf{a}, \mathbf{b}) = \begin{cases}</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>c_\text{ins} \times |\mathbf{b}| &amp; \text{if } |\mathbf{a}| = 0 <span class="sc">\\</span></span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>c_\text{del} \times |\mathbf{a}| &amp; \text{if } |\mathbf{b}| = 0 <span class="sc">\\</span></span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>\min \begin{cases}d_\text{lev}(a_1\ldots a_{|\mathbf{a}|-1}, \mathbf{b}) + c_\text{del} <span class="sc">\\</span></span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>                  d_\text{lev}(\mathbf{a}, b_1\ldots b_{|\mathbf{b}|-1}) + c_\text{ins} <span class="sc">\\</span></span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>                  d_\text{lev}(a_1\ldots a_{|\mathbf{a}|-1}, b_1\ldots b_{|\mathbf{b}|-1}) + c_\text{sub} \times \mathbb{1}<span class="co">[</span><span class="ot">a_{|\mathbf{a}|} \neq b_{|\mathbf{b}|}</span><span class="co">]</span>\end{cases} &amp; \text{otherwise}\end{cases}$$</span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>where $c_\text{sub}$ defaults to $c_\text{del} + c_\text{ins}$. </span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> collections <span class="im">import</span> defaultdict</span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> Optional</span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> StringEdit1:</span>
+<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''Distance between strings</span></span>
+<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
+<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a><span class="co">    ----------</span></span>
+<span id="cb22-31"><a href="#cb22-31" aria-hidden="true" tabindex="-1"></a><span class="co">    insertion_cost</span></span>
+<span id="cb22-32"><a href="#cb22-32" aria-hidden="true" tabindex="-1"></a><span class="co">    deletion_cost</span></span>
+<span id="cb22-33"><a href="#cb22-33" aria-hidden="true" tabindex="-1"></a><span class="co">    substitution_cost</span></span>
+<span id="cb22-34"><a href="#cb22-34" aria-hidden="true" tabindex="-1"></a><span class="co">    '''</span></span>
+<span id="cb22-35"><a href="#cb22-35" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb22-36"><a href="#cb22-36" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, insertion_cost: <span class="bu">float</span> <span class="op">=</span> <span class="fl">1.</span>,</span>
+<span id="cb22-37"><a href="#cb22-37" aria-hidden="true" tabindex="-1"></a>                 deletion_cost: <span class="bu">float</span> <span class="op">=</span> <span class="fl">1.</span>,</span>
+<span id="cb22-38"><a href="#cb22-38" aria-hidden="true" tabindex="-1"></a>                 substitution_cost: Optional[<span class="bu">float</span>] <span class="op">=</span> <span class="va">None</span>):</span>
+<span id="cb22-39"><a href="#cb22-39" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>._insertion_cost <span class="op">=</span> insertion_cost</span>
+<span id="cb22-40"><a href="#cb22-40" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>._deletion_cost <span class="op">=</span> deletion_cost</span>
+<span id="cb22-41"><a href="#cb22-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-42"><a href="#cb22-42" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> substitution_cost <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb22-43"><a href="#cb22-43" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>._substitution_cost <span class="op">=</span> insertion_cost <span class="op">+</span> deletion_cost</span>
+<span id="cb22-44"><a href="#cb22-44" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb22-45"><a href="#cb22-45" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>._substitution_cost <span class="op">=</span> substitution_cost</span>
+<span id="cb22-46"><a href="#cb22-46" aria-hidden="true" tabindex="-1"></a>         </span>
+<span id="cb22-47"><a href="#cb22-47" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, source: <span class="bu">str</span>, target: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">float</span>:</span>
+<span id="cb22-48"><a href="#cb22-48" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>._call_counter <span class="op">=</span> defaultdict(<span class="bu">int</span>)</span>
+<span id="cb22-49"><a href="#cb22-49" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>._naive_levenshtein(source, target)</span>
+<span id="cb22-50"><a href="#cb22-50" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb22-51"><a href="#cb22-51" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _naive_levenshtein(<span class="va">self</span>, source, target):</span>
+<span id="cb22-52"><a href="#cb22-52" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>._call_counter[(source, target)] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb22-53"><a href="#cb22-53" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb22-54"><a href="#cb22-54" aria-hidden="true" tabindex="-1"></a>        cost <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb22-55"><a href="#cb22-55" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb22-56"><a href="#cb22-56" aria-hidden="true" tabindex="-1"></a>        <span class="co"># base case</span></span>
+<span id="cb22-57"><a href="#cb22-57" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">len</span>(source) <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb22-58"><a href="#cb22-58" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="va">self</span>._insertion_cost<span class="op">*</span><span class="bu">len</span>(target)</span>
+<span id="cb22-59"><a href="#cb22-59" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb22-60"><a href="#cb22-60" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">len</span>(target) <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb22-61"><a href="#cb22-61" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="va">self</span>._deletion_cost<span class="op">*</span><span class="bu">len</span>(source)</span>
+<span id="cb22-62"><a href="#cb22-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-63"><a href="#cb22-63" aria-hidden="true" tabindex="-1"></a>        <span class="co"># test if last characters of the strings match</span></span>
+<span id="cb22-64"><a href="#cb22-64" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (source[<span class="bu">len</span>(source)<span class="op">-</span><span class="dv">1</span>] <span class="op">==</span> target[<span class="bu">len</span>(target)<span class="op">-</span><span class="dv">1</span>]):</span>
+<span id="cb22-65"><a href="#cb22-65" aria-hidden="true" tabindex="-1"></a>            sub_cost <span class="op">=</span> <span class="fl">0.</span></span>
+<span id="cb22-66"><a href="#cb22-66" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb22-67"><a href="#cb22-67" aria-hidden="true" tabindex="-1"></a>            sub_cost <span class="op">=</span> <span class="va">self</span>._substitution_cost</span>
+<span id="cb22-68"><a href="#cb22-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-69"><a href="#cb22-69" aria-hidden="true" tabindex="-1"></a>        <span class="co"># minimum of delete from source, deletefrom target, and delete from both</span></span>
+<span id="cb22-70"><a href="#cb22-70" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="bu">min</span>(<span class="va">self</span>._naive_levenshtein(source[:<span class="op">-</span><span class="dv">1</span>], target) <span class="op">+</span> <span class="va">self</span>._deletion_cost,</span>
+<span id="cb22-71"><a href="#cb22-71" aria-hidden="true" tabindex="-1"></a>                   <span class="va">self</span>._naive_levenshtein(source, target[:<span class="op">-</span><span class="dv">1</span>]) <span class="op">+</span> <span class="va">self</span>._insertion_cost,</span>
+<span id="cb22-72"><a href="#cb22-72" aria-hidden="true" tabindex="-1"></a>                   <span class="va">self</span>._naive_levenshtein(source[:<span class="op">-</span><span class="dv">1</span>], target[:<span class="op">-</span><span class="dv">1</span>]) <span class="op">+</span> sub_cost)</span>
+<span id="cb22-73"><a href="#cb22-73" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb22-74"><a href="#cb22-74" aria-hidden="true" tabindex="-1"></a>    <span class="at">@property</span></span>
+<span id="cb22-75"><a href="#cb22-75" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> call_counter(<span class="va">self</span>):</span>
+<span id="cb22-76"><a href="#cb22-76" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>._call_counter</span>
+<span id="cb22-77"><a href="#cb22-77" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb22-78"><a href="#cb22-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-81"><a href="#cb22-81" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb22-82"><a href="#cb22-82" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit1(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb22-83"><a href="#cb22-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-84"><a href="#cb22-84" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækt'</span>), editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækʃən'</span>), editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>), editdist(<span class="st">'æbstɹækt'</span>, <span class="st">''</span>)</span>
+<span id="cb22-85"><a href="#cb22-85" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb22-86"><a href="#cb22-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-87"><a href="#cb22-87" aria-hidden="true" tabindex="-1"></a>Okay. So here's the thing. This looks nice, but it's actually not that efficient because we're actually redoing a whole ton of work. </span>
+<span id="cb22-88"><a href="#cb22-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-91"><a href="#cb22-91" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb22-92"><a href="#cb22-92" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>)</span>
+<span id="cb22-93"><a href="#cb22-93" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-94"><a href="#cb22-94" aria-hidden="true" tabindex="-1"></a>editdist.call_counter</span>
+<span id="cb22-95"><a href="#cb22-95" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb22-96"><a href="#cb22-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-97"><a href="#cb22-97" aria-hidden="true" tabindex="-1"></a>We could try to get around this by memoizing using the <span class="in">`lru_cache`</span> decorator.</span>
+<span id="cb22-98"><a href="#cb22-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-101"><a href="#cb22-101" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb22-102"><a href="#cb22-102" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> functools <span class="im">import</span> lru_cache</span>
+<span id="cb22-103"><a href="#cb22-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-104"><a href="#cb22-104" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> StringEdit2(StringEdit1):</span>
+<span id="cb22-105"><a href="#cb22-105" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''Distance between strings</span></span>
+<span id="cb22-106"><a href="#cb22-106" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-107"><a href="#cb22-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-108"><a href="#cb22-108" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
+<span id="cb22-109"><a href="#cb22-109" aria-hidden="true" tabindex="-1"></a><span class="co">    ----------</span></span>
+<span id="cb22-110"><a href="#cb22-110" aria-hidden="true" tabindex="-1"></a><span class="co">    insertion_cost</span></span>
+<span id="cb22-111"><a href="#cb22-111" aria-hidden="true" tabindex="-1"></a><span class="co">    deletion_cost</span></span>
+<span id="cb22-112"><a href="#cb22-112" aria-hidden="true" tabindex="-1"></a><span class="co">    substitution_cost</span></span>
+<span id="cb22-113"><a href="#cb22-113" aria-hidden="true" tabindex="-1"></a><span class="co">    '''</span></span>
+<span id="cb22-114"><a href="#cb22-114" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb22-115"><a href="#cb22-115" aria-hidden="true" tabindex="-1"></a>    <span class="at">@lru_cache</span>(<span class="dv">256</span>)</span>
+<span id="cb22-116"><a href="#cb22-116" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _naive_levenshtein(<span class="va">self</span>, source, target):</span>
+<span id="cb22-117"><a href="#cb22-117" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>._call_counter[(source, target)] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb22-118"><a href="#cb22-118" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb22-119"><a href="#cb22-119" aria-hidden="true" tabindex="-1"></a>        cost <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb22-120"><a href="#cb22-120" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-121"><a href="#cb22-121" aria-hidden="true" tabindex="-1"></a>        <span class="co"># base case</span></span>
+<span id="cb22-122"><a href="#cb22-122" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">len</span>(source) <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb22-123"><a href="#cb22-123" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="va">self</span>._insertion_cost<span class="op">*</span><span class="bu">len</span>(target)</span>
+<span id="cb22-124"><a href="#cb22-124" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb22-125"><a href="#cb22-125" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">len</span>(target) <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb22-126"><a href="#cb22-126" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="va">self</span>._deletion_cost<span class="op">*</span><span class="bu">len</span>(source)</span>
+<span id="cb22-127"><a href="#cb22-127" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-128"><a href="#cb22-128" aria-hidden="true" tabindex="-1"></a>        <span class="co"># test if last characters of the strings match</span></span>
+<span id="cb22-129"><a href="#cb22-129" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (source[<span class="bu">len</span>(source)<span class="op">-</span><span class="dv">1</span>] <span class="op">==</span> target[<span class="bu">len</span>(target)<span class="op">-</span><span class="dv">1</span>]):</span>
+<span id="cb22-130"><a href="#cb22-130" aria-hidden="true" tabindex="-1"></a>            sub_cost <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb22-131"><a href="#cb22-131" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb22-132"><a href="#cb22-132" aria-hidden="true" tabindex="-1"></a>            sub_cost <span class="op">=</span> <span class="va">self</span>._substitution_cost</span>
+<span id="cb22-133"><a href="#cb22-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-134"><a href="#cb22-134" aria-hidden="true" tabindex="-1"></a>        <span class="co"># minimum of delete from source, deletefrom target, and delete from both</span></span>
+<span id="cb22-135"><a href="#cb22-135" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="bu">min</span>(<span class="va">self</span>._naive_levenshtein(source[:<span class="op">-</span><span class="dv">1</span>], target) <span class="op">+</span> <span class="va">self</span>._deletion_cost,</span>
+<span id="cb22-136"><a href="#cb22-136" aria-hidden="true" tabindex="-1"></a>                   <span class="va">self</span>._naive_levenshtein(source, target[:<span class="op">-</span><span class="dv">1</span>]) <span class="op">+</span> <span class="va">self</span>._insertion_cost,</span>
+<span id="cb22-137"><a href="#cb22-137" aria-hidden="true" tabindex="-1"></a>                   <span class="va">self</span>._naive_levenshtein(source[:<span class="op">-</span><span class="dv">1</span>], target[:<span class="op">-</span><span class="dv">1</span>]) <span class="op">+</span> sub_cost)</span>
+<span id="cb22-138"><a href="#cb22-138" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb22-139"><a href="#cb22-139" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-142"><a href="#cb22-142" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb22-143"><a href="#cb22-143" aria-hidden="true" tabindex="-1"></a><span class="op">%%</span>timeit</span>
+<span id="cb22-144"><a href="#cb22-144" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-145"><a href="#cb22-145" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit1(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb22-146"><a href="#cb22-146" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-147"><a href="#cb22-147" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækt'</span>), editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækʃən'</span>), editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>), editdist(<span class="st">'æbstɹækt'</span>, <span class="st">''</span>)</span>
+<span id="cb22-148"><a href="#cb22-148" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb22-149"><a href="#cb22-149" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-152"><a href="#cb22-152" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb22-153"><a href="#cb22-153" aria-hidden="true" tabindex="-1"></a><span class="op">%%</span>timeit</span>
+<span id="cb22-154"><a href="#cb22-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-155"><a href="#cb22-155" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit2(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb22-156"><a href="#cb22-156" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-157"><a href="#cb22-157" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækt'</span>), editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækʃən'</span>), editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>), editdist(<span class="st">'æbstɹækt'</span>, <span class="st">''</span>)</span>
+<span id="cb22-158"><a href="#cb22-158" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb22-159"><a href="#cb22-159" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-162"><a href="#cb22-162" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb22-163"><a href="#cb22-163" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit2(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb22-164"><a href="#cb22-164" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-165"><a href="#cb22-165" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>)</span>
+<span id="cb22-166"><a href="#cb22-166" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-167"><a href="#cb22-167" aria-hidden="true" tabindex="-1"></a>editdist.call_counter</span>
+<span id="cb22-168"><a href="#cb22-168" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb22-169"><a href="#cb22-169" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-170"><a href="#cb22-170" aria-hidden="true" tabindex="-1"></a>That helps a lot. Why? Because it only every computes the distance for a substring once. This is effectively what the *Wagner–Fischer algorithm* that you read about is doing. This is our first instance of a [*dynamic programming algorithm*](https://en.wikipedia.org/wiki/Dynamic_programming). The basic idea for Wagner-Fisher (and other algorithms we'll use later in the class) is to cache the memoized values for a function within a chart whose rows correspond to positions in the source string and whose columns correspond to positions in the target string.</span>
+<span id="cb22-171"><a href="#cb22-171" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-174"><a href="#cb22-174" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb22-175"><a href="#cb22-175" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb22-176"><a href="#cb22-176" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-177"><a href="#cb22-177" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> StringEdit3(StringEdit2):</span>
+<span id="cb22-178"><a href="#cb22-178" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''Distance between strings</span></span>
+<span id="cb22-179"><a href="#cb22-179" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-180"><a href="#cb22-180" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-181"><a href="#cb22-181" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
+<span id="cb22-182"><a href="#cb22-182" aria-hidden="true" tabindex="-1"></a><span class="co">    ----------</span></span>
+<span id="cb22-183"><a href="#cb22-183" aria-hidden="true" tabindex="-1"></a><span class="co">    insertion_cost</span></span>
+<span id="cb22-184"><a href="#cb22-184" aria-hidden="true" tabindex="-1"></a><span class="co">    deletion_cost</span></span>
+<span id="cb22-185"><a href="#cb22-185" aria-hidden="true" tabindex="-1"></a><span class="co">    substitution_cost</span></span>
+<span id="cb22-186"><a href="#cb22-186" aria-hidden="true" tabindex="-1"></a><span class="co">    '''</span></span>
+<span id="cb22-187"><a href="#cb22-187" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-188"><a href="#cb22-188" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, source: <span class="bu">str</span>, target: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">float</span>:</span>
+<span id="cb22-189"><a href="#cb22-189" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>._wagner_fisher(source, target)</span>
+<span id="cb22-190"><a href="#cb22-190" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-191"><a href="#cb22-191" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb22-192"><a href="#cb22-192" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _wagner_fisher(<span class="va">self</span>, source: <span class="bu">str</span>, target: <span class="bu">str</span>):</span>
+<span id="cb22-193"><a href="#cb22-193" aria-hidden="true" tabindex="-1"></a>        n, m <span class="op">=</span> <span class="bu">len</span>(source), <span class="bu">len</span>(target)</span>
+<span id="cb22-194"><a href="#cb22-194" aria-hidden="true" tabindex="-1"></a>        source, target <span class="op">=</span> <span class="st">'#'</span><span class="op">+</span>source, <span class="st">'#'</span><span class="op">+</span>target</span>
+<span id="cb22-195"><a href="#cb22-195" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-196"><a href="#cb22-196" aria-hidden="true" tabindex="-1"></a>        distance <span class="op">=</span> np.zeros([n<span class="op">+</span><span class="dv">1</span>, m<span class="op">+</span><span class="dv">1</span>], dtype<span class="op">=</span><span class="bu">float</span>)</span>
+<span id="cb22-197"><a href="#cb22-197" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb22-198"><a href="#cb22-198" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,n<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb22-199"><a href="#cb22-199" aria-hidden="true" tabindex="-1"></a>            distance[i,<span class="dv">0</span>] <span class="op">=</span> distance[i<span class="op">-</span><span class="dv">1</span>,<span class="dv">0</span>]<span class="op">+</span><span class="va">self</span>._deletion_cost</span>
+<span id="cb22-200"><a href="#cb22-200" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-201"><a href="#cb22-201" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,m<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb22-202"><a href="#cb22-202" aria-hidden="true" tabindex="-1"></a>            distance[<span class="dv">0</span>,j] <span class="op">=</span> distance[<span class="dv">0</span>,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span><span class="va">self</span>._insertion_cost</span>
+<span id="cb22-203"><a href="#cb22-203" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb22-204"><a href="#cb22-204" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,n<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb22-205"><a href="#cb22-205" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,m<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb22-206"><a href="#cb22-206" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> source[i] <span class="op">==</span> target[j]:</span>
+<span id="cb22-207"><a href="#cb22-207" aria-hidden="true" tabindex="-1"></a>                    substitution_cost <span class="op">=</span> <span class="fl">0.</span></span>
+<span id="cb22-208"><a href="#cb22-208" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>:</span>
+<span id="cb22-209"><a href="#cb22-209" aria-hidden="true" tabindex="-1"></a>                    substitution_cost <span class="op">=</span> <span class="va">self</span>._substitution_cost</span>
+<span id="cb22-210"><a href="#cb22-210" aria-hidden="true" tabindex="-1"></a>                    </span>
+<span id="cb22-211"><a href="#cb22-211" aria-hidden="true" tabindex="-1"></a>                costs <span class="op">=</span> np.array([distance[i<span class="op">-</span><span class="dv">1</span>,j]<span class="op">+</span><span class="va">self</span>._deletion_cost,</span>
+<span id="cb22-212"><a href="#cb22-212" aria-hidden="true" tabindex="-1"></a>                                  distance[i<span class="op">-</span><span class="dv">1</span>,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span>substitution_cost,</span>
+<span id="cb22-213"><a href="#cb22-213" aria-hidden="true" tabindex="-1"></a>                                  distance[i,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span><span class="va">self</span>._insertion_cost])</span>
+<span id="cb22-214"><a href="#cb22-214" aria-hidden="true" tabindex="-1"></a>                    </span>
+<span id="cb22-215"><a href="#cb22-215" aria-hidden="true" tabindex="-1"></a>                distance[i,j] <span class="op">=</span> costs.<span class="bu">min</span>()</span>
+<span id="cb22-216"><a href="#cb22-216" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="cb22-217"><a href="#cb22-217" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> distance[n,m]</span>
+<span id="cb22-218"><a href="#cb22-218" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb22-219"><a href="#cb22-219" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-222"><a href="#cb22-222" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb22-223"><a href="#cb22-223" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit3(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb22-224"><a href="#cb22-224" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-225"><a href="#cb22-225" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækt'</span>, <span class="st">'æbstɹækʃən'</span>)</span>
+<span id="cb22-226"><a href="#cb22-226" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb22-227"><a href="#cb22-227" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-228"><a href="#cb22-228" aria-hidden="true" tabindex="-1"></a>So why use Wagner-Fisher when we can just use memoization on the naive algorithm? The reason is that the chart used in Wagner-Fisher allows us to very easily store information about the implicit alignment between string elements. This notion of alignment is the same as the one we saw above when talking about how best to match up a square to the face of a cube when discussing boolean vectors.</span>
+<span id="cb22-229"><a href="#cb22-229" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-230"><a href="#cb22-230" aria-hidden="true" tabindex="-1"></a>So what do we need to do add to our previous implementation of Wagner-Fisher to store backtraces? Importantly, note that you will need to return a list of backtraces because there could be multiple equally good ones. (This point will come up for all of the dynamic programming algorithms we look at and, as we'll see, is actually abstractly related to syntactic ambiguity.)</span>
+<span id="cb22-231"><a href="#cb22-231" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-234"><a href="#cb22-234" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb22-235"><a href="#cb22-235" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> Tuple, List</span>
+<span id="cb22-236"><a href="#cb22-236" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-237"><a href="#cb22-237" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> StringEdit4(StringEdit3):</span>
+<span id="cb22-238"><a href="#cb22-238" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''distance, alignment, and edit paths between strings</span></span>
+<span id="cb22-239"><a href="#cb22-239" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-240"><a href="#cb22-240" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-241"><a href="#cb22-241" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
+<span id="cb22-242"><a href="#cb22-242" aria-hidden="true" tabindex="-1"></a><span class="co">    ----------</span></span>
+<span id="cb22-243"><a href="#cb22-243" aria-hidden="true" tabindex="-1"></a><span class="co">    insertion_cost : float</span></span>
+<span id="cb22-244"><a href="#cb22-244" aria-hidden="true" tabindex="-1"></a><span class="co">    deletion_cost : float</span></span>
+<span id="cb22-245"><a href="#cb22-245" aria-hidden="true" tabindex="-1"></a><span class="co">    substitution_cost : float | NoneType (default: None)</span></span>
+<span id="cb22-246"><a href="#cb22-246" aria-hidden="true" tabindex="-1"></a><span class="co">    '''</span></span>
+<span id="cb22-247"><a href="#cb22-247" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-248"><a href="#cb22-248" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, source: <span class="bu">str</span>, </span>
+<span id="cb22-249"><a href="#cb22-249" aria-hidden="true" tabindex="-1"></a>                 target: <span class="bu">str</span>) <span class="op">-&gt;</span>  Tuple[<span class="bu">float</span>, List[List[Tuple[<span class="bu">int</span>, <span class="bu">int</span>]]]]:</span>
+<span id="cb22-250"><a href="#cb22-250" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>._wagner_fisher(source, target)</span>
+<span id="cb22-251"><a href="#cb22-251" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb22-252"><a href="#cb22-252" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _wagner_fisher(<span class="va">self</span>, source, target):</span>
+<span id="cb22-253"><a href="#cb22-253" aria-hidden="true" tabindex="-1"></a>        <span class="co">'''compute minimum edit distance and alignment'''</span></span>
+<span id="cb22-254"><a href="#cb22-254" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-255"><a href="#cb22-255" aria-hidden="true" tabindex="-1"></a>        n, m <span class="op">=</span> <span class="bu">len</span>(source), <span class="bu">len</span>(target)</span>
+<span id="cb22-256"><a href="#cb22-256" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-257"><a href="#cb22-257" aria-hidden="true" tabindex="-1"></a>        source, target <span class="op">=</span> <span class="va">self</span>._add_sentinel(source, target)</span>
+<span id="cb22-258"><a href="#cb22-258" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-259"><a href="#cb22-259" aria-hidden="true" tabindex="-1"></a>        distance <span class="op">=</span> np.zeros([n<span class="op">+</span><span class="dv">1</span>, m<span class="op">+</span><span class="dv">1</span>], dtype<span class="op">=</span><span class="bu">float</span>)</span>
+<span id="cb22-260"><a href="#cb22-260" aria-hidden="true" tabindex="-1"></a>        pointers <span class="op">=</span> np.zeros([n<span class="op">+</span><span class="dv">1</span>, m<span class="op">+</span><span class="dv">1</span>], dtype<span class="op">=</span><span class="bu">list</span>)</span>
+<span id="cb22-261"><a href="#cb22-261" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-262"><a href="#cb22-262" aria-hidden="true" tabindex="-1"></a>        pointers[<span class="dv">0</span>,<span class="dv">0</span>] <span class="op">=</span> []</span>
+<span id="cb22-263"><a href="#cb22-263" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb22-264"><a href="#cb22-264" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,n<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb22-265"><a href="#cb22-265" aria-hidden="true" tabindex="-1"></a>            distance[i,<span class="dv">0</span>] <span class="op">=</span> distance[i<span class="op">-</span><span class="dv">1</span>,<span class="dv">0</span>]<span class="op">+</span><span class="va">self</span>._deletion_cost</span>
+<span id="cb22-266"><a href="#cb22-266" aria-hidden="true" tabindex="-1"></a>            pointers[i,<span class="dv">0</span>] <span class="op">=</span> [(i<span class="op">-</span><span class="dv">1</span>,<span class="dv">0</span>)]</span>
+<span id="cb22-267"><a href="#cb22-267" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-268"><a href="#cb22-268" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,m<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb22-269"><a href="#cb22-269" aria-hidden="true" tabindex="-1"></a>            distance[<span class="dv">0</span>,j] <span class="op">=</span> distance[<span class="dv">0</span>,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span><span class="va">self</span>._insertion_cost</span>
+<span id="cb22-270"><a href="#cb22-270" aria-hidden="true" tabindex="-1"></a>            pointers[<span class="dv">0</span>,j] <span class="op">=</span> [(<span class="dv">0</span>,j<span class="op">-</span><span class="dv">1</span>)]</span>
+<span id="cb22-271"><a href="#cb22-271" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb22-272"><a href="#cb22-272" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,n<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb22-273"><a href="#cb22-273" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,m<span class="op">+</span><span class="dv">1</span>):</span>
+<span id="cb22-274"><a href="#cb22-274" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> source[i] <span class="op">==</span> target[j]:</span>
+<span id="cb22-275"><a href="#cb22-275" aria-hidden="true" tabindex="-1"></a>                    substitution_cost <span class="op">=</span> <span class="fl">0.</span></span>
+<span id="cb22-276"><a href="#cb22-276" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>:</span>
+<span id="cb22-277"><a href="#cb22-277" aria-hidden="true" tabindex="-1"></a>                    substitution_cost <span class="op">=</span> <span class="va">self</span>._substitution_cost</span>
+<span id="cb22-278"><a href="#cb22-278" aria-hidden="true" tabindex="-1"></a>                    </span>
+<span id="cb22-279"><a href="#cb22-279" aria-hidden="true" tabindex="-1"></a>                costs <span class="op">=</span> np.array([distance[i<span class="op">-</span><span class="dv">1</span>,j]<span class="op">+</span><span class="va">self</span>._deletion_cost,</span>
+<span id="cb22-280"><a href="#cb22-280" aria-hidden="true" tabindex="-1"></a>                                  distance[i<span class="op">-</span><span class="dv">1</span>,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span>substitution_cost,</span>
+<span id="cb22-281"><a href="#cb22-281" aria-hidden="true" tabindex="-1"></a>                                  distance[i,j<span class="op">-</span><span class="dv">1</span>]<span class="op">+</span><span class="va">self</span>._insertion_cost])</span>
+<span id="cb22-282"><a href="#cb22-282" aria-hidden="true" tabindex="-1"></a>                    </span>
+<span id="cb22-283"><a href="#cb22-283" aria-hidden="true" tabindex="-1"></a>                distance[i,j] <span class="op">=</span> costs.<span class="bu">min</span>()</span>
+<span id="cb22-284"><a href="#cb22-284" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-285"><a href="#cb22-285" aria-hidden="true" tabindex="-1"></a>                best_edits <span class="op">=</span> np.where(costs<span class="op">==</span>distance[i,j])[<span class="dv">0</span>]</span>
+<span id="cb22-286"><a href="#cb22-286" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-287"><a href="#cb22-287" aria-hidden="true" tabindex="-1"></a>                indices <span class="op">=</span> [(i<span class="op">-</span><span class="dv">1</span>,j), (i<span class="op">-</span><span class="dv">1</span>,j<span class="op">-</span><span class="dv">1</span>), (i,j<span class="op">-</span><span class="dv">1</span>)]</span>
+<span id="cb22-288"><a href="#cb22-288" aria-hidden="true" tabindex="-1"></a>                pointers[i,j] <span class="op">=</span> [indices[i] <span class="cf">for</span> i <span class="kw">in</span>  best_edits]</span>
+<span id="cb22-289"><a href="#cb22-289" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-290"><a href="#cb22-290" aria-hidden="true" tabindex="-1"></a>        pointer_backtrace <span class="op">=</span> <span class="va">self</span>._construct_backtrace(pointers,</span>
+<span id="cb22-291"><a href="#cb22-291" aria-hidden="true" tabindex="-1"></a>                                                      idx<span class="op">=</span>(n,m))</span>
+<span id="cb22-292"><a href="#cb22-292" aria-hidden="true" tabindex="-1"></a>                </span>
+<span id="cb22-293"><a href="#cb22-293" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> distance[n,m], [[(i<span class="op">-</span><span class="dv">1</span>,j<span class="op">-</span><span class="dv">1</span>) <span class="cf">for</span> i, j <span class="kw">in</span> bt] </span>
+<span id="cb22-294"><a href="#cb22-294" aria-hidden="true" tabindex="-1"></a>                               <span class="cf">for</span> bt <span class="kw">in</span> pointer_backtrace]</span>
+<span id="cb22-295"><a href="#cb22-295" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-296"><a href="#cb22-296" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-297"><a href="#cb22-297" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _construct_backtrace(<span class="va">self</span>, pointers, idx):</span>
+<span id="cb22-298"><a href="#cb22-298" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> idx <span class="op">==</span> (<span class="dv">0</span>,<span class="dv">0</span>):</span>
+<span id="cb22-299"><a href="#cb22-299" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> [[]]</span>
+<span id="cb22-300"><a href="#cb22-300" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb22-301"><a href="#cb22-301" aria-hidden="true" tabindex="-1"></a>            pointer_backtrace <span class="op">=</span> [backtrace<span class="op">+</span>[idx]</span>
+<span id="cb22-302"><a href="#cb22-302" aria-hidden="true" tabindex="-1"></a>                                 <span class="cf">for</span> prev_idx <span class="kw">in</span> pointers[idx]</span>
+<span id="cb22-303"><a href="#cb22-303" aria-hidden="true" tabindex="-1"></a>                                 <span class="cf">for</span> backtrace <span class="kw">in</span> <span class="va">self</span>._construct_backtrace(pointers,</span>
+<span id="cb22-304"><a href="#cb22-304" aria-hidden="true" tabindex="-1"></a>                                                                            prev_idx)]</span>
+<span id="cb22-305"><a href="#cb22-305" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb22-306"><a href="#cb22-306" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> pointer_backtrace</span>
+<span id="cb22-307"><a href="#cb22-307" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-308"><a href="#cb22-308" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _add_sentinel(<span class="va">self</span>, source, target):</span>
+<span id="cb22-309"><a href="#cb22-309" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">isinstance</span>(source, <span class="bu">str</span>):</span>
+<span id="cb22-310"><a href="#cb22-310" aria-hidden="true" tabindex="-1"></a>            source <span class="op">=</span> <span class="st">'#'</span><span class="op">+</span>source</span>
+<span id="cb22-311"><a href="#cb22-311" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> <span class="bu">isinstance</span>(source, <span class="bu">list</span>):</span>
+<span id="cb22-312"><a href="#cb22-312" aria-hidden="true" tabindex="-1"></a>            source <span class="op">=</span> [<span class="st">'#'</span>] <span class="op">+</span> source</span>
+<span id="cb22-313"><a href="#cb22-313" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> <span class="bu">isinstance</span>(source, <span class="bu">tuple</span>):</span>
+<span id="cb22-314"><a href="#cb22-314" aria-hidden="true" tabindex="-1"></a>            source <span class="op">=</span> (<span class="st">'#'</span>,) <span class="op">+</span> source</span>
+<span id="cb22-315"><a href="#cb22-315" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb22-316"><a href="#cb22-316" aria-hidden="true" tabindex="-1"></a>            <span class="cf">raise</span> <span class="pp">ValueError</span>(<span class="st">'source must be str, list, or tuple'</span>)</span>
+<span id="cb22-317"><a href="#cb22-317" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb22-318"><a href="#cb22-318" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">isinstance</span>(target, <span class="bu">str</span>):</span>
+<span id="cb22-319"><a href="#cb22-319" aria-hidden="true" tabindex="-1"></a>            target <span class="op">=</span> <span class="st">'#'</span> <span class="op">+</span> target</span>
+<span id="cb22-320"><a href="#cb22-320" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> <span class="bu">isinstance</span>(target, <span class="bu">list</span>):</span>
+<span id="cb22-321"><a href="#cb22-321" aria-hidden="true" tabindex="-1"></a>            target <span class="op">=</span> [<span class="st">'#'</span>] <span class="op">+</span> target</span>
+<span id="cb22-322"><a href="#cb22-322" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> <span class="bu">isinstance</span>(target, <span class="bu">tuple</span>):</span>
+<span id="cb22-323"><a href="#cb22-323" aria-hidden="true" tabindex="-1"></a>            target <span class="op">=</span> (<span class="st">'#'</span>,) <span class="op">+</span> target</span>
+<span id="cb22-324"><a href="#cb22-324" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb22-325"><a href="#cb22-325" aria-hidden="true" tabindex="-1"></a>            <span class="cf">raise</span> <span class="pp">ValueError</span>(<span class="st">'target must be str, list, or tuple'</span>)</span>
+<span id="cb22-326"><a href="#cb22-326" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb22-327"><a href="#cb22-327" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> source, target</span>
+<span id="cb22-328"><a href="#cb22-328" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb22-329"><a href="#cb22-329" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-332"><a href="#cb22-332" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb22-333"><a href="#cb22-333" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit4(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb22-334"><a href="#cb22-334" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-335"><a href="#cb22-335" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>)</span>
+<span id="cb22-336"><a href="#cb22-336" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb22-337"><a href="#cb22-337" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-338"><a href="#cb22-338" aria-hidden="true" tabindex="-1"></a>This isn't particularly interpretable, so we can postprocess the output slightly to better see what's going on.</span>
+<span id="cb22-339"><a href="#cb22-339" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-342"><a href="#cb22-342" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb22-343"><a href="#cb22-343" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> StringEdit5(StringEdit4):</span>
+<span id="cb22-344"><a href="#cb22-344" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''distance, alignment, and edit paths between strings</span></span>
+<span id="cb22-345"><a href="#cb22-345" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-346"><a href="#cb22-346" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-347"><a href="#cb22-347" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
+<span id="cb22-348"><a href="#cb22-348" aria-hidden="true" tabindex="-1"></a><span class="co">    ----------</span></span>
+<span id="cb22-349"><a href="#cb22-349" aria-hidden="true" tabindex="-1"></a><span class="co">    insertion_cost : float</span></span>
+<span id="cb22-350"><a href="#cb22-350" aria-hidden="true" tabindex="-1"></a><span class="co">    deletion_cost : float</span></span>
+<span id="cb22-351"><a href="#cb22-351" aria-hidden="true" tabindex="-1"></a><span class="co">    substitution_cost : float | NoneType (default: None)</span></span>
+<span id="cb22-352"><a href="#cb22-352" aria-hidden="true" tabindex="-1"></a><span class="co">    '''</span></span>
+<span id="cb22-353"><a href="#cb22-353" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-354"><a href="#cb22-354" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, source: <span class="bu">str</span>, </span>
+<span id="cb22-355"><a href="#cb22-355" aria-hidden="true" tabindex="-1"></a>                 target: <span class="bu">str</span>) <span class="op">-&gt;</span>  Tuple[<span class="bu">float</span>, List[List[Tuple[<span class="bu">str</span>, <span class="bu">str</span>]]]]:</span>
+<span id="cb22-356"><a href="#cb22-356" aria-hidden="true" tabindex="-1"></a>        distance, alignment <span class="op">=</span> <span class="va">self</span>._wagner_fisher(source, target)</span>
+<span id="cb22-357"><a href="#cb22-357" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb22-358"><a href="#cb22-358" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> distance, [[(source[i[<span class="dv">0</span>]], </span>
+<span id="cb22-359"><a href="#cb22-359" aria-hidden="true" tabindex="-1"></a>                            target[i[<span class="dv">1</span>]]) </span>
+<span id="cb22-360"><a href="#cb22-360" aria-hidden="true" tabindex="-1"></a>                           <span class="cf">for</span> i <span class="kw">in</span> a] </span>
+<span id="cb22-361"><a href="#cb22-361" aria-hidden="true" tabindex="-1"></a>                          <span class="cf">for</span> a <span class="kw">in</span> alignment]</span>
+<span id="cb22-362"><a href="#cb22-362" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb22-363"><a href="#cb22-363" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-366"><a href="#cb22-366" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb22-367"><a href="#cb22-367" aria-hidden="true" tabindex="-1"></a>editdist <span class="op">=</span> StringEdit5(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb22-368"><a href="#cb22-368" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-369"><a href="#cb22-369" aria-hidden="true" tabindex="-1"></a>editdist(<span class="st">'æbstɹækʃən'</span>, <span class="st">'æbstɹækt'</span>)</span>
+<span id="cb22-370"><a href="#cb22-370" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+
+
+
+<script src="../site_libs/quarto-contrib/line-highlight-1.0.0/line-highlight.js" defer="true"></script>
+</body></html>

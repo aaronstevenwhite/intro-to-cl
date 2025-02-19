@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.321">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Introduction to Computational Linguistics - Distance in the abstract</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../languages-in-terms-of-strings/levenshtein-distance.html" rel="next">
+<link href="../languages-in-terms-of-strings/index.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/quarto-contrib/line-highlight-1.0.0/line-highlight.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar docked">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../languages-in-terms-of-strings/index.html">Languages in terms of Strings</a></li><li class="breadcrumb-item"><a href="../languages-in-terms-of-strings/distance-in-the-abstract.html">Distance in the abstract</a></li></ol></nav>
+      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+      </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">Introduction to Computational Linguistics</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">About</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../installation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Installation</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">
+ <span class="menu-text">Languages as formal objects</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-as-formal-objects/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-as-formal-objects/sets.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Sets</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-as-formal-objects/multisets.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Multisets</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-as-formal-objects/tuples.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Tuples</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-as-formal-objects/cardinality.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Cardinality</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-as-formal-objects/set-relations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Set relations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-as-formal-objects/power-sets.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Power Sets</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-as-formal-objects/products.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Products</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-as-formal-objects/relations-and-functions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Relations and Functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-as-formal-objects/sequences.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Sequences</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-as-formal-objects/strings.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Strings</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-as-formal-objects/languages.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Languages</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true">
+ <span class="menu-text">Grammars as languages</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../grammars-as-languages/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../grammars-as-languages/defining-regular-expressions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Defining Regular Expressions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../grammars-as-languages/evaluating-regular-expressions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Evaluating Regular Expressions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../grammars-as-languages/loading-a-lexicon.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Loading a Lexicon</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../grammars-as-languages/basic-matching.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Basic Matching</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../grammars-as-languages/implementing-the-regular-operations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Implementing the Regular Operations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../grammars-as-languages/wild-cards-and-character-ranges.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Wild cards and character ranges</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../grammars-as-languages/quantifiers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Quantifiers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../grammars-as-languages/groups-and-greediness.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Groups and Greediness</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true">
+ <span class="menu-text">Uncertainty about Languages</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/what-is-a-probability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">What is a probability?</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/how-we-model-possibilities.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">How we model possibilities</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/what-it-means-to-measure-a-possibility.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">What it means to measure a possibility</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/some-useful-definitions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Some useful definitions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="false">
+ <span class="menu-text">Random Variables and Probability Distributions</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/random-variables-and-probability-distributions/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Classifying probability spaces</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/random-variables-and-probability-distributions/random-variables.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Random variables</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/random-variables-and-probability-distributions/probability-distributions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Probability distributions</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/some-more-useful-definitions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Some useful definitions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../uncertainty-about-languages/statistical-inference.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Statistical Inference</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">
+ <span class="menu-text">Languages in terms of Strings</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-in-terms-of-strings/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-in-terms-of-strings/distance-in-the-abstract.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Distance in the abstract</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-in-terms-of-strings/levenshtein-distance.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Levenshtein distance</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true">
+ <span class="menu-text">Languages and their use</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../languages-and-their-use/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true">
+ <span class="menu-text">The nature of phonological patterns</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../phonological-patterns/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="true">
+ <span class="menu-text">The nature of morphological patterns</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../syntactic-patterns/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="true">
+ <span class="menu-text">Analysis as deduction</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../analysis-as-deduction/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="true">
+ <span class="menu-text">The nature of syntactic patterns</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../syntactic-patterns/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" aria-expanded="true">
+ <span class="menu-text">Assignments</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../assignments/assignments-1-and-2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Assignments 1 and 2</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#real-numbers" id="toc-real-numbers" class="nav-link active" data-scroll-target="#real-numbers">Real numbers</a></li>
+  <li><a href="#vectors-of-real-numbers" id="toc-vectors-of-real-numbers" class="nav-link" data-scroll-target="#vectors-of-real-numbers">Vectors of real numbers</a></li>
+  <li><a href="#difficulties-with-strings" id="toc-difficulties-with-strings" class="nav-link" data-scroll-target="#difficulties-with-strings">Difficulties with strings</a></li>
+  <li><a href="#vectors-of-booleans" id="toc-vectors-of-booleans" class="nav-link" data-scroll-target="#vectors-of-booleans">“Vectors” of booleans</a></li>
+  <li><a href="#strings" id="toc-strings" class="nav-link" data-scroll-target="#strings">Strings</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title">Distance in the abstract</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<p>The first question we need to ask is “what could it mean for a string to be <em>close</em> to (or <em>far from</em>) another one?” To answer this, let’s consider what it means to be close in other domains.</p>
+<section id="real-numbers" class="level3">
+<h3 class="anchored" data-anchor-id="real-numbers">Real numbers</h3>
+<p>Suppose we have two numbers <span class="math inline">\(a, b \in \mathbb{R}\)</span>. How might we define the distance between them?</p>
+<p>We could compute equality.</p>
+<p><span class="math display">\[d_\text{eq}(a, b) = \begin{cases} 0 &amp; \text{if } a = b\\1 &amp; \text{otherwise}\end{cases}\]</span></p>
+<p>Or we could compute the absolute difference.</p>
+<p><span class="math display">\[d_\text{abs}(a, b) = |a - b|\]</span></p>
+<p>More generally, we could define a distance on elements of a set <span class="math inline">\(E\)</span> to be any function <span class="math inline">\(d: E \times E \rightarrow \mathbb{R}_+\)</span> that satisfies a few constraints:</p>
+<ol type="1">
+<li>The distance between an object and itself is <span class="math inline">\(0\)</span>: <span class="math inline">\(d(x, x) = 0\)</span></li>
+<li>The distance between an object and any other object is not <span class="math inline">\(0\)</span>: <span class="math inline">\(d(x, y) &gt; 0\)</span> if <span class="math inline">\(x \neq y\)</span></li>
+<li>The order of comparison doesn’t matter: <span class="math inline">\(d(x, y) = d(y, x)\)</span> (<em>symmetry</em>)</li>
+<li>The distance between two elements is no more than the distance between the first element and any other element plus the distance between the second element and that other element: <span class="math inline">\(d(x, y) \leq d(x, z) + d(z, y)\)</span> (<em>subadditivity</em> or <em>triangle inequality</em>)</li>
+</ol>
+<p><a href="https://en.wikipedia.org/wiki/Measure_(mathematics)">Measure Theory</a> and <a href="https://en.wikipedia.org/wiki/General_topology">General Topology</a> study (in part) functions like <span class="math inline">\(d\)</span> and more general classes of functions that arise from lifting some of the constraints 1-4. But for our purposes, this notion of a distance is useful.</p>
+</section>
+<section id="vectors-of-real-numbers" class="level3">
+<h3 class="anchored" data-anchor-id="vectors-of-real-numbers">Vectors of real numbers</h3>
+<p>Now, suppose we have two vectors of real numbers <span class="math inline">\(\mathbf{a}, \mathbf{b} \in \mathbb{R}^M\)</span>—basically, tuples of real numbers. How might we define the distance between them?</p>
+<p>Well, when <span class="math inline">\(M=2\)</span>, that’s just a point in a two-dimensional plane.</p>
+<div class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>a <span class="op">=</span> [<span class="dv">0</span>,<span class="dv">0</span>]</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>b <span class="op">=</span> [<span class="dv">1</span>,<span class="dv">1</span>]</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>ab <span class="op">=</span> np.array([a, b])</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>ab</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre data-code-line-numbers=""><code>array([[0, 0],
+       [1, 1]])</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb3" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.scatter(ab[:,<span class="dv">0</span>], ab[:,<span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="distance-in-the-abstract_files/figure-html/cell-3-output-1.png" width="571" height="411"></p>
+</div>
+</div>
+<p>We could again check for equality by checking for equality on each dimension.</p>
+<p><span class="math display">\[d_\text{eq-vec}(\mathbf{a}, \mathbf{b}) = \begin{cases} 0 &amp; \text{if } d_\text{eq}(a_1, b_1) = 0 \text{ and } d_\text{eq}(a_2, b_2) = 0\\1 &amp; \text{otherwise}\end{cases}\]</span></p>
+<p>Or we could again check for absolute difference, by checking for absolute difference on each dimension and then summing.</p>
+<p><span class="math display">\[d_\text{abs-vec}(\mathbf{a}, \mathbf{b}) = d_\text{abs}(a_1, b_1) + d_\text{abs}(a_2, b_2) = |a_1 - b_1| + |a_2 - b_2|\]</span></p>
+<p>This is called the Manhattan (or city block) distance.</p>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb4" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot([a[<span class="dv">0</span>], b[<span class="dv">0</span>]], [a[<span class="dv">1</span>], a[<span class="dv">1</span>]])</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot([b[<span class="dv">1</span>], b[<span class="dv">1</span>]], [a[<span class="dv">1</span>], b[<span class="dv">1</span>]])</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.scatter(ab[:,<span class="dv">0</span>], ab[:,<span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="distance-in-the-abstract_files/figure-html/cell-4-output-1.png" width="571" height="411"></p>
+</div>
+</div>
+<p>Or we could compute the Euclidean distance.</p>
+<p><span class="math display">\[d_\text{euc}(a, b) = \sqrt{(a_1 - b_1)^2 + (a_2 - b_2)^2}\]</span></p>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb5" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.scatter(ab[:,<span class="dv">0</span>], ab[:,<span class="dv">1</span>])</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot(ab[:,<span class="dv">0</span>], ab[:,<span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="distance-in-the-abstract_files/figure-html/cell-5-output-1.png" width="571" height="411"></p>
+</div>
+</div>
+<p>We could get even fancier by noticing that the absolute difference and Euclidean distance can be generalized—e.g.&nbsp;to the Minkowski <span class="math inline">\(p\)</span>-norm for some <span class="math inline">\(p\)</span>.</p>
+<p><span class="math display">\[d_{\text{mink}, p}(\mathbf{a}, \mathbf{b}) = \sqrt[p]{\sum_i |a_i - b_i|^p}\]</span></p>
+<p>where absolute difference is the case where <span class="math inline">\(p=1\)</span> and the Euclidean distance is the case where <span class="math inline">\(p=2\)</span>. (And this isn’t even near as <a href="https://en.wikipedia.org/wiki/Hilbert_space">fancy</a> as we can get.)</p>
+</section>
+<section id="difficulties-with-strings" class="level3">
+<h3 class="anchored" data-anchor-id="difficulties-with-strings">Difficulties with strings</h3>
+<p>The reason for going through all of this is to notice:</p>
+<ol type="1">
+<li>There are many different reasonable notions of the distance between two things, even when we’re talking about relatively simple things like points in a plane.</li>
+<li>One we have some reasonable notion, we can often <em>parameterize</em> it, providing us with an often infinite variety of new metrics.</li>
+</ol>
+<p>Both of these notions are import for understanding string distance because we can think of strings as vectors—sort of like the vectors we discussed above.</p>
+<p>There are two main differences between strings and real-valued vectors though:</p>
+<ol type="1">
+<li>The elements of a string are not necessarily ordered. And even if we treat them as ordered (e.g.&nbsp;by hashing them to their ASCII code or unicode) it’s not clear that the relevant ordering is useful in any way, especially for the computational linguist. (We could of course define lexicographic distance or something like that, but the order of the alphabet is arbitrary and doesn’t reallt reveal any interesting linguistic properties.)</li>
+<li>We can only compare real-valued vectors of the same dimensions with the distance metrics we just defined, but we often want to compare strings of different dimensions (i.e.&nbsp;lengths).</li>
+</ol>
+<p>To understand how to deal with the these issue, it’s useful to first start with boolean “vectors” because strings are just a generalization of boolean vectors.</p>
+</section>
+<section id="vectors-of-booleans" class="level3">
+<h3 class="anchored" data-anchor-id="vectors-of-booleans">“Vectors” of booleans</h3>
+<p>A boolean “vector” (I’m say shortly why I include quotes) is some tuple of boolean values <span class="math inline">\(\mathbf{a} \in \mathbb{B}^M = \{\top, \bot\}^M\)</span>. Notice that the case where <span class="math inline">\(M=2\)</span> gives us the vertices of a square with sides of length 1.</p>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb6" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>a <span class="op">=</span> [<span class="dv">0</span>,<span class="dv">0</span>]</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>b <span class="op">=</span> [<span class="dv">0</span>,<span class="dv">1</span>]</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>c <span class="op">=</span> [<span class="dv">1</span>,<span class="dv">1</span>]</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>d <span class="op">=</span> [<span class="dv">1</span>,<span class="dv">0</span>]</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>abcd <span class="op">=</span> np.array([a, b, c, d])</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>abcda <span class="op">=</span> np.array([a, b, c, d, a])</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot(abcda[:,<span class="dv">0</span>], abcda[:,<span class="dv">1</span>])</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.scatter(abcd[:,<span class="dv">0</span>], abcd[:,<span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="distance-in-the-abstract_files/figure-html/cell-6-output-1.png" width="571" height="411"></p>
+</div>
+</div>
+<p>In the case where <span class="math inline">\(M=3\)</span>, we get a cube; <span class="math inline">\(M=4\)</span> gives us a tesseract, etc. More generally, we refer to anything of higher dimension than a cube as an <span class="math inline">\(M\)</span>-hypercube.</p>
+<p>So how do we compute distance on boolean vectors? Let’s start with equality: how do we compute it? A natural way is the biconditional:</p>
+<p><span class="math inline">\(d_{eq}(a, b) = \begin{cases}0 &amp; \text{if } a \leftrightarrow b \\1 &amp; \text{otherwise}\end{cases}\)</span></p>
+<p>This may look backward, but remember that (i) <span class="math inline">\(d\)</span> is supposed to be a distance, so being equal means having no distance; and (ii) <span class="math inline">\(d\)</span> has a real-valued codomain (even if it’s range is just <span class="math inline">\(\{0, 1\}\)</span>. Indeed, <span class="math inline">\(d\)</span> actually just turns out to be isomorphic to XOR, which is just the negation of the biconditional. (It is crucially not <em>equivalent</em> to XOR or the biconditional, because <span class="math inline">\(d\)</span> has <span class="math inline">\(\mathbb{R}\)</span> as the codomain and XOR has <span class="math inline">\(\mathbb{B}\)</span> as its codomain.)</p>
+<p>Now that we have a notion of distance for booleans, we can do the same thing we did for the real numbers:</p>
+<p><span class="math display">\[d_\text{eq-vec}(\mathbf{a}, \mathbf{b}) = \begin{cases} 0 &amp; \text{if } d_\text{eq}(a_1, b_1) = 0 \text{ and } d_\text{eq}(a_2, b_2) = 0\\1 &amp; \text{otherwise}\end{cases}\]</span></p>
+<p>And notice that if <span class="math inline">\(M&gt;2\)</span>, we can actually just generalize this to:</p>
+<p><span class="math display">\[d_\text{eq-vec}(\mathbf{a}, \mathbf{b}) = \begin{cases} 0 &amp; \text{if } \bigwedge_i d_\text{eq}(a_i, b_i) = 0\\1 &amp; \text{otherwise}\end{cases}\]</span></p>
+<p>So now I can say why I’m using quotes around <em>vector</em>. Technically, vectors must have elements that come from a <a href="https://en.wikipedia.org/wiki/Field_(mathematics)">field</a>. If we use the notion of distance and the notion of combining distance mentioned above, we do get a field: the <a href="https://en.wikipedia.org/wiki/GF(2)">Galois Field</a>. You don’t need to know this, but if I had chosen, say, conjunction for our notion of equality, we would provably not have a field.</p>
+<p>So here’s a question: can we similarly define a reasonable distance that acts more like absolute difference? Sure. Instead of asking for strict equality at the vector level, we can count up the distances at the element level.</p>
+<p><span class="math display">\[d_\text{abs-vec}(\mathbf{a}, \mathbf{b}) = \sum_i d_\text{eq}(a_i, b_i)\]</span></p>
+<p>This is alternatively known as the <a href="https://en.wikipedia.org/wiki/Hamming_distance">Hamming distance</a>.</p>
+<p>So here’s why the thing about <span class="math inline">\(M=2\)</span> being a square, <span class="math inline">\(M=3\)</span> being a cube, etc. matters: basically what we’re doing here is counting how many sides of the square, cube, etc. we have to travel to get from one point to the other. It’s straightforward to check that this satisfies the distance constraints.</p>
+<p>The thing to notice here is that we did perfectly well here without an ordering on the boolean elements because we know when they will be equal: basically, when the biconditional holds. Further, this didn’t force us to only have a 0-1 distance output, since we can count the mismatches.</p>
+<p>Okay, so what we wanted to compare variable length boolean vectors? So what if we had a vector <span class="math inline">\(\mathbf{a} \in \mathbb{B}^2\)</span> and another <span class="math inline">\(\mathbf{b} \in \mathbb{B}^3\)</span>?</p>
+<p>Let’s return to the idea about squares and cubes: <span class="math inline">\(\mathbf{a}\)</span> would be a vertex of a square while <span class="math inline">\(\mathbf{b}\)</span> would be a vertex of a cube. But here’s the trick: squares are just one side of a cube. So how can we leverage that?</p>
+<p>The basic idea is to ask “what if I thought of <span class="math inline">\(\mathbf{a}\)</span> as <em>actually</em> denoting a vertex of the cube that <span class="math inline">\(\mathbf{b}\)</span> is a vertex of? Then, I could compute the distance between the two using whatever distance I already defined.”</p>
+<p>Where this gets complicated is in how exactly you decide to “think of” (map) <span class="math inline">\(\mathbf{a}\)</span> as a cube vertex. Here’s a few ways:</p>
+<p>If you’re mapping <span class="math inline">\(\mathbf{a}\)</span> from <span class="math inline">\(\mathbb{B}^M\)</span> to <span class="math inline">\(\mathbb{B}^N\)</span>, where <span class="math inline">\(N&gt;M\)</span>, for comparison to <span class="math inline">\(\mathbf{b} \in \mathbb{B}^N\)</span>…</p>
+<ol type="1">
+<li>Add <span class="math inline">\(N-M\)</span> <span class="math inline">\(\bot\)</span>s (or <span class="math inline">\(\top\)</span>s) to the beginning or end of <span class="math inline">\(\mathbf{a}\)</span></li>
+<li>Add the first (or last) <span class="math inline">\(N-M\)</span> elements of <span class="math inline">\(\mathbf{b}\)</span> to the beginning (or end) of <span class="math inline">\(\mathbf{a}\)</span></li>
+<li>Copy <span class="math inline">\(N-M\)</span> elements of <span class="math inline">\(\mathbf{b}\)</span> into <span class="math inline">\(\mathbf{a}\)</span> (in order), slotting them between any two elements of <span class="math inline">\(\mathbf{a}\)</span> so that the distance between the two is minimized.</li>
+</ol>
+<p>These all involve choosing a “face” of the higher dimensional thing to compare <span class="math inline">\(\mathbf{a}\)</span> to <span class="math inline">\(\mathbf{b}\)</span> on. The first just chooses the same face every time. The second chooses the the face dependent on <span class="math inline">\(\mathbf{b}\)</span> and will always result in a distance that is no longer than the one computed for the first, but it is not necessarily optimal. The last one will give us the shortest distance possible (by definition), but it is significantly more complicated to compute. You can get a sense for this by considering how many different ways you can spin a cube around to try to match a face.</p>
+<p>Of course, we could also go in the other direction, instead of trying to think of <span class="math inline">\(\mathbf{a}\)</span> as a cube vertex, we could try to think of <span class="math inline">\(\mathbf{b}\)</span> as a square vertex. This entails “flattening” the cube in some direction. But then the same challenge comes up: which direction do you flatten in? You again basically have the same choices, except that, when you’re deleting instead of adding, 1 and 2 end up looking the same.</p>
+<ol type="1">
+<li>Delete <span class="math inline">\(N-M\)</span> elements from the beginning or end of <span class="math inline">\(\mathbf{b}\)</span>.</li>
+<li>Delete <span class="math inline">\(N-M\)</span> elements from the beginning or end of <span class="math inline">\(\mathbf{b}\)</span>.</li>
+<li>Delete <span class="math inline">\(N-M\)</span> elements from <span class="math inline">\(\mathbf{b}\)</span> so that the distance between <span class="math inline">\(\mathbf{a}\)</span> and <span class="math inline">\(\mathbf{b}\)</span> is minimized.</li>
+</ol>
+<p>But there’s actually a problem with the first way: the direction you choose can give you different answers! This is because the deletion method will give distances that are at most <span class="math inline">\(M\)</span>, whereas the addition method will give distances that are at most <span class="math inline">\(N\)</span>. That’s bad because then you don’t have something that looks like a distance anymore, since remember that <span class="math inline">\(d(\mathbf{a}, \mathbf{b}) = d(\mathbf{b}, \mathbf{a})\)</span>. To fix this, we could always define the distance to only delete or only add, but the problem still remains that methods one and two require us to should what to add arbitrarily.</p>
+<p>Method 3 doesn’t turn out to have this directionality problem (as long as either addition and deletion don’t themselves add to the distance or they add the same amount), since you can always select your additions so that the added elements always match. And even if it did, we could back off to always moving from the smaller vector to the larger vector (or vice versa), with whatever penalty structure we wanted.</p>
+<p>The problem is figuring out what the best way of inserting or deleting elements is, since regardless of which way you go, you always have <span class="math inline">\({N \choose N-M}\)</span> possible choices (in the deletion case) and <span class="math inline">\({M \choose N-M} \times {N \choose N-M}\)</span> in the insertion case (since you need to not only decide where to insert, but always where to insert from). And even in the deletion case, if you consider all of these choices naively, you end up having check for the equality of <span class="math inline">\(M\)</span> elements, resulting in <span class="math inline">\({N \choose N-M} \times M\)</span> equality checks.</p>
+<p>It turns out there’s a better way, which we’ll see in a second. But first, how does any of this relate to strings?</p>
+</section>
+<section id="strings" class="level3">
+<h3 class="anchored" data-anchor-id="strings">Strings</h3>
+<p>Everything we just discussed about boolean vectors can be thought of in terms of strings by thinking of boolean vectors as strings from an alphabet with two elements: <span class="math inline">\(\top\)</span> and <span class="math inline">\(\bot\)</span>. And indeed, Hamming distance (the analogue of absolute difference we talked about earlier) is straightforwardly defined for strings by replacing the element-wise biconditional with element-wise equality.</p>
+<p>The reason to go through boolean vectors first is strings built from alphabets with more than two elements are hard to visualize, but the idea is basically the same: when we’ve got strings of different lengths, how do we determine how we should insert and/or delete elements?</p>
+
+
+<!-- -->
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  const viewSource = window.document.getElementById('quarto-view-source') ||
+                     window.document.getElementById('quarto-code-tools-source');
+  if (viewSource) {
+    const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+    viewSource.addEventListener("click", function(e) {
+      if (sourceUrl) {
+        // rstudio viewer pane
+        if (/\bcapabilities=\b/.test(window.location)) {
+          window.open(sourceUrl);
+        } else {
+          window.location.href = sourceUrl;
+        }
+      } else {
+        const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+        modal.show();
+      }
+      return false;
+    });
+  }
+  function toggleCodeHandler(show) {
+    return function(e) {
+      const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+      for (let i=0; i<detailsSrc.length; i++) {
+        const details = detailsSrc[i].parentElement;
+        if (show) {
+          details.open = true;
+        } else {
+          details.removeAttribute("open");
+        }
+      }
+      const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+      const fromCls = show ? "hidden" : "unhidden";
+      const toCls = show ? "unhidden" : "hidden";
+      for (let i=0; i<cellCodeDivs.length; i++) {
+        const codeDiv = cellCodeDivs[i];
+        if (codeDiv.classList.contains(fromCls)) {
+          codeDiv.classList.remove(fromCls);
+          codeDiv.classList.add(toCls);
+        } 
+      }
+      return false;
+    }
+  }
+  const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+  if (hideAllCode) {
+    hideAllCode.addEventListener("click", toggleCodeHandler(false));
+  }
+  const showAllCode = window.document.getElementById("quarto-show-all-code");
+  if (showAllCode) {
+    showAllCode.addEventListener("click", toggleCodeHandler(true));
+  }
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<script src="https://giscus.app/client.js" data-repo="aaronstevenwhite/intro-to-cl" data-repo-id="R_kgDOLDRKkw" data-category="General" data-category-id="DIC_kwDOLDRKk84CcfKw" data-mapping="title" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="top" data-theme="light" data-lang="en" crossorigin="anonymous" async="">
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../languages-in-terms-of-strings/index.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Overview</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../languages-in-terms-of-strings/levenshtein-distance.html" class="pagination-link">
+        <span class="nav-page-text">Levenshtein distance</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="sourceCode" id="cb7" data-shortcodes="false" data-code-line-numbers=""><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> Distance in the abstract</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>The first question we need to ask is "what could it mean for a string to be *close* to (or *far from*) another one?" To answer this, let's consider what it means to be close in other domains.</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="fu">### Real numbers</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>Suppose we have two numbers $a, b \in \mathbb{R}$. How might we define the distance between them? </span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>We could compute equality.</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>$$d_\text{eq}(a, b) = \begin{cases} 0 &amp; \text{if } a = b<span class="sc">\\</span>1 &amp; \text{otherwise}\end{cases}$$</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>Or we could compute the absolute difference.</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>$$d_\text{abs}(a, b) = |a - b|$$</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>More generally, we could define a distance on elements of a set $E$ to be any function $d: E \times E \rightarrow \mathbb{R}_+$ that satisfies a few constraints:</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>The distance between an object and itself is $0$: $d(x, x) = 0$</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>The distance between an object and any other object is not $0$: $d(x, y) &gt; 0$ if $x \neq y$</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>The order of comparison doesn't matter: $d(x, y) = d(y, x)$ (*symmetry*)</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>The distance between two elements is no more than the distance between the first element and any other element plus the distance between the second element and that other element: $d(x, y) \leq d(x, z) + d(z, y)$ (*subadditivity* or *triangle inequality*)</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">Measure Theory</span><span class="co">]</span>(https://en.wikipedia.org/wiki/Measure_(mathematics)) and <span class="co">[</span><span class="ot">General Topology</span><span class="co">](https://en.wikipedia.org/wiki/General_topology)</span> study (in part) functions like $d$ and more general classes of functions that arise from lifting some of the constraints 1-4. But for our purposes, this notion of a distance is useful.</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a><span class="fu">### Vectors of real numbers</span></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>Now, suppose we have two vectors of real numbers $\mathbf{a}, \mathbf{b} \in \mathbb{R}^M$—basically, tuples of real numbers. How might we define the distance between them? </span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>Well, when $M=2$, that's just a point in a two-dimensional plane. </span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>a <span class="op">=</span> [<span class="dv">0</span>,<span class="dv">0</span>]</span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>b <span class="op">=</span> [<span class="dv">1</span>,<span class="dv">1</span>]</span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>ab <span class="op">=</span> np.array([a, b])</span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>ab</span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.scatter(ab[:,<span class="dv">0</span>], ab[:,<span class="dv">1</span>])</span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>We could again check for equality by checking for equality on each dimension.</span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a>$$d_\text{eq-vec}(\mathbf{a}, \mathbf{b}) = \begin{cases} 0 &amp; \text{if } d_\text{eq}(a_1, b_1) = 0 \text{ and } d_\text{eq}(a_2, b_2) = 0<span class="sc">\\</span>1 &amp; \text{otherwise}\end{cases}$$</span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a>Or we could again check for absolute difference, by checking for absolute difference on each dimension and then summing.</span>
+<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a>$$d_\text{abs-vec}(\mathbf{a}, \mathbf{b}) = d_\text{abs}(a_1, b_1) + d_\text{abs}(a_2, b_2) = |a_1 - b_1| + |a_2 - b_2|$$</span>
+<span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a>This is called the Manhattan (or city block) distance.</span>
+<span id="cb7-64"><a href="#cb7-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot([a[<span class="dv">0</span>], b[<span class="dv">0</span>]], [a[<span class="dv">1</span>], a[<span class="dv">1</span>]])</span>
+<span id="cb7-69"><a href="#cb7-69" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot([b[<span class="dv">1</span>], b[<span class="dv">1</span>]], [a[<span class="dv">1</span>], b[<span class="dv">1</span>]])</span>
+<span id="cb7-70"><a href="#cb7-70" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.scatter(ab[:,<span class="dv">0</span>], ab[:,<span class="dv">1</span>])</span>
+<span id="cb7-71"><a href="#cb7-71" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-72"><a href="#cb7-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-73"><a href="#cb7-73" aria-hidden="true" tabindex="-1"></a>Or we could compute the Euclidean distance.</span>
+<span id="cb7-74"><a href="#cb7-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-75"><a href="#cb7-75" aria-hidden="true" tabindex="-1"></a>$$d_\text{euc}(a, b) = \sqrt{(a_1 - b_1)^2 + (a_2 - b_2)^2}$$</span>
+<span id="cb7-76"><a href="#cb7-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-79"><a href="#cb7-79" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-80"><a href="#cb7-80" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.scatter(ab[:,<span class="dv">0</span>], ab[:,<span class="dv">1</span>])</span>
+<span id="cb7-81"><a href="#cb7-81" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot(ab[:,<span class="dv">0</span>], ab[:,<span class="dv">1</span>])</span>
+<span id="cb7-82"><a href="#cb7-82" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-83"><a href="#cb7-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-84"><a href="#cb7-84" aria-hidden="true" tabindex="-1"></a>We could get even fancier by noticing that the absolute difference and Euclidean distance can be generalized—e.g. to the Minkowski $p$-norm for some $p$.</span>
+<span id="cb7-85"><a href="#cb7-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-86"><a href="#cb7-86" aria-hidden="true" tabindex="-1"></a>$$d_{\text{mink}, p}(\mathbf{a}, \mathbf{b}) = \sqrt<span class="co">[</span><span class="ot">p</span><span class="co">]</span>{\sum_i |a_i - b_i|^p}$$</span>
+<span id="cb7-87"><a href="#cb7-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-88"><a href="#cb7-88" aria-hidden="true" tabindex="-1"></a>where absolute difference is the case where $p=1$ and the Euclidean distance is the case where $p=2$. (And this isn't even near as <span class="co">[</span><span class="ot">fancy</span><span class="co">](https://en.wikipedia.org/wiki/Hilbert_space)</span> as we can get.)</span>
+<span id="cb7-89"><a href="#cb7-89" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-90"><a href="#cb7-90" aria-hidden="true" tabindex="-1"></a><span class="fu">### Difficulties with strings</span></span>
+<span id="cb7-91"><a href="#cb7-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-92"><a href="#cb7-92" aria-hidden="true" tabindex="-1"></a>The reason for going through all of this is to notice:</span>
+<span id="cb7-93"><a href="#cb7-93" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-94"><a href="#cb7-94" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>There are many different reasonable notions of the distance between two things, even when we're talking about relatively simple things like points in a plane.</span>
+<span id="cb7-95"><a href="#cb7-95" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>One we have some reasonable notion, we can often *parameterize* it, providing us with an often infinite variety of new metrics.</span>
+<span id="cb7-96"><a href="#cb7-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-97"><a href="#cb7-97" aria-hidden="true" tabindex="-1"></a>Both of these notions are import for understanding string distance because we can think of strings as vectors—sort of like the vectors we discussed above. </span>
+<span id="cb7-98"><a href="#cb7-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-99"><a href="#cb7-99" aria-hidden="true" tabindex="-1"></a>There are two main differences between strings and real-valued vectors though:</span>
+<span id="cb7-100"><a href="#cb7-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-101"><a href="#cb7-101" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>The elements of a string are not necessarily ordered. And even if we treat them as ordered (e.g. by hashing them to their ASCII code or unicode) it's not clear that the relevant ordering is useful in any way, especially for the computational linguist. (We could of course define lexicographic distance or something like that, but the order of the alphabet is arbitrary and doesn't reallt reveal any interesting linguistic properties.)</span>
+<span id="cb7-102"><a href="#cb7-102" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>We can only compare real-valued vectors of the same dimensions with the distance metrics we just defined, but we often want to compare strings of different dimensions (i.e. lengths).</span>
+<span id="cb7-103"><a href="#cb7-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-104"><a href="#cb7-104" aria-hidden="true" tabindex="-1"></a>To understand how to deal with the these issue, it's useful to first start with boolean "vectors" because strings are just a generalization of boolean vectors.</span>
+<span id="cb7-105"><a href="#cb7-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-106"><a href="#cb7-106" aria-hidden="true" tabindex="-1"></a><span class="fu">### "Vectors" of booleans</span></span>
+<span id="cb7-107"><a href="#cb7-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-108"><a href="#cb7-108" aria-hidden="true" tabindex="-1"></a>A boolean "vector" (I'm say shortly why I include quotes) is some tuple of boolean values $\mathbf{a} \in \mathbb{B}^M = <span class="sc">\{</span>\top, \bot<span class="sc">\}</span>^M$. Notice that the case where $M=2$ gives us the vertices of a square with sides of length 1.</span>
+<span id="cb7-109"><a href="#cb7-109" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-112"><a href="#cb7-112" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-113"><a href="#cb7-113" aria-hidden="true" tabindex="-1"></a>a <span class="op">=</span> [<span class="dv">0</span>,<span class="dv">0</span>]</span>
+<span id="cb7-114"><a href="#cb7-114" aria-hidden="true" tabindex="-1"></a>b <span class="op">=</span> [<span class="dv">0</span>,<span class="dv">1</span>]</span>
+<span id="cb7-115"><a href="#cb7-115" aria-hidden="true" tabindex="-1"></a>c <span class="op">=</span> [<span class="dv">1</span>,<span class="dv">1</span>]</span>
+<span id="cb7-116"><a href="#cb7-116" aria-hidden="true" tabindex="-1"></a>d <span class="op">=</span> [<span class="dv">1</span>,<span class="dv">0</span>]</span>
+<span id="cb7-117"><a href="#cb7-117" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-118"><a href="#cb7-118" aria-hidden="true" tabindex="-1"></a>abcd <span class="op">=</span> np.array([a, b, c, d])</span>
+<span id="cb7-119"><a href="#cb7-119" aria-hidden="true" tabindex="-1"></a>abcda <span class="op">=</span> np.array([a, b, c, d, a])</span>
+<span id="cb7-120"><a href="#cb7-120" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-121"><a href="#cb7-121" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.plot(abcda[:,<span class="dv">0</span>], abcda[:,<span class="dv">1</span>])</span>
+<span id="cb7-122"><a href="#cb7-122" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> plt.scatter(abcd[:,<span class="dv">0</span>], abcd[:,<span class="dv">1</span>])</span>
+<span id="cb7-123"><a href="#cb7-123" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-124"><a href="#cb7-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-125"><a href="#cb7-125" aria-hidden="true" tabindex="-1"></a>In the case where $M=3$, we get a cube; $M=4$ gives us a tesseract, etc. More generally, we refer to anything of higher dimension than a cube as an $M$-hypercube.</span>
+<span id="cb7-126"><a href="#cb7-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-127"><a href="#cb7-127" aria-hidden="true" tabindex="-1"></a>So how do we compute distance on boolean vectors? Let's start with equality: how do we compute it? A natural way is the biconditional:</span>
+<span id="cb7-128"><a href="#cb7-128" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-129"><a href="#cb7-129" aria-hidden="true" tabindex="-1"></a>$d_{eq}(a, b) = \begin{cases}0 &amp; \text{if } a \leftrightarrow b <span class="sc">\\</span>1 &amp; \text{otherwise}\end{cases}$</span>
+<span id="cb7-130"><a href="#cb7-130" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-131"><a href="#cb7-131" aria-hidden="true" tabindex="-1"></a>This may look backward, but remember that (i) $d$ is supposed to be a distance, so being equal means having no distance; and (ii) $d$ has a real-valued codomain (even if it's range is just $<span class="sc">\{</span>0, 1<span class="sc">\}</span>$. Indeed, $d$ actually just turns out to be isomorphic to XOR, which is just the negation of the biconditional. (It is crucially not *equivalent* to XOR or the biconditional, because $d$ has $\mathbb{R}$ as the codomain and XOR has $\mathbb{B}$ as its codomain.)</span>
+<span id="cb7-132"><a href="#cb7-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-133"><a href="#cb7-133" aria-hidden="true" tabindex="-1"></a>Now that we have a notion of distance for booleans, we can do the same thing we did for the real numbers:</span>
+<span id="cb7-134"><a href="#cb7-134" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-135"><a href="#cb7-135" aria-hidden="true" tabindex="-1"></a>$$d_\text{eq-vec}(\mathbf{a}, \mathbf{b}) = \begin{cases} 0 &amp; \text{if } d_\text{eq}(a_1, b_1) = 0 \text{ and } d_\text{eq}(a_2, b_2) = 0<span class="sc">\\</span>1 &amp; \text{otherwise}\end{cases}$$</span>
+<span id="cb7-136"><a href="#cb7-136" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-137"><a href="#cb7-137" aria-hidden="true" tabindex="-1"></a>And notice that if $M&gt;2$, we can actually just generalize this to:</span>
+<span id="cb7-138"><a href="#cb7-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-139"><a href="#cb7-139" aria-hidden="true" tabindex="-1"></a>$$d_\text{eq-vec}(\mathbf{a}, \mathbf{b}) = \begin{cases} 0 &amp; \text{if } \bigwedge_i d_\text{eq}(a_i, b_i) = 0<span class="sc">\\</span>1 &amp; \text{otherwise}\end{cases}$$</span>
+<span id="cb7-140"><a href="#cb7-140" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-141"><a href="#cb7-141" aria-hidden="true" tabindex="-1"></a>So now I can say why I'm using quotes around *vector*. Technically, vectors must have elements that come from a <span class="co">[</span><span class="ot">field</span><span class="co">]</span>(https://en.wikipedia.org/wiki/Field_(mathematics)). If we use the notion of distance and the notion of combining distance mentioned above, we do get a field: the <span class="co">[</span><span class="ot">Galois Field</span><span class="co">]</span>(https://en.wikipedia.org/wiki/GF(2)). You don't need to know this, but if I had chosen, say, conjunction for our notion of equality, we would provably not have a field.</span>
+<span id="cb7-142"><a href="#cb7-142" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-143"><a href="#cb7-143" aria-hidden="true" tabindex="-1"></a>So here's a question: can we similarly define a reasonable distance that acts more like absolute difference? Sure. Instead of asking for strict equality at the vector level, we can count up the distances at the element level.</span>
+<span id="cb7-144"><a href="#cb7-144" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-145"><a href="#cb7-145" aria-hidden="true" tabindex="-1"></a>$$d_\text{abs-vec}(\mathbf{a}, \mathbf{b}) = \sum_i d_\text{eq}(a_i, b_i)$$</span>
+<span id="cb7-146"><a href="#cb7-146" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-147"><a href="#cb7-147" aria-hidden="true" tabindex="-1"></a>This is alternatively known as the <span class="co">[</span><span class="ot">Hamming distance</span><span class="co">](https://en.wikipedia.org/wiki/Hamming_distance)</span>.</span>
+<span id="cb7-148"><a href="#cb7-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-149"><a href="#cb7-149" aria-hidden="true" tabindex="-1"></a>So here's why the thing about $M=2$ being a square, $M=3$ being a cube, etc. matters: basically what we're doing here is counting how many sides of the square, cube, etc. we have to travel to get from one point to the other. It's straightforward to check that this satisfies the distance constraints.</span>
+<span id="cb7-150"><a href="#cb7-150" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-151"><a href="#cb7-151" aria-hidden="true" tabindex="-1"></a>The thing to notice here is that we did perfectly well here without an ordering on the boolean elements because we know when they will be equal: basically, when the biconditional holds. Further, this didn't force us to only have a 0-1 distance output, since we can count the mismatches.</span>
+<span id="cb7-152"><a href="#cb7-152" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-153"><a href="#cb7-153" aria-hidden="true" tabindex="-1"></a>Okay, so what we wanted to compare variable length boolean vectors? So what if we had a vector $\mathbf{a} \in \mathbb{B}^2$ and another $\mathbf{b} \in \mathbb{B}^3$?</span>
+<span id="cb7-154"><a href="#cb7-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-155"><a href="#cb7-155" aria-hidden="true" tabindex="-1"></a>Let's return to the idea about squares and cubes: $\mathbf{a}$ would be a vertex of a square while $\mathbf{b}$ would be a vertex of a cube. But here's the trick: squares are just one side of a cube. So how can we leverage that? </span>
+<span id="cb7-156"><a href="#cb7-156" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-157"><a href="#cb7-157" aria-hidden="true" tabindex="-1"></a>The basic idea is to ask "what if I thought of $\mathbf{a}$ as *actually* denoting a vertex of the cube that $\mathbf{b}$ is a vertex of? Then, I could compute the distance between the two using whatever distance I already defined."</span>
+<span id="cb7-158"><a href="#cb7-158" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-159"><a href="#cb7-159" aria-hidden="true" tabindex="-1"></a>Where this gets complicated is in how exactly you decide to "think of" (map) $\mathbf{a}$ as a cube vertex. Here's a few ways:</span>
+<span id="cb7-160"><a href="#cb7-160" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-161"><a href="#cb7-161" aria-hidden="true" tabindex="-1"></a>If you're mapping $\mathbf{a}$ from $\mathbb{B}^M$ to $\mathbb{B}^N$, where $N&gt;M$, for comparison to $\mathbf{b} \in \mathbb{B}^N$...</span>
+<span id="cb7-162"><a href="#cb7-162" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-163"><a href="#cb7-163" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>Add $N-M$ $\bot$s (or $\top$s) to the beginning or end of $\mathbf{a}$</span>
+<span id="cb7-164"><a href="#cb7-164" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>Add the first (or last) $N-M$ elements of $\mathbf{b}$ to the beginning (or end) of $\mathbf{a}$</span>
+<span id="cb7-165"><a href="#cb7-165" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>Copy $N-M$ elements of $\mathbf{b}$ into $\mathbf{a}$ (in order), slotting them between any two elements of $\mathbf{a}$ so that the distance between the two is minimized.</span>
+<span id="cb7-166"><a href="#cb7-166" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-167"><a href="#cb7-167" aria-hidden="true" tabindex="-1"></a>These all involve choosing a "face" of the higher dimensional thing to compare $\mathbf{a}$ to $\mathbf{b}$ on. The first just chooses the same face every time. The second chooses the the face dependent on $\mathbf{b}$ and will always result in a distance that is no longer than the one computed for the first, but it is not necessarily optimal. The last one will give us the shortest distance possible (by definition), but it is significantly more complicated to compute. You can get a sense for this by considering how many different ways you can spin a cube around to try to match a face.</span>
+<span id="cb7-168"><a href="#cb7-168" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-169"><a href="#cb7-169" aria-hidden="true" tabindex="-1"></a>Of course, we could also go in the other direction, instead of trying to think of $\mathbf{a}$ as a cube vertex, we could try to think of $\mathbf{b}$ as a square vertex. This entails "flattening" the cube in some direction. But then the same challenge comes up: which direction do you flatten in? You again basically have the same choices, except that, when you're deleting instead of adding, 1 and 2 end up looking the same.</span>
+<span id="cb7-170"><a href="#cb7-170" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-171"><a href="#cb7-171" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>Delete $N-M$ elements from the beginning or end of $\mathbf{b}$.</span>
+<span id="cb7-172"><a href="#cb7-172" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>Delete $N-M$ elements from the beginning or end of $\mathbf{b}$.</span>
+<span id="cb7-173"><a href="#cb7-173" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>Delete $N-M$ elements from $\mathbf{b}$ so that the distance between $\mathbf{a}$ and $\mathbf{b}$ is minimized.</span>
+<span id="cb7-174"><a href="#cb7-174" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-175"><a href="#cb7-175" aria-hidden="true" tabindex="-1"></a>But there's actually a problem with the first way: the direction you choose can give you different answers! This is because the deletion method will give distances that are at most $M$, whereas the addition method will give distances that are at most $N$. That's bad because then you don't have something that looks like a distance anymore, since remember that $d(\mathbf{a}, \mathbf{b}) = d(\mathbf{b}, \mathbf{a})$. To fix this, we could always define the distance to only delete or only add, but the problem still remains that methods one and two require us to should what to add arbitrarily.</span>
+<span id="cb7-176"><a href="#cb7-176" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-177"><a href="#cb7-177" aria-hidden="true" tabindex="-1"></a>Method 3 doesn't turn out to have this directionality problem (as long as either addition and deletion don't themselves add to the distance or they add the same amount), since you can always select your additions so that the added elements always match. And even if it did, we could back off to always moving from the smaller vector to the larger vector (or vice versa), with whatever penalty structure we wanted.</span>
+<span id="cb7-178"><a href="#cb7-178" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-179"><a href="#cb7-179" aria-hidden="true" tabindex="-1"></a>The problem is figuring out what the best way of inserting or deleting elements is, since regardless of which way you go, you always have ${N \choose N-M}$ possible choices (in the deletion case) and ${M \choose N-M} \times {N \choose N-M}$ in the insertion case (since you need to not only decide where to insert, but always where to insert from). And even in the deletion case, if you consider all of these choices naively, you end up having check for the equality of $M$ elements, resulting in ${N \choose N-M} \times M$ equality checks. </span>
+<span id="cb7-180"><a href="#cb7-180" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-181"><a href="#cb7-181" aria-hidden="true" tabindex="-1"></a>It turns out there's a better way, which we'll see in a second. But first, how does any of this relate to strings?</span>
+<span id="cb7-182"><a href="#cb7-182" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-183"><a href="#cb7-183" aria-hidden="true" tabindex="-1"></a><span class="fu">### Strings</span></span>
+<span id="cb7-184"><a href="#cb7-184" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-185"><a href="#cb7-185" aria-hidden="true" tabindex="-1"></a>Everything we just discussed about boolean vectors can be thought of in terms of strings by thinking of boolean vectors as strings from an alphabet with two elements: $\top$ and $\bot$. And indeed, Hamming distance (the analogue of absolute difference we talked about earlier) is straightforwardly defined for strings by replacing the element-wise biconditional with element-wise equality.</span>
+<span id="cb7-186"><a href="#cb7-186" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-187"><a href="#cb7-187" aria-hidden="true" tabindex="-1"></a>The reason to go through boolean vectors first is strings built from alphabets with more than two elements are hard to visualize, but the idea is basically the same: when we've got strings of different lengths, how do we determine how we should insert and/or delete elements?</span>
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+
+
+
+<script src="../site_libs/quarto-contrib/line-highlight-1.0.0/line-highlight.js" defer="true"></script>
+</body></html>
