@@ -44,7 +44,7 @@ project:
   - syntactic-patterns/index.qmd
   - analysis-as-deduction/index.qmd
   - assignments/assignments-1-and-2.ipynb
-
+  - assignments/assignments-3-and-4.ipynb
 
 website:
   title: "Introduction to Computational Linguistics"
@@ -117,6 +117,7 @@ website:
       - section: "Assignments"
         contents:
         - assignments/assignments-1-and-2.ipynb
+        - assignments/assignments-3-and-4.ipynb
 
 format:
   html:
