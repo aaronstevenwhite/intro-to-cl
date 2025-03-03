@@ -3,8 +3,15 @@ title: Overview
 bibliography: ../references.bib
 ---
 
-::: {.callout-caution}
-## Availability
+Up until this point, we've mainly focused on setting up the foundations for analyzing languages as formal objects. We defined a language $L$ on an alphabet $\Sigma$ as a subset of the set of strings $\Sigma^* = \bigcup_{i=0}^\infty \Sigma^i$ on $\Sigma$ (i.e. $L \in 2^{\Sigma^*}$). We explored one way of describing languages in the form of regular expressions on $\Sigma$ and we discussed one way of describing a relation between strings in the form of minimum edit distance.
 
-This module will be available on February 26, 2025.
-:::
+What we will now begin to do is to deploy these tools for describing and expressing generalizations about possible languages. To do this, we are going to need to start thinking in terms of sets of sets of languages. That is, we will begin to think about subsets $\mathcal{L}$ of the set of languages $2^{\Sigma^*}$ on $\Sigma$. This approach will yield four important levels of abstraction:
+
+1. Primitive (unanalyzed) elements $\sigma \in \Sigma$
+2. Collections of primitive elements: sets $\Sigma$ or sequences $\boldsymbol\sigma \in \Sigma^*$
+3. Languages: collections of sequences of primitive elements $L \in 2^{\Sigma^*}$
+4. Collections of languages $\mathcal{L} \subseteq 2^{\Sigma^*}$
+
+We are going to be particularly interested in collections of languages that share some interesting properties. We will call such collections *classes of languages* (or *families of languages*), and we will be interested in ways of compactly describing those classes that leverage the property shared by languages in the class. We will call compact descriptions of a particular language grammars and collections thereof classes of grammars $\mathcal{G}$.
+
+We've already seen a few examples of classes of languages and classes of grammars. For example, the class of regular languages is a class of languages, and the class of regular expressions is a class of grammars. In this module, we will explore this class of languages (and subclasses thereof) in more detail in order to understand (i) the properties that the regular languages (and certain phonologically interesting subclasses thereof) have, and (ii) the boundaries of the class–i.e. how expressive grammars for regular languages are.

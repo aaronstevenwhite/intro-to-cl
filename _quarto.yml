@@ -39,8 +39,15 @@ project:
   - languages-in-terms-of-strings/index.qmd
   - languages-in-terms-of-strings/distance-in-the-abstract.qmd
   - languages-in-terms-of-strings/levenshtein-distance.qmd
-  - languages-and-their-use/index.qmd
   - phonological-patterns/index.qmd
+  - phonological-patterns/generation.qmd
+  - phonological-patterns/the-generativist-conceit.qmd
+  - phonological-patterns/formal-definition/index.qmd
+  - phonological-patterns/formal-definition/the-regular-operations.qmd
+  - phonological-patterns/formal-definition/two-equivalent-definitions.qmd
+  - phonological-patterns/generative-capacity/index.qmd
+  - phonological-patterns/phonological-rules-as-fsas/index.qmd
+  - phonological-patterns/recognition-and-parsing/index.qmd
   - syntactic-patterns/index.qmd
   - analysis-as-deduction/index.qmd
   - assignments/assignments-1-and-2.ipynb
@@ -99,12 +106,25 @@ website:
         - languages-in-terms-of-strings/index.qmd
         - languages-in-terms-of-strings/distance-in-the-abstract.qmd
         - languages-in-terms-of-strings/levenshtein-distance.qmd
-      - section: "Languages and their use"
-        contents:
-        - languages-and-their-use/index.qmd
       - section: "The nature of phonological patterns"
         contents:
         - phonological-patterns/index.qmd
+        - phonological-patterns/generation.qmd
+        - phonological-patterns/the-generativist-conceit.qmd
+        - section: "Formal definition"
+          contents:
+          - phonological-patterns/formal-definition/index.qmd
+          - phonological-patterns/formal-definition/two-equivalent-definitions.qmd
+          - phonological-patterns/formal-definition/the-regular-operations.qmd
+        - section: "Generative capacity"
+          contents:
+          - phonological-patterns/generative-capacity/index.qmd
+        - section: "Phonological rules as FSAs"
+          contents:
+          - phonological-patterns/phonological-rules-as-fsas/index.qmd
+        - section: "Recognition and parsing"
+          contents:
+          - phonological-patterns/recognition-and-parsing/index.qmd
       - section: "The nature of morphological patterns"
         contents:
         - syntactic-patterns/index.qmd

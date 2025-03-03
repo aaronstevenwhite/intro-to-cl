@@ -18,9 +18,6 @@ Given NFAs $M_1 = \langle Q_1, \Sigma_1, \delta_1, q_1, F_1 \rangle$ recognizing
 
 ```{python}
 class FiniteStateAutomaton:
-    pass
-
-class FiniteStateAutomaton(FiniteStateAutomaton):
     """A finite state automaton
 
     Parameters
@@ -173,7 +170,7 @@ q_0 & \text{if } (q = q'_0 \lor q \in F) \land \sigma = \epsilon \\
 
 
 ```{python}
-class FiniteStateAutomaton(FiniteStateAutomaton):
+class FiniteStateAutomaton:
     """A finite state automaton
 
     Parameters
