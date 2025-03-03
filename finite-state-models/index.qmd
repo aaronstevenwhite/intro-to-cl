@@ -1,6 +1,0 @@
----
-title: Overview
-bibliography: ../references.bib
----
-
-In the last module, we mainly focused on setting up the foundations for analyzing languages as formal objects. We defined a language $L$ on an alphabet $\Sigma$ as a subset of the set of strings $\Sigma^* = \bigcup_{i=0}^\infty \Sigma^i$ on $\Sigma$ (i.e. $L \in 2^{\Sigma^*}$). We explored one way of describing languages in the form of regular expressions on $\Sigma$ and we discussed one way of describing a relation between strings in the form of minimum edit distance.^[In fact, we decribed minimum edit distance as a relation from tuples of strings to distances; but as we explored in Assignment 3, we can also think of a distance, in the context of a particular weighting on edit operations, as a relation on strings: namely, a relation on strings that are \{at most, exactly, at least, ...\} that distance apart. This idea extends the notion of a [ball](https://en.wikipedia.org/wiki/Ball_(mathematics)) or [sphere](https://en.wikipedia.org/wiki/Sphere), depending on the constraint, to strings.]
