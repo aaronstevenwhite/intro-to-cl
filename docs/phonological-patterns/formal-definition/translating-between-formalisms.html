@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Introduction to Computational Linguistics - Overview</title>
+<title>Introduction to Computational Linguistics - Translating Regular Expressions to NFAs</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -64,8 +64,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../../">
-<link href="../../phonological-patterns/formal-definition/two-equivalent-definitions.html" rel="next">
-<link href="../../phonological-patterns/the-generativist-conceit.html" rel="prev">
+<link href="../../phonological-patterns/formal-definition/beyond-the-regular-operations.html" rel="next">
+<link href="../../phonological-patterns/formal-definition/the-regular-operations.html" rel="prev">
 <script src="../../site_libs/quarto-html/quarto.js"></script>
 <script src="../../site_libs/quarto-html/popper.min.js"></script>
 <script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -111,7 +111,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../phonological-patterns/index.html">The nature of phonological patterns</a></li><li class="breadcrumb-item"><a href="../../phonological-patterns/formal-definition/index.html">Formal definition</a></li><li class="breadcrumb-item"><a href="../../phonological-patterns/formal-definition/index.html">Overview</a></li></ol></nav>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../phonological-patterns/index.html">The nature of phonological patterns</a></li><li class="breadcrumb-item"><a href="../../phonological-patterns/formal-definition/index.html">Formal definition</a></li><li class="breadcrumb-item"><a href="../../phonological-patterns/formal-definition/translating-between-formalisms.html">Translating Regular Expressions to NFAs</a></li></ol></nav>
       <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
       </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -445,7 +445,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth2 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../phonological-patterns/formal-definition/index.html" class="sidebar-item-text sidebar-link active">
+  <a href="../../phonological-patterns/formal-definition/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
@@ -461,34 +461,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text">The regular operations</span></a>
   </div>
 </li>
-      </ul>
-  </li>
-          <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="false">
- <span class="menu-text">Generative capacity</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="false" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../phonological-patterns/generative-capacity/index.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Overview</span></a>
+  <a href="../../phonological-patterns/formal-definition/translating-between-formalisms.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Translating Regular Expressions to NFAs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../phonological-patterns/formal-definition/beyond-the-regular-operations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The intersection operation via complement</span></a>
   </div>
 </li>
       </ul>
   </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="false">
  <span class="menu-text">Phonological rules as FSAs</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth2 ">  
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../phonological-patterns/phonological-rules-as-fsas/index.html" class="sidebar-item-text sidebar-link">
@@ -499,8 +494,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="false">
  <span class="menu-text">Recognition and parsing</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../phonological-patterns/recognition-and-parsing/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="false">
+ <span class="menu-text">Generative capacity</span></a>
           <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -508,7 +520,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../phonological-patterns/recognition-and-parsing/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../phonological-patterns/generative-capacity/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
@@ -596,14 +608,27 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#translating-regular-expressions-to-nfas" id="toc-translating-regular-expressions-to-nfas" class="nav-link active" data-scroll-target="#translating-regular-expressions-to-nfas">Translating Regular Expressions to NFAs</a></li>
+  <li><a href="#base-cases" id="toc-base-cases" class="nav-link" data-scroll-target="#base-cases">Base Cases</a></li>
+  <li><a href="#recursive-cases" id="toc-recursive-cases" class="nav-link" data-scroll-target="#recursive-cases">Recursive Cases</a></li>
+  <li><a href="#translating-nfas-to-regular-expressions" id="toc-translating-nfas-to-regular-expressions" class="nav-link" data-scroll-target="#translating-nfas-to-regular-expressions">Translating NFAs to Regular Expressions</a>
+  <ul class="collapse">
+  <li><a href="#the-state-elimination-method" id="toc-the-state-elimination-method" class="nav-link" data-scroll-target="#the-state-elimination-method">The State Elimination Method</a></li>
+  <li><a href="#formal-definition" id="toc-formal-definition" class="nav-link" data-scroll-target="#formal-definition">Formal Definition</a></li>
+  </ul></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<div class="quarto-title-block"><div><h1 class="title">Overview</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+<div class="quarto-title-block"><div><h1 class="title">Translating Regular Expressions to NFAs</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
 </div>
 
 
@@ -618,112 +643,138 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<p>We’ll start with an application of FSAs to modeling licit English syllables. To get a sense for what FSAs look like, let’s consider the following example, which aims to model possible English syllables:</p>
-<img src="index_files/mediabag/a4088b8a4d670ba4f7dfddf320f5d1a7d259920e.svg" class="img-fluid" data-code-line-numbers="">
-<p>The symbols along the arrow represent collections of symbols.</p>
-<table class="table">
-<thead>
-<tr class="header">
-<th>Class Symbol</th>
-<th>IPA Symbols</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>C<sub>stop</sub></td>
-<td>[p, b, t, d, k, g]</td>
-<td>Stop consonants/plosives</td>
-</tr>
-<tr class="even">
-<td>C<sub>fric</sub></td>
-<td>[f, v, θ, ð, s, z, ʃ, ʒ, h]</td>
-<td>Fricatives</td>
-</tr>
-<tr class="odd">
-<td>C<sub>affr/nas</sub></td>
-<td>[tʃ, dʒ, m, n, ŋ]</td>
-<td>Affricates and nasals</td>
-</tr>
-<tr class="even">
-<td>C<sub>liq/glide</sub></td>
-<td>[l, r, w, j]</td>
-<td>Liquids and glides</td>
-</tr>
-<tr class="odd">
-<td>C<sub>liq</sub></td>
-<td>[l, r]</td>
-<td>Liquids only</td>
-</tr>
-<tr class="even">
-<td>C<sub>glide</sub></td>
-<td>[w, j]</td>
-<td>Glides only</td>
-</tr>
-<tr class="odd">
-<td>C<sub>obstr</sub></td>
-<td>[t, d, s, z, θ, ð]</td>
-<td>Obstruents in coda clusters</td>
-</tr>
-<tr class="even">
-<td>C<sub>s</sub></td>
-<td>[s]</td>
-<td>Just /s/, common in complex codas</td>
-</tr>
-<tr class="odd">
-<td>C<sub>syl</sub></td>
-<td>[n̩, m̩, l̩, r̩]</td>
-<td>Syllabic consonants</td>
-</tr>
-</tbody>
-</table>
-<table class="table">
-<colgroup>
-<col style="width: 35%">
-<col style="width: 32%">
-<col style="width: 32%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Class Symbol</th>
-<th>IPA Symbols</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>V<sub>front</sub></td>
-<td>[i, ɪ, e, ɛ, æ, a]</td>
-<td>Front vowels</td>
-</tr>
-<tr class="even">
-<td>V<sub>back</sub></td>
-<td>[ɑ, ɔ, o, ʊ, u, ʌ, ə, ɝ]</td>
-<td>Back vowels</td>
-</tr>
-<tr class="odd">
-<td>V<sub>glide</sub></td>
-<td>[ɪ, ʊ]</td>
-<td>Vowels that can form glides in diphthongs</td>
-</tr>
-</tbody>
-</table>
-<p>There’s a few components to notice here:</p>
+<p>We’ve seen that NFAs and DFAs are weakly equivalent: they both generate exactly the same languages. Now, we’ll look at the relationship of NFAs–and thus, DFAs (given their equivalence)–to regular expressions. What we’ll see is that regular expressions, NFAs, and DFAs all generate the same languages–by definition, the regular languages.</p>
+<p>The idea is similar to what we just saw with NFAs and DFAs: we’ll show that, for any regular expression <span class="math inline">\(\rho\)</span>, we can construct an NFA <span class="math inline">\(G\)</span> that recognizes exactly the language <span class="math inline">\(\mathbb{L}(G) = \mathbb{L}(\rho)\)</span>; and conversely, for any NFA <span class="math inline">\(G\)</span>, we can construct a regular expression <span class="math inline">\(\rho\)</span> that recognizes exactly the language <span class="math inline">\(\mathbb{L}(\rho) = \mathbb{L}(G)\)</span>.</p>
+<section id="translating-regular-expressions-to-nfas" class="level2">
+<h2 class="anchored" data-anchor-id="translating-regular-expressions-to-nfas">Translating Regular Expressions to NFAs</h2>
+<p>Given a regular expression <span class="math inline">\(\rho\)</span> on alphabet <span class="math inline">\(\Sigma\)</span>, we can construct an NFA <span class="math inline">\(G_\rho = \langle Q_\rho, \Sigma, \delta_\rho, q_0^\rho, F_\rho \rangle\)</span> that recognizes exactly the language <span class="math inline">\(\mathbb{L}(\rho) = \text{eval}(\rho)\)</span>.</p>
+<p>We’ll build this conversion recursively, following the structure of regular expressions:</p>
+</section>
+<section id="base-cases" class="level2">
+<h2 class="anchored" data-anchor-id="base-cases">Base Cases</h2>
+<p>Where for each case:</p>
 <ol type="1">
-<li>The circles represent the <em>states</em> of the finite <em>state</em> automaton. As you might expect, there are a finite number of them.</li>
-<li>The arrows represent the <em>transitions</em> between states.</li>
-<li>The labels on the arrows are the <em>labels</em> of the transitions, which always come from some alphabet <span class="math inline">\(\Sigma\)</span> (just like in regular expressions).</li>
-<li>There are two kinds of special states:
+<li>For <span class="math inline">\(\rho = \emptyset\)</span> (the empty language):
 <ul>
-<li>The <em>initial state</em>, which is the one that the automaton starts in.</li>
-<li>The <em>final states</em>, which are the ones that the automaton can (but need not) end in.</li>
+<li><span class="math inline">\(Q_\rho = \{q_0, q_1\}\)</span></li>
+<li><span class="math inline">\(\delta_\rho = \emptyset\)</span> (no transitions)</li>
+<li><span class="math inline">\(q_0^\rho = q_0\)</span></li>
+<li><span class="math inline">\(F_\rho = \emptyset\)</span> (no final states)</li>
+</ul></li>
+<li>For <span class="math inline">\(\rho = \epsilon\)</span> (the empty string):
+<ul>
+<li><span class="math inline">\(Q_\rho = \{q_0\}\)</span></li>
+<li><span class="math inline">\(\delta_\rho = \emptyset\)</span> (no transitions)</li>
+<li><span class="math inline">\(q_0^\rho = q_0\)</span></li>
+<li><span class="math inline">\(F_\rho = \{q_0\}\)</span></li>
+</ul></li>
+<li>For <span class="math inline">\(\rho = a\)</span> where <span class="math inline">\(a \in \Sigma\)</span> (a single symbol):
+<ul>
+<li><span class="math inline">\(Q_\rho = \{q_0, q_1\}\)</span></li>
+<li><span class="math inline">\(\delta_\rho(q_0, a) = \{q_1\}\)</span></li>
+<li><span class="math inline">\(q_0^\rho = q_0\)</span></li>
+<li><span class="math inline">\(F_\rho = \{q_1\}\)</span></li>
 </ul></li>
 </ol>
-<p>The way we can tell whether an FSA generates a string is by starting at the initial state and following the transitions, choosing one symbol on each transition and collecting them to form a string. We’re allowed to (but need not) stop when we hit a final state. As long as we stop in a final state, the string we’ve built is generated by the automaton.</p>
+</section>
+<section id="recursive-cases" class="level2">
+<h2 class="anchored" data-anchor-id="recursive-cases">Recursive Cases</h2>
+<p>For the recursive cases, we’ll use the operations we’ve already defined for NFAs:</p>
+<ol type="1">
+<li>For <span class="math inline">\(\rho = (\rho_1 \cup \rho_2)\)</span> (union):
+<ul>
+<li>Construct <span class="math inline">\(G_{\rho_1}\)</span> and <span class="math inline">\(G_{\rho_2}\)</span> recursively</li>
+<li><span class="math inline">\(G_\rho = \text{union}(G_{\rho_1}, G_{\rho_2})\)</span></li>
+</ul></li>
+<li>For <span class="math inline">\(\rho = (\rho_1 \circ \rho_2)\)</span> (concatenation):
+<ul>
+<li>Construct <span class="math inline">\(G_{\rho_1}\)</span> and <span class="math inline">\(G_{\rho_2}\)</span> recursively</li>
+<li><span class="math inline">\(G_\rho = \text{concatenate}(G_{\rho_1}, G_{\rho_2})\)</span></li>
+</ul></li>
+<li>For <span class="math inline">\(\rho = \rho_1^*\)</span> (Kleene star):
+<ul>
+<li>Construct <span class="math inline">\(G_{\rho_1}\)</span> recursively</li>
+<li><span class="math inline">\(G_\rho = \text{kleene}(G_{\rho_1})\)</span></li>
+</ul></li>
+</ol>
+<p>Let’s implement this conversion algorithm:</p>
+<p><span class="math display">\[
+\text{regex2nfa}(\rho) = \begin{cases}
+\langle \{q_0, q_1\}, \Sigma, \emptyset, q_0, \emptyset \rangle &amp; \text{if } \rho = \emptyset \\
+\langle \{q_0\}, \Sigma, \emptyset, q_0, \{q_0\} \rangle &amp; \text{if } \rho = \epsilon \\
+\langle \{q_0, q_1\}, \Sigma, \{(q_0, a) \mapsto \{q_1\}\}, q_0, \{q_1\} \rangle &amp; \text{if } \rho = a \in \Sigma \\
+\text{union}(\text{regex2nfa}(\rho_1), \text{regex2nfa}(\rho_2)) &amp; \text{if } \rho = (\rho_1 \cup \rho_2) \\
+\text{concatenate}(\text{regex2nfa}(\rho_1), \text{regex2nfa}(\rho_2)) &amp; \text{if } \rho = (\rho_1 \circ \rho_2) \\
+\text{kleene}(\text{regex2nfa}(\rho_1)) &amp; \text{if } \rho = \rho_1^*
+\end{cases}
+\]</span></p>
+</section>
+<section id="translating-nfas-to-regular-expressions" class="level2">
+<h2 class="anchored" data-anchor-id="translating-nfas-to-regular-expressions">Translating NFAs to Regular Expressions</h2>
+<p>We’ve seen how to convert a regular expression to an NFA. Now let’s explore the reverse: converting an NFA to an equivalent regular expression.</p>
+<p>Given an NFA <span class="math inline">\(G = \langle Q, \Sigma, \delta, q_0, F \rangle\)</span>, we can construct a regular expression <span class="math inline">\(\rho\)</span> such that <span class="math inline">\(\mathbb{L}(G) = \mathbb{L}(\rho)\)</span>.</p>
+<section id="the-state-elimination-method" class="level3">
+<h3 class="anchored" data-anchor-id="the-state-elimination-method">The State Elimination Method</h3>
+<p>The most common approach for this conversion is the <strong>state elimination method</strong>:</p>
+<ol type="1">
+<li>Transform the NFA into a generalized NFA (GNFA) with a single initial state, a single final state, and transitions labeled with regular expressions</li>
+<li>Systematically eliminate states one by one, updating the transition labels accordingly</li>
+<li>When only the initial and final states remain, the regular expression on the transition between them represents the language of the original NFA</li>
+</ol>
+<section id="step-1-construct-the-gnfa" class="level4">
+<h4 class="anchored" data-anchor-id="step-1-construct-the-gnfa">Step 1: Construct the GNFA</h4>
+<p>First, we transform the NFA into a GNFA:</p>
+<ul>
+<li>Add a new initial state <span class="math inline">\(q_{\text{init}}\)</span> with an ε-transition to the original initial state <span class="math inline">\(q_0\)</span></li>
+<li>Add a new final state <span class="math inline">\(q_{\text{final}}\)</span> and add ε-transitions from all original final states to <span class="math inline">\(q_{\text{final}}\)</span></li>
+<li>Make <span class="math inline">\(q_{\text{final}}\)</span> the only final state</li>
+<li>Label each transition with the corresponding symbol from the alphabet (or ε)</li>
+</ul>
+</section>
+<section id="step-2-eliminate-states" class="level4">
+<h4 class="anchored" data-anchor-id="step-2-eliminate-states">Step 2: Eliminate States</h4>
+<p>For each state <span class="math inline">\(q_k\)</span> (except <span class="math inline">\(q_{\text{init}}\)</span> and <span class="math inline">\(q_{\text{final}}\)</span>):</p>
+<ol type="1">
+<li>For each pair of states <span class="math inline">\(q_i\)</span> and <span class="math inline">\(q_j\)</span> such that there are transitions from <span class="math inline">\(q_i\)</span> to <span class="math inline">\(q_k\)</span> and from <span class="math inline">\(q_k\)</span> to <span class="math inline">\(q_j\)</span>:
+<ul>
+<li>Let <span class="math inline">\(R_{ik}\)</span> be the regular expression on the transition from <span class="math inline">\(q_i\)</span> to <span class="math inline">\(q_k\)</span></li>
+<li>Let <span class="math inline">\(R_{kk}\)</span> be the regular expression on the self-loop at <span class="math inline">\(q_k\)</span> (if any, otherwise <span class="math inline">\(\emptyset\)</span>)</li>
+<li>Let <span class="math inline">\(R_{kj}\)</span> be the regular expression on the transition from <span class="math inline">\(q_k\)</span> to <span class="math inline">\(q_j\)</span></li>
+<li>Create or update the transition from <span class="math inline">\(q_i\)</span> to <span class="math inline">\(q_j\)</span> with the regular expression: <span class="math inline">\(R_{ij} \cup (R_{ik} \circ R_{kk}^* \circ R_{kj})\)</span></li>
+</ul></li>
+<li>Remove state <span class="math inline">\(q_k\)</span> and all its incoming and outgoing transitions</li>
+</ol>
+</section>
+<section id="step-3-extract-the-result" class="level4">
+<h4 class="anchored" data-anchor-id="step-3-extract-the-result">Step 3: Extract the Result</h4>
+<p>After eliminating all states except <span class="math inline">\(q_{\text{init}}\)</span> and <span class="math inline">\(q_{\text{final}}\)</span>, the regular expression on the transition from <span class="math inline">\(q_{\text{init}}\)</span> to <span class="math inline">\(q_{\text{final}}\)</span> represents the language of the original NFA.</p>
+</section>
+</section>
+<section id="formal-definition" class="level3">
+<h3 class="anchored" data-anchor-id="formal-definition">Formal Definition</h3>
+<p>We can define this conversion formally as:</p>
+<p><span class="math display">\[
+\text{nfa2regex}(M) = R_{q_{\text{init}},q_{\text{final}}}^{Q}
+\]</span></p>
+<p>Where <span class="math inline">\(R_{i,j}^{S}\)</span> represents the regular expression for paths from state <span class="math inline">\(i\)</span> to state <span class="math inline">\(j\)</span> that only pass through states in set <span class="math inline">\(S\)</span> as intermediate states, defined recursively as:</p>
+<p><span class="math display">\[
+R_{i,j}^{\emptyset} = \begin{cases}
+a_1 \cup a_2 \cup \ldots \cup a_n &amp; \text{if there are direct transitions labeled } a_1, a_2, \ldots, a_n \text{ from } i \text{ to } j \\
+\epsilon &amp; \text{if } i = j \text{ and there are no direct transitions from } i \text{ to } j \\
+\emptyset &amp; \text{if there are no direct transitions from } i \text{ to } j \text{ and } i \neq j
+\end{cases}
+\]</span></p>
+<p><span class="math display">\[
+R_{i,j}^{S \cup \{k\}} = R_{i,j}^{S} \cup (R_{i,k}^{S} \circ (R_{k,k}^{S})^* \circ R_{k,j}^{S})
+\]</span></p>
+<p>This recursive definition captures the state elimination process, where we consider paths that may pass through state <span class="math inline">\(k\)</span> in addition to paths that don’t.</p>
+<p>The final regular expression <span class="math inline">\(\text{nfa2regex}(M)\)</span> is equivalent to the original NFA <span class="math inline">\(M\)</span> in the sense that they recognize exactly the same language: <span class="math inline">\(\mathbb{L}(G) = \mathbb{L}(\text{nfa2regex}(G))\)</span>.</p>
 
 
 <!-- -->
 
+</section>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -1014,230 +1065,147 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../../phonological-patterns/the-generativist-conceit.html" class="pagination-link">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">The Generativist Conceit</span>
+      <a href="../../phonological-patterns/formal-definition/the-regular-operations.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">The regular operations</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../../phonological-patterns/formal-definition/two-equivalent-definitions.html" class="pagination-link">
-        <span class="nav-page-text">Two equivalent definitions</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../../phonological-patterns/formal-definition/beyond-the-regular-operations.html" class="pagination-link">
+        <span class="nav-page-text">The intersection operation via complement</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
 <div class="sourceCode" id="cb1" data-shortcodes="false" data-code-line-numbers=""><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> Overview</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="an">bibliography:</span><span class="co"> ../../references.bib</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="an">filters:</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">  - diagram</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="an">diagram:</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">  engine:</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">    tikz:</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">      execpath: lualatex</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co">      header-includes:</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co">        - '\usetikzlibrary{automata, positioning, arrows, decorations.pathreplacing, fit, backgrounds, calc, shapes.multipart}'</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> Translating Regular Expressions to NFAs</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="an">jupyter:</span><span class="co"> python3</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>We've seen that NFAs and DFAs are weakly equivalent: they both generate exactly the same languages. Now, we'll look at the relationship of NFAs–and thus, DFAs (given their equivalence)–to regular expressions. What we'll see is that regular expressions, NFAs, and DFAs all generate the same languages–by definition, the regular languages.</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>The idea is similar to what we just saw with NFAs and DFAs: we'll show that, for any regular expression $\rho$, we can construct an NFA $G$ that recognizes exactly the language $\mathbb{L}(G) = \mathbb{L}(\rho)$; and conversely, for any NFA $G$, we can construct a regular expression $\rho$ that recognizes exactly the language $\mathbb{L}(\rho) = \mathbb{L}(G)$.</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">## Translating Regular Expressions to NFAs</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>Given a regular expression $\rho$ on alphabet $\Sigma$, we can construct an NFA $G_\rho = \langle Q_\rho, \Sigma, \delta_\rho, q_0^\rho, F_\rho \rangle$ that recognizes exactly the language $\mathbb{L}(\rho) = \text{eval}(\rho)$.</span>
 <span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>We'll start with an application of FSAs to modeling licit English syllables. To get a sense for what FSAs look like, let's consider the following example, which aims to model possible English syllables:</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>We'll build this conversion recursively, following the structure of regular expressions:</span>
 <span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="in">```tikz</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="in">%%| filename=english-syllables</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="in">\begin{tikzpicture}[</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="in">    &gt; = stealth,</span></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="in">    shorten &gt; = 1pt,</span></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="in">    auto,</span></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="in">    node distance = 4cm,</span></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="in">    semithick,</span></span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="in">    every state/.style = {</span></span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="in">        draw = black,</span></span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="in">        thick,</span></span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="in">        fill = white,</span></span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="in">        minimum size = 4mm</span></span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="in">    },</span></span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="in">    scale=0.9, transform shape</span></span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="in">]</span></span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a><span class="in">% ONSET SECTION - MADE MUCH TALLER</span></span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, initial] (q0) {$q_0$};</span></span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a><span class="in">% Single consonant onset states - increased vertical spacing</span></span>
-<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, right=of q0] (q1a) {$q_{1a}$};</span></span>
-<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, above right=4cm and 2.5cm of q1a] (q1b) {$q_{1b}$};</span></span>
-<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, right=of q1a] (q1c) {$q_{1c}$};</span></span>
-<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, below right=4cm and 2.5cm of q1a] (q1d) {$q_{1d}$};</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="fu">## Base Cases</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>Where for each case:</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>For $\rho = \emptyset$ (the empty language):</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>$Q_\rho = <span class="sc">\{</span>q_0, q_1<span class="sc">\}</span>$</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>$\delta_\rho = \emptyset$ (no transitions)</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>$q_0^\rho = q_0$</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>$F_\rho = \emptyset$ (no final states)</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>For $\rho = \epsilon$ (the empty string):</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>$Q_\rho = <span class="sc">\{</span>q_0<span class="sc">\}</span>$</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>$\delta_\rho = \emptyset$ (no transitions)</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>$q_0^\rho = q_0$</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>$F_\rho = <span class="sc">\{</span>q_0<span class="sc">\}</span>$</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>For $\rho = a$ where $a \in \Sigma$ (a single symbol):</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>$Q_\rho = <span class="sc">\{</span>q_0, q_1<span class="sc">\}</span>$</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>$\delta_\rho(q_0, a) = <span class="sc">\{</span>q_1<span class="sc">\}</span>$</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>$q_0^\rho = q_0$</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>$F_\rho = <span class="sc">\{</span>q_1<span class="sc">\}</span>$</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a><span class="fu">## Recursive Cases</span></span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>For the recursive cases, we'll use the operations we've already defined for NFAs:</span>
 <span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a><span class="in">% Two-consonant onset cluster states</span></span>
-<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, right=of q1b] (q2a) {$q_{2a}$};</span></span>
-<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, right=of q1c] (q2b) {$q_{2b}$};</span></span>
-<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, right=of q1d] (q2c) {$q_{2c}$};</span></span>
-<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a><span class="in">% Three-consonant onset cluster states</span></span>
-<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, right=of q2a] (q3a) {$q_{3a}$};</span></span>
-<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, right=of q2b] (q3b) {$q_{3b}$};</span></span>
-<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a><span class="in">% NUCLEUS SECTION - ALSO INCREASED HEIGHT</span></span>
-<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, right=6cm of q1c] (n1) {$n_1$};</span></span>
-<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, above right=2cm and 3cm of n1] (n2) {$n_2$};</span></span>
-<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, below right=2cm and 3cm of n1] (n3) {$n_3$};</span></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>For $\rho = (\rho_1 \cup \rho_2)$ (union):</span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>Construct $G_{\rho_1}$ and $G_{\rho_2}$ recursively</span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>$G_\rho = \text{union}(G_{\rho_1}, G_{\rho_2})$</span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>For $\rho = (\rho_1 \circ \rho_2)$ (concatenation):</span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>Construct $G_{\rho_1}$ and $G_{\rho_2}$ recursively</span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>$G_\rho = \text{concatenate}(G_{\rho_1}, G_{\rho_2})$</span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>For $\rho = \rho_1^*$ (Kleene star):</span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>Construct $G_{\rho_1}$ recursively</span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>$G_\rho = \text{kleene}(G_{\rho_1})$</span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a>Let's implement this conversion algorithm:</span>
 <span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a><span class="in">% CODA SECTION</span></span>
-<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, right=6cm of n2] (c1a) {$c_{1a}$};</span></span>
-<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, above right=2cm and 2.5cm of c1a] (c1b) {$c_{1b}$};</span></span>
-<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, right=of c1a] (c1c) {$c_{1c}$};</span></span>
-<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, below right=2cm and 2.5cm of c1a] (c1d) {$c_{1d}$};</span></span>
-<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a><span class="in">% Two-consonant coda cluster states</span></span>
-<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, right=of c1b] (c2a) {$c_{2a}$};</span></span>
-<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, right=of c1c] (c2b) {$c_{2b}$};</span></span>
-<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, right=of c1d] (c2c) {$c_{2c}$};</span></span>
-<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a><span class="in">% Three-consonant coda cluster states</span></span>
-<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, right=of c2a] (c3a) {$c_{3a}$};</span></span>
-<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, accepting, right=of c2b] (c3b) {$c_{3b}$};</span></span>
-<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, right=of c2c] (c3c) {$c_{3c}$};</span></span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a>\text{regex2nfa}(\rho) = \begin{cases}</span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a>\langle <span class="sc">\{</span>q_0, q_1<span class="sc">\}</span>, \Sigma, \emptyset, q_0, \emptyset \rangle &amp; \text{if } \rho = \emptyset <span class="sc">\\</span></span>
+<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a>\langle <span class="sc">\{</span>q_0<span class="sc">\}</span>, \Sigma, \emptyset, q_0, <span class="sc">\{</span>q_0<span class="sc">\}</span> \rangle &amp; \text{if } \rho = \epsilon <span class="sc">\\</span></span>
+<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a>\langle <span class="sc">\{</span>q_0, q_1<span class="sc">\}</span>, \Sigma, <span class="sc">\{</span>(q_0, a) \mapsto <span class="sc">\{</span>q_1<span class="sc">\}\}</span>, q_0, <span class="sc">\{</span>q_1<span class="sc">\}</span> \rangle &amp; \text{if } \rho = a \in \Sigma <span class="sc">\\</span></span>
+<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a>\text{union}(\text{regex2nfa}(\rho_1), \text{regex2nfa}(\rho_2)) &amp; \text{if } \rho = (\rho_1 \cup \rho_2) <span class="sc">\\</span></span>
+<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a>\text{concatenate}(\text{regex2nfa}(\rho_1), \text{regex2nfa}(\rho_2)) &amp; \text{if } \rho = (\rho_1 \circ \rho_2) <span class="sc">\\</span></span>
+<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a>\text{kleene}(\text{regex2nfa}(\rho_1)) &amp; \text{if } \rho = \rho_1^*</span>
+<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a>\end{cases}</span>
+<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a><span class="fu">## Translating NFAs to Regular Expressions</span></span>
+<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a>We've seen how to convert a regular expression to an NFA. Now let's explore the reverse: converting an NFA to an equivalent regular expression.</span>
 <span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a><span class="in">% Four-consonant coda cluster states (rare but exist)</span></span>
-<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, accepting, right=of c3a] (c4a) {$c_{4a}$};</span></span>
-<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, accepting, right=of c3c] (c4b) {$c_{4b}$};</span></span>
+<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a>Given an NFA $G = \langle Q, \Sigma, \delta, q_0, F \rangle$, we can construct a regular expression $\rho$ such that $\mathbb{L}(G) = \mathbb{L}(\rho)$.</span>
+<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a><span class="fu">### The State Elimination Method</span></span>
 <span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a><span class="in">% SYLLABIC CONSONANT SECTION - MOVED FURTHER DOWN</span></span>
-<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, below=8cm of q1c] (s1) {$s_1$};</span></span>
-<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, right=of s1] (s2) {$s_2$};</span></span>
-<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, right=of s2] (s3) {$s_3$};</span></span>
-<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, accepting, right=of s3] (s4) {$s_4$};</span></span>
+<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a>The most common approach for this conversion is the **state elimination method**:</span>
+<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>Transform the NFA into a generalized NFA (GNFA) with a single initial state, a single final state, and transitions labeled with regular expressions</span>
+<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>Systematically eliminate states one by one, updating the transition labels accordingly</span>
+<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>When only the initial and final states remain, the regular expression on the transition between them represents the language of the original NFA</span>
 <span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a><span class="in">% Make all states accepting that can end a syllable</span></span>
-<span id="cb1-83"><a href="#cb1-83" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, accepting] at (n3) {$n_3$};</span></span>
-<span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, accepting] at (c1a) {$c_{1a}$};</span></span>
-<span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, accepting] at (c1b) {$c_{1b}$};</span></span>
-<span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, accepting] at (c1c) {$c_{1c}$};</span></span>
-<span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, accepting] at (c1d) {$c_{1d}$};</span></span>
-<span id="cb1-88"><a href="#cb1-88" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, accepting] at (c2a) {$c_{2a}$};</span></span>
-<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, accepting] at (c2b) {$c_{2b}$};</span></span>
-<span id="cb1-90"><a href="#cb1-90" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, accepting] at (c2c) {$c_{2c}$};</span></span>
-<span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, accepting] at (c3a) {$c_{3a}$};</span></span>
-<span id="cb1-92"><a href="#cb1-92" aria-hidden="true" tabindex="-1"></a><span class="in">\node[state, accepting] at (c3c) {$c_{3c}$};</span></span>
-<span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a><span class="in">% ONSET TRANSITIONS</span></span>
-<span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a><span class="in">% Single consonant onset</span></span>
-<span id="cb1-96"><a href="#cb1-96" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (q0) edge node[above, align=center] {$C_{stop}$} (q1a);</span></span>
-<span id="cb1-97"><a href="#cb1-97" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (q0) edge node[above, sloped, align=center] {$C_{fric}$} (q1b);</span></span>
-<span id="cb1-98"><a href="#cb1-98" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (q0) edge node[above, align=center] {$C_{affr/nas}$} (q1c);</span></span>
-<span id="cb1-99"><a href="#cb1-99" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (q0) edge node[below, sloped, align=center] {$C_{liq/glide}$} (q1d);</span></span>
+<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Step 1: Construct the GNFA</span></span>
+<span id="cb1-83"><a href="#cb1-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a>First, we transform the NFA into a GNFA:</span>
+<span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Add a new initial state $q_{\text{init}}$ with an ε-transition to the original initial state $q_0$</span>
+<span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Add a new final state $q_{\text{final}}$ and add ε-transitions from all original final states to $q_{\text{final}}$</span>
+<span id="cb1-88"><a href="#cb1-88" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Make $q_{\text{final}}$ the only final state</span>
+<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Label each transition with the corresponding symbol from the alphabet (or ε)</span>
+<span id="cb1-90"><a href="#cb1-90" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Step 2: Eliminate States</span></span>
+<span id="cb1-92"><a href="#cb1-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a>For each state $q_k$ (except $q_{\text{init}}$ and $q_{\text{final}}$):</span>
+<span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>For each pair of states $q_i$ and $q_j$ such that there are transitions from $q_i$ to $q_k$ and from $q_k$ to $q_j$:</span>
+<span id="cb1-96"><a href="#cb1-96" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>Let $R_{ik}$ be the regular expression on the transition from $q_i$ to $q_k$</span>
+<span id="cb1-97"><a href="#cb1-97" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>Let $R_{kk}$ be the regular expression on the self-loop at $q_k$ (if any, otherwise $\emptyset$)</span>
+<span id="cb1-98"><a href="#cb1-98" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>Let $R_{kj}$ be the regular expression on the transition from $q_k$ to $q_j$</span>
+<span id="cb1-99"><a href="#cb1-99" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>Create or update the transition from $q_i$ to $q_j$ with the regular expression: $R_{ij} \cup (R_{ik} \circ R_{kk}^* \circ R_{kj})$</span>
 <span id="cb1-100"><a href="#cb1-100" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-101"><a href="#cb1-101" aria-hidden="true" tabindex="-1"></a><span class="in">% Legal two-consonant onsets</span></span>
-<span id="cb1-102"><a href="#cb1-102" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (q1a) edge node[above, sloped, align=center] {$C_{liq/glide}$} (q2a);</span></span>
-<span id="cb1-103"><a href="#cb1-103" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (q1b) edge[bend left] node[above, sloped, align=center] {$C_{liq/glide}$} (q2a);</span></span>
-<span id="cb1-104"><a href="#cb1-104" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (q1b) edge node[above, align=center] {$C_{stop}$} (q2b);</span></span>
-<span id="cb1-105"><a href="#cb1-105" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (q1c) edge node[above, align=center] {$C_{glide}$} (q2c);</span></span>
+<span id="cb1-101"><a href="#cb1-101" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>Remove state $q_k$ and all its incoming and outgoing transitions</span>
+<span id="cb1-102"><a href="#cb1-102" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-103"><a href="#cb1-103" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Step 3: Extract the Result</span></span>
+<span id="cb1-104"><a href="#cb1-104" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-105"><a href="#cb1-105" aria-hidden="true" tabindex="-1"></a>After eliminating all states except $q_{\text{init}}$ and $q_{\text{final}}$, the regular expression on the transition from $q_{\text{init}}$ to $q_{\text{final}}$ represents the language of the original NFA.</span>
 <span id="cb1-106"><a href="#cb1-106" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-107"><a href="#cb1-107" aria-hidden="true" tabindex="-1"></a><span class="in">% Legal three-consonant onsets</span></span>
-<span id="cb1-108"><a href="#cb1-108" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (q2b) edge node[above, align=center] {$C_{liq/glide}$} (q3a);</span></span>
-<span id="cb1-109"><a href="#cb1-109" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (q2a) edge node[above, sloped, align=center] {$C_{glide}$} (q3b);</span></span>
+<span id="cb1-107"><a href="#cb1-107" aria-hidden="true" tabindex="-1"></a><span class="fu">### Formal Definition</span></span>
+<span id="cb1-108"><a href="#cb1-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-109"><a href="#cb1-109" aria-hidden="true" tabindex="-1"></a>We can define this conversion formally as:</span>
 <span id="cb1-110"><a href="#cb1-110" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-111"><a href="#cb1-111" aria-hidden="true" tabindex="-1"></a><span class="in">% Connect all onset possibilities to nucleus</span></span>
-<span id="cb1-112"><a href="#cb1-112" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (q0) edge[bend left=20] node[above, sloped, align=center] {$\varepsilon$} (n1);</span></span>
-<span id="cb1-113"><a href="#cb1-113" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (q1a) edge[bend left=15] node[above, sloped, align=center] {} (n1);</span></span>
-<span id="cb1-114"><a href="#cb1-114" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (q1b) edge[bend left=25] node[above, sloped, align=center] {} (n1);</span></span>
-<span id="cb1-115"><a href="#cb1-115" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (q1c) edge[bend left=5] node[above, sloped, align=center] {} (n1);</span></span>
-<span id="cb1-116"><a href="#cb1-116" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (q1d) edge[bend right=20] node[above, sloped, align=center] {} (n1);</span></span>
-<span id="cb1-117"><a href="#cb1-117" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (q2a) edge[bend left=10] node[above, sloped, align=center] {} (n1);</span></span>
-<span id="cb1-118"><a href="#cb1-118" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (q2b) edge[bend left=5] node[above, sloped, align=center] {} (n1);</span></span>
-<span id="cb1-119"><a href="#cb1-119" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (q2c) edge[bend right=10] node[above, sloped, align=center] {} (n1);</span></span>
-<span id="cb1-120"><a href="#cb1-120" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (q3a) edge[bend left=5] node[above, sloped, align=center] {} (n1);</span></span>
-<span id="cb1-121"><a href="#cb1-121" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (q3b) edge[bend right=5] node[above, sloped, align=center] {} (n1);</span></span>
-<span id="cb1-122"><a href="#cb1-122" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-123"><a href="#cb1-123" aria-hidden="true" tabindex="-1"></a><span class="in">% NUCLEUS TRANSITIONS</span></span>
-<span id="cb1-124"><a href="#cb1-124" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (n1) edge node[above, sloped, align=center] {$V_{front}$} (n2);</span></span>
-<span id="cb1-125"><a href="#cb1-125" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (n1) edge node[below, sloped, align=center] {$V_{back}$} (n3);</span></span>
-<span id="cb1-126"><a href="#cb1-126" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (n2) edge[bend right=30] node[right, align=center] {$V_{glide}$} (n3);</span></span>
-<span id="cb1-127"><a href="#cb1-127" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (n2) edge[loop above] node[above, align=center] {$\varepsilon$} (n2);</span></span>
+<span id="cb1-111"><a href="#cb1-111" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb1-112"><a href="#cb1-112" aria-hidden="true" tabindex="-1"></a>\text{nfa2regex}(M) = R_{q_{\text{init}},q_{\text{final}}}^{Q}</span>
+<span id="cb1-113"><a href="#cb1-113" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb1-114"><a href="#cb1-114" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-115"><a href="#cb1-115" aria-hidden="true" tabindex="-1"></a>Where $R_{i,j}^{S}$ represents the regular expression for paths from state $i$ to state $j$ that only pass through states in set $S$ as intermediate states, defined recursively as:</span>
+<span id="cb1-116"><a href="#cb1-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-117"><a href="#cb1-117" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb1-118"><a href="#cb1-118" aria-hidden="true" tabindex="-1"></a>R_{i,j}^{\emptyset} = \begin{cases}</span>
+<span id="cb1-119"><a href="#cb1-119" aria-hidden="true" tabindex="-1"></a>a_1 \cup a_2 \cup \ldots \cup a_n &amp; \text{if there are direct transitions labeled } a_1, a_2, \ldots, a_n \text{ from } i \text{ to } j <span class="sc">\\</span></span>
+<span id="cb1-120"><a href="#cb1-120" aria-hidden="true" tabindex="-1"></a>\epsilon &amp; \text{if } i = j \text{ and there are no direct transitions from } i \text{ to } j <span class="sc">\\</span></span>
+<span id="cb1-121"><a href="#cb1-121" aria-hidden="true" tabindex="-1"></a>\emptyset &amp; \text{if there are no direct transitions from } i \text{ to } j \text{ and } i \neq j</span>
+<span id="cb1-122"><a href="#cb1-122" aria-hidden="true" tabindex="-1"></a>\end{cases}</span>
+<span id="cb1-123"><a href="#cb1-123" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb1-124"><a href="#cb1-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-125"><a href="#cb1-125" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb1-126"><a href="#cb1-126" aria-hidden="true" tabindex="-1"></a>R_{i,j}^{S \cup <span class="sc">\{</span>k<span class="sc">\}</span>} = R_{i,j}^{S} \cup (R_{i,k}^{S} \circ (R_{k,k}^{S})^* \circ R_{k,j}^{S})</span>
+<span id="cb1-127"><a href="#cb1-127" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb1-128"><a href="#cb1-128" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-129"><a href="#cb1-129" aria-hidden="true" tabindex="-1"></a><span class="in">% Connect nucleus to coda or end</span></span>
-<span id="cb1-130"><a href="#cb1-130" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (n2) edge[bend right=30] node[above, align=center] {$\varepsilon$} (c1a);</span></span>
-<span id="cb1-131"><a href="#cb1-131" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (n3) edge[bend left=20] node[below, sloped, align=center] {$\varepsilon$} (c1a);</span></span>
-<span id="cb1-132"><a href="#cb1-132" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-133"><a href="#cb1-133" aria-hidden="true" tabindex="-1"></a><span class="in">% CODA TRANSITIONS</span></span>
-<span id="cb1-134"><a href="#cb1-134" aria-hidden="true" tabindex="-1"></a><span class="in">% Single consonant coda</span></span>
-<span id="cb1-135"><a href="#cb1-135" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (n2) edge node[above, sloped, align=center] {$C_{stop}$} (c1a);</span></span>
-<span id="cb1-136"><a href="#cb1-136" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (n2) edge node[above, sloped, align=center] {$C_{fric}$} (c1b);</span></span>
-<span id="cb1-137"><a href="#cb1-137" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (n3) edge node[below, sloped, align=center] {$C_{affr/nas}$} (c1c);</span></span>
-<span id="cb1-138"><a href="#cb1-138" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (n3) edge node[below, sloped, align=center] {$C_{liq}$} (c1d);</span></span>
-<span id="cb1-139"><a href="#cb1-139" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-140"><a href="#cb1-140" aria-hidden="true" tabindex="-1"></a><span class="in">% Legal two-consonant codas</span></span>
-<span id="cb1-141"><a href="#cb1-141" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (c1a) edge node[above, sloped, align=center] {$C_{obstr}$} (c2a);</span></span>
-<span id="cb1-142"><a href="#cb1-142" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (c1b) edge node[above, align=center] {$C_{obstr}$} (c2b);</span></span>
-<span id="cb1-143"><a href="#cb1-143" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (c1c) edge node[above, align=center] {$C_{obstr}$} (c2b);</span></span>
-<span id="cb1-144"><a href="#cb1-144" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (c1d) edge node[above, align=center] {$C_{obstr}$} (c2c);</span></span>
-<span id="cb1-145"><a href="#cb1-145" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-146"><a href="#cb1-146" aria-hidden="true" tabindex="-1"></a><span class="in">% Legal three-consonant codas</span></span>
-<span id="cb1-147"><a href="#cb1-147" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (c2a) edge node[above, align=center] {$C_{obstr}$} (c3a);</span></span>
-<span id="cb1-148"><a href="#cb1-148" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (c2b) edge node[above, align=center] {$C_{s}$} (c3b);</span></span>
-<span id="cb1-149"><a href="#cb1-149" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (c2c) edge node[above, align=center] {$C_{obstr}$} (c3c);</span></span>
-<span id="cb1-150"><a href="#cb1-150" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-151"><a href="#cb1-151" aria-hidden="true" tabindex="-1"></a><span class="in">% Legal four-consonant codas (rare)</span></span>
-<span id="cb1-152"><a href="#cb1-152" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (c3a) edge node[above, align=center] {$C_{s}$} (c4a);</span></span>
-<span id="cb1-153"><a href="#cb1-153" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (c3c) edge node[above, align=center] {$C_{s}$} (c4b);</span></span>
-<span id="cb1-154"><a href="#cb1-154" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-155"><a href="#cb1-155" aria-hidden="true" tabindex="-1"></a><span class="in">% SYLLABIC CONSONANT PATH</span></span>
-<span id="cb1-156"><a href="#cb1-156" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (q0) edge[bend right=30] node[left, align=center] {$\varepsilon$} (s1);</span></span>
-<span id="cb1-157"><a href="#cb1-157" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (s1) edge node[above, align=center] {$C_{obstr}$} (s2);</span></span>
-<span id="cb1-158"><a href="#cb1-158" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (s2) edge node[above, align=center] {$C_{syl}$} (s3);</span></span>
-<span id="cb1-159"><a href="#cb1-159" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (s3) edge node[above, align=center] {$C_{obstr}$} (s4);</span></span>
-<span id="cb1-160"><a href="#cb1-160" aria-hidden="true" tabindex="-1"></a><span class="in">\path[-&gt;] (s3) edge[bend right=20] node[above, align=center] {$\varepsilon$} (s4);</span></span>
-<span id="cb1-161"><a href="#cb1-161" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-162"><a href="#cb1-162" aria-hidden="true" tabindex="-1"></a><span class="in">% ANNOTATIONS AND GROUPING</span></span>
-<span id="cb1-163"><a href="#cb1-163" aria-hidden="true" tabindex="-1"></a><span class="in">% Highlight different sections</span></span>
-<span id="cb1-164"><a href="#cb1-164" aria-hidden="true" tabindex="-1"></a><span class="in">\begin{pgfonlayer}{background}</span></span>
-<span id="cb1-165"><a href="#cb1-165" aria-hidden="true" tabindex="-1"></a><span class="in">    % Onset section</span></span>
-<span id="cb1-166"><a href="#cb1-166" aria-hidden="true" tabindex="-1"></a><span class="in">    \node[fit=(q0) (q1a) (q1b) (q1c) (q1d) (q2a) (q2b) (q2c) (q3a) (q3b), </span></span>
-<span id="cb1-167"><a href="#cb1-167" aria-hidden="true" tabindex="-1"></a><span class="in">          draw=blue!30, fill=blue!5, rounded corners, inner sep=1cm, label={[anchor=north,font=\bfseries]north:ONSET}] (onset) {};</span></span>
-<span id="cb1-168"><a href="#cb1-168" aria-hidden="true" tabindex="-1"></a><span class="in">    </span></span>
-<span id="cb1-169"><a href="#cb1-169" aria-hidden="true" tabindex="-1"></a><span class="in">    % Nucleus section  </span></span>
-<span id="cb1-170"><a href="#cb1-170" aria-hidden="true" tabindex="-1"></a><span class="in">    \node[fit=(n1) (n2) (n3), </span></span>
-<span id="cb1-171"><a href="#cb1-171" aria-hidden="true" tabindex="-1"></a><span class="in">          draw=red!30, fill=red!5, rounded corners, inner sep=1cm, label={[anchor=north,font=\bfseries]north:NUCLEUS}] (nucleus) {};</span></span>
-<span id="cb1-172"><a href="#cb1-172" aria-hidden="true" tabindex="-1"></a><span class="in">    </span></span>
-<span id="cb1-173"><a href="#cb1-173" aria-hidden="true" tabindex="-1"></a><span class="in">    % Coda section</span></span>
-<span id="cb1-174"><a href="#cb1-174" aria-hidden="true" tabindex="-1"></a><span class="in">    \node[fit=(c1a) (c1b) (c1c) (c1d) (c2a) (c2b) (c2c) (c3a) (c3b) (c3c) (c4a) (c4b), </span></span>
-<span id="cb1-175"><a href="#cb1-175" aria-hidden="true" tabindex="-1"></a><span class="in">          draw=green!30, fill=green!5, rounded corners, inner sep=0.5cm, label={[anchor=north,font=\bfseries]north:CODA}] (coda) {};</span></span>
-<span id="cb1-176"><a href="#cb1-176" aria-hidden="true" tabindex="-1"></a><span class="in">    </span></span>
-<span id="cb1-177"><a href="#cb1-177" aria-hidden="true" tabindex="-1"></a><span class="in">    % Syllabic consonant section</span></span>
-<span id="cb1-178"><a href="#cb1-178" aria-hidden="true" tabindex="-1"></a><span class="in">    \node[fit=(s1) (s2) (s3) (s4), </span></span>
-<span id="cb1-179"><a href="#cb1-179" aria-hidden="true" tabindex="-1"></a><span class="in">          draw=purple!30, fill=purple!5, rounded corners, inner sep=0.5cm, label={[anchor=west,font=\bfseries]west:SYLLABIC CONSONANT}] (syllabic) {};</span></span>
-<span id="cb1-180"><a href="#cb1-180" aria-hidden="true" tabindex="-1"></a><span class="in">\end{pgfonlayer}</span></span>
-<span id="cb1-181"><a href="#cb1-181" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-182"><a href="#cb1-182" aria-hidden="true" tabindex="-1"></a><span class="in">\end{tikzpicture}</span></span>
-<span id="cb1-183"><a href="#cb1-183" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb1-184"><a href="#cb1-184" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-185"><a href="#cb1-185" aria-hidden="true" tabindex="-1"></a>The symbols along the arrow represent collections of symbols.</span>
-<span id="cb1-186"><a href="#cb1-186" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-187"><a href="#cb1-187" aria-hidden="true" tabindex="-1"></a>| Class Symbol | IPA Symbols | Description |</span>
-<span id="cb1-188"><a href="#cb1-188" aria-hidden="true" tabindex="-1"></a>|--------------|-------------|-------------|</span>
-<span id="cb1-189"><a href="#cb1-189" aria-hidden="true" tabindex="-1"></a>| C<span class="kw">&lt;sub&gt;</span>stop<span class="kw">&lt;/sub&gt;</span> | <span class="co">[</span><span class="ot">p, b, t, d, k, g</span><span class="co">]</span> | Stop consonants/plosives |</span>
-<span id="cb1-190"><a href="#cb1-190" aria-hidden="true" tabindex="-1"></a>| C<span class="kw">&lt;sub&gt;</span>fric<span class="kw">&lt;/sub&gt;</span> | <span class="co">[</span><span class="ot">f, v, θ, ð, s, z, ʃ, ʒ, h</span><span class="co">]</span> | Fricatives |</span>
-<span id="cb1-191"><a href="#cb1-191" aria-hidden="true" tabindex="-1"></a>| C<span class="kw">&lt;sub&gt;</span>affr/nas<span class="kw">&lt;/sub&gt;</span> | <span class="co">[</span><span class="ot">tʃ, dʒ, m, n, ŋ</span><span class="co">]</span> | Affricates and nasals |</span>
-<span id="cb1-192"><a href="#cb1-192" aria-hidden="true" tabindex="-1"></a>| C<span class="kw">&lt;sub&gt;</span>liq/glide<span class="kw">&lt;/sub&gt;</span> | <span class="co">[</span><span class="ot">l, r, w, j</span><span class="co">]</span> | Liquids and glides |</span>
-<span id="cb1-193"><a href="#cb1-193" aria-hidden="true" tabindex="-1"></a>| C<span class="kw">&lt;sub&gt;</span>liq<span class="kw">&lt;/sub&gt;</span> | <span class="co">[</span><span class="ot">l, r</span><span class="co">]</span> | Liquids only |</span>
-<span id="cb1-194"><a href="#cb1-194" aria-hidden="true" tabindex="-1"></a>| C<span class="kw">&lt;sub&gt;</span>glide<span class="kw">&lt;/sub&gt;</span> | <span class="co">[</span><span class="ot">w, j</span><span class="co">]</span> | Glides only |</span>
-<span id="cb1-195"><a href="#cb1-195" aria-hidden="true" tabindex="-1"></a>| C<span class="kw">&lt;sub&gt;</span>obstr<span class="kw">&lt;/sub&gt;</span> | <span class="co">[</span><span class="ot">t, d, s, z, θ, ð</span><span class="co">]</span> | Obstruents in coda clusters |</span>
-<span id="cb1-196"><a href="#cb1-196" aria-hidden="true" tabindex="-1"></a>| C<span class="kw">&lt;sub&gt;</span>s<span class="kw">&lt;/sub&gt;</span> | <span class="co">[</span><span class="ot">s</span><span class="co">]</span> | Just /s/, common in complex codas |</span>
-<span id="cb1-197"><a href="#cb1-197" aria-hidden="true" tabindex="-1"></a>| C<span class="kw">&lt;sub&gt;</span>syl<span class="kw">&lt;/sub&gt;</span> | <span class="co">[</span><span class="ot">n̩, m̩, l̩, r̩</span><span class="co">]</span> | Syllabic consonants |</span>
-<span id="cb1-198"><a href="#cb1-198" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-199"><a href="#cb1-199" aria-hidden="true" tabindex="-1"></a>| Class Symbol | IPA Symbols | Description |</span>
-<span id="cb1-200"><a href="#cb1-200" aria-hidden="true" tabindex="-1"></a>|--------------|-------------|-------------|</span>
-<span id="cb1-201"><a href="#cb1-201" aria-hidden="true" tabindex="-1"></a>| V<span class="kw">&lt;sub&gt;</span>front<span class="kw">&lt;/sub&gt;</span> | <span class="co">[</span><span class="ot">i, ɪ, e, ɛ, æ, a</span><span class="co">]</span> | Front vowels |</span>
-<span id="cb1-202"><a href="#cb1-202" aria-hidden="true" tabindex="-1"></a>| V<span class="kw">&lt;sub&gt;</span>back<span class="kw">&lt;/sub&gt;</span> | <span class="co">[</span><span class="ot">ɑ, ɔ, o, ʊ, u, ʌ, ə, ɝ</span><span class="co">]</span> | Back vowels |</span>
-<span id="cb1-203"><a href="#cb1-203" aria-hidden="true" tabindex="-1"></a>| V<span class="kw">&lt;sub&gt;</span>glide<span class="kw">&lt;/sub&gt;</span> | <span class="co">[</span><span class="ot">ɪ, ʊ</span><span class="co">]</span> | Vowels that can form glides in diphthongs |</span>
-<span id="cb1-204"><a href="#cb1-204" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-205"><a href="#cb1-205" aria-hidden="true" tabindex="-1"></a>There's a few components to notice here:</span>
-<span id="cb1-206"><a href="#cb1-206" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-207"><a href="#cb1-207" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>The circles represent the *states* of the finite *state* automaton. As you might expect, there are a finite number of them.</span>
-<span id="cb1-208"><a href="#cb1-208" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>The arrows represent the *transitions* between states.</span>
-<span id="cb1-209"><a href="#cb1-209" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>The labels on the arrows are the *labels* of the transitions, which always come from some alphabet $\Sigma$ (just like in regular expressions).</span>
-<span id="cb1-210"><a href="#cb1-210" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>There are two kinds of special states:</span>
-<span id="cb1-211"><a href="#cb1-211" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>The *initial state*, which is the one that the automaton starts in.</span>
-<span id="cb1-212"><a href="#cb1-212" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>The *final states*, which are the ones that the automaton can (but need not) end in.</span>
-<span id="cb1-213"><a href="#cb1-213" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-214"><a href="#cb1-214" aria-hidden="true" tabindex="-1"></a>The way we can tell whether an FSA generates a string is by starting at the initial state and following the transitions, choosing one symbol on each transition and collecting them to form a string. We're allowed to (but need not) stop when we hit a final state. As long as we stop in a final state, the string we've built is generated by the automaton.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-129"><a href="#cb1-129" aria-hidden="true" tabindex="-1"></a>This recursive definition captures the state elimination process, where we consider paths that may pass through state $k$ in addition to paths that don't.</span>
+<span id="cb1-130"><a href="#cb1-130" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-131"><a href="#cb1-131" aria-hidden="true" tabindex="-1"></a>The final regular expression $\text{nfa2regex}(M)$ is equivalent to the original NFA $M$ in the sense that they recognize exactly the same language: $\mathbb{L}(G) = \mathbb{L}(\text{nfa2regex}(G))$. </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 

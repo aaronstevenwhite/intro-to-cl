@@ -1,0 +1,219 @@
+---
+title: The intersection operation via complement
+bibliography: ../../references.bib
+---
+
+In defining phonological patterns, it can be really useful to have operations that go beyond the regular operations: union, concatenation, and kleene star. In this section, we'll see how to construct the complement of a language, and how to use the complement to construct the intersection of two languages. The reason these are going to be useful for us is that they allow us to express *constraints* against possible patterns. Remember that it was very hard to express constraints against entire strings using regular expressions. It turns out to be a lot easier using FSAs using the complement and intersection operations.
+
+## Complement
+
+Given a deterministic finite automaton (DFA) $G = \langle Q, \Sigma, \delta, q_0, F \rangle$ recognizing $A = \mathbb{L}(G)$, we construct $G' = \text{complement}(G) = \langle Q, \Sigma, \delta, q_0, Q \setminus F \rangle$ recognizing $\overline{A} = \Sigma^* \setminus A = \mathbb{L}(G') = \mathbb{L}(\text{complement}(G))$:
+
+1. The states $Q$, alphabet $\Sigma$, transition function $\delta$, and initial state $q_0$ remain the same
+2. The set of final states becomes $F' = Q \setminus F$ (the complement of $F$ with respect to $Q$)
+
+Note that for the complement operation to work correctly, the automaton must be a complete DFA (every state has a transition for every symbol in the alphabet). If the NFA is not deterministic or not complete, it must first be converted to a complete DFA.
+
+```{python}
+class FiniteStateAutomaton:
+    """A finite state automaton
+
+    Parameters
+    ----------
+    alphabet
+    states
+    initial_state
+    final states
+    transition_graph
+    """
+
+    def complement(self) -> 'FiniteStateAutomaton':
+        """
+        construct the complement of this FSA
+        
+        Returns
+        -------
+        FiniteStateAutomaton
+            A new FSA that accepts the complement language
+        
+        Notes
+        -----
+        The FSA must be deterministic and complete for this operation
+        to work correctly. If not, it will be converted first.
+        """
+        # First ensure we have a complete DFA
+        fsa = self._deepcopy()
+        if not fsa.is_deterministic():
+            fsa = fsa.to_dfa()
+        
+        if not fsa.is_complete():
+            fsa = fsa.make_complete()
+            
+        # Complement the set of final states
+        new_final_states = fsa._states.difference(fsa._final_states)
+        
+        return FiniteStateAutomaton(
+            fsa._alphabet,
+            fsa._states,
+            fsa._initial_state,
+            new_final_states,
+            fsa._transition_function.transition_graph
+        )
+```
+
+## Intersection
+
+Given NFAs $G_1 = \langle Q_1, \Sigma_1, \delta_1, q_1, F_1 \rangle$ recognizing $A = \mathbb{L}(G_1)$ and $G_2 = \langle Q_2, \Sigma_2, \delta_2, q_2, F_2 \rangle$ recognizing $B = \mathbb{L}(G_2)$, we can construct an NFA $G = \text{intersection}(G_1, G_2)$ recognizing $A \cap B = \mathbb{L}(G) = \mathbb{L}(\text{intersection}(G_1, G_2))$ using De Morgan's laws:
+
+$$A \cap B = \overline{\overline{A} \cup \overline{B}}$$
+
+This means we can implement intersection using the operations we already have:
+
+1. Compute $\overline{A}$ using the complement operation on $M_1$
+2. Compute $\overline{B}$ using the complement operation on $M_2$
+3. Compute $\overline{A} \cup \overline{B}$ using the union operation
+4. Compute $\overline{\overline{A} \cup \overline{B}}$ using the complement operation again
+
+```{python}
+class FiniteStateAutomaton:
+    """A finite state automaton
+
+    Parameters
+    ----------
+    alphabet
+    states
+    initial_state
+    final states
+    transition_graph
+    """
+
+    def __and__(self, other):
+        return self.intersection(other)
+
+    def intersection(self, other: 'FiniteStateAutomaton') -> 'FiniteStateAutomaton':
+        """
+        compute the intersection of this FSA with another
+        
+        Parameters
+        ----------
+        other : FiniteStateAutomaton
+            The FSA to intersect with
+            
+        Returns
+        -------
+        FiniteStateAutomaton
+            A new FSA that accepts the intersection language
+        """
+        # Using De Morgan's laws: A ∩ B = ¬(¬A ∪ ¬B)
+        not_self = self.complement()
+        not_other = other.complement()
+        union = not_self.union(not_other)
+        return union.complement()
+```
+
+### Direct Product Construction
+
+Alternatively, we can compute the intersection more efficiently using a direct product construction:
+
+Given NFAs $G_1 = \langle Q_1, \Sigma_1, \delta_1, q_1, F_1 \rangle$ and $G_2 = \langle Q_2, \Sigma_2, \delta_2, q_2, F_2 \rangle$, we construct $G = \text{direct\_intersection}(G_1, G_2) = \langle Q, \Sigma, \delta, q_0, F \rangle$ recognizing $A \cap B$:
+
+1. Define $Q = Q_1 \times Q_2$ (the Cartesian product of the state sets)
+2. Define $\Sigma = \Sigma_1 \cap \Sigma_2$ (the intersection of the alphabets)
+3. Define the initial state $q_0 = (q_1, q_2)$
+4. Define the set of final states $F = F_1 \times F_2$ (pairs where both components are final states)
+5. Define the transition function:
+   $$\delta((p_1, p_2), \sigma) = \{(q_1, q_2) \mid q_1 \in \delta_1(p_1, \sigma) \text{ and } q_2 \in \delta_2(p_2, \sigma)\}$$
+
+```{python}
+class FiniteStateAutomaton:
+    """A finite state automaton
+
+    Parameters
+    ----------
+    alphabet
+    states
+    initial_state
+    final states
+    transition_graph
+    """
+
+    def direct_intersection(self, other: 'FiniteStateAutomaton') -> 'FiniteStateAutomaton':
+        """
+        compute the intersection of this FSA with another using direct product construction
+        
+        Parameters
+        ----------
+        other : FiniteStateAutomaton
+            The FSA to intersect with
+            
+        Returns
+        -------
+        FiniteStateAutomaton
+            A new FSA that accepts the intersection language
+        """
+        # Relabel states to ensure uniqueness
+        fsa1, fsa2 = self._relabel_fsas(other)
+        
+        # Common alphabet
+        new_alphabet = fsa1._alphabet.intersection(fsa2._alphabet)
+        
+        # Create the product state space
+        new_states = set()
+        new_transition_graph = {}
+        new_final_states = set()
+        
+        # Initial state is the pair of initial states
+        new_initial_state = (fsa1._initial_state, fsa2._initial_state)
+        
+        # Construct the product automaton
+        stack = [new_initial_state]
+        visited = set()
+        
+        while stack:
+            current_state = stack.pop()
+            if current_state in visited:
+                continue
+                
+            visited.add(current_state)
+            new_states.add(current_state)
+            
+            # Check if this is a final state in the product
+            if (current_state[0] in fsa1._final_states and
+                current_state[1] in fsa2._final_states):
+                new_final_states.add(current_state)
+            
+            # Compute transitions for each symbol
+            for symbol in new_alphabet:
+                next_states1 = fsa1._transition_function.get_transitions(current_state[0], symbol)
+                next_states2 = fsa2._transition_function.get_transitions(current_state[1], symbol)
+                
+                # For each pair of next states
+                for q1 in next_states1:
+                    for q2 in next_states2:
+                        next_state = (q1, q2)
+                        
+                        # Add the transition
+                        if current_state not in new_transition_graph:
+                            new_transition_graph[current_state] = {}
+                        if symbol not in new_transition_graph[current_state]:
+                            new_transition_graph[current_state][symbol] = set()
+                            
+                        new_transition_graph[current_state][symbol].add(next_state)
+                        
+                        # Add to stack if not visited
+                        if next_state not in visited:
+                            stack.append(next_state)
+        
+        # Create the new transition function
+        new_transition_function = TransitionFunction(new_transition_graph)
+        
+        return FiniteStateAutomaton(
+            new_alphabet,
+            new_states,
+            new_initial_state,
+            new_final_states,
+            new_transition_function
+        )
+```
+
+This direct construction is more efficient than using De Morgan's laws and complementation, particularly for large automata, since it avoids multiple determinization steps which can cause exponential state growth.
