@@ -1,0 +1,131 @@
+---
+title: Translating Regular Expressions to NFAs
+jupyter: python3
+---
+
+We've seen that NFAs and DFAs are weakly equivalent: they both generate exactly the same languages. Now, we'll look at the relationship of NFAs–and thus, DFAs (given their equivalence)–to regular expressions. What we'll see is that regular expressions, NFAs, and DFAs all generate the same languages–by definition, the regular languages.
+
+The idea is similar to what we just saw with NFAs and DFAs: we'll show that, for any regular expression $\rho$, we can construct an NFA $G$ that recognizes exactly the language $\mathbb{L}(G) = \mathbb{L}(\rho)$; and conversely, for any NFA $G$, we can construct a regular expression $\rho$ that recognizes exactly the language $\mathbb{L}(\rho) = \mathbb{L}(G)$.
+
+## Translating Regular Expressions to NFAs
+
+Given a regular expression $\rho$ on alphabet $\Sigma$, we can construct an NFA $G_\rho = \langle Q_\rho, \Sigma, \delta_\rho, q_0^\rho, F_\rho \rangle$ that recognizes exactly the language $\mathbb{L}(\rho) = \text{eval}(\rho)$.
+
+We'll build this conversion recursively, following the structure of regular expressions:
+
+## Base Cases
+
+Where for each case:
+
+1. For $\rho = \emptyset$ (the empty language):
+   - $Q_\rho = \{q_0, q_1\}$
+   - $\delta_\rho = \emptyset$ (no transitions)
+   - $q_0^\rho = q_0$
+   - $F_\rho = \emptyset$ (no final states)
+
+2. For $\rho = \epsilon$ (the empty string):
+   - $Q_\rho = \{q_0\}$
+   - $\delta_\rho = \emptyset$ (no transitions)
+   - $q_0^\rho = q_0$
+   - $F_\rho = \{q_0\}$
+
+3. For $\rho = a$ where $a \in \Sigma$ (a single symbol):
+   - $Q_\rho = \{q_0, q_1\}$
+   - $\delta_\rho(q_0, a) = \{q_1\}$
+   - $q_0^\rho = q_0$
+   - $F_\rho = \{q_1\}$
+
+## Recursive Cases
+
+For the recursive cases, we'll use the operations we've already defined for NFAs:
+
+1. For $\rho = (\rho_1 \cup \rho_2)$ (union):
+   - Construct $G_{\rho_1}$ and $G_{\rho_2}$ recursively
+   - $G_\rho = \text{union}(G_{\rho_1}, G_{\rho_2})$
+
+2. For $\rho = (\rho_1 \circ \rho_2)$ (concatenation):
+   - Construct $G_{\rho_1}$ and $G_{\rho_2}$ recursively
+   - $G_\rho = \text{concatenate}(G_{\rho_1}, G_{\rho_2})$
+
+3. For $\rho = \rho_1^*$ (Kleene star):
+   - Construct $G_{\rho_1}$ recursively
+   - $G_\rho = \text{kleene}(G_{\rho_1})$
+
+Let's implement this conversion algorithm:
+
+
+$$
+\text{regex2nfa}(\rho) = \begin{cases}
+\langle \{q_0, q_1\}, \Sigma, \emptyset, q_0, \emptyset \rangle & \text{if } \rho = \emptyset \\
+\langle \{q_0\}, \Sigma, \emptyset, q_0, \{q_0\} \rangle & \text{if } \rho = \epsilon \\
+\langle \{q_0, q_1\}, \Sigma, \{(q_0, a) \mapsto \{q_1\}\}, q_0, \{q_1\} \rangle & \text{if } \rho = a \in \Sigma \\
+\text{union}(\text{regex2nfa}(\rho_1), \text{regex2nfa}(\rho_2)) & \text{if } \rho = (\rho_1 \cup \rho_2) \\
+\text{concatenate}(\text{regex2nfa}(\rho_1), \text{regex2nfa}(\rho_2)) & \text{if } \rho = (\rho_1 \circ \rho_2) \\
+\text{kleene}(\text{regex2nfa}(\rho_1)) & \text{if } \rho = \rho_1^*
+\end{cases}
+$$
+
+## Translating NFAs to Regular Expressions
+
+We've seen how to convert a regular expression to an NFA. Now let's explore the reverse: converting an NFA to an equivalent regular expression.
+
+Given an NFA $G = \langle Q, \Sigma, \delta, q_0, F \rangle$, we can construct a regular expression $\rho$ such that $\mathbb{L}(G) = \mathbb{L}(\rho)$.
+
+### The State Elimination Method
+
+The most common approach for this conversion is the **state elimination method**:
+
+1. Transform the NFA into a generalized NFA (GNFA) with a single initial state, a single final state, and transitions labeled with regular expressions
+2. Systematically eliminate states one by one, updating the transition labels accordingly
+3. When only the initial and final states remain, the regular expression on the transition between them represents the language of the original NFA
+
+#### Step 1: Construct the GNFA
+
+First, we transform the NFA into a GNFA:
+
+- Add a new initial state $q_{\text{init}}$ with an ε-transition to the original initial state $q_0$
+- Add a new final state $q_{\text{final}}$ and add ε-transitions from all original final states to $q_{\text{final}}$
+- Make $q_{\text{final}}$ the only final state
+- Label each transition with the corresponding symbol from the alphabet (or ε)
+
+#### Step 2: Eliminate States
+
+For each state $q_k$ (except $q_{\text{init}}$ and $q_{\text{final}}$):
+
+1. For each pair of states $q_i$ and $q_j$ such that there are transitions from $q_i$ to $q_k$ and from $q_k$ to $q_j$:
+   - Let $R_{ik}$ be the regular expression on the transition from $q_i$ to $q_k$
+   - Let $R_{kk}$ be the regular expression on the self-loop at $q_k$ (if any, otherwise $\emptyset$)
+   - Let $R_{kj}$ be the regular expression on the transition from $q_k$ to $q_j$
+   - Create or update the transition from $q_i$ to $q_j$ with the regular expression: $R_{ij} \cup (R_{ik} \circ R_{kk}^* \circ R_{kj})$
+
+2. Remove state $q_k$ and all its incoming and outgoing transitions
+
+#### Step 3: Extract the Result
+
+After eliminating all states except $q_{\text{init}}$ and $q_{\text{final}}$, the regular expression on the transition from $q_{\text{init}}$ to $q_{\text{final}}$ represents the language of the original NFA.
+
+### Formal Definition
+
+We can define this conversion formally as:
+
+$$
+\text{nfa2regex}(M) = R_{q_{\text{init}},q_{\text{final}}}^{Q}
+$$
+
+Where $R_{i,j}^{S}$ represents the regular expression for paths from state $i$ to state $j$ that only pass through states in set $S$ as intermediate states, defined recursively as:
+
+$$
+R_{i,j}^{\emptyset} = \begin{cases}
+a_1 \cup a_2 \cup \ldots \cup a_n & \text{if there are direct transitions labeled } a_1, a_2, \ldots, a_n \text{ from } i \text{ to } j \\
+\epsilon & \text{if } i = j \text{ and there are no direct transitions from } i \text{ to } j \\
+\emptyset & \text{if there are no direct transitions from } i \text{ to } j \text{ and } i \neq j
+\end{cases}
+$$
+
+$$
+R_{i,j}^{S \cup \{k\}} = R_{i,j}^{S} \cup (R_{i,k}^{S} \circ (R_{k,k}^{S})^* \circ R_{k,j}^{S})
+$$
+
+This recursive definition captures the state elimination process, where we consider paths that may pass through state $k$ in addition to paths that don't.
+
+The final regular expression $\text{nfa2regex}(M)$ is equivalent to the original NFA $M$ in the sense that they recognize exactly the same language: $\mathbb{L}(G) = \mathbb{L}(\text{nfa2regex}(G))$. 

@@ -45,6 +45,8 @@ project:
   - phonological-patterns/formal-definition/index.qmd
   - phonological-patterns/formal-definition/the-regular-operations.qmd
   - phonological-patterns/formal-definition/two-equivalent-definitions.qmd
+  - phonological-patterns/formal-definition/translating-between-formalisms.qmd
+  - phonological-patterns/formal-definition/beyond-the-regular-operations.qmd
   - phonological-patterns/generative-capacity/index.qmd
   - phonological-patterns/phonological-rules-as-fsas/index.qmd
   - phonological-patterns/recognition-and-parsing/index.qmd
@@ -116,15 +118,17 @@ website:
           - phonological-patterns/formal-definition/index.qmd
           - phonological-patterns/formal-definition/two-equivalent-definitions.qmd
           - phonological-patterns/formal-definition/the-regular-operations.qmd
-        - section: "Generative capacity"
-          contents:
-          - phonological-patterns/generative-capacity/index.qmd
+          - phonological-patterns/formal-definition/translating-between-formalisms.qmd
+          - phonological-patterns/formal-definition/beyond-the-regular-operations.qmd
         - section: "Phonological rules as FSAs"
           contents:
           - phonological-patterns/phonological-rules-as-fsas/index.qmd
         - section: "Recognition and parsing"
           contents:
           - phonological-patterns/recognition-and-parsing/index.qmd
+        - section: "Generative capacity"
+          contents:
+          - phonological-patterns/generative-capacity/index.qmd
       - section: "The nature of morphological patterns"
         contents:
         - syntactic-patterns/index.qmd
