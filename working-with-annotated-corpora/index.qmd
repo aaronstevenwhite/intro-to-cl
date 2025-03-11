@@ -1,6 +1,6 @@
 ---
 title: Overview
-bibliography: ../../references.bib
+bibliography: ../references.bib
 ---
 
 ::: {.callout-tip}
