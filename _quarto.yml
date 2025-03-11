@@ -39,6 +39,12 @@ project:
   - languages-in-terms-of-strings/index.qmd
   - languages-in-terms-of-strings/distance-in-the-abstract.qmd
   - languages-in-terms-of-strings/levenshtein-distance.qmd
+  - working-with-annotated-corpora/index.qmd
+  - working-with-annotated-corpora/trees.ipynb
+  - working-with-annotated-corpora/containment-tests.ipynb
+  - working-with-annotated-corpora/indexation.ipynb
+  - working-with-annotated-corpora/finding-data-with-tree-pattern-matching.ipynb
+  - working-with-annotated-corpora/building-a-corpus-reader.ipynb
   - phonological-patterns/index.qmd
   - phonological-patterns/generation.qmd
   - phonological-patterns/the-generativist-conceit.qmd
@@ -54,6 +60,7 @@ project:
   - analysis-as-deduction/index.qmd
   - assignments/assignments-1-and-2.ipynb
   - assignments/assignments-3-and-4.ipynb
+  - assignments/assignments-5-and-6.ipynb
 
 website:
   title: "Introduction to Computational Linguistics"
@@ -108,6 +115,14 @@ website:
         - languages-in-terms-of-strings/index.qmd
         - languages-in-terms-of-strings/distance-in-the-abstract.qmd
         - languages-in-terms-of-strings/levenshtein-distance.qmd
+      - section: "Working with Annotated Corpora"
+        contents:
+        - working-with-annotated-corpora/index.qmd
+        - working-with-annotated-corpora/trees.ipynb
+        - working-with-annotated-corpora/containment-tests.ipynb
+        - working-with-annotated-corpora/indexation.ipynb
+        - working-with-annotated-corpora/finding-data-with-tree-pattern-matching.ipynb
+        - working-with-annotated-corpora/building-a-corpus-reader.ipynb
       - section: "The nature of phonological patterns"
         contents:
         - phonological-patterns/index.qmd
@@ -142,6 +157,7 @@ website:
         contents:
         - assignments/assignments-1-and-2.ipynb
         - assignments/assignments-3-and-4.ipynb
+        - assignments/assignments-5-and-6.ipynb
 
 format:
   html:
