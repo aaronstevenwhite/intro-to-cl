@@ -1,10 +1,250 @@
 ---
-title: Overview
+title: Overview of Context-Free Grammars
 bibliography: ../references.bib
 ---
 
-::: {.callout-caution}
-## Availability
+So far, we've explored finite state automata (FSAs) as a way to recognize patterns in strings. FSAs are powerful tools for describing phonotactic constraints - the permissible sound sequences in a language. However, to model more complex linguistic structures like syntax and morphology, we need a more powerful formalism: context-free grammars (CFGs).
 
-This module will be available around March 24, 2025.
-:::
+CFGs are a step up in the Chomsky hierarchy from regular languages. While regular languages (those recognized by FSAs) can only handle local dependencies, CFGs can handle nested and hierarchical structures that are common in natural language.
+
+## What are Context-Free Grammars?
+
+A context-free grammar is formally defined as a 4-tuple $G = (V, \Sigma, R, S)$ where:
+
+1. $V$ is a finite set of variables (also called non-terminals)
+2. $\Sigma$ is a finite set of terminals (the alphabet)
+3. $R \subseteq V \times (V \cup \Sigma \cup \{\epsilon\})^*$ is a finite set of rules (or productions) of the form $A \rightarrow \alpha$ where $A \in V$ and $\alpha \in (V \cup \Sigma \cup \{\epsilon\})^*$
+4. $S \in V$ is the start variable
+
+The key insight of context-free grammars is that each rule's application depends only on the single variable being expanded, not on the surrounding context (hence "context-free").
+
+## CFGs in Computational Linguistics
+
+CFGs are especially useful in computational linguistics for:
+
+1. **Syntactic parsing**: Analyzing the grammatical structure of sentences
+2. **Morphological analysis**: Describing the internal structure of words
+3. **Generation**: Producing well-formed linguistic structures
+
+In this module, we'll focus on CFGs for morphological analysis - the study of how words are formed from smaller meaningful units (morphemes). Unlike syntax, which deals with how words combine to form sentences, morphology deals with how morphemes combine to form words.
+
+## Comparing FSAs and CFGs
+
+While FSAs are sufficient for modeling many aspects of phonology (how sounds combine in a language), they fall short when it comes to capturing certain morphological patterns. Here's a comparison:
+
+| FSAs (Regular Languages) | CFGs (Context-Free Languages) |
+|--------------------------|-------------------------------|
+| Cannot handle center embedding | Can handle center embedding |
+| Cannot count matching elements | Can count matching elements |
+| Cannot model recursive structures | Can model recursive structures |
+| Efficient recognition algorithms | Less efficient recognition algorithms |
+| Simple representation | More complex representation |
+
+Let's implement a basic `ContextFreeGrammar` class that will be the foundation for our exploration of CFGs:
+
+```python
+class Rule:
+    """A context free grammar rule
+
+    Parameters
+    ----------
+    left_side : str
+    right_side : *str
+
+    Attributes
+    ----------
+    left_side : str
+    right_side : tuple(str)
+    """
+
+    def __init__(self, left_side, *right_side):
+        self._left_side = left_side
+        self._right_side = right_side
+
+    def __repr__(self) -> str:
+        return self._left_side + ' -> ' + ' '.join(self._right_side)
+        
+    def to_tuple(self) -> tuple[str, tuple[str, ...]]:
+        return (self._left_side, self._right_side)
+        
+    def __hash__(self) -> int:
+        return hash(self.to_tuple())
+
+    def __eq__(self, other: 'Rule') -> bool:
+        left_side_equal = self._left_side == other._left_side
+        right_side_equal = self._right_side == other._right_side
+
+        return left_side_equal and right_side_equal
+
+    @property
+    def left_side(self) -> str:
+        return self._left_side
+
+    @property
+    def right_side(self) -> tuple[str, ...]:
+        return self._right_side
+
+    @property
+    def is_unary(self) -> bool:
+        return len(self._right_side) == 1
+    
+    @property
+    def is_binary(self) -> bool:
+        return len(self._right_side) == 2
+```
+
+And here's our basic `ContextFreeGrammar` class:
+
+```python
+from typing import Literal
+from functools import lru_cache
+
+Mode = Literal["recognize", "parse"]
+
+class ContextFreeGrammar:
+    """
+    A context free grammar
+
+    Parameters
+    ----------
+    alphabet : set(str)
+    variables : set(str)
+    rules : set(Rule)
+    start_variable : str
+
+    Attributes
+    ----------
+    alphabet : set(str)
+    variables : set(str)
+    rules : set(Rule)
+    start_variable : str
+    """
+    
+    parser_class = None
+    
+    def __init__(self, alphabet: set[str], variables: set[str], rules: set[Rule], start_variable: str):
+        self._alphabet = alphabet
+        self._variables = variables
+        self._rules = rules
+        self._start_variable = start_variable
+        
+        self._validate_variables()
+        self._validate_rules()
+
+        if self.parser_class is not None:
+            self._parser = self.parser_class(self)
+        else:
+            self._parser = None
+
+    def _validate_variables(self):
+        if self._alphabet & self._variables:
+            raise ValueError('alphabet and variables must not share elements')
+        
+        if self._start_variable not in self._variables:
+            raise ValueError('start variable must be in set of variables')
+
+    def _validate_rules(self):
+        pass
+
+    @property            
+    def alphabet(self) -> set[str]:
+        return self._alphabet
+
+    @property    
+    def variables(self) -> set[str]:
+        return self._variables
+   
+    @lru_cache(2**10)
+    def rules(self, left_side: str | None = None) -> set[Rule]:
+        if left_side is None:
+            return self._rules
+        else:
+            return {rule for rule in self._rules 
+                    if rule.left_side == left_side}
+
+    @property
+    def start_variable(self) -> str:
+        return self._start_variable
+
+    @lru_cache(2**14)
+    def parts_of_speech(self, word: str | None = None) -> set[str]:
+        if word is None:
+            return {rule.left_side for rule in self._rules 
+                    if rule.is_unary 
+                    if rule.right_side[0] in self._alphabet}
+        
+        else:
+            return {rule.left_side for rule in self._rules 
+                    if rule.is_unary 
+                    if rule.right_side[0] == word}
+  
+    @property
+    def phrase_variables(self) -> set[str]:
+        try:
+            return self._phrase_variables
+        except AttributeError:
+            self._phrase_variables = {rule.left_side for rule in self._rules 
+                                      if not rule.is_unary or 
+                                      rule.right_side[0] not in self._alphabet}
+            return self._phrase_variables
+
+    @lru_cache(2**15)
+    def reduce(self, *right_side: str) -> set[str]:
+        """
+        the nonterminals that can be rewritten as right_side
+
+        Parameters
+        ----------
+        right_side
+
+        Returns
+        -------
+        set(str)
+        """
+        return {r.left_side for r in self._rules
+                if r.right_side == tuple(right_side)}
+```
+
+## Example: A Simple Morphological Grammar
+
+Let's define a simple morphological grammar for a subset of English derivational morphology:
+
+```python
+grammar = ContextFreeGrammar(
+    alphabet={'happy', 'un', 'ness', 'kind', 'ly', 'help', 'ful'},
+    variables={'Word', 'Adj', 'Adv', 'N', 'Prefix', 'Suffix'},
+    rules={
+        # Base words
+        Rule('Adj', 'happy'),
+        Rule('Adj', 'kind'),
+        Rule('Adj', 'helpful'),
+        
+        # Word formation rules
+        Rule('Word', 'Adj'),
+        Rule('Word', 'Adv'),
+        Rule('Word', 'N'),
+        
+        # Derivational rules
+        Rule('Adj', 'Prefix', 'Adj'),  # un + kind → unkind
+        Rule('N', 'Adj', 'Suffix'),    # kind + ness → kindness
+        Rule('Adv', 'Adj', 'Suffix'),  # kind + ly → kindly
+        Rule('Adj', 'N', 'Suffix'),    # help + ful → helpful
+        
+        # Affixes
+        Rule('Prefix', 'un'),
+        Rule('Suffix', 'ness'),
+        Rule('Suffix', 'ly'),
+        Rule('Suffix', 'ful')
+    },
+    start_variable='Word'
+)
+```
+
+In the upcoming sections, we'll explore:
+
+1. Operations on context-free grammars
+2. Normal forms (especially Chomsky Normal Form)
+3. Bottom-up parsing using the CKY algorithm
+4. Top-down parsing using the Earley algorithm
+
+These tools will allow us to analyze and generate complex morphological structures efficiently.

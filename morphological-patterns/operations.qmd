@@ -1,0 +1,394 @@
+---
+title: Operations on Context-Free Grammars
+bibliography: ../references.bib
+---
+
+In the previous section, we introduced the formal definition of context-free grammars. Now, we'll explore various operations that can be performed on CFGs. These operations allow us to build more complex grammars from simpler ones, which is particularly useful for modeling morphological processes.
+
+While regular languages are closed under operations like union, concatenation, and Kleene closure, context-free languages have different closure properties. Let's explore how these operations can be implemented for CFGs and what they mean for morphological analysis.
+
+## Union
+
+Given two context-free grammars $G_1 = (V_1, \Sigma_1, R_1, S_1)$ and $G_2 = (V_2, \Sigma_2, R_2, S_2)$, the union grammar $G = G_1 \cup G_2$ generates the language $L(G) = L(G_1) \cup L(G_2)$.
+
+We can construct $G = (V, \Sigma, R, S)$ as follows:
+
+1. Create a new start symbol $S$ not in $V_1$ or $V_2$
+2. Set $V = V_1 \cup V_2 \cup \{S\}$
+3. Set $\Sigma = \Sigma_1 \cup \Sigma_2$
+4. Set $R = R_1 \cup R_2 \cup \{S \rightarrow S_1, S \rightarrow S_2\}$
+
+Let's implement this operation as a method in our `ContextFreeGrammar` class:
+
+```python
+def union(self, other: 'ContextFreeGrammar') -> 'ContextFreeGrammar':
+    """
+    Compute the union of this grammar with another grammar
+    
+    Parameters
+    ----------
+    other : ContextFreeGrammar
+        The grammar to compute the union with
+        
+    Returns
+    -------
+    ContextFreeGrammar
+        A new grammar generating the union of the languages
+    """
+    # Create a new start variable
+    new_start = "S_union"
+    
+    # Ensure it doesn't clash with existing variables
+    while new_start in self.variables or new_start in other.variables:
+        new_start += "_"
+    
+    # Combine the variables, alphabet, and rules
+    variables = self.variables | other.variables | {new_start}
+    alphabet = self.alphabet | other.alphabet
+    
+    # Take the union of the rules
+    rules = self.rules() | other.rules()
+    
+    # Add rules from the new start variable to the original start variables
+    rules |= {
+        Rule(new_start, self.start_variable),
+        Rule(new_start, other.start_variable)
+    }
+    
+    return ContextFreeGrammar(alphabet, variables, rules, new_start)
+```
+
+In morphology, union is useful for modeling alternative word formation processes. For example, we might have one grammar for noun formation and another for adjective formation, and we can combine them to create a more comprehensive morphological grammar.
+
+## Concatenation
+
+Given two context-free grammars $G_1 = (V_1, \Sigma_1, R_1, S_1)$ and $G_2 = (V_2, \Sigma_2, R_2, S_2)$, the concatenation grammar $G = G_1 \circ G_2$ generates the language $L(G) = L(G_1) \circ L(G_2)$, which consists of all strings $w_1w_2$ where $w_1 \in L(G_1)$ and $w_2 \in L(G_2)$.
+
+We can construct $G = (V, \Sigma, R, S)$ as follows:
+
+1. Create a new start symbol $S$ not in $V_1$ or $V_2$
+2. Set $V = V_1 \cup V_2 \cup \{S\}$
+3. Set $\Sigma = \Sigma_1 \cup \Sigma_2$
+4. Set $R = R_1 \cup R_2 \cup \{S \rightarrow S_1 S_2\}$
+
+Let's implement this operation:
+
+```python
+def concatenate(self, other: 'ContextFreeGrammar') -> 'ContextFreeGrammar':
+    """
+    Compute the concatenation of this grammar with another grammar
+    
+    Parameters
+    ----------
+    other : ContextFreeGrammar
+        The grammar to concatenate with
+        
+    Returns
+    -------
+    ContextFreeGrammar
+        A new grammar generating the concatenation of the languages
+    """
+    # Create a new start variable
+    new_start = "S_concat"
+    
+    # Ensure it doesn't clash with existing variables
+    while new_start in self.variables or new_start in other.variables:
+        new_start += "_"
+    
+    # Combine the variables, alphabet, and rules
+    variables = self.variables | other.variables | {new_start}
+    alphabet = self.alphabet | other.alphabet
+    
+    # Take the union of the rules
+    rules = self.rules() | other.rules()
+    
+    # Add the concatenation rule
+    rules.add(Rule(new_start, self.start_variable, other.start_variable))
+    
+    return ContextFreeGrammar(alphabet, variables, rules, new_start)
+```
+
+In morphology, concatenation is fundamental for modeling how morphemes combine. For example, we might have a grammar for prefixes and another for stems, and concatenation allows us to model how they combine to form complex words.
+
+## Kleene Closure
+
+Given a context-free grammar $G = (V, \Sigma, R, S)$, the Kleene closure grammar $G^* = (V', \Sigma, R', S')$ generates the language $L(G^*) = L(G)^*$, which consists of all strings formed by concatenating zero or more strings from $L(G)$.
+
+We can construct $G^* = (V', \Sigma, R', S')$ as follows:
+
+1. Create a new start symbol $S'$ not in $V$
+2. Set $V' = V \cup \{S'\}$
+3. Set $R' = R \cup \{S' \rightarrow \epsilon, S' \rightarrow S S'\}$
+
+Here's the implementation:
+
+```python
+def kleene_star(self) -> 'ContextFreeGrammar':
+    """
+    Compute the Kleene closure of this grammar
+    
+    Returns
+    -------
+    ContextFreeGrammar
+        A new grammar generating the Kleene closure of the language
+    """
+    # Create a new start variable
+    new_start = "S_star"
+    
+    # Ensure it doesn't clash with existing variables
+    while new_start in self.variables:
+        new_start += "_"
+    
+    # Create variables and alphabet
+    variables = self.variables | {new_start}
+    alphabet = self.alphabet
+    
+    # Copy existing rules
+    rules = self.rules()
+    
+    # Add new rules for Kleene star
+    rules.add(Rule(new_start, new_start, self.start_variable))  # S' -> S'S (repeat)
+    rules.add(Rule(new_start))  # S' -> ε (empty string)
+    
+    return ContextFreeGrammar(alphabet, variables, rules, new_start)
+```
+
+In morphology, Kleene closure is useful for modeling repetitive affixation, such as reduplication or iterative affixes.
+
+## Intersection
+
+Unlike regular languages, context-free languages are not closed under intersection. This means that if $L_1$ and $L_2$ are context-free languages, $L_1 \cap L_2$ may not be context-free.
+
+However, the intersection of a context-free language with a regular language is context-free. This property is particularly useful when we want to restrict a CFG to only generate strings that match a certain pattern described by a finite state automaton.
+
+We won't implement intersection directly, but it's important to be aware of this closure property.
+
+## Complementation
+
+Context-free languages are also not closed under complementation. If $L$ is a context-free language, its complement $\overline{L} = \Sigma^* - L$ is not necessarily context-free.
+
+## Example: Morphological Operations
+
+Let's demonstrate these operations with a morphological example. We'll create two simple grammars: one for adjectival morphology and one for nominal morphology, and show how to combine them.
+
+```python
+# Grammar for adjectival morphology
+adj_grammar = ContextFreeGrammar(
+    alphabet={'happy', 'kind', 'un', 'ly'},
+    variables={'Word', 'Adj', 'Adv', 'Prefix'},
+    rules={
+        Rule('Adj', 'happy'),
+        Rule('Adj', 'kind'),
+        Rule('Word', 'Adj'),
+        Rule('Word', 'Adv'),
+        Rule('Adj', 'Prefix', 'Adj'),  # un + happy -> unhappy
+        Rule('Adv', 'Adj', 'ly'),      # happy + ly -> happily
+        Rule('Prefix', 'un')
+    },
+    start_variable='Word'
+)
+
+# Grammar for nominal morphology
+noun_grammar = ContextFreeGrammar(
+    alphabet={'happy', 'kind', 'ness', 'ity'},
+    variables={'Word', 'Adj', 'N', 'Suffix'},
+    rules={
+        Rule('Adj', 'happy'),
+        Rule('Adj', 'kind'),
+        Rule('Word', 'N'),
+        Rule('N', 'Adj', 'Suffix'),    # happy + ness -> happiness
+        Rule('Suffix', 'ness'),
+        Rule('Suffix', 'ity')
+    },
+    start_variable='Word'
+)
+
+# Combining the grammars
+combined_grammar = adj_grammar.union(noun_grammar)
+```
+
+This combined grammar would be capable of generating words like:
+- "happy" (adjective)
+- "unhappy" (prefixed adjective)
+- "happily" (adverb)
+- "happiness" (noun derived from adjective)
+- "unhappiness" (noun derived from prefixed adjective)
+
+## Implementing the Operations in the ContextFreeGrammar Class
+
+Let's add these operations as methods to our `ContextFreeGrammar` class:
+
+```python
+class ContextFreeGrammar(ContextFreeGrammar):
+    
+    def __or__(self, other):
+        return self.union(other)
+    
+    def __add__(self, other):
+        return self.concatenate(other)
+    
+    def union(self, other: 'ContextFreeGrammar') -> 'ContextFreeGrammar':
+        """
+        Compute the union of this grammar with another grammar
+        
+        Parameters
+        ----------
+        other : ContextFreeGrammar
+            The grammar to compute the union with
+            
+        Returns
+        -------
+        ContextFreeGrammar
+            A new grammar generating the union of the languages
+        """
+        # Create a new start variable
+        new_start = "S_union"
+        
+        # Ensure it doesn't clash with existing variables
+        while new_start in self.variables or new_start in other.variables:
+            new_start += "_"
+        
+        # Combine the variables, alphabet, and rules
+        variables = self.variables | other.variables | {new_start}
+        alphabet = self.alphabet | other.alphabet
+        
+        # Take the union of the rules
+        rules = self.rules() | other.rules()
+        
+        # Add rules from the new start variable to the original start variables
+        rules |= {
+            Rule(new_start, self.start_variable),
+            Rule(new_start, other.start_variable)
+        }
+        
+        return ContextFreeGrammar(alphabet, variables, rules, new_start)
+    
+    def concatenate(self, other: 'ContextFreeGrammar') -> 'ContextFreeGrammar':
+        """
+        Compute the concatenation of this grammar with another grammar
+        
+        Parameters
+        ----------
+        other : ContextFreeGrammar
+            The grammar to concatenate with
+            
+        Returns
+        -------
+        ContextFreeGrammar
+            A new grammar generating the concatenation of the languages
+        """
+        # Create a new start variable
+        new_start = "S_concat"
+        
+        # Ensure it doesn't clash with existing variables
+        while new_start in self.variables or new_start in other.variables:
+            new_start += "_"
+        
+        # Combine the variables, alphabet, and rules
+        variables = self.variables | other.variables | {new_start}
+        alphabet = self.alphabet | other.alphabet
+        
+        # Take the union of the rules
+        rules = self.rules() | other.rules()
+        
+        # Add the concatenation rule
+        rules.add(Rule(new_start, self.start_variable, other.start_variable))
+        
+        return ContextFreeGrammar(alphabet, variables, rules, new_start)
+    
+    def kleene_star(self) -> 'ContextFreeGrammar':
+        """
+        Compute the Kleene closure of this grammar
+        
+        Returns
+        -------
+        ContextFreeGrammar
+            A new grammar generating the Kleene closure of the language
+        """
+        # Create a new start variable
+        new_start = "S_star"
+        
+        # Ensure it doesn't clash with existing variables
+        while new_start in self.variables:
+            new_start += "_"
+        
+        # Create variables and alphabet
+        variables = self.variables | {new_start}
+        alphabet = self.alphabet
+        
+        # Copy existing rules
+        rules = self.rules()
+        
+        # Add new rules for Kleene star
+        rules.add(Rule(new_start, new_start, self.start_variable))  # S' -> S'S (repeat)
+        rules.add(Rule(new_start))  # S' -> ε (empty string)
+        
+        return ContextFreeGrammar(alphabet, variables, rules, new_start)
+```
+
+With these operations, we can build complex morphological grammars from simpler components, modeling the rich combinatorial properties of morphological systems.
+
+## Real-World Example: CELEX Morphological Data
+
+The CELEX database provides rich morphological analyses of words in English, German, and Dutch. Using our operations, we can model the morphological processes reflected in this dataset.
+
+Let's look at how we might build a grammar for a subset of English derivational morphology based on CELEX data:
+
+```python
+def extract_rules_from_celex(parsed_words):
+    """
+    Extract CFG rules from a collection of parsed words from CELEX
+    
+    Parameters
+    ----------
+    parsed_words : list of ParsedWord
+        List of words with their morphological analyses
+        
+    Returns
+    -------
+    tuple
+        (alphabet, variables, rules)
+    """
+    alphabet = set()
+    variables = set()
+    rules = set()
+    
+    for word in parsed_words:
+        # Add morphemes to alphabet
+        for _, morpheme in word.flatten():
+            alphabet.add(morpheme)
+        
+        # Add categories to variables
+        for tag, _ in word.flatten():
+            variables.add(tag)
+        
+        # Extract rules
+        for rule in word.rules:
+            rules.add(rule)
+    
+    return alphabet, variables, rules
+
+# Assuming we have the parsed words from CELEX
+alphabet, variables, rules = extract_rules_from_celex(celex_parses.parsed_word.values)
+celex_grammar = ContextFreeGrammar(alphabet, variables, rules, "WORD")
+
+# We can now use our operations to build more complex grammars
+# For example, we might create a grammar specifically for derivation with the prefix "un-"
+un_rules = {r for r in rules if "un" in r.right_side}
+un_variables = {r.left_side for r in un_rules} | {r.right_side[i] for r in un_rules for i in range(len(r.right_side)) if r.right_side[i] in variables}
+un_alphabet = {r.right_side[i] for r in un_rules for i in range(len(r.right_side)) if r.right_side[i] not in variables}
+un_grammar = ContextFreeGrammar(un_alphabet, un_variables, un_rules, "WORD")
+
+# And a grammar for derivation with the suffix "-ness"
+ness_rules = {r for r in rules if "ness" in r.right_side}
+ness_variables = {r.left_side for r in ness_rules} | {r.right_side[i] for r in ness_rules for i in range(len(r.right_side)) if r.right_side[i] in variables}
+ness_alphabet = {r.right_side[i] for r in ness_rules for i in range(len(r.right_side)) if r.right_side[i] not in variables}
+ness_grammar = ContextFreeGrammar(ness_alphabet, ness_variables, ness_rules, "WORD")
+
+# Combining the grammars
+un_ness_grammar = un_grammar.union(ness_grammar)
+```
+
+This would create a grammar capable of generating words with "un-" and "-ness" affixes, such as "unhappiness."
+
+In the next section, we'll explore how to convert context-free grammars to normal forms, particularly Chomsky Normal Form, which simplifies parsing algorithms.

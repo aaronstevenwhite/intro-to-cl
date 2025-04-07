@@ -1,0 +1,784 @@
+---
+title: Bottom-Up Parsing with CKY
+bibliography: ../references.bib
+---
+
+In the previous sections, we introduced context-free grammars, operations on grammars, and normal forms. Now, we'll explore how to use these grammars for parsing, which is the process of determining whether a string belongs to a language and, if so, what structure the grammar assigns to it.
+
+We'll focus on the Cocke-Kasami-Younger (CKY) algorithm, which is a bottom-up parsing algorithm for context-free grammars in Chomsky Normal Form. CKY is particularly well-suited for morphological analysis because of its efficiency and its ability to handle ambiguity.
+
+## Parsing for Morphological Analysis
+
+In morphological analysis, parsing serves two primary purposes:
+
+1. **Recognition**: Determining whether a word is well-formed according to the morphological rules of a language
+2. **Analysis**: Identifying the morphological structure of a word, including the hierarchical relationships between morphemes
+
+For instance, when parsing "unhappiness", we want to not only verify that it's a valid English word but also determine its structure: `((un+happy)+ness)` rather than `(un+(happy+ness))`, as these different structures might have different semantic interpretations.
+
+## The CKY Algorithm
+
+The CKY algorithm is a dynamic programming algorithm that fills a parse table bottom-up. It's particularly efficient because it avoids redundant computations by storing and reusing intermediate results.
+
+Here's the core idea of the algorithm:
+
+1. For a word with $n$ morphemes, create an $n \times n$ table where each cell $(i,j)$ represents the possible non-terminals that can derive the span of morphemes from position $i$ to position $j$.
+2. Fill the table diagonally, starting with single morphemes (spans of length 1), then spans of length 2, and so on.
+3. For each span $(i,j)$, consider all possible ways to split it into two smaller spans $(i,k)$ and $(k,j)$ for $i < k < j$.
+4. Use the grammar rules to determine which non-terminals can derive the combination of the non-terminals in the smaller spans.
+
+### CKY Algorithm Pseudocode
+
+Here's a formal pseudocode for the CKY algorithm:
+
+```
+function CKY(grammar, input):
+    n = length(input)
+    
+    # Initialize the chart (an n×n table)
+    chart = new Table[n+1, n+1]
+    
+    # Fill in the diagonal (spans of length 1)
+    for j = 1 to n:
+        for each rule A → input[j-1] in grammar:
+            add A to chart[j-1, j]
+    
+    # Fill in the rest of the chart (spans of length > 1)
+    for length = 2 to n:
+        for i = 0 to n - length:
+            j = i + length
+            for k = i + 1 to j - 1:
+                for each non-terminal B in chart[i, k]:
+                    for each non-terminal C in chart[k, j]:
+                        for each rule A → BC in grammar:
+                            add A to chart[i, j]
+    
+    # Check if the start symbol is in the top-right corner
+    return (start_symbol in chart[0, n])
+```
+
+For parsing (as opposed to just recognition), we also need to keep track of backpointers to reconstruct the parse tree.
+
+Let's define the core classes needed for CKY parsing:
+
+```python
+from typing import Union
+
+SpanIndices = tuple[int, int]
+CKYBackPointer = tuple[str, SpanIndices]
+
+class Chart:
+    @property
+    def parses(self):
+        raise NotImplementedError
+
+class ChartEntry:
+    def __hash__(self) -> int:
+        raise NotImplementedError
+
+    @property
+    def backpointers(self):
+        raise NotImplementedError
+
+class CKYChartEntry(ChartEntry):
+    """
+    A chart entry for a CKY chart
+
+    Parameters
+    ----------
+    symbol
+    backpointers
+
+    Attributes
+    ----------
+    symbol
+    backpointers
+    """
+
+    def __init__(self, symbol: str, *backpointers: CKYBackPointer):
+        self._symbol = symbol
+        self._backpointers = backpointers
+
+    def to_tuple(self):
+        return (self._symbol, self._backpointers)
+        
+    def __hash__(self) -> int:
+        return hash(self.to_tuple())
+
+    def __eq__(self, other: 'CKYChartEntry') -> bool:
+        return self.to_tuple() == other.to_tuple()
+    
+    def __repr__(self) -> str:
+        return self._symbol + ' -> ' + ' '.join(
+            f"{bp[0]}({bp[1][0]}, {bp[1][1]})" 
+            for bp in self.backpointers
+        )
+
+    def __str__(self) -> str:
+        return self.__repr__()
+    
+    @property
+    def symbol(self) -> str:
+        return self._symbol
+
+    @property
+    def backpointers(self) -> tuple[CKYBackPointer, ...]:
+        return self._backpointers
+
+class CKYChart(Chart):
+    """
+    A chart for a CKY parser
+
+    Jurafsky & Martin call this a table
+
+    Parameters
+    ----------
+    input_size
+
+    Attributes
+    ----------
+    parses
+    """
+
+    def __init__(self, input_size: int):
+        self._input_size = input_size
+        
+        self._chart: list[list[set[CKYChartEntry]]] = [
+            [set({})
+             for _ in range(input_size+1)]
+            for _ in range(input_size+1)
+        ]
+        
+    def __getitem__(self, index: SpanIndices) -> set[CKYChartEntry]:
+        i, j = index
+
+        self._validate_index(i, j)
+        
+        return self._chart[i][j]
+
+    def __setitem__(self, key: SpanIndices, item: set[CKYChartEntry]):
+        i, j = key
+
+        self._chart[i][j] = item
+        
+    def _validate_index(self, i, j):
+        try:
+            assert i < j
+        except AssertionError:
+            msg = "cannot index into the lower " +\
+                  "triangle of the chart"
+            raise ValueError(msg)
+
+        try:
+            self._chart[i]
+        except IndexError:
+            msg = "row index is too large"
+            raise ValueError(msg)
+
+        try:
+            self._chart[i][j]
+        except IndexError:
+            msg = "column index is too large"
+            raise ValueError(msg)
+
+    @property
+    def parses(self) -> set[Tree]:
+        try:
+            return self._parses
+        except AttributeError:
+            self._parses = self._construct_parses()
+            return self._parses
+
+    def _construct_parses(self, entry: Union['CKYChartEntry', None] = None) -> set[Tree]:
+        """Construct the parses implied by the chart
+
+        Parameters
+        ----------
+        entry
+        """
+        # This method constructs parse trees from the chart entries
+        if entry is None:
+            return {parse for entry in self[0, self._input_size] 
+                   for parse in self._construct_parses(entry)}
+        
+        if not entry.backpointers:
+            # Terminal symbol
+            return {Tree(entry.symbol, [])}
+        
+        parses = set()
+        for left_bp, right_bp in zip(entry.backpointers[0::2], entry.backpointers[1::2]):
+            left_symbol, left_span = left_bp
+            right_symbol, right_span = right_bp
+            
+            left_parses = self._construct_parses(
+                next(e for e in self[left_span] if e.symbol == left_symbol)
+            )
+            
+            right_parses = self._construct_parses(
+                next(e for e in self[right_span] if e.symbol == right_symbol)
+            )
+            
+            for left_parse in left_parses:
+                for right_parse in right_parses:
+                    parses.add(Tree(entry.symbol, [left_parse, right_parse]))
+        
+        return parses
+```
+
+Now let's define the `CKYParser` class that will use the chart to parse input strings:
+
+```python
+class ContextFreeGrammarParser:
+    
+    def __init__(self, grammar: ContextFreeGrammar):
+        self._grammar = grammar
+
+    def __call__(self, string, mode="recognize"):
+        if mode == "recognize":
+            return self._recognize(string)
+        elif mode == "parse":
+            return self._parse(string)            
+        else:
+            msg = 'mode must be "parse" or "recognize"'
+            raise ValueError(msg)
+
+class CKYParser(ContextFreeGrammarParser):
+    """
+    A CKY parser
+
+    Parameters
+    ----------
+    grammar : ContextFreeGrammar
+    """
+    
+    normal_form = NormalForm.CNF
+    
+    def _fill_chart(self, string: list[str]) -> CKYChart:
+        """
+        Fill the chart using the CKY algorithm
+        
+        Parameters
+        ----------
+        string : list[str]
+            The input string to parse
+            
+        Returns
+        -------
+        CKYChart
+            The filled chart
+        """
+        n = len(string)
+        chart = CKYChart(n)
+        
+        # Base case: fill the diagonal (spans of length 1)
+        for j in range(1, n+1):
+            # Find all variables that can generate the terminal symbol
+            parts_of_speech = self._grammar.reduce(string[j-1])
+            
+            # Add them to the chart
+            chart[j-1, j] = {CKYChartEntry(pos, (string[j-1], (j-1, j))) 
+                            for pos in parts_of_speech}
+        
+        # Fill spans of increasing length
+        for length in range(2, n+1):
+            for i in range(n - length + 1):
+                j = i + length
+                
+                # Consider all possible ways to split the span
+                for k in range(i+1, j):
+                    # Look at all possible combinations of left and right constituents
+                    for left in chart[i, k]:
+                        for right in chart[k, j]:
+                            # Find variables that can generate the pair
+                            for parent in self._grammar.reduce(left.symbol, right.symbol):
+                                # Add a new entry with backpointers to the constituents
+                                entry = CKYChartEntry(
+                                    parent, 
+                                    (left.symbol, (i, k)), 
+                                    (right.symbol, (k, j))
+                                )
+                                chart[i, j].add(entry)
+        
+        return chart
+
+    def _parse(self, string):
+        """
+        Parse a string to find all possible parse trees
+        
+        Parameters
+        ----------
+        string : list[str] or str
+            The string to parse, as a list of tokens
+            
+        Returns
+        -------
+        set[Tree]
+            The set of all possible parse trees
+        """
+        # Ensure the input is a list of tokens
+        if isinstance(string, str):
+            string = string.split()
+        
+        # Fill the chart
+        chart = self._fill_chart(string)
+        
+        # Return all possible parses
+        return chart.parses
+        
+    def _recognize(self, string):
+        """
+        Recognize whether a string is in the language
+        
+        Parameters
+        ----------
+        string : list[str] or str
+            The string to recognize, as a list of tokens
+            
+        Returns
+        -------
+        bool
+            True if the string is in the language, False otherwise
+        """
+        # Ensure the input is a list of tokens
+        if isinstance(string, str):
+            string = string.split()
+        
+        # Fill the chart
+        chart = self._fill_chart(string)
+        
+        # Check if the start variable appears in the top-right corner of the chart
+        return any(entry.symbol == self._grammar.start_variable
+                  for entry in chart[0, len(string)])
+```
+
+## Detailed Example: Parsing "unhappiness"
+
+Let's walk through a detailed example of the CKY algorithm parsing the word "unhappiness" with the segmentation `["un", "happy", "ness"]` using a simplified grammar:
+
+```python
+grammar = ContextFreeGrammar(
+    alphabet={'un', 'happy', 'ness'},
+    variables={'Word', 'Adj', 'N', 'Prefix', 'Suffix'},
+    rules={
+        Rule('Adj', 'happy'),
+        Rule('Prefix', 'un'),
+        Rule('Suffix', 'ness'),
+        Rule('Adj', 'Prefix', 'Adj'),
+        Rule('N', 'Adj', 'Suffix'),
+        Rule('Word', 'N')
+    },
+    start_variable='Word'
+)
+
+# Convert to CNF (already in CNF in this case)
+cnf_grammar = grammar
+
+# Set the parser class
+ContextFreeGrammar.parser_class = CKYParser
+
+# Parse the word
+parses = cnf_grammar(['un', 'happy', 'ness'], mode="parse")
+```
+
+### Step-by-Step Chart Filling
+
+Let's trace the CKY algorithm as it fills the chart for "unhappiness":
+
+#### Step 1: Initialize the chart
+
+We create a 3×3 chart (for 3 morphemes):
+
+```
+        | 0      | 1      | 2      | 3      |
+--------|--------|--------|--------|--------|
+0       |        | ?      | ?      | ?      |
+--------|--------|--------|--------|--------|
+1       |        |        | ?      | ?      |
+--------|--------|--------|--------|--------|
+2       |        |        |        | ?      |
+--------|--------|--------|--------|--------|
+```
+
+#### Step 2: Fill the diagonal (spans of length 1)
+
+We look at each morpheme and find all non-terminals that can generate it:
+
+For "un" (span 0-1):
+- `Prefix -> un`
+
+For "happy" (span 1-2):
+- `Adj -> happy`
+
+For "ness" (span 2-3):
+- `Suffix -> ness`
+
+The chart now looks like:
+
+```
+        | 0      | 1      | 2      | 3      |
+--------|--------|--------|--------|--------|
+0       |        | Prefix | ?      | ?      |
+--------|--------|--------|--------|--------|
+1       |        |        | Adj    | ?      |
+--------|--------|--------|--------|--------|
+2       |        |        |        | Suffix |
+--------|--------|--------|--------|--------|
+```
+
+#### Step 3: Fill spans of length 2
+
+Now we consider spans of length 2:
+
+For span (0-2), we consider all ways to split it:
+- Split at k=1: Combine chart[0,1] and chart[1,2]
+  - Prefix (from chart[0,1]) + Adj (from chart[1,2])
+  - Rule `Adj -> Prefix Adj` applies
+  - Add `Adj` to chart[0,2]
+
+For span (1-3), we consider all ways to split it:
+- Split at k=2: Combine chart[1,2] and chart[2,3]
+  - Adj (from chart[1,2]) + Suffix (from chart[2,3])
+  - Rule `N -> Adj Suffix` applies
+  - Add `N` to chart[1,3]
+
+The chart now looks like:
+
+```
+        | 0      | 1      | 2      | 3      |
+--------|--------|--------|--------|--------|
+0       |        | Prefix | Adj    | ?      |
+--------|--------|--------|--------|--------|
+1       |        |        | Adj    | N      |
+--------|--------|--------|--------|--------|
+2       |        |        |        | Suffix |
+--------|--------|--------|--------|--------|
+```
+
+#### Step 4: Fill the full span (0-3)
+
+Finally, we consider the full span (0-3):
+
+For span (0-3), we consider all ways to split it:
+- Split at k=1: Combine chart[0,1] and chart[1,3]
+  - Prefix (from chart[0,1]) + N (from chart[1,3])
+  - No rule applies
+- Split at k=2: Combine chart[0,2] and chart[2,3]
+  - Adj (from chart[0,2]) + Suffix (from chart[2,3])
+  - Rule `N -> Adj Suffix` applies
+  - Add `N` to chart[0,3]
+  
+Since `N` is in chart[0,3], we also check if we can derive the start symbol:
+- Rule `Word -> N` applies
+- Add `Word` to chart[0,3]
+
+The final chart looks like:
+
+```
+        | 0      | 1      | 2      | 3      |
+--------|--------|--------|--------|--------|
+0       |        | Prefix | Adj    | N,Word |
+--------|--------|--------|--------|--------|
+1       |        |        | Adj    | N      |
+--------|--------|--------|--------|--------|
+2       |        |        |        | Suffix |
+--------|--------|--------|--------|--------|
+```
+
+Since the start symbol `Word` appears in chart[0,3], the word "unhappiness" is in the language defined by our grammar.
+
+### Visualizing the Parse Tree
+
+The backpointers in our chart entries allow us to reconstruct the parse tree:
+
+```
+       Word
+        |
+        N
+       / \
+     Adj  Suffix
+    /  \    |
+Prefix Adj  ness
+   |    |
+  un  happy
+```
+
+This tree correctly captures the structure `((un+happy)+ness)` as opposed to `(un+(happy+ness))`.
+
+## Handling Ambiguity in Morphological Analysis
+
+One of the strengths of the CKY algorithm is its ability to handle ambiguity. Consider the word "unlockable", which has two possible interpretations:
+
+1. `un + (lock + able)` = "not able to be locked"
+2. `(un + lock) + able` = "able to be unlocked"
+
+Let's create a grammar that captures this ambiguity:
+
+```python
+ambiguous_grammar = ContextFreeGrammar(
+    alphabet={'un', 'lock', 'able'},
+    variables={'Word', 'V', 'Adj', 'Prefix', 'Suffix'},
+    rules={
+        Rule('V', 'lock'),
+        Rule('Prefix', 'un'),
+        Rule('Suffix', 'able'),
+        Rule('V', 'Prefix', 'V'),    # un + lock -> unlock
+        Rule('Adj', 'V', 'Suffix'),  # lock + able -> lockable OR unlock + able -> unlockable
+        Rule('Adj', 'Prefix', 'Adj'), # un + lockable -> unlockable
+        Rule('Word', 'Adj')
+    },
+    start_variable='Word'
+)
+```
+
+When we parse "unlockable" with CKY, the chart will contain multiple entries in chart[0,3], representing the different ways to analyze the word:
+
+1. Chart[0,3] contains `Adj` from `Adj -> Prefix Adj`, where `Prefix` is "un" and `Adj` is "lockable"
+2. Chart[0,3] also contains `Adj` from `Adj -> V Suffix`, where `V` is "unlock" and `Suffix` is "able"
+
+Both of these analyses derive `Word`, resulting in two different parse trees:
+
+Parse Tree 1 (un + lockable):
+```
+    Word
+     |
+    Adj
+   /   \
+Prefix  Adj
+  |    /  \
+ un    V  Suffix
+       |    |
+     lock  able
+```
+
+Parse Tree 2 (unlock + able):
+```
+    Word
+     |
+    Adj
+   /   \
+  V    Suffix
+ / \     |
+Prefix V able
+  |   |
+ un lock
+```
+
+The CKY algorithm finds all possible parses, which is essential for accurately analyzing structurally ambiguous words.
+
+## Real-World Example: Analyzing CELEX Data
+
+Let's apply the CKY algorithm to analyze a more complex example from the CELEX database. The word "unbelievably" has this structure in CELEX:
+
+```
+((((un)[Prefix] (believe)[V])[V] (able)[Suffix])[Adj] (ly)[Suffix])[Adv]
+```
+
+The challenge with this example is that it involves multiple levels of derivation, which the CKY algorithm handles efficiently by building up larger constituents from smaller ones.
+
+Let's walk through how CKY would parse this word:
+
+1. First, it identifies the parts of speech for each morpheme:
+   - "un" -> Prefix
+   - "believe" -> V
+   - "able" -> Suffix
+   - "ly" -> Suffix
+
+2. Then, it combines these to form larger constituents:
+   - "un" + "believe" -> V ("unbelieve")
+   - "unbelieve" + "able" -> Adj ("unbelievable")
+   - "unbelievable" + "ly" -> Adv ("unbelievably")
+
+3. Finally, it identifies the full word as an adverb.
+
+The time complexity of CKY is $O(n^3 \cdot |V|^2)$, where $n$ is the length of the input and $|V|$ is the number of variables in the grammar. For morphological parsing, where $n$ is typically small, this is quite efficient.
+
+## Conclusion
+
+The CKY algorithm is a powerful tool for morphological analysis. It efficiently parses words according to a context-free grammar, handling ambiguity and complex morphological structures.
+
+Its bottom-up approach makes it particularly well-suited for finding all possible morphological analyses of a word, which is essential for applications like spell checking, word formation analysis, and computational morphology research.
+
+In the next section, we'll explore the Earley algorithm, which offers an alternative approach to parsing that doesn't require the grammar to be in Chomsky Normal Form.
+ Ensure the input is a list of tokens
+        if isinstance(string, str):
+            string = string.split()
+        
+        # Fill the chart
+        chart = self._fill_chart(string)
+        
+        # Return all possible parses
+        return chart.parses
+        
+    def _recognize(self, string):
+        """
+        Recognize whether a string is in the language
+        
+        Parameters
+        ----------
+        string : list[str] or str
+            The string to recognize, as a list of tokens
+            
+        Returns
+        -------
+        bool
+            True if the string is in the language, False otherwise
+        """
+        # Ensure the input is a list of tokens
+        if isinstance(string, str):
+            string = string.split()
+        
+        # Fill the chart
+        chart = self._fill_chart(string)
+        
+        # Check if the start variable appears in the top-right corner of the chart
+        return any(entry.symbol == self._grammar.start_variable
+                  for entry in chart[0, len(string)])
+```
+
+## How CKY Works for Morphological Analysis
+
+To illustrate how CKY works for morphological analysis, let's walk through a simple example. Consider the word "unhappiness" with the segmentation `["un", "happy", "ness"]` and a simplified grammar:
+
+```python
+grammar = ContextFreeGrammar(
+    alphabet={'un', 'happy', 'ness'},
+    variables={'Word', 'Adj', 'N', 'Prefix', 'Suffix'},
+    rules={
+        Rule('Adj', 'happy'),
+        Rule('Prefix', 'un'),
+        Rule('Suffix', 'ness'),
+        Rule('Adj', 'Prefix', 'Adj'),
+        Rule('N', 'Adj', 'Suffix'),
+        Rule('Word', 'N')
+    },
+    start_variable='Word'
+)
+
+# Convert to CNF if needed
+cnf_grammar = grammar.to_cnf()
+
+# Set the parser class
+ContextFreeGrammar.parser_class = CKYParser
+
+# Parse the word
+parses = cnf_grammar(['un', 'happy', 'ness'], mode="parse")
+```
+
+Let's trace the execution of the CKY algorithm on this example:
+
+1. We first initialize a 3x3 chart (for 3 morphemes).
+2. We fill the diagonal with the parts of speech for each morpheme:
+   - Chart[0,1] = {"Prefix"}
+   - Chart[1,2] = {"Adj"}
+   - Chart[2,3] = {"Suffix"}
+3. We then consider spans of length 2:
+   - For span (0,2), we look at how to combine Chart[0,1] and Chart[1,2]
+     - We find the rule `Adj -> Prefix Adj`, so we add `Adj` to Chart[0,2]
+   - For span (1,3), we look at how to combine Chart[1,2] and Chart[2,3]
+     - We find the rule `N -> Adj Suffix`, so we add `N` to Chart[1,3]
+4. Finally, we consider the full span (0,3):
+   - We look at combining Chart[0,1] with Chart[1,3], but there's no rule for that
+   - We look at combining Chart[0,2] with Chart[2,3]
+     - We find the rule `N -> Adj Suffix`, so we add `N` to Chart[0,3]
+   - From `N`, we can derive `Word` using the rule `Word -> N`, so we add `Word` to Chart[0,3]
+
+The chart would look like this:
+
+|     | 0 | 1 | 2 | 3 |
+|-----|---|---|---|---|
+| **0** | - | Prefix | Adj | N, Word |
+| **1** | - | - | Adj | N |
+| **2** | - | - | - | Suffix |
+
+Since `Word` (our start variable) appears in Chart[0,3], we know the word is valid according to our grammar. The parse tree would look like:
+
+```
+       Word
+        |
+        N
+       / \
+     Adj  Suffix
+    /  \    |
+Prefix Adj  ness
+   |    |
+  un  happy
+```
+
+## Handling Ambiguity in Morphological Parsing
+
+One of the strengths of the CKY algorithm is its ability to handle ambiguity. In morphology, ambiguity can arise when a word has multiple possible structures.
+
+For example, the word "unlockable" could be analyzed as:
+1. `un + (lock + able)` = "not able to be locked"
+2. `(un + lock) + able` = "able to be unlocked"
+
+With CKY, we can find all possible parses by collecting all entries for the start variable in the top-right corner of the chart. Each entry would have different backpointers, leading to different parse trees.
+
+Let's see how CKY handles an ambiguous example:
+
+```python
+ambiguous_grammar = ContextFreeGrammar(
+    alphabet={'un', 'lock', 'able'},
+    variables={'Word', 'V', 'Adj', 'Prefix', 'Suffix'},
+    rules={
+        Rule('V', 'lock'),
+        Rule('Prefix', 'un'),
+        Rule('Suffix', 'able'),
+        Rule('V', 'Prefix', 'V'),    # un + lock -> unlock
+        Rule('Adj', 'V', 'Suffix'),  # lock + able -> lockable
+        Rule('Adj', 'Prefix', 'Adj'), # un + lockable -> unlockable
+        Rule('Word', 'Adj')
+    },
+    start_variable='Word'
+)
+
+# Parse the ambiguous word
+parses = ambiguous_grammar(['un', 'lock', 'able'], mode="parse")
+
+# Print all parses
+for parse in parses:
+    print(parse)
+```
+
+This would find both possible structures for "unlockable".
+
+## Efficiency Considerations
+
+The CKY algorithm has a time complexity of $O(n^3 \cdot |V|^2)$, where $n$ is the length of the input string and $|V|$ is the number of variables in the grammar. This is because:
+
+- We have $O(n^2)$ chart cells to fill
+- For each cell, we consider $O(n)$ possible split points
+- For each split point, we consider $O(|V|^2)$ possible combinations of variables
+
+For morphological parsing, $n$ is typically small (words usually have few morphemes), so CKY is quite efficient in practice.
+
+## Real-World Example: Analyzing CELEX Data
+
+Let's look at a real example from the CELEX database. The word "unbelievably" has the following structure in CELEX:
+
+```
+((((un)[Prefix] (believe)[V])[V] (able)[Suffix])[Adj] (ly)[Suffix])[Adv]
+```
+
+We can parse this with our CKY parser:
+
+```python
+# Extract grammar from CELEX
+celex_grammar = ContextFreeGrammar.from_treebank(celex_parses)
+
+# Convert to CNF
+cnf_grammar = celex_grammar.to_cnf()
+
+# Parse a specific word
+parses = cnf_grammar(['un', 'believe', 'able', 'ly'], mode="parse")
+for parse in parses:
+    print(parse)
+```
+
+This would recover the hierarchical structure of the word as analyzed in CELEX.
+
+## Conclusion
+
+The CKY algorithm is a powerful tool for morphological analysis. It can efficiently determine whether a word conforms to the morphological rules of a language and identify its structure, even in the presence of ambiguity.
+
+In the next section, we'll explore an alternative parsing approach: top-down parsing with the Earley algorithm. While CKY requires the grammar to be in CNF, Earley can work with any context-free grammar, which can be an advantage in some situations.
