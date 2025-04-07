@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Introduction to Computational Linguistics - Quantifiers</title>
+<title>Introduction to Computational Linguistics - The Pumping Lemma for Regular Languages</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -57,25 +57,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 
 
-<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="../site_libs/quarto-nav/headroom.min.js"></script>
-<script src="../site_libs/clipboard/clipboard.min.js"></script>
-<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="../site_libs/quarto-search/fuse.min.js"></script>
-<script src="../site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="../">
-<link href="../grammars-as-languages/groups-and-greediness.html" rel="next">
-<link href="../grammars-as-languages/wild-cards-and-character-ranges.html" rel="prev">
-<script src="../site_libs/quarto-html/quarto.js"></script>
-<script src="../site_libs/quarto-html/popper.min.js"></script>
-<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="../site_libs/quarto-html/anchor.min.js"></script>
-<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/quarto-contrib/line-highlight-1.0.0/line-highlight.css" rel="stylesheet">
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../syntactic-patterns/index.html" rel="next">
+<link href="../../phonological-patterns/generative-capacity/index.html" rel="prev">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/quarto-contrib/line-highlight-1.0.0/line-highlight.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -96,8 +96,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
-<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../../styles.css">
 </head>
 
 <body class="nav-sidebar docked">
@@ -109,7 +111,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../grammars-as-languages/index.html">Grammars as languages</a></li><li class="breadcrumb-item"><a href="../grammars-as-languages/quantifiers.html">Quantifiers</a></li></ol></nav>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../phonological-patterns/index.html">The nature of phonological patterns</a></li><li class="breadcrumb-item"><a href="../../phonological-patterns/generative-capacity/index.html">Generative capacity</a></li><li class="breadcrumb-item"><a href="../../phonological-patterns/generative-capacity/pumping-lemma.html">The Pumping Lemma for Regular Languages</a></li></ol></nav>
       <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
       </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -124,7 +126,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation docked overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
-      <a href="../">Introduction to Computational Linguistics</a> 
+      <a href="../../">Introduction to Computational Linguistics</a> 
     </div>
       </div>
         <div class="mt-2 flex-shrink-0 align-items-center">
@@ -136,13 +138,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">About</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../installation.html" class="sidebar-item-text sidebar-link">
+  <a href="../../installation.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Installation</span></a>
   </div>
 </li>
@@ -157,73 +159,73 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../languages-as-formal-objects/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../languages-as-formal-objects/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../languages-as-formal-objects/sets.html" class="sidebar-item-text sidebar-link">
+  <a href="../../languages-as-formal-objects/sets.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Sets</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../languages-as-formal-objects/multisets.html" class="sidebar-item-text sidebar-link">
+  <a href="../../languages-as-formal-objects/multisets.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Multisets</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../languages-as-formal-objects/tuples.html" class="sidebar-item-text sidebar-link">
+  <a href="../../languages-as-formal-objects/tuples.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Tuples</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../languages-as-formal-objects/cardinality.html" class="sidebar-item-text sidebar-link">
+  <a href="../../languages-as-formal-objects/cardinality.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Cardinality</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../languages-as-formal-objects/set-relations.html" class="sidebar-item-text sidebar-link">
+  <a href="../../languages-as-formal-objects/set-relations.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Set relations</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../languages-as-formal-objects/power-sets.html" class="sidebar-item-text sidebar-link">
+  <a href="../../languages-as-formal-objects/power-sets.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Power Sets</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../languages-as-formal-objects/products.html" class="sidebar-item-text sidebar-link">
+  <a href="../../languages-as-formal-objects/products.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Products</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../languages-as-formal-objects/relations-and-functions.html" class="sidebar-item-text sidebar-link">
+  <a href="../../languages-as-formal-objects/relations-and-functions.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Relations and Functions</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../languages-as-formal-objects/sequences.html" class="sidebar-item-text sidebar-link">
+  <a href="../../languages-as-formal-objects/sequences.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Sequences</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../languages-as-formal-objects/strings.html" class="sidebar-item-text sidebar-link">
+  <a href="../../languages-as-formal-objects/strings.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Strings</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../languages-as-formal-objects/languages.html" class="sidebar-item-text sidebar-link">
+  <a href="../../languages-as-formal-objects/languages.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Languages</span></a>
   </div>
 </li>
@@ -240,55 +242,55 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../grammars-as-languages/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../grammars-as-languages/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../grammars-as-languages/defining-regular-expressions.html" class="sidebar-item-text sidebar-link">
+  <a href="../../grammars-as-languages/defining-regular-expressions.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Defining Regular Expressions</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../grammars-as-languages/evaluating-regular-expressions.html" class="sidebar-item-text sidebar-link">
+  <a href="../../grammars-as-languages/evaluating-regular-expressions.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Evaluating Regular Expressions</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../grammars-as-languages/loading-a-lexicon.html" class="sidebar-item-text sidebar-link">
+  <a href="../../grammars-as-languages/loading-a-lexicon.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Loading a Lexicon</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../grammars-as-languages/basic-matching.html" class="sidebar-item-text sidebar-link">
+  <a href="../../grammars-as-languages/basic-matching.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Basic Matching</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../grammars-as-languages/implementing-the-regular-operations.html" class="sidebar-item-text sidebar-link">
+  <a href="../../grammars-as-languages/implementing-the-regular-operations.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Implementing the Regular Operations</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../grammars-as-languages/wild-cards-and-character-ranges.html" class="sidebar-item-text sidebar-link">
+  <a href="../../grammars-as-languages/wild-cards-and-character-ranges.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Wild cards and character ranges</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../grammars-as-languages/quantifiers.html" class="sidebar-item-text sidebar-link active">
+  <a href="../../grammars-as-languages/quantifiers.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Quantifiers</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../grammars-as-languages/groups-and-greediness.html" class="sidebar-item-text sidebar-link">
+  <a href="../../grammars-as-languages/groups-and-greediness.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Groups and Greediness</span></a>
   </div>
 </li>
@@ -305,31 +307,31 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../uncertainty-about-languages/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../uncertainty-about-languages/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../uncertainty-about-languages/what-is-a-probability.html" class="sidebar-item-text sidebar-link">
+  <a href="../../uncertainty-about-languages/what-is-a-probability.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">What is a probability?</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../uncertainty-about-languages/how-we-model-possibilities.html" class="sidebar-item-text sidebar-link">
+  <a href="../../uncertainty-about-languages/how-we-model-possibilities.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">How we model possibilities</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../uncertainty-about-languages/what-it-means-to-measure-a-possibility.html" class="sidebar-item-text sidebar-link">
+  <a href="../../uncertainty-about-languages/what-it-means-to-measure-a-possibility.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">What it means to measure a possibility</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../uncertainty-about-languages/some-useful-definitions.html" class="sidebar-item-text sidebar-link">
+  <a href="../../uncertainty-about-languages/some-useful-definitions.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Some useful definitions</span></a>
   </div>
 </li>
@@ -344,19 +346,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../uncertainty-about-languages/random-variables-and-probability-distributions/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../uncertainty-about-languages/random-variables-and-probability-distributions/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Classifying probability spaces</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../uncertainty-about-languages/random-variables-and-probability-distributions/random-variables.html" class="sidebar-item-text sidebar-link">
+  <a href="../../uncertainty-about-languages/random-variables-and-probability-distributions/random-variables.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Random variables</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../uncertainty-about-languages/random-variables-and-probability-distributions/probability-distributions.html" class="sidebar-item-text sidebar-link">
+  <a href="../../uncertainty-about-languages/random-variables-and-probability-distributions/probability-distributions.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Probability distributions</span></a>
   </div>
 </li>
@@ -364,13 +366,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../uncertainty-about-languages/some-more-useful-definitions.html" class="sidebar-item-text sidebar-link">
+  <a href="../../uncertainty-about-languages/some-more-useful-definitions.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Some useful definitions</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../uncertainty-about-languages/statistical-inference.html" class="sidebar-item-text sidebar-link">
+  <a href="../../uncertainty-about-languages/statistical-inference.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Statistical Inference</span></a>
   </div>
 </li>
@@ -387,19 +389,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../languages-in-terms-of-strings/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../languages-in-terms-of-strings/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../languages-in-terms-of-strings/distance-in-the-abstract.html" class="sidebar-item-text sidebar-link">
+  <a href="../../languages-in-terms-of-strings/distance-in-the-abstract.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Distance in the abstract</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../languages-in-terms-of-strings/levenshtein-distance.html" class="sidebar-item-text sidebar-link">
+  <a href="../../languages-in-terms-of-strings/levenshtein-distance.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Levenshtein distance</span></a>
   </div>
 </li>
@@ -416,19 +418,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../phonological-patterns/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../phonological-patterns/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../phonological-patterns/generation.html" class="sidebar-item-text sidebar-link">
+  <a href="../../phonological-patterns/generation.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Generation</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../phonological-patterns/the-generativist-conceit.html" class="sidebar-item-text sidebar-link">
+  <a href="../../phonological-patterns/the-generativist-conceit.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">The Generativist Conceit</span></a>
   </div>
 </li>
@@ -443,31 +445,31 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../phonological-patterns/formal-definition/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../phonological-patterns/formal-definition/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../phonological-patterns/formal-definition/two-equivalent-definitions.html" class="sidebar-item-text sidebar-link">
+  <a href="../../phonological-patterns/formal-definition/two-equivalent-definitions.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Two equivalent definitions</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../phonological-patterns/formal-definition/the-regular-operations.html" class="sidebar-item-text sidebar-link">
+  <a href="../../phonological-patterns/formal-definition/the-regular-operations.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">The regular operations</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../phonological-patterns/formal-definition/translating-between-formalisms.html" class="sidebar-item-text sidebar-link">
+  <a href="../../phonological-patterns/formal-definition/translating-between-formalisms.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Translating Regular Expressions to NFAs</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../phonological-patterns/formal-definition/beyond-the-regular-operations.html" class="sidebar-item-text sidebar-link">
+  <a href="../../phonological-patterns/formal-definition/beyond-the-regular-operations.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">The intersection operation via complement</span></a>
   </div>
 </li>
@@ -484,19 +486,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../phonological-patterns/recognition-and-parsing/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../phonological-patterns/recognition-and-parsing/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../phonological-patterns/recognition-and-parsing/recognition.html" class="sidebar-item-text sidebar-link">
+  <a href="../../phonological-patterns/recognition-and-parsing/recognition.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Recognition</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../phonological-patterns/recognition-and-parsing/parsing.html" class="sidebar-item-text sidebar-link">
+  <a href="../../phonological-patterns/recognition-and-parsing/parsing.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Parsing</span></a>
   </div>
 </li>
@@ -513,19 +515,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../phonological-patterns/phonological-rules-as-fsas/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../phonological-patterns/phonological-rules-as-fsas/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../phonological-patterns/phonological-rules-as-fsas/parsing-and-transduction.html" class="sidebar-item-text sidebar-link">
+  <a href="../../phonological-patterns/phonological-rules-as-fsas/parsing-and-transduction.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Parsing and Transduction Algorithms</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../phonological-patterns/phonological-rules-as-fsas/rule-formalism.html" class="sidebar-item-text sidebar-link">
+  <a href="../../phonological-patterns/phonological-rules-as-fsas/rule-formalism.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Phonological Rule Formalism</span></a>
   </div>
 </li>
@@ -533,22 +535,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="true">
  <span class="menu-text">Generative capacity</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth2 ">  
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth2 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../phonological-patterns/generative-capacity/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../phonological-patterns/generative-capacity/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../phonological-patterns/generative-capacity/pumping-lemma.html" class="sidebar-item-text sidebar-link">
+  <a href="../../phonological-patterns/generative-capacity/pumping-lemma.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">The Pumping Lemma for Regular Languages</span></a>
   </div>
 </li>
@@ -567,7 +569,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../syntactic-patterns/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../syntactic-patterns/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
@@ -584,7 +586,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-12" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../analysis-as-deduction/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../analysis-as-deduction/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
@@ -601,7 +603,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-13" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../syntactic-patterns/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../syntactic-patterns/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
@@ -618,13 +620,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-14" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../assignments/assignments-1-and-2.html" class="sidebar-item-text sidebar-link">
+  <a href="../../assignments/assignments-1-and-2.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Assignments 1 and 2</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../assignments/assignments-3-and-4.html" class="sidebar-item-text sidebar-link">
+  <a href="../../assignments/assignments-3-and-4.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Assignments 3 and 4</span></a>
   </div>
 </li>
@@ -640,7 +642,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#set-complement" id="toc-set-complement" class="nav-link active" data-scroll-target="#set-complement">Set complement</a></li>
+  <li><a href="#formal-definition" id="toc-formal-definition" class="nav-link active" data-scroll-target="#formal-definition">Formal Definition</a></li>
+  <li><a href="#intuitive-explanation" id="toc-intuitive-explanation" class="nav-link" data-scroll-target="#intuitive-explanation">Intuitive Explanation</a></li>
+  <li><a href="#using-the-pumping-lemma-to-prove-non-regularity" id="toc-using-the-pumping-lemma-to-prove-non-regularity" class="nav-link" data-scroll-target="#using-the-pumping-lemma-to-prove-non-regularity">Using the Pumping Lemma to Prove Non-Regularity</a></li>
+  <li><a href="#classic-example-anbn" id="toc-classic-example-anbn" class="nav-link" data-scroll-target="#classic-example-anbn">Classic Example: <span class="math inline">\(a^nb^n\)</span></a></li>
+  <li><a href="#why-this-matters" id="toc-why-this-matters" class="nav-link" data-scroll-target="#why-this-matters">Why This Matters</a></li>
   </ul>
 </nav>
     </div>
@@ -649,7 +655,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<div class="quarto-title-block"><div><h1 class="title">Quantifiers</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li></ul></div></div>
+<div class="quarto-title-block"><div><h1 class="title">The Pumping Lemma for Regular Languages</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
 </div>
 
 
@@ -664,230 +670,65 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<p>Note that <code>.</code>, the character ranges, and the escape characters match only a single character, and so to match more than one, we need more than one of whichever we are interested in matching.</p>
-<div class="cell" data-execution_count="1">
-<details>
-<summary>Load IPA representation of CMU Pronouncing Dictionary</summary>
-<div class="sourceCode cell-code" id="cb1" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">"cmudict-ipa"</span>) <span class="im">as</span> f:</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    entries: <span class="bu">list</span>[<span class="bu">tuple</span>[<span class="bu">str</span>, <span class="bu">str</span>]] <span class="op">=</span> [</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>        l.strip().split(<span class="st">","</span>) <span class="cf">for</span> l <span class="kw">in</span> f</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    ]</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    entries: <span class="bu">dict</span>[<span class="bu">str</span>, <span class="bu">list</span>[<span class="bu">str</span>]] <span class="op">=</span> {</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>        w: ipa.split() <span class="cf">for</span> w, ipa <span class="kw">in</span> entries</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    }</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
-<div class="cell" data-executioninfo="{&quot;elapsed&quot;:5,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675099877492,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="df0dd6ca-d641-431a-b8f1-3b1703c7f188" data-execution_count="15">
-<div class="sourceCode cell-code" id="cb2" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> re</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>regex_dot_stɹ_dot_kʃən <span class="op">=</span> <span class="st">'.bstɹ.kʃən'</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>regex_dot_dot_tɹ_dot_kʃən <span class="op">=</span> <span class="st">'..stɹ.kʃən'</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(regex_dot_stɹ_dot_kʃən, <span class="st">"matches:"</span>)</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>()</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> w, ipa <span class="kw">in</span> entries.items():    </span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> re.fullmatch(regex_dot_stɹ_dot_kʃən, <span class="st">""</span>.join(ipa)):</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(regex_dot_stɹ_dot_kʃən, <span class="st">"matches"</span>, <span class="st">""</span>.join(ipa), <span class="ss">f"(</span><span class="sc">{</span>w<span class="sc">}</span><span class="ss">)"</span>)</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>()</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(regex_dot_dot_tɹ_dot_kʃən, <span class="st">"matches:"</span>)</span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>()</span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> w, ipa <span class="kw">in</span> entries.items():</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> re.fullmatch(regex_dot_dot_tɹ_dot_kʃən, <span class="st">""</span>.join(ipa)):</span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">""</span>.join(ipa), <span class="ss">f"(</span><span class="sc">{</span>w<span class="sc">}</span><span class="ss">)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre data-code-line-numbers=""><code>.bstɹ.kʃən matches:
+<p>The pumping lemma essentially states that all sufficiently long strings in a regular language can be “pumped” - meaning a portion of the string can be repeated any number of times while still producing a string in the language. This property follows directly from the finite nature of FSAs.</p>
+<section id="formal-definition" class="level2">
+<h2 class="anchored" data-anchor-id="formal-definition">Formal Definition</h2>
+<p>Let’s state the pumping lemma formally:</p>
+<p><strong>Pumping Lemma for Regular Languages</strong>: For any regular language <span class="math inline">\(L\)</span>, there exists a constant <span class="math inline">\(p &gt; 0\)</span> (called the “pumping length”) such that for any string <span class="math inline">\(w \in L\)</span> with <span class="math inline">\(|w| \geq p\)</span>, there exists a decomposition <span class="math inline">\(w = xyz\)</span> such that:</p>
+<ol type="1">
+<li><span class="math inline">\(|y| &gt; 0\)</span> (y is non-empty)</li>
+<li><span class="math inline">\(|xy| \leq p\)</span> (x and y together are no longer than p)</li>
+<li>For all <span class="math inline">\(i \geq 0\)</span>, <span class="math inline">\(xy^iz \in L\)</span> (the string with y repeated i times is in the language)</li>
+</ol>
+<p>Here, <span class="math inline">\(y\)</span> is the substring that can be “pumped” (repeated any number of times), while <span class="math inline">\(x\)</span> and <span class="math inline">\(z\)</span> remain fixed.</p>
+</section>
+<section id="intuitive-explanation" class="level2">
+<h2 class="anchored" data-anchor-id="intuitive-explanation">Intuitive Explanation</h2>
+<p>To understand why this lemma holds, consider what happens when a DFA processes a long string. Since a DFA has a finite number of states (let’s say <span class="math inline">\(p\)</span> states), if we input a string longer than <span class="math inline">\(p\)</span>, the DFA must visit at least one state more than once by the pigeonhole principle.</p>
+<p>This creates a cycle in the computation path. If we let: - <span class="math inline">\(x\)</span> be the prefix that gets us to the repeated state for the first time - <span class="math inline">\(y\)</span> be the substring that takes us from the repeated state back to itself - <span class="math inline">\(z\)</span> be the remainder of the string</p>
+<p>Then we can repeat the cycle (the <span class="math inline">\(y\)</span> part) any number of times and still end up in an accepting state, because we’ll still follow the same path through the remainder of the string.</p>
+</section>
+<section id="using-the-pumping-lemma-to-prove-non-regularity" class="level2">
+<h2 class="anchored" data-anchor-id="using-the-pumping-lemma-to-prove-non-regularity">Using the Pumping Lemma to Prove Non-Regularity</h2>
+<p>To prove a language <span class="math inline">\(L\)</span> is not regular using the pumping lemma, we use proof by contradiction:</p>
+<ol type="1">
+<li>Assume <span class="math inline">\(L\)</span> is regular</li>
+<li>Then the pumping lemma must hold for <span class="math inline">\(L\)</span> with some pumping length <span class="math inline">\(p\)</span></li>
+<li>Find a string <span class="math inline">\(w \in L\)</span> with <span class="math inline">\(|w| \geq p\)</span></li>
+<li>Show that for any decomposition <span class="math inline">\(w = xyz\)</span> satisfying conditions 1 and 2, there exists some <span class="math inline">\(i\)</span> where <span class="math inline">\(xy^iz \not\in L\)</span></li>
+<li>This contradicts the pumping lemma, so <span class="math inline">\(L\)</span> cannot be regular</li>
+</ol>
+</section>
+<section id="classic-example-anbn" class="level2">
+<h2 class="anchored" data-anchor-id="classic-example-anbn">Classic Example: <span class="math inline">\(a^nb^n\)</span></h2>
+<p>The canonical example of a non-regular language is <span class="math inline">\(L = \{a^nb^n \mid n \geq 0\}\)</span>, which consists of strings with an equal number of <span class="math inline">\(a\)</span>’s followed by an equal number of <span class="math inline">\(b\)</span>’s.</p>
+<p>Let’s prove that <span class="math inline">\(L\)</span> is not regular using the pumping lemma:</p>
+<ol type="1">
+<li>Assume <span class="math inline">\(L\)</span> is regular</li>
+<li>Then there exists a pumping length <span class="math inline">\(p &gt; 0\)</span></li>
+<li>Consider the string <span class="math inline">\(w = a^pb^p \in L\)</span></li>
+<li>By the pumping lemma, <span class="math inline">\(w\)</span> can be written as <span class="math inline">\(w = xyz\)</span> where:
+<ul>
+<li><span class="math inline">\(|y| &gt; 0\)</span></li>
+<li><span class="math inline">\(|xy| \leq p\)</span></li>
+<li>For all <span class="math inline">\(i \geq 0\)</span>, <span class="math inline">\(xy^iz \in L\)</span></li>
+</ul></li>
+<li>Since <span class="math inline">\(|xy| \leq p\)</span>, both <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> consist only of <span class="math inline">\(a\)</span>’s (they’re within the first <span class="math inline">\(p\)</span> characters)</li>
+<li>Let’s say <span class="math inline">\(y = a^k\)</span> for some <span class="math inline">\(k &gt; 0\)</span></li>
+<li>Now consider <span class="math inline">\(xy^2z\)</span> (pumping <span class="math inline">\(y\)</span> once more)</li>
+<li>This gives us <span class="math inline">\(a^{p+k}b^p\)</span>, which has more <span class="math inline">\(a\)</span>’s than <span class="math inline">\(b\)</span>’s</li>
+<li>Therefore, <span class="math inline">\(xy^2z \not\in L\)</span>, which contradicts the pumping lemma</li>
+<li>Thus, <span class="math inline">\(L\)</span> is not regular</li>
+</ol>
+<p>This example demonstrates why a language that requires “counting” or “matching” cannot be modeled by a finite state machine - the machine would need to remember exactly how many <span class="math inline">\(a\)</span>’s it has seen to ensure an equal number of <span class="math inline">\(b\)</span>’s follow, but FSAs have limited memory (determined by their finite number of states).</p>
+</section>
+<section id="why-this-matters" class="level2">
+<h2 class="anchored" data-anchor-id="why-this-matters">Why This Matters</h2>
+<p>Understanding the limitations of regular languages is crucial for computational linguistics. While many patterns in natural language can be modeled using finite state machines, others require more computational power.</p>
+<p>In the next section, we’ll explore specific examples from morphology and phonology that demonstrate these computational boundaries, particularly focusing on reduplication processes that have been shown to exceed the power of regular languages.</p>
 
-.bstɹ.kʃən matches æbstɹækʃən (abstraction)
-.bstɹ.kʃən matches əbstɹəkʃən (obstruction)
 
-..stɹ.kʃən matches:
-
-æbstɹækʃən (abstraction)
-dɪstɹəkʃən (destruction)
-dɪstɹækʃən (distraction)
-ɛkstɹækʃən (extraction)
-ɪnstɹəkʃən (instruction)
-əbstɹəkʃən (obstruction)
-ɹistɹɪkʃən (restriction)</code></pre>
-</div>
-</div>
-<p>We can avoid writing out multiple by using a quantifier. There are a few different quantifiers. For instance, if you have an exact number in mind:</p>
-<div class="cell" data-executioninfo="{&quot;elapsed&quot;:5,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675099877493,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="91dfd965-f326-4001-ea2d-4cc6f69c1160" data-execution_count="14">
-<div class="sourceCode cell-code" id="cb4" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>regex_dot2_tɹ_dot_kʃən <span class="op">=</span> <span class="st">'.</span><span class="sc">{2}</span><span class="st">stɹ.kʃən'</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> w, ipa <span class="kw">in</span> entries.items():</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> re.fullmatch(regex_dot2_tɹ_dot_kʃən, <span class="st">""</span>.join(ipa)):</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">""</span>.join(ipa), <span class="ss">f"(</span><span class="sc">{</span>w<span class="sc">}</span><span class="ss">)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre data-code-line-numbers=""><code>æbstɹækʃən (abstraction)
-dɪstɹəkʃən (destruction)
-dɪstɹækʃən (distraction)
-ɛkstɹækʃən (extraction)
-ɪnstɹəkʃən (instruction)
-əbstɹəkʃən (obstruction)
-ɹistɹɪkʃən (restriction)</code></pre>
-</div>
-</div>
-<p>Or if you had a range of numbers in mind:</p>
-<div class="cell" data-executioninfo="{&quot;elapsed&quot;:3,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675099877493,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="84389b5a-30c5-4c2c-8f49-3b69f388ad61" data-execution_count="16">
-<div class="sourceCode cell-code" id="cb6" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>regex_dot2_tɹæk_dot13 <span class="op">=</span> <span class="st">'.</span><span class="sc">{2}</span><span class="st">stɹək.{1,3}'</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> w, ipa <span class="kw">in</span> entries.items():</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> re.fullmatch(regex_dot2_tɹæk_dot13, <span class="st">""</span>.join(ipa)):</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">""</span>.join(ipa), <span class="ss">f"(</span><span class="sc">{</span>w<span class="sc">}</span><span class="ss">)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre data-code-line-numbers=""><code>dɪstɹəkt (destruct)
-dɪstɹəktɪd (destructed)
-dɪstɹəktɪŋ (destructing)
-dɪstɹəkʃən (destruction)
-dɪstɹəktɪv (destructive)
-dɪstɹəkts (destructs)
-ɛkstɹəkeɪt (extricate)
-ɪnstɹəkt (instruct)
-ɪnstɹəktəd (instructed)
-ɪnstɹəktɪd (instructed(1))
-ɪnstɹəktɪŋ (instructing)
-ɪnstɹəkʃən (instruction)
-ɪnstɹəktɪv (instructive)
-ɪnstɹəktɝ (instructor)
-ɪnstɹəktɝz (instructors)
-ɪnstɹəkts (instructs)
-əbstɹəkt (obstruct)
-əbstɹəktɪd (obstructed)
-əbstɹəktɪŋ (obstructing)
-əbstɹəkʃən (obstruction)
-əbstɹəktɪv (obstructive)
-əbstɹəkts (obstructs)
-ɹistɹəktʃɝ (restructure)
-ənstɹəkʃɝd (unstructured)</code></pre>
-</div>
-</div>
-<p>You can also leave off one bound:</p>
-<div class="cell" data-executioninfo="{&quot;elapsed&quot;:125,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675099877616,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="74eb7177-645f-4b1c-97e7-406b77e8546f" data-execution_count="20">
-<div class="sourceCode cell-code" id="cb8" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>regex_dot2_tɹæk_dot03 <span class="op">=</span> <span class="st">'.</span><span class="sc">{2}</span><span class="st">stɹək.{,3}'</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>regex_dot2_tɹæk_dot1inf <span class="op">=</span> <span class="st">'.</span><span class="sc">{2}</span><span class="st">stɹək.{1,}'</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(regex_dot2_tɹæk_dot03, <span class="st">"matches:"</span>)</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>()</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>n_matches <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> w, ipa <span class="kw">in</span> entries.items():</span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> re.fullmatch(regex_dot2_tɹæk_dot03, <span class="st">""</span>.join(ipa)):</span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> n_matches <span class="op">&lt;</span> <span class="dv">10</span>:</span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>            n_matches <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="st">""</span>.join(ipa), <span class="ss">f"(</span><span class="sc">{</span>w<span class="sc">}</span><span class="ss">)"</span>)</span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="st">"..."</span>)</span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>            <span class="cf">break</span></span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>()</span>
-<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(regex_dot2_tɹæk_dot1inf, <span class="st">"matches:"</span>)</span>
-<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>()</span>
-<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>n_matches <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> w, ipa <span class="kw">in</span> entries.items():</span>
-<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> re.fullmatch(regex_dot2_tɹæk_dot1inf, <span class="st">""</span>.join(ipa)):</span>
-<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> n_matches <span class="op">&lt;</span> <span class="dv">10</span>:</span>
-<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>            n_matches <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="st">""</span>.join(ipa), <span class="ss">f"(</span><span class="sc">{</span>w<span class="sc">}</span><span class="ss">)"</span>)</span>
-<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
-<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="st">"..."</span>)</span>
-<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>            <span class="cf">break</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre data-code-line-numbers=""><code>.{2}stɹək.{,3} matches:
-
-dɪstɹəkt (destruct)
-dɪstɹəktɪd (destructed)
-dɪstɹəktɪŋ (destructing)
-dɪstɹəkʃən (destruction)
-dɪstɹəktɪv (destructive)
-dɪstɹəkts (destructs)
-ɛkstɹəkeɪt (extricate)
-ɪnstɹəkt (instruct)
-ɪnstɹəktəd (instructed)
-ɪnstɹəktɪd (instructed(1))
-...
-
-.{2}stɹək.{1,} matches:
-
-dɪstɹəkt (destruct)
-dɪstɹəktəbəl (destructable)
-dɪstɹəktɪd (destructed)
-dɪstɹəktɪŋ (destructing)
-dɪstɹəkʃən (destruction)
-dɪstɹəktɪv (destructive)
-dɪstɹəktɪvnɪs (destructiveness)
-dɪstɹəkts (destructs)
-ɛkstɹəkɝɪkjəlɝ (extracurricular)
-ɛkstɹəkeɪt (extricate)
-...</code></pre>
-</div>
-</div>
-<p>Note that <code>{,}</code> is equivalent to <code>*</code>. There is also a special quantifier symbol for <code>{1,}</code>: <code>+</code></p>
-<p>And if you wanted at least one character ot come after <code>Aaron</code>, but didn’t care after that you could use <code>+</code>.</p>
-<div class="cell" data-executioninfo="{&quot;elapsed&quot;:6,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675099877617,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="a871e772-659b-453e-f2b6-59ed3532bc14" data-execution_count="22">
-<div class="sourceCode cell-code" id="cb10" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>regex_dot2_tɹæk_dotplus <span class="op">=</span> <span class="st">'.</span><span class="sc">{2}</span><span class="st">stɹək.+'</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>n_matches <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> w, ipa <span class="kw">in</span> entries.items():</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> re.fullmatch(regex_dot2_tɹæk_dotplus, <span class="st">""</span>.join(ipa)):</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> n_matches <span class="op">&lt;</span> <span class="dv">10</span>:</span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>            n_matches <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="st">""</span>.join(ipa), <span class="ss">f"(</span><span class="sc">{</span>w<span class="sc">}</span><span class="ss">)"</span>)</span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="st">"..."</span>)</span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>            <span class="cf">break</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre data-code-line-numbers=""><code>dɪstɹəkt (destruct)
-dɪstɹəktəbəl (destructable)
-dɪstɹəktɪd (destructed)
-dɪstɹəktɪŋ (destructing)
-dɪstɹəkʃən (destruction)
-dɪstɹəktɪv (destructive)
-dɪstɹəktɪvnɪs (destructiveness)
-dɪstɹəkts (destructs)
-ɛkstɹəkɝɪkjəlɝ (extracurricular)
-ɛkstɹəkeɪt (extricate)
-...</code></pre>
-</div>
-</div>
-<p>Note that none of these quantifiers increase the expressive power of the regular expressions. We can always write their equivalents as a vanilla regular expression (in the sense of the formal definition we gave above); it would just be tedious in many cases.</p>
-<section id="set-complement" class="level3">
-<h3 class="anchored" data-anchor-id="set-complement">Set complement</h3>
-<p>For any of these cases where we escape a lowercase alphabetic character to get a character set, the set complement can generally be gotten with by the uppercase version—e.g.&nbsp;<code>\w</code> goes to <code>\W</code>.</p>
-<div class="cell" data-executioninfo="{&quot;elapsed&quot;:4,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675099877617,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="f0da836e-2572-4963-bf0e-68e635f9905c" data-execution_count="27">
-<div class="sourceCode cell-code" id="cb12" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>regex_notw_bstɹækt <span class="op">=</span> <span class="st">'\Wbstɹəkt'</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>(re.fullmatch(regex_notw_bstɹækt, <span class="st">""</span>.join(entries[<span class="st">"obstruct"</span>])),</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a> re.fullmatch(regex_notw_bstɹækt, <span class="st">'</span><span class="ch">\n</span><span class="st">'</span><span class="op">+</span><span class="st">""</span>.join(entries[<span class="st">"obstruct"</span>])[<span class="dv">1</span>:]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="27">
-<pre data-code-line-numbers=""><code>(None, &lt;re.Match object; span=(0, 8), match='\nbstɹəkt'&gt;)</code></pre>
-</div>
-</div>
-<p>Sometimes you want the complement of a set that doesn’t have an associated escaped alphabetic character. For that you can use the same square bracket set notation but put a <code>^</code> after the first bracket.</p>
-<div class="cell" data-executioninfo="{&quot;elapsed&quot;:3,&quot;status&quot;:&quot;ok&quot;,&quot;timestamp&quot;:1675099877617,&quot;user&quot;:{&quot;displayName&quot;:&quot;Aaron Steven White&quot;,&quot;userId&quot;:&quot;06256629009318567325&quot;},&quot;user_tz&quot;:300}" data-outputid="f0dac4b6-8502-431a-8fe9-3c7347c76bd4" data-execution_count="29">
-<div class="sourceCode cell-code" id="cb14" data-source-line-numbers="nil" data-code-line-numbers="nil"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>regex_notæ_bstɹ_notæ_kt <span class="op">=</span> <span class="st">'[^æ][^b]stɹ[^æ]kt'</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> w, ipa <span class="kw">in</span> entries.items():    </span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> re.fullmatch(regex_notæ_bstɹ_notæ_kt, <span class="st">""</span>.join(ipa)):</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">""</span>.join(ipa), <span class="ss">f"(</span><span class="sc">{</span>w<span class="sc">}</span><span class="ss">)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre data-code-line-numbers=""><code>dɪstɹəkt (destruct)
-dɪstɹɪkt (district)
-ɪnstɹəkt (instruct)
-mɑstɹɪkt (maastricht)
-ɹistɹɪkt (restrict)</code></pre>
-</div>
-</div>
-<p>The placement of this <code>^</code> is really important, since it only has the negation interpretation directly after <code>[</code>.</p>
-
+<!-- -->
 
 </section>
 
@@ -1180,19 +1021,88 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../grammars-as-languages/wild-cards-and-character-ranges.html" class="pagination-link">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Wild cards and character ranges</span>
+      <a href="../../phonological-patterns/generative-capacity/index.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Overview</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../grammars-as-languages/groups-and-greediness.html" class="pagination-link">
-        <span class="nav-page-text">Groups and Greediness</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../../syntactic-patterns/index.html" class="pagination-link">
+        <span class="nav-page-text">Overview</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
-</nav>
+</nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="sourceCode" id="cb1" data-shortcodes="false" data-code-line-numbers=""><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> The Pumping Lemma for Regular Languages</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="an">bibliography:</span><span class="co"> ../../references.bib</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>The pumping lemma essentially states that all sufficiently long strings in a regular language can be "pumped" - meaning a portion of the string can be repeated any number of times while still producing a string in the language. This property follows directly from the finite nature of FSAs.</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">## Formal Definition</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>Let's state the pumping lemma formally:</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>**Pumping Lemma for Regular Languages**: For any regular language $L$, there exists a constant $p &gt; 0$ (called the "pumping length") such that for any string $w \in L$ with $|w| \geq p$, there exists a decomposition $w = xyz$ such that:</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>$|y| &gt; 0$ (y is non-empty)</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>$|xy| \leq p$ (x and y together are no longer than p)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>For all $i \geq 0$, $xy^iz \in L$ (the string with y repeated i times is in the language)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>Here, $y$ is the substring that can be "pumped" (repeated any number of times), while $x$ and $z$ remain fixed.</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="fu">## Intuitive Explanation</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>To understand why this lemma holds, consider what happens when a DFA processes a long string. Since a DFA has a finite number of states (let's say $p$ states), if we input a string longer than $p$, the DFA must visit at least one state more than once by the pigeonhole principle.</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>This creates a cycle in the computation path. If we let:</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$x$ be the prefix that gets us to the repeated state for the first time</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$y$ be the substring that takes us from the repeated state back to itself</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$z$ be the remainder of the string</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>Then we can repeat the cycle (the $y$ part) any number of times and still end up in an accepting state, because we'll still follow the same path through the remainder of the string.</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="fu">## Using the Pumping Lemma to Prove Non-Regularity</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>To prove a language $L$ is not regular using the pumping lemma, we use proof by contradiction:</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>Assume $L$ is regular</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>Then the pumping lemma must hold for $L$ with some pumping length $p$</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>Find a string $w \in L$ with $|w| \geq p$</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>Show that for any decomposition $w = xyz$ satisfying conditions 1 and 2, there exists some $i$ where $xy^iz \not\in L$</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>This contradicts the pumping lemma, so $L$ cannot be regular</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a><span class="fu">## Classic Example: $a^nb^n$</span></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>The canonical example of a non-regular language is $L = <span class="sc">\{</span>a^nb^n \mid n \geq 0<span class="sc">\}</span>$, which consists of strings with an equal number of $a$'s followed by an equal number of $b$'s.</span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>Let's prove that $L$ is not regular using the pumping lemma:</span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>Assume $L$ is regular</span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>Then there exists a pumping length $p &gt; 0$</span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>Consider the string $w = a^pb^p \in L$</span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>By the pumping lemma, $w$ can be written as $w = xyz$ where:</span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>$|y| &gt; 0$</span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>$|xy| \leq p$</span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>For all $i \geq 0$, $xy^iz \in L$</span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>Since $|xy| \leq p$, both $x$ and $y$ consist only of $a$'s (they're within the first $p$ characters)</span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a><span class="ss">6. </span>Let's say $y = a^k$ for some $k &gt; 0$</span>
+<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a><span class="ss">7. </span>Now consider $xy^2z$ (pumping $y$ once more)</span>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a><span class="ss">8. </span>This gives us $a^{p+k}b^p$, which has more $a$'s than $b$'s</span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a><span class="ss">9. </span>Therefore, $xy^2z \not\in L$, which contradicts the pumping lemma</span>
+<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a><span class="ss">10. </span>Thus, $L$ is not regular</span>
+<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a>This example demonstrates why a language that requires "counting" or "matching" cannot be modeled by a finite state machine - the machine would need to remember exactly how many $a$'s it has seen to ensure an equal number of $b$'s follow, but FSAs have limited memory (determined by their finite number of states).</span>
+<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a><span class="fu">## Why This Matters</span></span>
+<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a>Understanding the limitations of regular languages is crucial for computational linguistics. While many patterns in natural language can be modeled using finite state machines, others require more computational power.</span>
+<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a>In the next section, we'll explore specific examples from morphology and phonology that demonstrate these computational boundaries, particularly focusing on reduplication processes that have been shown to exceed the power of regular languages.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div></div></div></div></div>
 </div> <!-- /content -->
 
 
 
-<script src="../site_libs/quarto-contrib/line-highlight-1.0.0/line-highlight.js" defer="true"></script>
+<script src="../../site_libs/quarto-contrib/line-highlight-1.0.0/line-highlight.js" defer="true"></script>
 </body></html>

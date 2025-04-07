@@ -1,0 +1,91 @@
+---
+title: Non-Regular Patterns in Morphology
+bibliography: ../../references.bib
+---
+
+In the previous section, we introduced the pumping lemma and used it to prove that the language $L = \{a^nb^n \mid n \geq 0\}$ is not regular. Now, let's apply this concept to linguistic examples, particularly from morphology, where we find processes that exceed the computational power of finite state automata.
+
+## Reduplication in Natural Language
+
+Reduplication is a morphological process where a part or all of a word is repeated, often to create a new grammatical form. This process is common across many languages and serves various functions such as indicating plurality, intensity, or aspect.
+
+From a computational perspective, certain types of reduplication are particularly interesting because they require more computational power than regular languages can provide.
+
+## Example: Total Reduplication
+
+Let's consider an example from @Chandlee2017, who studied the computational complexity of various morphological processes. One classic example of a non-regular language is total reduplication, where a word is fully copied.
+
+Consider total reduplication in Indonesian, where a word is fully copied to indicate plurality:
+
+- "orang" (person) → "orang-orang" (people)
+- "rumah" (house) → "rumah-rumah" (houses)
+
+We can formalize this as the language $L = \{ww \mid w \in \Sigma^+\}$, where $w$ is any non-empty string over alphabet $\Sigma$.
+
+Let's prove that $L$ is not regular using the pumping lemma:
+
+1. Assume $L$ is regular
+2. Then there exists a pumping length $p > 0$
+3. Consider the string $s = a^p b^p a^p b^p \in L$, which is of the form $ww$ where $w = a^p b^p$
+4. By the pumping lemma, $s$ can be written as $s = xyz$ where:
+   - $|y| > 0$
+   - $|xy| \leq p$
+   - For all $i \geq 0$, $xy^iz \in L$
+
+5. Since $|xy| \leq p$, both $x$ and $y$ consist only of $a$'s (they're within the first $p$ characters)
+6. Let's say $y = a^k$ for some $k > 0$
+7. Now consider $xy^0z = xz$, which must be in $L$ according to the pumping lemma
+8. But $xz$ has fewer $a$'s in the first half than in the second half, so it's not of the form $ww$
+9. Therefore, $xz \not\in L$, which contradicts the pumping lemma
+10. Thus, $L$ is not regular
+
+This example demonstrates why total reduplication cannot be modeled by a finite state machine - the machine would need to "remember" the exact string $w$ to verify that it's repeated exactly, but FSAs have limited memory (determined by their finite number of states).
+
+## Morphological Example: Stem-Internal Reduplication
+
+@Chandlee2017 discusses more complex cases of reduplication, such as stem-internal reduplication found in Salishan languages. For example, in Moses-Columbia Salish, the diminutive is formed by copying the first CVC sequence and inserting it after the first vowel:
+
+- s-t'əl'k' (stump) → s-t'əl'-t'əl'k' (small stump)
+- s-c'əm' (bone) → s-c'əm'-c'əm' (small bone)
+
+This can be formalized as a language $L = \{xyzxz \mid x,y,z \in \Sigma^+, |y| = 1, |x| \geq 1\}$, where $x$ represents the initial consonant(s), $y$ is the vowel, and $z$ is the remainder of the stem.
+
+We can prove this is non-regular using the pumping lemma:
+
+1. Assume $L$ is regular with pumping length $p$
+2. Consider the string $w = a^p b c a^p c \in L$ (where $x = a^p$, $y = b$, $z = c$)
+3. By the pumping lemma, $w$ can be written as $w = uvz$ where:
+   - $|v| > 0$
+   - $|uv| \leq p$
+   - For all $i \geq 0$, $uv^iz \in L$
+
+4. Since $|uv| \leq p$, both $u$ and $v$ consist only of $a$'s
+5. Let's say $v = a^k$ for some $k > 0$
+6. Consider $uv^2z$ (pumping $v$ once more)
+7. This gives us $a^{p+k} b c a^p c$, which is not of the form $xyzxz$ because the first occurrence of $a$'s is longer than the second
+8. Therefore, $uv^2z \not\in L$, contradicting the pumping lemma
+9. Thus, $L$ is not regular
+
+## Implications for Phonology and Morphology
+
+The non-regularity of certain morphological processes like reduplication has important implications for linguistic theory. While most phonological processes can be modeled using regular languages (as discussed in @Heinz2018), some morphological processes require more computational power.
+
+This distinction helps explain why:
+
+1. Phonological processes are typically local and bounded
+2. Some morphological processes seem to require counting or unbounded memory
+3. The typology of attested reduplication patterns shows certain limitations
+
+Understanding these computational properties helps linguists develop more accurate models of human language and explains why certain patterns are common while others are rare or unattested.
+
+## The Subregular Hierarchy and Morphology
+
+While reduplication exceeds the power of regular languages, @Chandlee2017 shows that many other morphological processes can be modeled using subclasses of regular languages, particularly the class of finite-state transductions.
+
+For example, prefixation, suffixation, and local infixation can all be modeled using subsequential functions, which are a proper subclass of regular relations. This suggests a computational hierarchy of morphological processes:
+
+1. Local affixation processes (subsequential)
+2. Partial reduplication with bounded copying (regular)
+3. Total reduplication (context-free, not regular)
+
+This hierarchy provides insights into the computational complexity of different morphological systems across languages and helps explain typological patterns in natural language morphology.

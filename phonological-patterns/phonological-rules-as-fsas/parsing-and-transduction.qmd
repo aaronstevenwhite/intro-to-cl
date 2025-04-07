@@ -1,0 +1,140 @@
+---
+title: Parsing and Transduction Algorithms
+bibliography: ../../references.bib
+---
+
+## Parsing and Transduction with Finite State Transducers
+
+While the rule formalism provides a way to express phonological rules, we need algorithms to apply these rules to linguistic data. This section formalizes the parsing and transduction algorithms for Finite State Transducers (FSTs).
+
+## The Transduction Problem
+
+The *transduction problem* for FSTs can be defined as:
+
+- **Input**: A finite state transducer $T = \langle Q, \Sigma, \Gamma, \delta, q_0, F \rangle$ and a string $\boldsymbol\sigma \in \Sigma^*$
+- **Output**: The set of all strings $\boldsymbol\gamma \in \Gamma^*$ such that $(\boldsymbol\sigma, \boldsymbol\gamma) \in \mathbb{R}(T)$, where $\mathbb{R}(T)$ is the relation defined by $T$
+
+In phonological terms, given an underlying representation (input string), we want to find all possible surface representations (output strings) that can be produced by applying the phonological rules encoded in the transducer.
+
+## Parsing with FSTs
+
+Similar to parsing with FSAs, parsing with FSTs involves finding all possible paths through the transducer that accept the input string. However, for FSTs, we also need to keep track of the output symbols produced along each path.
+
+Let's define a path through an FST as a sequence of transition tuples, where each tuple represents a transition in the transducer. Formally, a path is represented as:
+
+$$\langle (\sigma_1, \gamma_1, q_1), (\sigma_2, \gamma_2, q_2), \ldots, (\sigma_n, \gamma_n, q_n) \rangle$$
+
+where $q_i \in Q$, $\sigma_i \in \Sigma \cup \{\epsilon\}$, $\gamma_i \in \Gamma \cup \{\epsilon\}$, and $(q_i, \gamma_i) \in \delta(q_{i-1}, \sigma_i)$ for all $1 \leq i \leq n$, with $q_0$ being the initial state.
+
+Each tuple $(\sigma_i, \gamma_i, q_i)$ indicates that the input symbol $\sigma_i$ was read, the output symbol $\gamma_i$ was produced, and the transducer moved to state $q_i$.
+
+## Transduction Algorithm
+
+To perform transduction, we need to extend our parsing algorithm to collect the output symbols along each path. We'll define a function $\text{transduce}(T, \boldsymbol\sigma)$ that returns the set of all possible output strings if $\boldsymbol\sigma$ can be transduced by $T$, and the empty set otherwise.
+
+First, we need a helper function to handle epsilon transitions. Let's define $\text{epsilon-paths}(q)$ as the set of all paths from state $q$ to any other state using only epsilon input transitions:
+
+$$\text{epsilon-paths}(q) = \{\langle (\epsilon, \gamma_1, q_1), (\epsilon, \gamma_2, q_2), \ldots, (\epsilon, \gamma_n, q_n) \rangle \mid q_1, \ldots, q_n \in Q \text{ and there is a path from } q \text{ to } q_n \text{ using only } \epsilon \text{ input transitions}\}$$
+
+We'll define a transduction function $\text{transduce-from}(T, \boldsymbol\sigma, P)$ where $P$ is a set of partial paths:
+
+$$\text{transduce-from}(T, \boldsymbol\sigma, P) = \begin{cases}
+\text{collect-outputs}(\text{find-accepting-paths}(P)) & \text{if } \boldsymbol\sigma = \epsilon \\
+\text{transduce-from}(T, \sigma_2\ldots\sigma_n, P') & \text{if } \boldsymbol\sigma = \sigma_1\sigma_2\ldots\sigma_n \\
+\emptyset & \text{otherwise}
+\end{cases}$$
+
+where:
+- $\text{find-accepting-paths}(P)$ returns the set of paths from $P$ that end in an accepting state, or $\emptyset$ if no such paths exist
+- $\text{collect-outputs}(P)$ extracts the output strings from a set of paths
+- $P' = \{p \circ \langle (\sigma_1, \gamma, q') \rangle \circ \epsilon\text{-path} \mid p \in P, \text{last-state}(p) = q, (q', \gamma) \in \delta(q, \sigma_1), \epsilon\text{-path} \in \text{epsilon-paths}(q')\}$
+
+The function $\text{last-state}(p)$ returns the state at the end of path $p$.
+
+To initialize the transduction, we need to consider all possible paths from the initial state via epsilon transitions:
+
+$$\text{transduce}(T, \boldsymbol\sigma) = \text{transduce-from}(T, \boldsymbol\sigma, \{\langle \rangle \circ \epsilon\text{-path} \mid \epsilon\text{-path} \in \text{epsilon-paths}(q_0)\})$$
+
+After reading the entire input string, we must also consider any epsilon transitions that can be taken from the final states:
+
+$$\text{find-accepting-paths}(P) = \{p \circ \epsilon\text{-path} \mid p \in P, \epsilon\text{-path} \in \text{epsilon-paths}(\text{last-state}(p)), \text{last-state}(\epsilon\text{-path}) \in F\}$$
+
+Finally, to extract the output strings from a set of paths, we concatenate the output symbols along each path:
+
+$$\text{collect-outputs}(P) = \{\gamma_1\gamma_2\ldots\gamma_n \mid \langle (\sigma_1, \gamma_1, q_1), (\sigma_2, \gamma_2, q_2), \ldots, (\sigma_n, \gamma_n, q_n) \rangle \in P\}$$
+
+## Ambiguity in Transduction
+
+Just as with FSA parsing, ambiguity is an important consideration in FST transduction. A single input string may be transduced to multiple output strings if the transducer is nondeterministic. In such cases, the transduction algorithm returns the set of all valid output strings.
+
+For example, consider an FST that implements optional vowel harmony. The input string "ev+DE" might be transduced to both "evde" (with harmony) and "evda" (without harmony) if the transducer allows both possibilities.
+
+Handling ambiguity is particularly important in phonological analysis, where different transductions may correspond to different phonological processes or dialectal variations.
+
+## Weighted Transduction
+
+In many phonological applications, we want to find not just any valid transduction, but the most likely or optimal one according to some criterion. This can be achieved using weighted FSTs, where each transition is associated with a weight (e.g., a probability or a cost).
+
+For weighted FSTs, the transduction algorithm needs to be modified to keep track of the weights along each path and to return the output string(s) with the optimal weight.
+
+Let's define a weighted path as:
+
+$$\langle (\sigma_1, \gamma_1, q_1, w_1), (\sigma_2, \gamma_2, q_2, w_2), \ldots, (\sigma_n, \gamma_n, q_n, w_n) \rangle$$
+
+where $w_i$ is the weight associated with the transition from $q_{i-1}$ to $q_i$ on input $\sigma_i$ and output $\gamma_i$.
+
+The weight of a path is computed by combining the weights of its transitions using an appropriate operation (e.g., multiplication for probabilities, addition for costs):
+
+$$\text{weight}(p) = w_1 \otimes w_2 \otimes \ldots \otimes w_n$$
+
+where $\otimes$ is the weight combination operation.
+
+The weighted transduction algorithm returns the output string(s) with the optimal weight:
+
+$$\text{best-transduce}(T, \boldsymbol\sigma) = \{\gamma \mid \gamma \in \text{transduce}(T, \boldsymbol\sigma) \text{ and } \text{weight}(\gamma) \text{ is optimal}\}$$
+
+In practice, efficient algorithms like the Viterbi algorithm can be used to find the best transduction without explicitly enumerating all possible paths.
+
+## Applications in Phonology
+
+The parsing and transduction algorithms for FSTs have several important applications in phonology:
+
+### 1. Phonological Rule Application
+
+Transduction can model how phonological rules transform underlying representations into surface forms.
+
+For example, transducing the underlying form /kæt+z/ through an FST implementing English plural formation rules would produce the surface form [kæts], showing how the plural morpheme /-z/ undergoes devoicing after the voiceless consonant /t/.
+
+### 2. Morphophonological Analysis
+
+Parsing with FSTs can reveal the morphophonological structure of words by identifying the specific path through the transducer that accepts the input.
+
+For instance, parsing the Turkish word "evde" through a vowel harmony FST would show that the locative suffix "-de" has the front vowel "e" because it follows the front vowel "e" in the stem "ev".
+
+### 3. Bidirectional Analysis
+
+FSTs can be used for both generation (UR → SR) and analysis (SR → UR), making them powerful tools for bidirectional phonological modeling.
+
+For example, the same FST that transduces /kæt+z/ to [kæts] can be inverted to analyze [kæts] as /kæt+z/, revealing the underlying morphological structure.
+
+### 4. Optimality Theory Implementation
+
+While FSTs are traditionally associated with rule-based phonology, they can also be used to implement constraint-based approaches like Optimality Theory (OT) [@Prince1993]. This is typically done by:
+
+1. Using a weighted FST to generate all possible candidates
+2. Using weighted constraints to assign violation marks to candidates
+3. Finding the optimal candidate(s) using the weighted transduction algorithm
+
+This approach has been successfully used to implement OT analyses of various phonological phenomena [@Karttunen1998].
+
+## Conclusion
+
+The parsing and transduction algorithms for FSTs provide a formal and computational foundation for applying phonological rules to linguistic data. By formalizing these algorithms, we can:
+
+1. Ensure that rule application is consistent and well-defined
+2. Handle complex cases like ambiguity and optionality
+3. Implement efficient computational tools for phonological analysis
+
+These algorithms bridge the gap between formal rule notation and practical application, allowing phonologists to test their analyses on real data and to develop computational models of phonological processes.
+
+In combination with the rule formalism discussed in the previous section, these algorithms provide a complete framework for expressing and applying phonological rules using finite state methods. 

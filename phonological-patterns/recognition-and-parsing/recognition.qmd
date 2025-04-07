@@ -1,0 +1,124 @@
+---
+title: Recognition
+bibliography: ../../references.bib
+---
+
+## Recognition in Finite State Automata
+
+In the previous sections, we've explored how finite state automata (FSAs) can be used to define and generate languages. Now, we'll examine the other direction: given a string, how do we determine whether it belongs to the language defined by an FSA?
+
+### The Recognition Problem
+
+The *recognition problem* is defined as follows:
+
+- **Input**: A finite state automaton $G = \langle Q, \Sigma, \delta, q_0, F \rangle$ and a string $\boldsymbol\sigma \in \Sigma^*$
+- **Output**: A boolean value indicating whether $\boldsymbol\sigma \in \mathbb{L}(G)$
+
+This problem is fundamental to computational linguistics and natural language processing, as it allows us to determine whether a given sequence of symbols (e.g., a word or sentence) conforms to the rules of a formal language.
+
+### Recognition Algorithm
+
+For a given FSA $G = \langle Q, \Sigma, \delta, q_0, F \rangle$ and an input string $\boldsymbol\sigma = \sigma_1\sigma_2\ldots\sigma_n$, we can define a recognition function $\text{recognize}(G, \boldsymbol\sigma)$ that returns true if $\boldsymbol\sigma \in \mathbb{L}(G)$ and false otherwise.
+
+First, we need a helper function to handle epsilon transitions. Let's define $\text{epsilon-reachable}(q)$ as the set of all states reachable from state $q$ via epsilon transitions only:
+
+$$
+\text{epsilon-reachable}(q) = \{q'\in Q \mid \text{there exists a path from } q \text{ to } q' \text{ using only } \epsilon \text{ transitions}\}
+$$
+
+Note that this set always includes $q$ itself, since a state is reachable from itself via zero epsilon transitions.
+
+We can extend this to sets of states:
+
+$$
+\text{epsilon-reachable}(S) = \bigcup_{q \in S} \text{epsilon-reachable}(q)
+$$
+
+Now, we can define our recognition algorithm recursively. Let $\text{recognize-from}(G, \boldsymbol\sigma, S)$ be a function that determines whether the string $\boldsymbol\sigma$ can be accepted starting from any state in the set $S$:
+
+$$
+\text{recognize-from}(G, \boldsymbol\sigma, S) = \begin{cases}
+\text{true} & \text{if } \boldsymbol\sigma = \epsilon \text{ and } S \cap F \neq \emptyset \\
+\text{recognize-from}(G, \sigma_2\ldots\sigma_n, S') & \text{if } \boldsymbol\sigma = \sigma_1\sigma_2\ldots\sigma_n \\
+\text{false} & \text{otherwise}
+\end{cases}
+$$
+
+where $S' = \text{epsilon-reachable}\left(\bigcup_{q \in S} \delta(q, \sigma_1)\right)$, which represents all states reachable after reading $\sigma_1$ from any state in $S$, including any subsequent epsilon transitions.
+
+The full recognition function is then:
+
+$$
+\text{recognize}(G, \boldsymbol\sigma) = \text{recognize-from}(G, \boldsymbol\sigma, \text{epsilon-reachable}(\{q_0\}))
+$$
+
+This algorithm starts by finding all states reachable from the initial state via epsilon transitions, then processes each symbol in the input string, tracking the set of possible states at each step. After processing the entire string, it checks if any of the current states is an accepting state.
+
+For deterministic finite automata (DFAs), the algorithm simplifies because there are no epsilon transitions, and $\delta(q, \sigma)$ always returns a single state rather than a set of states. In this case:
+
+$$
+\text{recognize}(G, \boldsymbol\sigma) = \begin{cases}
+\text{true} & \text{if } \text{process}(G, \boldsymbol\sigma, q_0) \in F \\
+\text{false} & \text{otherwise}
+\end{cases}
+$$
+
+where $\text{process}(G, \boldsymbol\sigma, q)$ is defined as:
+
+$$
+\text{process}(G, \boldsymbol\sigma, q) = \begin{cases}
+q & \text{if } \boldsymbol\sigma = \epsilon \\
+\text{process}(G, \sigma_2\ldots\sigma_n, \delta(q, \sigma_1)) & \text{if } \boldsymbol\sigma = \sigma_1\sigma_2\ldots\sigma_n \text{ and } \delta(q, \sigma_1) \text{ is defined} \\
+\text{undefined} & \text{otherwise}
+\end{cases}
+$$
+
+This algorithm has a time complexity of $O(n)$ for DFAs and $O(n \cdot |Q|)$ for NFAs, where $n$ is the length of the input string and $|Q|$ is the number of states in the automaton.
+
+## Applications in Phonology
+
+In phonological analysis, recognition algorithms for FSAs have several important applications:
+
+### 1. Phonotactic Constraints
+
+FSAs can model the phonotactic constraints of a language—the rules governing which sound sequences are permissible. The recognition algorithm can then be used to determine whether a given word conforms to these constraints.
+
+For example, the English syllable FSA we examined earlier can recognize whether a sequence like "strength" follows valid English phonotactics (it does) or whether "ngstri" does not (it doesn't).
+
+### 2. Morphological Analysis
+
+FSAs can represent morphological rules, such as those governing inflection or derivation. Recognition algorithms can verify whether a given word form is valid according to these rules.
+
+For instance, an FSA for English plural formation might recognize "cats" as a valid plural form but reject "catses" as invalid.
+
+### 3. Phonological Alternations
+
+FSAs can model phonological alternations, such as assimilation or dissimilation. Recognition algorithms can verify whether a given surface form is a valid realization according to these rules.
+
+For example, an FSA modeling English past tense formation might recognize "walked" (/wɔkt/) as a valid realization of the underlying form /wɔk+d/, where the voiceless stop /k/ causes the past tense morpheme to be realized as /t/ rather than /d/.
+
+## Efficient Implementation Considerations
+
+When implementing recognition algorithms for FSAs, several optimizations can improve efficiency:
+
+### 1. Epsilon-Reachable Precomputation
+
+For NFAs with ε-transitions, precomputing the epsilon-reachable set for each state can significantly speed up the recognition process.
+
+### 2. Lazy Determinization
+
+Rather than fully determinizing an NFA beforehand, we can perform "lazy" determinization during the recognition process, computing only the parts of the determinized automaton that are needed for the current input.
+
+### 3. Minimization
+
+For DFAs, minimizing the automaton (reducing it to an equivalent DFA with the minimum number of states) can improve both space and time efficiency.
+
+### 4. Parallel Processing
+
+For large-scale applications, recognition can be parallelized by processing multiple strings simultaneously or by dividing a single string into segments that can be processed in parallel.
+
+## Conclusion
+
+Recognition algorithms for finite state automata provide efficient means to determine whether strings belong to regular languages. These algorithms form the foundation for many applications in computational linguistics, particularly in phonology and morphology, where the patterns being modeled often fall within the class of regular languages.
+
+In the next section, we'll explore how these recognition algorithms can be extended to parsing algorithms that not only determine whether a string is accepted but also extract its structure. 

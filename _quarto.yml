@@ -48,8 +48,13 @@ project:
   - phonological-patterns/formal-definition/translating-between-formalisms.qmd
   - phonological-patterns/formal-definition/beyond-the-regular-operations.qmd
   - phonological-patterns/generative-capacity/index.qmd
+  - phonological-patterns/generative-capacity/pumping-lemma.qmd
   - phonological-patterns/phonological-rules-as-fsas/index.qmd
+  - phonological-patterns/phonological-rules-as-fsas/parsing-and-transduction.qmd
+  - phonological-patterns/phonological-rules-as-fsas/rule-formalism.qmd
   - phonological-patterns/recognition-and-parsing/index.qmd
+  - phonological-patterns/recognition-and-parsing/recognition.qmd
+  - phonological-patterns/recognition-and-parsing/parsing.qmd
   - syntactic-patterns/index.qmd
   - analysis-as-deduction/index.qmd
   - assignments/assignments-1-and-2.ipynb
@@ -120,15 +125,20 @@ website:
           - phonological-patterns/formal-definition/the-regular-operations.qmd
           - phonological-patterns/formal-definition/translating-between-formalisms.qmd
           - phonological-patterns/formal-definition/beyond-the-regular-operations.qmd
-        - section: "Phonological rules as FSAs"
-          contents:
-          - phonological-patterns/phonological-rules-as-fsas/index.qmd
         - section: "Recognition and parsing"
           contents:
           - phonological-patterns/recognition-and-parsing/index.qmd
+          - phonological-patterns/recognition-and-parsing/recognition.qmd
+          - phonological-patterns/recognition-and-parsing/parsing.qmd
+        - section: "Phonological rules as FSAs"
+          contents:
+          - phonological-patterns/phonological-rules-as-fsas/index.qmd
+          - phonological-patterns/phonological-rules-as-fsas/parsing-and-transduction.qmd
+          - phonological-patterns/phonological-rules-as-fsas/rule-formalism.qmd
         - section: "Generative capacity"
           contents:
           - phonological-patterns/generative-capacity/index.qmd
+          - phonological-patterns/generative-capacity/pumping-lemma.qmd
       - section: "The nature of morphological patterns"
         contents:
         - syntactic-patterns/index.qmd
@@ -142,6 +152,8 @@ website:
         contents:
         - assignments/assignments-1-and-2.ipynb
         - assignments/assignments-3-and-4.ipynb
+        - assignments/assignments-5-and-6.ipynb
+        - assignments/assignments-7-and-8.ipynb
 
 format:
   html:
