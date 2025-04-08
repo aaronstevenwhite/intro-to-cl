@@ -39,6 +39,12 @@ project:
   - languages-in-terms-of-strings/index.qmd
   - languages-in-terms-of-strings/distance-in-the-abstract.qmd
   - languages-in-terms-of-strings/levenshtein-distance.qmd
+  - working-with-annotated-corpora/index.qmd
+  - working-with-annotated-corpora/trees.ipynb
+  - working-with-annotated-corpora/containment-tests.ipynb
+  - working-with-annotated-corpora/indexation.ipynb
+  - working-with-annotated-corpora/finding-data-with-tree-pattern-matching.ipynb
+  - working-with-annotated-corpora/building-a-corpus-reader.ipynb
   - phonological-patterns/index.qmd
   - phonological-patterns/generation.qmd
   - phonological-patterns/the-generativist-conceit.qmd
@@ -123,6 +129,14 @@ website:
         - languages-in-terms-of-strings/index.qmd
         - languages-in-terms-of-strings/distance-in-the-abstract.qmd
         - languages-in-terms-of-strings/levenshtein-distance.qmd
+      - section: "Working with Annotated Corpora"
+        contents:
+        - working-with-annotated-corpora/index.qmd
+        - working-with-annotated-corpora/trees.ipynb
+        - working-with-annotated-corpora/containment-tests.ipynb
+        - working-with-annotated-corpora/indexation.ipynb
+        - working-with-annotated-corpora/finding-data-with-tree-pattern-matching.ipynb
+        - working-with-annotated-corpora/building-a-corpus-reader.ipynb
       - section: "The nature of phonological patterns"
         contents:
         - phonological-patterns/index.qmd

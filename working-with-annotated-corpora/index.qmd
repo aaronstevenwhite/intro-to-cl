@@ -1,0 +1,12 @@
+---
+title: Overview
+bibliography: ../references.bib
+---
+
+::: {.callout-tip}
+## Reading
+
+@marcus_building_1993 on building the first large-scale constituency treebank: the [Penn Treebank](https://catalog.ldc.upenn.edu/LDC99T42).
+:::
+
+In this submodule, we'll cover basic concepts relevant to how to work with annotated corpora—in particular, treebanks—by developing a system of classes for representing those corpora and their annotations from the ground up.
