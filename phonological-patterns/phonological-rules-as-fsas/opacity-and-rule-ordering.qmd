@@ -1,0 +1,144 @@
+---
+title: Opacity and Rule Ordering
+bibliography: ../../references.bib
+---
+
+## Phonological Opacity
+
+One of the most interesting challenges in phonological theory is the phenomenon of opacity. A phonological process is opaque if:
+
+1. A rule applies even though its conditioning environment is not met at the surface level (counterfeeding opacity), or
+2. A rule fails to apply even though its conditioning environment is met at the surface level (counterbleeding opacity)
+
+Opacity arises from the interaction of multiple phonological rules and has been a central topic in phonological theory since @Kiparsky1973 introduced the concept.
+
+## Types of Rule Interaction
+
+When multiple phonological rules apply to a form, they can interact in various ways:
+
+1. **Feeding**: Rule A creates new environments where Rule B can apply
+2. **Bleeding**: Rule A eliminates environments where Rule B would have applied
+3. **Counterfeeding**: Rule B could create environments for Rule A, but Rule A applies before Rule B
+4. **Counterbleeding**: Rule B could eliminate environments for Rule A, but Rule A applies before Rule B
+
+The last two types (counterfeeding and counterbleeding) result in opacity.
+
+### Example of Counterfeeding Opacity
+
+In Canadian English, there are two rules:
+1. Raising: /ai/ → [ʌi] before voiceless consonants
+2. Flapping: /t/ → [ɾ] between vowels
+
+Consider the word "writer" /raɪtər/:
+- If Raising applies first: /raɪtər/ → [rʌɪtər]
+- Then Flapping applies: [rʌɪtər] → [rʌɪɾər]
+
+The surface form [rʌɪɾər] is opaque because the environment for Raising (before a voiceless consonant) is no longer present after Flapping has applied.
+
+### Example of Counterbleeding Opacity
+
+In Polish, there are two rules:
+1. Devoicing: Obstruents are devoiced word-finally
+2. E-deletion: /e/ is deleted in certain contexts
+
+Consider the word /gvazd+ek/ "nail (diminutive)":
+- If E-deletion applies first: /gvazd+ek/ → /gvazdk/
+- Then Devoicing applies: /gvazdk/ → [gvastk]
+
+The surface form [gvastk] is opaque because the environment for Devoicing (word-final position) was created by E-deletion.
+
+## Modeling Opacity with FSTs
+
+Opacity presents a challenge for FST-based approaches because FSTs are inherently surface-oriented. However, there are several strategies for handling opacity:
+
+### 1. Rule Ordering
+
+The most straightforward approach is to compose FSTs in a specific order that captures the opaque interaction:
+
+$$T_{\text{canadian-english}} = T_{\text{raising}} \circ T_{\text{flapping}}$$
+
+Where:
+- $T_{\text{raising}} = \text{CDRewrite}(ai \rightarrow \text{ʌi}, \epsilon, \{t, p, k\}, \Sigma^*)$
+- $T_{\text{flapping}} = \text{CDRewrite}(t \rightarrow \text{ɾ}, V, V, \Sigma^*)$
+
+This approach works well for simple cases of opacity, but it requires knowing the correct rule ordering in advance.
+
+### 2. Multi-level Representations
+
+Another approach is to use intermediate symbols or multiple levels of representation:
+
+$$T_{\text{raising-with-marker}} = \text{CDRewrite}(ai \rightarrow \text{ʌi+RAISED}, \epsilon, \{t, p, k\}, \Sigma^*)$$
+
+$$T_{\text{flapping-with-marker}} = \text{CDRewrite}(t \rightarrow \text{ɾ}, V(\epsilon \cup \text{+RAISED})^*, V, (\Sigma \cup \{\text{+RAISED}\})^*)$$
+
+$$T_{\text{remove-markers}} = \text{CDRewrite}(\text{+RAISED} \rightarrow \epsilon, \epsilon, \epsilon, (\Sigma \cup \{\text{+RAISED}\})^*)$$
+
+$$T_{\text{canadian-english}} = T_{\text{raising-with-marker}} \circ T_{\text{flapping-with-marker}} \circ T_{\text{remove-markers}}$$
+
+### 3. Factored FSTs
+
+Mohri (1997) introduced the concept of "factored" FSTs, which can handle certain types of opacity more efficiently:
+
+$$T_{\text{raising-factored}} = \text{CDRewrite}_{\text{LTR}}(ai \rightarrow \text{ʌi}, \epsilon, \{t, p, k\}, \Sigma^*)$$
+
+$$T_{\text{flapping-factored}} = \text{CDRewrite}_{\text{LTR}}(t \rightarrow \text{ɾ}, V, V, \Sigma^*)$$
+
+$$T_{\text{canadian-english}} = T_{\text{raising-factored}} \circ T_{\text{flapping-factored}}$$
+
+Where $\text{CDRewrite}_{\text{LTR}}$ indicates left-to-right application.
+
+## Implementing Turkish Vowel Harmony with Opacity
+
+Turkish vowel harmony interacts with other phonological processes in ways that can create opacity. For example, there's an interaction between vowel harmony and consonant alternations:
+
+$$T_{\text{k-alternation}} = \text{CDRewrite}(k \rightarrow \text{ğ}, V, V, \Sigma^*)$$
+
+$$T_{\text{vowel-harmony}} = \text{CDRewrite}(E \rightarrow e, \{e, i, ö, ü\}C^*, \epsilon, \Sigma^*) \cup \text{CDRewrite}(E \rightarrow a, \{a, ı, o, u\}C^*, \epsilon, \Sigma^*)$$
+
+$$T_{\text{turkish-phonology}} = T_{\text{vowel-harmony}} \circ T_{\text{k-alternation}}$$
+
+For example, applying this to "çiçek+E" (flower+DAT) and "ayak+E" (foot+DAT) would yield "çiçeğe" and "ayağa" respectively.
+
+## Challenges with Opacity in FST Models
+
+While FSTs can handle many cases of opacity through rule ordering, there are some challenges:
+
+1. **Computational complexity**: Composing multiple FSTs can lead to state explosion
+2. **Non-local dependencies**: Some opaque interactions involve long-distance dependencies
+3. **Rule ordering paradoxes**: Some languages exhibit rule interactions that cannot be resolved by a single ordering
+
+## Advanced Techniques for Handling Opacity
+
+### 1. Weighted FSTs
+
+Weighted FSTs can be used to model probabilistic rule application, which can help with certain types of opacity:
+
+$$T_{\text{raising-weighted}}(ai, \text{ʌi}) = 0.1$$
+
+Where lower weights indicate higher probability of application.
+
+### 2. Multi-tape FSTs
+
+Multi-tape FSTs can explicitly represent multiple levels of representation:
+
+$$T_{\text{multi-tape}} = (T_1, T_2, T_3)$$
+
+Where:
+- $T_1$ represents the mapping from underlying to post-raising forms
+- $T_2$ represents the mapping from post-raising to surface forms
+- $T_3$ represents the composite mapping
+
+### 3. Constraint-based Approaches
+
+Some researchers have proposed constraint-based approaches that can handle opacity more naturally:
+
+$$C = \{\text{RAISE\_BEFORE\_VOICELESS}(3), \text{FLAP\_INTERVOCALIC}(2), \text{FAITHFULNESS}(1)\}$$
+
+Where the numbers in parentheses indicate constraint weights or rankings.
+
+## Conclusion
+
+Opacity presents one of the most interesting challenges for computational models of phonology. The FST framework can handle many cases of opacity through careful rule ordering and composition, but some complex cases require more sophisticated techniques.
+
+The work of @Kaplan1994 and @Mohri1997 provides a solid foundation for implementing phonological rules as FSTs, and extensions to their approach can handle many cases of opacity. However, the study of opacity continues to drive innovation in computational phonology, leading to new formalisms and techniques that build on the FST foundation.
+

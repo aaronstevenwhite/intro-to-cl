@@ -54,14 +54,27 @@ project:
   - phonological-patterns/formal-definition/translating-between-formalisms.qmd
   - phonological-patterns/formal-definition/beyond-the-regular-operations.qmd
   - phonological-patterns/generative-capacity/index.qmd
+  - phonological-patterns/generative-capacity/pumping-lemma.qmd
   - phonological-patterns/phonological-rules-as-fsas/index.qmd
+  - phonological-patterns/phonological-rules-as-fsas/parsing-and-transduction.qmd
+  - phonological-patterns/phonological-rules-as-fsas/rule-formalism.qmd
   - phonological-patterns/recognition-and-parsing/index.qmd
+  - phonological-patterns/recognition-and-parsing/recognition.qmd
+  - phonological-patterns/recognition-and-parsing/parsing.qmd
+  - morphological-patterns/index.qmd
+  - morphological-patterns/operations.qmd
+  - morphological-patterns/normal-forms.qmd
+  - morphological-patterns/cky-parsing.qmd
+  - morphological-patterns/earley-parsing.qmd
+  - morphological-patterns/probabilistic-context-free-grammars.qmd
   - syntactic-patterns/index.qmd
   - analysis-as-deduction/index.qmd
   - assignments/assignments-1-and-2.ipynb
   - assignments/assignments-3-and-4.ipynb
   - assignments/assignments-5-and-6.ipynb
   - assignments/assignments-7-and-8.ipynb
+  - assignments/assignments-9-and-10.ipynb
+  - assignments/final-project.ipynb
 
 website:
   title: "Introduction to Computational Linguistics"
@@ -136,18 +149,28 @@ website:
           - phonological-patterns/formal-definition/the-regular-operations.qmd
           - phonological-patterns/formal-definition/translating-between-formalisms.qmd
           - phonological-patterns/formal-definition/beyond-the-regular-operations.qmd
-        - section: "Phonological rules as FSAs"
-          contents:
-          - phonological-patterns/phonological-rules-as-fsas/index.qmd
         - section: "Recognition and parsing"
           contents:
           - phonological-patterns/recognition-and-parsing/index.qmd
+          - phonological-patterns/recognition-and-parsing/recognition.qmd
+          - phonological-patterns/recognition-and-parsing/parsing.qmd
+        - section: "Phonological rules as FSAs"
+          contents:
+          - phonological-patterns/phonological-rules-as-fsas/index.qmd
+          - phonological-patterns/phonological-rules-as-fsas/parsing-and-transduction.qmd
+          - phonological-patterns/phonological-rules-as-fsas/rule-formalism.qmd
         - section: "Generative capacity"
           contents:
           - phonological-patterns/generative-capacity/index.qmd
+          - phonological-patterns/generative-capacity/pumping-lemma.qmd
       - section: "The nature of morphological patterns"
         contents:
-        - syntactic-patterns/index.qmd
+        - morphological-patterns/index.qmd
+        - morphological-patterns/operations.qmd
+        - morphological-patterns/normal-forms.qmd
+        - morphological-patterns/cky-parsing.qmd
+        - morphological-patterns/earley-parsing.qmd
+        - morphological-patterns/probabilistic-context-free-grammars.qmd
       - section: "Analysis as deduction"
         contents:
         - analysis-as-deduction/index.qmd
@@ -160,6 +183,8 @@ website:
         - assignments/assignments-3-and-4.ipynb
         - assignments/assignments-5-and-6.ipynb
         - assignments/assignments-7-and-8.ipynb
+        - assignments/assignments-9-and-10.ipynb
+        - assignments/final-project.ipynb
 
 format:
   html:
