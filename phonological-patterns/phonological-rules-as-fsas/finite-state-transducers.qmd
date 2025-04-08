@@ -1,0 +1,42 @@
+---
+title: Finite State Transducers
+bibliography: ../../references.bib
+---
+
+There are two ways that we can define FSTs: one that focuses on their use as methods for defining a relation and another that focuses on their use as methods for defining mappings from $\Sigma^*$ to $2^{\Gamma^*}$–i.e. as mappings from strings in $\Sigma^*$ to languages on $\Gamma$.
+
+## The relation view
+
+A Finite State Transducer (FST) is a grammar with 6 components:
+
+1. A set of states $Q$
+2. An input alphabet $\Sigma$
+3. An output alphabet $\Gamma$
+4. A transition function $\delta : Q \times (\Sigma \cup \{\epsilon\}) \times (\Gamma \cup \{\epsilon\}) \rightarrow \mathcal{P}(Q)$
+5. An initial state $q_0$
+6. A set of final states $F \subseteq Q$
+
+## The mapping view
+
+Alternatively, a Finite State Transducer (FST) is a grammar with 7 components:
+
+1. A set of states $Q$
+2. An input alphabet $\Sigma$
+3. An output alphabet $\Gamma$
+4. A transition function $\delta : Q \times (\Sigma \cup \{\epsilon\}) \rightarrow \mathcal{P}(Q)$
+5. An output function $\omega : Q \times (\Sigma \cup \{\epsilon\}) \times Q \rightarrow \Gamma$
+6. An initial state $q_0 \in Q$
+7. A set of final states $F \subseteq Q$
+
+FSTs in general are similar to vanilla FSAs:
+
+1. Closed under union
+2. Closed under concatenation
+3. Closed under Kleene star
+
+But they are different in a few respects:
+
+1. Not all FSTs are determinizable.
+2. FSTs aren't closed under intersection or complementation
+3. Conceptualizing FSTs as language tuple recognizers/generators, we can define *projection*.
+4. Conceptualizing FSTs as maps, we can define *composition* and *inversion*.

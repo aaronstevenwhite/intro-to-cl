@@ -56,6 +56,8 @@ project:
   - phonological-patterns/generative-capacity/index.qmd
   - phonological-patterns/generative-capacity/pumping-lemma.qmd
   - phonological-patterns/phonological-rules-as-fsas/index.qmd
+  - phonological-patterns/phonological-rules-as-fsas/finite-state-transducers.qmd
+  - phonological-patterns/phonological-rules-as-fsas/fst-operations.qmd
   - phonological-patterns/phonological-rules-as-fsas/parsing-and-transduction.qmd
   - phonological-patterns/phonological-rules-as-fsas/rule-formalism.qmd
   - phonological-patterns/recognition-and-parsing/index.qmd
@@ -157,6 +159,8 @@ website:
         - section: "Phonological rules as FSAs"
           contents:
           - phonological-patterns/phonological-rules-as-fsas/index.qmd
+          - phonological-patterns/phonological-rules-as-fsas/finite-state-transducers.qmd
+          - phonological-patterns/phonological-rules-as-fsas/fst-operations.qmd
           - phonological-patterns/phonological-rules-as-fsas/parsing-and-transduction.qmd
           - phonological-patterns/phonological-rules-as-fsas/rule-formalism.qmd
         - section: "Generative capacity"

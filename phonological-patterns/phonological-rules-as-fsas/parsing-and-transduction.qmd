@@ -3,8 +3,6 @@ title: Parsing and Transduction Algorithms
 bibliography: ../../references.bib
 ---
 
-## Parsing and Transduction with Finite State Transducers
-
 While the rule formalism provides a way to express phonological rules, we need algorithms to apply these rules to linguistic data. This section formalizes the parsing and transduction algorithms for Finite State Transducers (FSTs).
 
 ## The Transduction Problem

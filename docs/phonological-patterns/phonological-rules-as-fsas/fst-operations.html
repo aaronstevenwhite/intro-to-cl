@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Introduction to Computational Linguistics - Overview</title>
+<title>Introduction to Computational Linguistics - Operations on Finite State Transducers</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -64,8 +64,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../../">
-<link href="../../phonological-patterns/phonological-rules-as-fsas/finite-state-transducers.html" rel="next">
-<link href="../../phonological-patterns/recognition-and-parsing/parsing.html" rel="prev">
+<link href="../../phonological-patterns/phonological-rules-as-fsas/parsing-and-transduction.html" rel="next">
+<link href="../../phonological-patterns/phonological-rules-as-fsas/finite-state-transducers.html" rel="prev">
 <script src="../../site_libs/quarto-html/quarto.js"></script>
 <script src="../../site_libs/quarto-html/popper.min.js"></script>
 <script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -111,7 +111,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../phonological-patterns/index.html">The nature of phonological patterns</a></li><li class="breadcrumb-item"><a href="../../phonological-patterns/phonological-rules-as-fsas/index.html">Phonological rules as FSAs</a></li><li class="breadcrumb-item"><a href="../../phonological-patterns/phonological-rules-as-fsas/index.html">Overview</a></li></ol></nav>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../phonological-patterns/index.html">The nature of phonological patterns</a></li><li class="breadcrumb-item"><a href="../../phonological-patterns/phonological-rules-as-fsas/index.html">Phonological rules as FSAs</a></li><li class="breadcrumb-item"><a href="../../phonological-patterns/phonological-rules-as-fsas/fst-operations.html">Operations on Finite State Transducers</a></li></ol></nav>
       <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
       </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -562,7 +562,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth2 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../phonological-patterns/phonological-rules-as-fsas/index.html" class="sidebar-item-text sidebar-link active">
+  <a href="../../phonological-patterns/phonological-rules-as-fsas/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Overview</span></a>
   </div>
 </li>
@@ -574,7 +574,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../phonological-patterns/phonological-rules-as-fsas/fst-operations.html" class="sidebar-item-text sidebar-link">
+  <a href="../../phonological-patterns/phonological-rules-as-fsas/fst-operations.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">Operations on Finite State Transducers</span></a>
   </div>
 </li>
@@ -751,14 +751,39 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#operations-on-fsts" id="toc-operations-on-fsts" class="nav-link active" data-scroll-target="#operations-on-fsts">Operations on FSTs</a>
+  <ul class="collapse">
+  <li><a href="#basic-operations" id="toc-basic-operations" class="nav-link" data-scroll-target="#basic-operations">Basic Operations</a></li>
+  <li><a href="#projection-operations" id="toc-projection-operations" class="nav-link" data-scroll-target="#projection-operations">Projection Operations</a></li>
+  <li><a href="#limitations-and-special-cases" id="toc-limitations-and-special-cases" class="nav-link" data-scroll-target="#limitations-and-special-cases">Limitations and Special Cases</a></li>
+  </ul></li>
+  <li><a href="#composition-of-fsts" id="toc-composition-of-fsts" class="nav-link" data-scroll-target="#composition-of-fsts">Composition of FSTs</a>
+  <ul class="collapse">
+  <li><a href="#formal-definition" id="toc-formal-definition" class="nav-link" data-scroll-target="#formal-definition">Formal Definition</a></li>
+  <li><a href="#construction-algorithm" id="toc-construction-algorithm" class="nav-link" data-scroll-target="#construction-algorithm">Construction Algorithm</a></li>
+  <li><a href="#handling-epsilon-transitions" id="toc-handling-epsilon-transitions" class="nav-link" data-scroll-target="#handling-epsilon-transitions">Handling Epsilon Transitions</a></li>
+  <li><a href="#example-composing-phonological-rules" id="toc-example-composing-phonological-rules" class="nav-link" data-scroll-target="#example-composing-phonological-rules">Example: Composing Phonological Rules</a></li>
+  </ul></li>
+  <li><a href="#inversion-of-fsts" id="toc-inversion-of-fsts" class="nav-link" data-scroll-target="#inversion-of-fsts">Inversion of FSTs</a>
+  <ul class="collapse">
+  <li><a href="#formal-definition-1" id="toc-formal-definition-1" class="nav-link" data-scroll-target="#formal-definition-1">Formal Definition</a></li>
+  <li><a href="#construction-algorithm-1" id="toc-construction-algorithm-1" class="nav-link" data-scroll-target="#construction-algorithm-1">Construction Algorithm</a></li>
+  <li><a href="#applications-in-phonology" id="toc-applications-in-phonology" class="nav-link" data-scroll-target="#applications-in-phonology">Applications in Phonology</a></li>
+  </ul></li>
+  <li><a href="#conclusions-and-practical-considerations" id="toc-conclusions-and-practical-considerations" class="nav-link" data-scroll-target="#conclusions-and-practical-considerations">Conclusions and Practical Considerations</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<div class="quarto-title-block"><div><h1 class="title">Overview</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+<div class="quarto-title-block"><div><h1 class="title">Operations on Finite State Transducers</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
 </div>
 
 
@@ -773,12 +798,137 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<p>So far, we have constructed morphophonological grammar in a <a href="https://en.wikipedia.org/wiki/Model-theoretic_grammar">constraint-based</a> way. In this sort of approch, we define a set that contains all the strings we want (in the limit, <span class="math inline">\(\Sigma^*\)</span> itself); then, we filter out strings that violate a constraint (such as the one against gemination by complement and intersection operation.</p>
-<p>We can alterntively model morphophonological grammars using a <a href="https://en.wikipedia.org/wiki/Generative_grammar">generative</a> approach. This could be accomplished using vanilla FSAs, like those discussed above; but it is often more productive to approach the problem as one of transduction: wherein we define some set of <em>underlying forms</em> that are mapped to surface forms by machines that implement morphophonological rules. These machines are generalizations of FSAs that we refer to as Finite State Transducers (FSTs). The main thing we add to an FSA to get an FSTs is that every edge is annotated with a mapping from a character in the input alphabet <span class="math inline">\(\Sigma\)</span> (or <span class="math inline">\(\epsilon\)</span>) to one in the output alphabet <span class="math inline">\(\Gamma\)</span> (or <span class="math inline">\(\epsilon\)</span>). The entire machine can then be viewed as a method for defining a relation between <span class="math inline">\(\Sigma^*\)</span> (the underlying forms) and <span class="math inline">\(\Gamma^*\)</span> (the surface forms). All the relations definable by an FST are known as the <em>regular relations</em>.</p>
+<section id="operations-on-fsts" class="level2">
+<h2 class="anchored" data-anchor-id="operations-on-fsts">Operations on FSTs</h2>
+<p>As with finite state automata, finite state transducers support various operations that allow us to build complex transducers from simpler ones. These operations are fundamental for implementing phonological rules and their interactions. However, the algebraic properties of FSTs differ in important ways from those of FSAs.</p>
+<section id="basic-operations" class="level3">
+<h3 class="anchored" data-anchor-id="basic-operations">Basic Operations</h3>
+<p>FSTs support several operations that parallel those available for FSAs:</p>
+<ol type="1">
+<li><p><strong>Union</strong>: Given two FSTs <span class="math inline">\(T_1 = \langle Q_1, \Sigma_1, \Gamma_1, \delta_1, q_1, F_1 \rangle\)</span> and <span class="math inline">\(T_2 = \langle Q_2, \Sigma_2, \Gamma_2, \delta_2, q_2, F_2 \rangle\)</span>, we can construct an FST <span class="math inline">\(T = T_1 \cup T_2\)</span> that recognizes the union of the relations recognized by <span class="math inline">\(T_1\)</span> and <span class="math inline">\(T_2\)</span>. The construction is similar to the one for FSAs:</p>
+<ul>
+<li>Create a new initial state <span class="math inline">\(q_0\)</span></li>
+<li>Add epsilon transitions from <span class="math inline">\(q_0\)</span> to the initial states of both <span class="math inline">\(T_1\)</span> and <span class="math inline">\(T_2\)</span></li>
+<li>The resulting FST recognizes the relation <span class="math inline">\(\mathbb{R}(T_1) \cup \mathbb{R}(T_2)\)</span></li>
+</ul></li>
+<li><p><strong>Concatenation</strong>: Given two FSTs <span class="math inline">\(T_1\)</span> and <span class="math inline">\(T_2\)</span>, we can construct an FST <span class="math inline">\(T = T_1 \circ T_2\)</span> that recognizes the concatenation of the relations recognized by <span class="math inline">\(T_1\)</span> and <span class="math inline">\(T_2\)</span>. The construction involves:</p>
+<ul>
+<li>Adding epsilon transitions from all final states of <span class="math inline">\(T_1\)</span> to the initial state of <span class="math inline">\(T_2\)</span></li>
+<li>The resulting FST recognizes pairs <span class="math inline">\((xy, uv)\)</span> where <span class="math inline">\((x, u) \in \mathbb{R}(T_1)\)</span> and <span class="math inline">\((y, v) \in \mathbb{R}(T_2)\)</span></li>
+</ul></li>
+<li><p><strong>Kleene Star</strong>: Given an FST <span class="math inline">\(T\)</span>, we can construct an FST <span class="math inline">\(T^*\)</span> that recognizes the Kleene star of the relation recognized by <span class="math inline">\(T\)</span>. The construction involves:</p>
+<ul>
+<li>Creating a new initial state <span class="math inline">\(q_0\)</span> that is also a final state</li>
+<li>Adding epsilon transitions from <span class="math inline">\(q_0\)</span> to the initial state of <span class="math inline">\(T\)</span></li>
+<li>Adding epsilon transitions from all final states of <span class="math inline">\(T\)</span> to <span class="math inline">\(q_0\)</span></li>
+<li>The resulting FST recognizes pairs <span class="math inline">\((x_1...x_n, y_1...y_n)\)</span> where each <span class="math inline">\((x_i, y_i) \in \mathbb{R}(T)\)</span></li>
+</ul></li>
+</ol>
+</section>
+<section id="projection-operations" class="level3">
+<h3 class="anchored" data-anchor-id="projection-operations">Projection Operations</h3>
+<p>A unique operation for FSTs is projection, which allows us to extract the input or output language of a transducer:</p>
+<ol type="1">
+<li><p><strong>Input Projection</strong>: Given an FST <span class="math inline">\(T\)</span>, the input projection <span class="math inline">\(\pi_1(T)\)</span> is an FSA that recognizes the set of all input strings that appear in the relation <span class="math inline">\(\mathbb{R}(T)\)</span>:</p>
+<p><span class="math display">\[\mathbb{L}(\pi_1(T)) = \{x \mid \exists y: (x, y) \in \mathbb{R}(T)\}\]</span></p></li>
+<li><p><strong>Output Projection</strong>: Similarly, the output projection <span class="math inline">\(\pi_2(T)\)</span> is an FSA that recognizes the set of all output strings:</p>
+<p><span class="math display">\[\mathbb{L}(\pi_2(T)) = \{y \mid \exists x: (x, y) \in \mathbb{R}(T)\}\]</span></p></li>
+</ol>
+<p>The projection operations are useful for analyzing the input and output languages of a transducer independently.</p>
+</section>
+<section id="limitations-and-special-cases" class="level3">
+<h3 class="anchored" data-anchor-id="limitations-and-special-cases">Limitations and Special Cases</h3>
+<p>Unlike FSAs, FSTs are not closed under all operations. In particular:</p>
+<ol type="1">
+<li><p><strong>Complement</strong>: FSTs are not closed under complement. Given an FST <span class="math inline">\(T\)</span>, there is no general construction for an FST that recognizes the complement of the relation <span class="math inline">\(\mathbb{R}(T)\)</span>.</p></li>
+<li><p><strong>Intersection</strong>: FSTs are not closed under intersection. Given FSTs <span class="math inline">\(T_1\)</span> and <span class="math inline">\(T_2\)</span>, there is no general construction for an FST that recognizes the intersection of the relations <span class="math inline">\(\mathbb{R}(T_1)\)</span> and <span class="math inline">\(\mathbb{R}(T_2)\)</span>.</p></li>
+</ol>
+<p>These limitations have important implications for phonological modeling, as they constrain the ways in which we can combine transducers to express complex rules.</p>
+</section>
+</section>
+<section id="composition-of-fsts" class="level2">
+<h2 class="anchored" data-anchor-id="composition-of-fsts">Composition of FSTs</h2>
+<p>One of the most powerful operations on FSTs is composition, which allows us to chain transductions together. Given FSTs <span class="math inline">\(T_1: \Sigma^* \rightarrow \Gamma^*\)</span> and <span class="math inline">\(T_2: \Gamma^* \rightarrow \Delta^*\)</span>, we can construct the composition <span class="math inline">\(T = T_1 \circ T_2: \Sigma^* \rightarrow \Delta^*\)</span>.</p>
+<section id="formal-definition" class="level3">
+<h3 class="anchored" data-anchor-id="formal-definition">Formal Definition</h3>
+<p>The composition of two relations <span class="math inline">\(R_1 \subseteq A \times B\)</span> and <span class="math inline">\(R_2 \subseteq B \times C\)</span> is defined as:</p>
+<p><span class="math display">\[R_1 \circ R_2 = \{(a, c) \mid \exists b \in B: (a, b) \in R_1 \land (b, c) \in R_2\}\]</span></p>
+<p>For FSTs, this means that the relation recognized by <span class="math inline">\(T_1 \circ T_2\)</span> is:</p>
+<p><span class="math display">\[\mathbb{R}(T_1 \circ T_2) = \{(x, z) \mid \exists y: (x, y) \in \mathbb{R}(T_1) \land (y, z) \in \mathbb{R}(T_2)\}\]</span></p>
+</section>
+<section id="construction-algorithm" class="level3">
+<h3 class="anchored" data-anchor-id="construction-algorithm">Construction Algorithm</h3>
+<p>To construct the composition of two FSTs <span class="math inline">\(T_1 = \langle Q_1, \Sigma, \Gamma, \delta_1, q_1, F_1 \rangle\)</span> and <span class="math inline">\(T_2 = \langle Q_2, \Gamma, \Delta, \delta_2, q_2, F_2 \rangle\)</span>, we create a new FST <span class="math inline">\(T = \langle Q, \Sigma, \Delta, \delta, q_0, F \rangle\)</span> where:</p>
+<ol type="1">
+<li><p><span class="math inline">\(Q = Q_1 \times Q_2\)</span> (the Cartesian product of the state sets)</p></li>
+<li><p><span class="math inline">\(q_0 = (q_1, q_2)\)</span> (the pair of initial states)</p></li>
+<li><p><span class="math inline">\(F = F_1 \times F_2\)</span> (pairs of final states)</p></li>
+<li><p><span class="math inline">\(\delta\)</span> is defined as follows:</p>
+<p><span class="math display">\[\delta((p_1, p_2), \sigma) = \{((q_1, q_2), \gamma) \mid \exists \tau \in \Gamma \cup \{\epsilon\}: (q_1, \tau) \in \delta_1(p_1, \sigma) \land (q_2, \gamma) \in \delta_2(p_2, \tau)\}\]</span></p></li>
+</ol>
+<p>This construction effectively runs the two transducers in series, feeding the output of the first transducer as input to the second.</p>
+</section>
+<section id="handling-epsilon-transitions" class="level3">
+<h3 class="anchored" data-anchor-id="handling-epsilon-transitions">Handling Epsilon Transitions</h3>
+<p>The handling of epsilon transitions in composition requires special care. There are three cases to consider:</p>
+<ol type="1">
+<li>Input symbol <span class="math inline">\(\sigma \neq \epsilon\)</span>, intermediate symbol <span class="math inline">\(\tau \neq \epsilon\)</span></li>
+<li>Input symbol <span class="math inline">\(\sigma \neq \epsilon\)</span>, intermediate symbol <span class="math inline">\(\tau = \epsilon\)</span></li>
+<li>Input symbol <span class="math inline">\(\sigma = \epsilon\)</span>, intermediate symbol <span class="math inline">\(\tau \neq \epsilon\)</span></li>
+</ol>
+<p>The composition algorithm must account for all these cases to ensure that the resulting transducer correctly implements the composed relation.</p>
+</section>
+<section id="example-composing-phonological-rules" class="level3">
+<h3 class="anchored" data-anchor-id="example-composing-phonological-rules">Example: Composing Phonological Rules</h3>
+<p>In phonology, composition is especially useful for modeling ordered rule application. For example, given two phonological rules represented as FSTs:</p>
+<ol type="1">
+<li><span class="math inline">\(T_1\)</span>: Implement vowel harmony (e.g., Turkish)</li>
+<li><span class="math inline">\(T_2\)</span>: Implement consonant alternation (e.g., Turkish k → ğ between vowels)</li>
+</ol>
+<p>We can compose them to create an FST that applies both rules in sequence:</p>
+<p><span class="math display">\[T = T_1 \circ T_2\]</span></p>
+<p>For example, applying this to “çiçek+E” (flower+DAT) would first apply vowel harmony to yield “çiçek+e”, then apply consonant alternation to yield “çiçeğe”.</p>
+</section>
+</section>
+<section id="inversion-of-fsts" class="level2">
+<h2 class="anchored" data-anchor-id="inversion-of-fsts">Inversion of FSTs</h2>
+<p>Another important operation on FSTs is inversion, which swaps the input and output labels on all transitions.</p>
+<section id="formal-definition-1" class="level3">
+<h3 class="anchored" data-anchor-id="formal-definition-1">Formal Definition</h3>
+<p>Given an FST <span class="math inline">\(T\)</span> that recognizes a relation <span class="math inline">\(\mathbb{R}(T) \subseteq \Sigma^* \times \Gamma^*\)</span>, the inverse transducer <span class="math inline">\(T^{-1}\)</span> recognizes the relation:</p>
+<p><span class="math display">\[\mathbb{R}(T^{-1}) = \{(y, x) \mid (x, y) \in \mathbb{R}(T)\}\]</span></p>
+</section>
+<section id="construction-algorithm-1" class="level3">
+<h3 class="anchored" data-anchor-id="construction-algorithm-1">Construction Algorithm</h3>
+<p>To construct the inverse of an FST <span class="math inline">\(T = \langle Q, \Sigma, \Gamma, \delta, q_0, F \rangle\)</span>, we create a new FST <span class="math inline">\(T^{-1} = \langle Q, \Gamma, \Sigma, \delta^{-1}, q_0, F \rangle\)</span> where:</p>
+<p><span class="math display">\[\delta^{-1}(q, \gamma) = \{(p, \sigma) \mid (p, \gamma) \in \delta(q, \sigma)\}\]</span></p>
+<p>This simply swaps the input and output labels on all transitions.</p>
+</section>
+<section id="applications-in-phonology" class="level3">
+<h3 class="anchored" data-anchor-id="applications-in-phonology">Applications in Phonology</h3>
+<p>Inversion is particularly useful in phonology for:</p>
+<ol type="1">
+<li><strong>Bidirectional Analysis</strong>: Converting a generation FST (UR → SR) into an analysis FST (SR → UR)</li>
+<li><strong>Rule Interaction</strong>: Finding the inverse image of a surface form under a set of phonological rules</li>
+<li><strong>Testing</strong>: Verifying the correctness of a phonological analysis by checking if <span class="math inline">\(T \circ T^{-1} \circ T = T\)</span></li>
+</ol>
+</section>
+</section>
+<section id="conclusions-and-practical-considerations" class="level2">
+<h2 class="anchored" data-anchor-id="conclusions-and-practical-considerations">Conclusions and Practical Considerations</h2>
+<p>The operations on FSTs provide a powerful toolkit for computational phonology. By combining these operations, we can:</p>
+<ol type="1">
+<li>Build complex phonological grammars from simple rules</li>
+<li>Model rule ordering and interactions</li>
+<li>Analyze the properties of phonological systems</li>
+</ol>
+<p>However, some operations on FSTs can lead to significant increases in size and complexity. In particular, composition can cause “state explosion” when the intermediate language is complex. Advanced techniques such as lazy evaluation and minimization are often necessary to make these operations practical for real-world phonological analyses.</p>
+<p>In the next section, we’ll explore algorithms for parsing and transduction with FSTs, which provide the computational foundation for applying these transducers to linguistic data.</p>
 
 
 <!-- -->
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -1069,24 +1219,158 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../../phonological-patterns/recognition-and-parsing/parsing.html" class="pagination-link">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Parsing</span>
+      <a href="../../phonological-patterns/phonological-rules-as-fsas/finite-state-transducers.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Finite State Transducers</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../../phonological-patterns/phonological-rules-as-fsas/finite-state-transducers.html" class="pagination-link">
-        <span class="nav-page-text">Finite State Transducers</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../../phonological-patterns/phonological-rules-as-fsas/parsing-and-transduction.html" class="pagination-link">
+        <span class="nav-page-text">Parsing and Transduction Algorithms</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
 <div class="sourceCode" id="cb1" data-shortcodes="false" data-code-line-numbers=""><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> Overview</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> Operations on Finite State Transducers</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="an">bibliography:</span><span class="co"> ../../references.bib</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>So far, we have constructed morphophonological grammar in a <span class="co">[</span><span class="ot">constraint-based</span><span class="co">](https://en.wikipedia.org/wiki/Model-theoretic_grammar)</span> way. In this sort of approch, we define a set that contains all the strings we want (in the limit, $\Sigma^*$ itself); then, we filter out strings that violate a constraint (such as the one against gemination by complement and intersection operation. </span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">## Operations on FSTs</span></span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>We can alterntively model morphophonological grammars using a <span class="co">[</span><span class="ot">generative</span><span class="co">](https://en.wikipedia.org/wiki/Generative_grammar)</span> approach. This could be accomplished using vanilla FSAs, like those discussed above; but it is often more productive to approach the problem as one of transduction: wherein we define some set of *underlying forms* that are mapped to surface forms by machines that implement morphophonological rules. These machines are generalizations of FSAs that we refer to as Finite State Transducers (FSTs). The main thing we add to an FSA to get an FSTs is that every edge is annotated with a mapping from a character in the input alphabet $\Sigma$ (or $\epsilon$) to one in the output alphabet $\Gamma$ (or $\epsilon$). The entire machine can then be viewed as a method for defining a relation between $\Sigma^*$ (the underlying forms) and $\Gamma^*$ (the surface forms). All the relations definable by an FST are known as the *regular relations*.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>As with finite state automata, finite state transducers support various operations that allow us to build complex transducers from simpler ones. These operations are fundamental for implementing phonological rules and their interactions. However, the algebraic properties of FSTs differ in important ways from those of FSAs.</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">### Basic Operations</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>FSTs support several operations that parallel those available for FSAs:</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Union**: Given two FSTs $T_1 = \langle Q_1, \Sigma_1, \Gamma_1, \delta_1, q_1, F_1 \rangle$ and $T_2 = \langle Q_2, \Sigma_2, \Gamma_2, \delta_2, q_2, F_2 \rangle$, we can construct an FST $T = T_1 \cup T_2$ that recognizes the union of the relations recognized by $T_1$ and $T_2$. The construction is similar to the one for FSAs:</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>Create a new initial state $q_0$</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>Add epsilon transitions from $q_0$ to the initial states of both $T_1$ and $T_2$</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>The resulting FST recognizes the relation $\mathbb{R}(T_1) \cup \mathbb{R}(T_2)$</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Concatenation**: Given two FSTs $T_1$ and $T_2$, we can construct an FST $T = T_1 \circ T_2$ that recognizes the concatenation of the relations recognized by $T_1$ and $T_2$. The construction involves:</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>Adding epsilon transitions from all final states of $T_1$ to the initial state of $T_2$</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>The resulting FST recognizes pairs $(xy, uv)$ where $(x, u) \in \mathbb{R}(T_1)$ and $(y, v) \in \mathbb{R}(T_2)$</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Kleene Star**: Given an FST $T$, we can construct an FST $T^*$ that recognizes the Kleene star of the relation recognized by $T$. The construction involves:</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>Creating a new initial state $q_0$ that is also a final state</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>Adding epsilon transitions from $q_0$ to the initial state of $T$</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>Adding epsilon transitions from all final states of $T$ to $q_0$</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>The resulting FST recognizes pairs $(x_1...x_n, y_1...y_n)$ where each $(x_i, y_i) \in \mathbb{R}(T)$</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a><span class="fu">### Projection Operations</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>A unique operation for FSTs is projection, which allows us to extract the input or output language of a transducer:</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Input Projection**: Given an FST $T$, the input projection $\pi_1(T)$ is an FSA that recognizes the set of all input strings that appear in the relation $\mathbb{R}(T)$:</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>   </span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>   $$\mathbb{L}(\pi_1(T)) = <span class="sc">\{</span>x \mid \exists y: (x, y) \in \mathbb{R}(T)<span class="sc">\}</span>$$</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Output Projection**: Similarly, the output projection $\pi_2(T)$ is an FSA that recognizes the set of all output strings:</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>   </span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>   $$\mathbb{L}(\pi_2(T)) = <span class="sc">\{</span>y \mid \exists x: (x, y) \in \mathbb{R}(T)<span class="sc">\}</span>$$</span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>The projection operations are useful for analyzing the input and output languages of a transducer independently.</span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a><span class="fu">### Limitations and Special Cases</span></span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>Unlike FSAs, FSTs are not closed under all operations. In particular:</span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Complement**: FSTs are not closed under complement. Given an FST $T$, there is no general construction for an FST that recognizes the complement of the relation $\mathbb{R}(T)$.</span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Intersection**: FSTs are not closed under intersection. Given FSTs $T_1$ and $T_2$, there is no general construction for an FST that recognizes the intersection of the relations $\mathbb{R}(T_1)$ and $\mathbb{R}(T_2)$.</span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a>These limitations have important implications for phonological modeling, as they constrain the ways in which we can combine transducers to express complex rules.</span>
+<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a><span class="fu">## Composition of FSTs</span></span>
+<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a>One of the most powerful operations on FSTs is composition, which allows us to chain transductions together. Given FSTs $T_1: \Sigma^* \rightarrow \Gamma^*$ and $T_2: \Gamma^* \rightarrow \Delta^*$, we can construct the composition $T = T_1 \circ T_2: \Sigma^* \rightarrow \Delta^*$.</span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a><span class="fu">### Formal Definition</span></span>
+<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a>The composition of two relations $R_1 \subseteq A \times B$ and $R_2 \subseteq B \times C$ is defined as:</span>
+<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a>$$R_1 \circ R_2 = <span class="sc">\{</span>(a, c) \mid \exists b \in B: (a, b) \in R_1 \land (b, c) \in R_2<span class="sc">\}</span>$$</span>
+<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a>For FSTs, this means that the relation recognized by $T_1 \circ T_2$ is:</span>
+<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a>$$\mathbb{R}(T_1 \circ T_2) = <span class="sc">\{</span>(x, z) \mid \exists y: (x, y) \in \mathbb{R}(T_1) \land (y, z) \in \mathbb{R}(T_2)<span class="sc">\}</span>$$</span>
+<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a><span class="fu">### Construction Algorithm</span></span>
+<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a>To construct the composition of two FSTs $T_1 = \langle Q_1, \Sigma, \Gamma, \delta_1, q_1, F_1 \rangle$ and $T_2 = \langle Q_2, \Gamma, \Delta, \delta_2, q_2, F_2 \rangle$, we create a new FST $T = \langle Q, \Sigma, \Delta, \delta, q_0, F \rangle$ where:</span>
+<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>$Q = Q_1 \times Q_2$ (the Cartesian product of the state sets)</span>
+<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>$q_0 = (q_1, q_2)$ (the pair of initial states)</span>
+<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>$F = F_1 \times F_2$ (pairs of final states)</span>
+<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>$\delta$ is defined as follows:</span>
+<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a>   </span>
+<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a>   $$\delta((p_1, p_2), \sigma) = <span class="sc">\{</span>((q_1, q_2), \gamma) \mid \exists \tau \in \Gamma \cup <span class="sc">\{</span>\epsilon<span class="sc">\}</span>: (q_1, \tau) \in \delta_1(p_1, \sigma) \land (q_2, \gamma) \in \delta_2(p_2, \tau)<span class="sc">\}</span>$$</span>
+<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a>This construction effectively runs the two transducers in series, feeding the output of the first transducer as input to the second.</span>
+<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-83"><a href="#cb1-83" aria-hidden="true" tabindex="-1"></a><span class="fu">### Handling Epsilon Transitions</span></span>
+<span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a>The handling of epsilon transitions in composition requires special care. There are three cases to consider:</span>
+<span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>Input symbol $\sigma \neq \epsilon$, intermediate symbol $\tau \neq \epsilon$</span>
+<span id="cb1-88"><a href="#cb1-88" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>Input symbol $\sigma \neq \epsilon$, intermediate symbol $\tau = \epsilon$</span>
+<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>Input symbol $\sigma = \epsilon$, intermediate symbol $\tau \neq \epsilon$</span>
+<span id="cb1-90"><a href="#cb1-90" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a>The composition algorithm must account for all these cases to ensure that the resulting transducer correctly implements the composed relation.</span>
+<span id="cb1-92"><a href="#cb1-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a><span class="fu">### Example: Composing Phonological Rules</span></span>
+<span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a>In phonology, composition is especially useful for modeling ordered rule application. For example, given two phonological rules represented as FSTs:</span>
+<span id="cb1-96"><a href="#cb1-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-97"><a href="#cb1-97" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>$T_1$: Implement vowel harmony (e.g., Turkish)</span>
+<span id="cb1-98"><a href="#cb1-98" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>$T_2$: Implement consonant alternation (e.g., Turkish k → ğ between vowels)</span>
+<span id="cb1-99"><a href="#cb1-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-100"><a href="#cb1-100" aria-hidden="true" tabindex="-1"></a>We can compose them to create an FST that applies both rules in sequence:</span>
+<span id="cb1-101"><a href="#cb1-101" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-102"><a href="#cb1-102" aria-hidden="true" tabindex="-1"></a>$$T = T_1 \circ T_2$$</span>
+<span id="cb1-103"><a href="#cb1-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-104"><a href="#cb1-104" aria-hidden="true" tabindex="-1"></a>For example, applying this to "çiçek+E" (flower+DAT) would first apply vowel harmony to yield "çiçek+e", then apply consonant alternation to yield "çiçeğe".</span>
+<span id="cb1-105"><a href="#cb1-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-106"><a href="#cb1-106" aria-hidden="true" tabindex="-1"></a><span class="fu">## Inversion of FSTs</span></span>
+<span id="cb1-107"><a href="#cb1-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-108"><a href="#cb1-108" aria-hidden="true" tabindex="-1"></a>Another important operation on FSTs is inversion, which swaps the input and output labels on all transitions.</span>
+<span id="cb1-109"><a href="#cb1-109" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-110"><a href="#cb1-110" aria-hidden="true" tabindex="-1"></a><span class="fu">### Formal Definition</span></span>
+<span id="cb1-111"><a href="#cb1-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-112"><a href="#cb1-112" aria-hidden="true" tabindex="-1"></a>Given an FST $T$ that recognizes a relation $\mathbb{R}(T) \subseteq \Sigma^* \times \Gamma^*$, the inverse transducer $T^{-1}$ recognizes the relation:</span>
+<span id="cb1-113"><a href="#cb1-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-114"><a href="#cb1-114" aria-hidden="true" tabindex="-1"></a>$$\mathbb{R}(T^{-1}) = <span class="sc">\{</span>(y, x) \mid (x, y) \in \mathbb{R}(T)<span class="sc">\}</span>$$</span>
+<span id="cb1-115"><a href="#cb1-115" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-116"><a href="#cb1-116" aria-hidden="true" tabindex="-1"></a><span class="fu">### Construction Algorithm</span></span>
+<span id="cb1-117"><a href="#cb1-117" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-118"><a href="#cb1-118" aria-hidden="true" tabindex="-1"></a>To construct the inverse of an FST $T = \langle Q, \Sigma, \Gamma, \delta, q_0, F \rangle$, we create a new FST $T^{-1} = \langle Q, \Gamma, \Sigma, \delta^{-1}, q_0, F \rangle$ where:</span>
+<span id="cb1-119"><a href="#cb1-119" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-120"><a href="#cb1-120" aria-hidden="true" tabindex="-1"></a>$$\delta^{-1}(q, \gamma) = <span class="sc">\{</span>(p, \sigma) \mid (p, \gamma) \in \delta(q, \sigma)<span class="sc">\}</span>$$</span>
+<span id="cb1-121"><a href="#cb1-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-122"><a href="#cb1-122" aria-hidden="true" tabindex="-1"></a>This simply swaps the input and output labels on all transitions.</span>
+<span id="cb1-123"><a href="#cb1-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-124"><a href="#cb1-124" aria-hidden="true" tabindex="-1"></a><span class="fu">### Applications in Phonology</span></span>
+<span id="cb1-125"><a href="#cb1-125" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-126"><a href="#cb1-126" aria-hidden="true" tabindex="-1"></a>Inversion is particularly useful in phonology for:</span>
+<span id="cb1-127"><a href="#cb1-127" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-128"><a href="#cb1-128" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Bidirectional Analysis**: Converting a generation FST (UR → SR) into an analysis FST (SR → UR)</span>
+<span id="cb1-129"><a href="#cb1-129" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Rule Interaction**: Finding the inverse image of a surface form under a set of phonological rules</span>
+<span id="cb1-130"><a href="#cb1-130" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Testing**: Verifying the correctness of a phonological analysis by checking if $T \circ T^{-1} \circ T = T$</span>
+<span id="cb1-131"><a href="#cb1-131" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-132"><a href="#cb1-132" aria-hidden="true" tabindex="-1"></a><span class="fu">## Conclusions and Practical Considerations</span></span>
+<span id="cb1-133"><a href="#cb1-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-134"><a href="#cb1-134" aria-hidden="true" tabindex="-1"></a>The operations on FSTs provide a powerful toolkit for computational phonology. By combining these operations, we can:</span>
+<span id="cb1-135"><a href="#cb1-135" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-136"><a href="#cb1-136" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>Build complex phonological grammars from simple rules</span>
+<span id="cb1-137"><a href="#cb1-137" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>Model rule ordering and interactions</span>
+<span id="cb1-138"><a href="#cb1-138" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>Analyze the properties of phonological systems</span>
+<span id="cb1-139"><a href="#cb1-139" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-140"><a href="#cb1-140" aria-hidden="true" tabindex="-1"></a>However, some operations on FSTs can lead to significant increases in size and complexity. In particular, composition can cause "state explosion" when the intermediate language is complex. Advanced techniques such as lazy evaluation and minimization are often necessary to make these operations practical for real-world phonological analyses.</span>
+<span id="cb1-141"><a href="#cb1-141" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-142"><a href="#cb1-142" aria-hidden="true" tabindex="-1"></a>In the next section, we'll explore algorithms for parsing and transduction with FSTs, which provide the computational foundation for applying these transducers to linguistic data.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 

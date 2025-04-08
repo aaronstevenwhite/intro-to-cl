@@ -3,9 +3,7 @@ title: Phonological Rule Formalism
 bibliography: ../../references.bib
 ---
 
-## The SPE Rule Formalism
-
-The standard formalism for phonological rules comes from Chomsky and Halle's "The Sound Pattern of English" (SPE) [@Chomsky1968]. In this formalism, rules have the general form:
+One influential formalism for stating phonological rules comes from Chomsky and Halle's "The Sound Pattern of English" (SPE) [@Chomsky1968]. In this formalism, rules have the general form:
 
 $$A \rightarrow B / C\_D$$
 
@@ -18,43 +16,6 @@ Where:
 This can be read as "$A$ becomes $B$ when it occurs between $C$ and $D$."
 
 The rule applies whenever the sequence $CAD$ is found in the input string, transforming it to $CBD$ in the output.
-
-## Features and Natural Classes
-
-In phonology, segments are often represented as bundles of features rather than atomic symbols. For example, the segment [p] might be represented as:
-
-$$\begin{bmatrix} +\text{consonantal} \\ -\text{sonorant} \\ -\text{continuant} \\ -\text{voice} \\ \text{labial} \end{bmatrix}$$
-
-This allows rules to target natural classes of sounds that share certain features. For example, the rule for German final devoicing can be written as:
-
-$$\begin{bmatrix} +\text{obstruent} \\ +\text{voice} \end{bmatrix} \rightarrow \begin{bmatrix} -\text{voice} \end{bmatrix} / \_ \#$$
-
-This rule applies to all voiced obstruents (b, d, g, v, z, etc.) rather than having to list each one separately.
-
-## Types of Phonological Rules
-
-Phonological rules can be categorized into several types:
-
-1. **Assimilation**: A segment becomes more similar to a neighboring segment
-   - Example: Turkish vowel harmony, where suffix vowels match the backness of stem vowels
-
-2. **Dissimilation**: A segment becomes less similar to a neighboring segment
-   - Example: Latin liquid dissimilation, where /l-l/ sequences become /r-l/
-
-3. **Insertion (Epenthesis)**: A segment is added
-   - Example: English schwa insertion in plurals like "bushes" /bʊʃəz/
-
-4. **Deletion (Elision)**: A segment is removed
-   - Example: French liaison, where final consonants are deleted except before vowel-initial words
-
-5. **Metathesis**: Segments change order
-   - Example: Old English "hros" becoming Modern English "horse"
-
-6. **Fortition**: A segment becomes stronger
-   - Example: Spanish /b/ becoming [b] after nasals
-
-7. **Lenition**: A segment becomes weaker
-   - Example: Spanish /b/ becoming [β] between vowels
 
 ## Converting Rules to FSTs
 
@@ -74,19 +35,136 @@ $$\text{replace}(A, B, C, D) = \{(x, y) \mid y \text{ is the result of replacing
 
 This operator defines a regular relation that can be implemented as an FST.
 
-### Context-Dependent Rewrite (CDRewrite)
+## The Formal Algorithm
 
-The replace operator is often implemented as a function called "context-dependent rewrite" (CDRewrite), which takes four arguments:
+The formal algorithm for converting a rule $A \rightarrow B / C\_D$ into an FST involves several sophisticated steps. Here we follow the improved algorithm by @Mohri1997, which fixed issues in the original @Kaplan1994 construction.
 
-$$\text{CDRewrite}(\Phi, \Lambda, \rho, \Sigma^*)$$
+### Preliminaries
+
+First, we define some basic concepts:
+
+1. Let $\Sigma$ be the input/output alphabet
+2. Let $A, B, C, D$ be regular expressions over $\Sigma$
+3. Define the "context language" $L = C \circ A \circ D$, which represents all strings that match the rule context
+4. Define auxiliary FSAs for these languages:
+   - $M_A$ recognizes language $A$
+   - $M_B$ recognizes language $B$
+   - $M_C$ recognizes language $C$
+   - $M_D$ recognizes language $D$
+   - $M_L$ recognizes language $L$
+
+### Marker Symbols
+
+To handle rule application correctly, we introduce special marker symbols:
+- $\#_1, \#_2, \#_3, \#_4$ (not in $\Sigma$) to mark boundaries
+- $\sigma = \#_1, \tau = \#_2, \rho = \#_3, \eta = \#_4$
+
+### Construction Components
+
+The algorithm constructs several intermediate transducers:
+
+#### 1. Boundary Marking Transducer ($T_{\text{Mark}}$)
+
+This transducer identifies potential rule application sites and adds boundary markers:
+
+$$T_{\text{Mark}} = \{(x, x') \mid x' \text{ is } x \text{ with } \sigma, \tau, \rho, \eta \text{ marking the boundaries of all occurrences of } L \text{ in } x\}$$
+
+Where occurrences of $L$ are marked as:
+- $\sigma$ at the start of $C$
+- $\tau$ at the boundary between $C$ and $A$
+- $\rho$ at the boundary between $A$ and $D$
+- $\eta$ at the end of $D$
+
+Formally, $T_{\text{Mark}}$ is constructed as:
+
+$$T_{\text{Mark}} = \text{Id}(\Sigma^*) \circ T_{\sigma} \circ \text{Id}(\Sigma^*) \circ T_{\tau} \circ \text{Id}(\Sigma^*) \circ T_{\rho} \circ \text{Id}(\Sigma^*) \circ T_{\eta} \circ \text{Id}(\Sigma^*)$$
 
 Where:
-- $\Phi$ is the replacement mapping ($A \rightarrow B$)
-- $\Lambda$ is the left context ($C$)
-- $\rho$ is the right context ($D$)
-- $\Sigma^*$ is the universe of strings over which the rule applies
+- $\text{Id}(L)$ is the identity transducer for language $L$
+- $T_{\sigma}, T_{\tau}, T_{\rho}, T_{\eta}$ insert the respective boundary markers at appropriate positions
 
-### Example: German Final Devoicing
+#### 2. Replacement Transducer ($T_{\text{Replace}}$)
+
+This transducer performs the actual replacement between $\tau$ and $\rho$ markers:
+
+$$T_{\text{Replace}} = \text{Id}((\Sigma \cup \{\sigma, \tau, \rho, \eta\})^* \circ \{\sigma\}) \circ \text{Id}((\Sigma \cup \{\sigma, \tau, \rho, \eta\})^* \circ \{\tau\}) \circ T_{A \rightarrow B} \circ \text{Id}(\{\rho\} \circ (\Sigma \cup \{\sigma, \tau, \rho, \eta\})^* \circ \{\eta\}) \circ \text{Id}((\Sigma \cup \{\sigma, \tau, \rho, \eta\})^*)$$
+
+Where $T_{A \rightarrow B}$ maps strings in $A$ to their corresponding strings in $B$.
+
+#### 3. Marker Removal Transducer ($T_{\text{Unmark}}$)
+
+This transducer removes all marker symbols:
+
+$$T_{\text{Unmark}} = \{(x, y) \mid y \text{ is } x \text{ with all occurrences of } \sigma, \tau, \rho, \eta \text{ removed}\}$$
+
+### The Complete Algorithm
+
+The complete rule transducer is constructed by composing these components:
+
+$$T_{\text{Rule}} = T_{\text{Mark}} \circ T_{\text{Replace}} \circ T_{\text{Unmark}}$$
+
+### Mohri's Improvements
+
+@Mohri1997 introduced three key improvements to the original Kaplan and Kay algorithm:
+
+1. **Factorization**: The replace operation is factored into simpler components, making it more efficient
+2. **Filter Transducers**: Special filter transducers are used to ensure correct applications in the presence of overlapping potential matches
+3. **Determinization**: The algorithm ensures that the resulting transducer can be determinized, which is crucial for efficiency
+
+#### Filter Transducers
+
+The filter transducers include:
+
+1. **Left-to-right filter** ($T_{\text{LTR}}$):
+   $$T_{\text{LTR}} = \{(x, x) \mid \text{no marker in } x \text{ is followed by a marker of lower index}\}$$
+
+2. **Containment filter** ($T_{\text{Contain}}$):
+   $$T_{\text{Contain}} = \{(x, x) \mid \text{every } \sigma \text{ in } x \text{ is matched with } \eta, \text{ and same for } \tau \text{ and } \rho\}$$
+
+With these filters, the improved marker transducer is:
+
+$$T_{\text{Mark}}' = T_{\text{Mark}} \circ T_{\text{LTR}} \circ T_{\text{Contain}}$$
+
+### Epsilon Handling
+
+A critical aspect of the algorithm is the handling of epsilon transitions. Mohri's approach uses special epsilon filters to ensure correct behavior when rules involve empty strings. These filters prevent the improper application of rules and ensure termination of the algorithm.
+
+### The CDRewrite Function
+
+The complete algorithm is often implemented through a function called CDRewrite, which is formally defined as:
+
+$$\text{CDRewrite}(A, B, C, D, \Sigma) = T$$
+
+where:
+- $A$ is a regular expression representing the target pattern
+- $B$ is a regular expression representing the replacement pattern
+- $C$ is a regular expression representing the left context
+- $D$ is a regular expression representing the right context
+- $\Sigma$ is the alphabet of the language
+- $T$ is the resulting finite state transducer
+
+The CDRewrite function constructs $T$ as follows:
+
+$$\text{CDRewrite}(A, B, C, D, \Sigma) = T_{\text{Mark}} \circ T_{\text{Replace}} \circ T_{\text{Unmark}}$$
+
+where:
+
+$$T_{\text{Mark}} = \text{Id}(\Sigma^*) \circ T_{\sigma} \circ \text{Id}(\Sigma^*) \circ T_{\tau} \circ \text{Id}(\Sigma^*) \circ T_{\rho} \circ \text{Id}(\Sigma^*) \circ T_{\eta} \circ \text{Id}(\Sigma^*) \circ T_{\text{LTR}} \circ T_{\text{Contain}}$$
+
+$$T_{\text{Replace}} = \text{Id}((\Sigma \cup M)^* \sigma (\Sigma \cup M)^* \tau) \circ T_{A \rightarrow B} \circ \text{Id}(\rho (\Sigma \cup M)^* \eta (\Sigma \cup M)^*)$$
+
+$$T_{\text{Unmark}} = \{(x, y) \mid y \text{ is } x \text{ with all occurrences of } \sigma, \tau, \rho, \eta \text{ removed}\}$$
+
+where:
+- $M = \{\sigma, \tau, \rho, \eta\}$ is the set of marker symbols
+- $T_{\sigma}, T_{\tau}, T_{\rho}, T_{\eta}$ are transducers that insert the respective markers at appropriate positions
+- $T_{A \rightarrow B}$ is a transducer that replaces strings matching $A$ with their corresponding strings in $B$
+- $T_{\text{LTR}}$ is the left-to-right filter that ensures proper marker ordering
+- $T_{\text{Contain}}$ is the containment filter that ensures proper marker matching
+
+This function encapsulates all the complexity of the algorithm, providing a simple interface for phonological rule implementation.
+
+## Example: German Final Devoicing
 
 For German final devoicing, we can express the rule as:
 
@@ -96,7 +174,7 @@ This creates an FST that implements the rule:
 
 $$[+\text{obstruent}, +\text{voice}] \rightarrow [-\text{voice}] / \_ \#$$
 
-### Example: Turkish Vowel Harmony
+## Example: Turkish Vowel Harmony
 
 For Turkish vowel harmony, we need to track the backness of the last vowel in the stem:
 
@@ -108,19 +186,6 @@ $$E \rightarrow [αback] / [αback]C^*\_$$
 
 Where $E$ is an abstract vowel that takes on the backness of the preceding vowel.
 
-## The Formal Algorithm
-
-The formal algorithm for converting a rule $A \rightarrow B / C\_D$ into an FST involves several steps:
-
-1. Create FSTs for $A$, $B$, $C$, and $D$
-2. Create an FST that recognizes the pattern $CAD$
-3. Create an FST that replaces $A$ with $B$ when it occurs in the context $C\_D$
-4. Create an FST that copies all other symbols unchanged
-
-The key insight of @Kaplan1994 was that this can be done using regular operations on FSTs, specifically composition and projection.
-
-@Mohri1997 improved the algorithm by introducing the concept of "factoring" the replace operation, which makes it more efficient and handles certain edge cases correctly.
-
 ## Composition of Rules
 
 One of the powerful aspects of the FST approach is that multiple rules can be composed into a single FST. If we have two rules represented as FSTs $T_1$ and $T_2$, we can create a new FST $T = T_1 \circ T_2$ that applies both rules in sequence.
@@ -130,9 +195,3 @@ For example, if we have a rule for German final devoicing and another rule for G
 $$T = T_{\text{final-devoicing}} \circ T_{\text{schwa-epenthesis}}$$
 
 This is particularly useful for modeling rule ordering in phonology, where the order in which rules apply can affect the final output.
-
-## Conclusion
-
-The SPE rule formalism provides a powerful way to describe phonological processes, and the work of @Kaplan1994 and @Mohri1997 showed how these rules can be systematically converted to FSTs. This connection between phonological theory and computational models has been extremely fruitful, leading to advances in both theoretical understanding and practical applications.
-
-In the next section, we'll explore how to handle more complex phonological phenomena using FSTs, including opacity, long-distance dependencies, and exceptions. 

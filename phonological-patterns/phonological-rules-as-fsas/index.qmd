@@ -3,8 +3,6 @@ title: Overview
 bibliography: ../../references.bib
 ---
 
-::: {.callout-caution}
-## Availability
+So far, we have constructed morphophonological grammar in a [constraint-based](https://en.wikipedia.org/wiki/Model-theoretic_grammar) way. In this sort of approch, we define a set that contains all the strings we want (in the limit, $\Sigma^*$ itself); then, we filter out strings that violate a constraint (such as the one against gemination by complement and intersection operation. 
 
-This module will be available around March 25, 2024.
-:::
+We can alterntively model morphophonological grammars using a [generative](https://en.wikipedia.org/wiki/Generative_grammar) approach. This could be accomplished using vanilla FSAs, like those discussed above; but it is often more productive to approach the problem as one of transduction: wherein we define some set of *underlying forms* that are mapped to surface forms by machines that implement morphophonological rules. These machines are generalizations of FSAs that we refer to as Finite State Transducers (FSTs). The main thing we add to an FSA to get an FSTs is that every edge is annotated with a mapping from a character in the input alphabet $\Sigma$ (or $\epsilon$) to one in the output alphabet $\Gamma$ (or $\epsilon$). The entire machine can then be viewed as a method for defining a relation between $\Sigma^*$ (the underlying forms) and $\Gamma^*$ (the surface forms). All the relations definable by an FST are known as the *regular relations*.

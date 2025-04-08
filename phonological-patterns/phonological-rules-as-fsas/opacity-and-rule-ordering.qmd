@@ -136,9 +136,3 @@ $$C = \{\text{RAISE\_BEFORE\_VOICELESS}(3), \text{FLAP\_INTERVOCALIC}(2), \text{
 
 Where the numbers in parentheses indicate constraint weights or rankings.
 
-## Conclusion
-
-Opacity presents one of the most interesting challenges for computational models of phonology. The FST framework can handle many cases of opacity through careful rule ordering and composition, but some complex cases require more sophisticated techniques.
-
-The work of @Kaplan1994 and @Mohri1997 provides a solid foundation for implementing phonological rules as FSTs, and extensions to their approach can handle many cases of opacity. However, the study of opacity continues to drive innovation in computational phonology, leading to new formalisms and techniques that build on the FST foundation.
-

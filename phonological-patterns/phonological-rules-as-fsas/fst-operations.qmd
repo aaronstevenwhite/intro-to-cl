@@ -1,0 +1,142 @@
+---
+title: Operations on Finite State Transducers
+bibliography: ../../references.bib
+---
+
+## Operations on FSTs
+
+As with finite state automata, finite state transducers support various operations that allow us to build complex transducers from simpler ones. These operations are fundamental for implementing phonological rules and their interactions. However, the algebraic properties of FSTs differ in important ways from those of FSAs.
+
+### Basic Operations
+
+FSTs support several operations that parallel those available for FSAs:
+
+1. **Union**: Given two FSTs $T_1 = \langle Q_1, \Sigma_1, \Gamma_1, \delta_1, q_1, F_1 \rangle$ and $T_2 = \langle Q_2, \Sigma_2, \Gamma_2, \delta_2, q_2, F_2 \rangle$, we can construct an FST $T = T_1 \cup T_2$ that recognizes the union of the relations recognized by $T_1$ and $T_2$. The construction is similar to the one for FSAs:
+
+   - Create a new initial state $q_0$
+   - Add epsilon transitions from $q_0$ to the initial states of both $T_1$ and $T_2$
+   - The resulting FST recognizes the relation $\mathbb{R}(T_1) \cup \mathbb{R}(T_2)$
+
+2. **Concatenation**: Given two FSTs $T_1$ and $T_2$, we can construct an FST $T = T_1 \circ T_2$ that recognizes the concatenation of the relations recognized by $T_1$ and $T_2$. The construction involves:
+
+   - Adding epsilon transitions from all final states of $T_1$ to the initial state of $T_2$
+   - The resulting FST recognizes pairs $(xy, uv)$ where $(x, u) \in \mathbb{R}(T_1)$ and $(y, v) \in \mathbb{R}(T_2)$
+
+3. **Kleene Star**: Given an FST $T$, we can construct an FST $T^*$ that recognizes the Kleene star of the relation recognized by $T$. The construction involves:
+
+   - Creating a new initial state $q_0$ that is also a final state
+   - Adding epsilon transitions from $q_0$ to the initial state of $T$
+   - Adding epsilon transitions from all final states of $T$ to $q_0$
+   - The resulting FST recognizes pairs $(x_1...x_n, y_1...y_n)$ where each $(x_i, y_i) \in \mathbb{R}(T)$
+
+### Projection Operations
+
+A unique operation for FSTs is projection, which allows us to extract the input or output language of a transducer:
+
+1. **Input Projection**: Given an FST $T$, the input projection $\pi_1(T)$ is an FSA that recognizes the set of all input strings that appear in the relation $\mathbb{R}(T)$:
+   
+   $$\mathbb{L}(\pi_1(T)) = \{x \mid \exists y: (x, y) \in \mathbb{R}(T)\}$$
+
+2. **Output Projection**: Similarly, the output projection $\pi_2(T)$ is an FSA that recognizes the set of all output strings:
+   
+   $$\mathbb{L}(\pi_2(T)) = \{y \mid \exists x: (x, y) \in \mathbb{R}(T)\}$$
+
+The projection operations are useful for analyzing the input and output languages of a transducer independently.
+
+### Limitations and Special Cases
+
+Unlike FSAs, FSTs are not closed under all operations. In particular:
+
+1. **Complement**: FSTs are not closed under complement. Given an FST $T$, there is no general construction for an FST that recognizes the complement of the relation $\mathbb{R}(T)$.
+
+2. **Intersection**: FSTs are not closed under intersection. Given FSTs $T_1$ and $T_2$, there is no general construction for an FST that recognizes the intersection of the relations $\mathbb{R}(T_1)$ and $\mathbb{R}(T_2)$.
+
+These limitations have important implications for phonological modeling, as they constrain the ways in which we can combine transducers to express complex rules.
+
+## Composition of FSTs
+
+One of the most powerful operations on FSTs is composition, which allows us to chain transductions together. Given FSTs $T_1: \Sigma^* \rightarrow \Gamma^*$ and $T_2: \Gamma^* \rightarrow \Delta^*$, we can construct the composition $T = T_1 \circ T_2: \Sigma^* \rightarrow \Delta^*$.
+
+### Formal Definition
+
+The composition of two relations $R_1 \subseteq A \times B$ and $R_2 \subseteq B \times C$ is defined as:
+
+$$R_1 \circ R_2 = \{(a, c) \mid \exists b \in B: (a, b) \in R_1 \land (b, c) \in R_2\}$$
+
+For FSTs, this means that the relation recognized by $T_1 \circ T_2$ is:
+
+$$\mathbb{R}(T_1 \circ T_2) = \{(x, z) \mid \exists y: (x, y) \in \mathbb{R}(T_1) \land (y, z) \in \mathbb{R}(T_2)\}$$
+
+### Construction Algorithm
+
+To construct the composition of two FSTs $T_1 = \langle Q_1, \Sigma, \Gamma, \delta_1, q_1, F_1 \rangle$ and $T_2 = \langle Q_2, \Gamma, \Delta, \delta_2, q_2, F_2 \rangle$, we create a new FST $T = \langle Q, \Sigma, \Delta, \delta, q_0, F \rangle$ where:
+
+1. $Q = Q_1 \times Q_2$ (the Cartesian product of the state sets)
+2. $q_0 = (q_1, q_2)$ (the pair of initial states)
+3. $F = F_1 \times F_2$ (pairs of final states)
+4. $\delta$ is defined as follows:
+   
+   $$\delta((p_1, p_2), \sigma) = \{((q_1, q_2), \gamma) \mid \exists \tau \in \Gamma \cup \{\epsilon\}: (q_1, \tau) \in \delta_1(p_1, \sigma) \land (q_2, \gamma) \in \delta_2(p_2, \tau)\}$$
+
+This construction effectively runs the two transducers in series, feeding the output of the first transducer as input to the second.
+
+### Handling Epsilon Transitions
+
+The handling of epsilon transitions in composition requires special care. There are three cases to consider:
+
+1. Input symbol $\sigma \neq \epsilon$, intermediate symbol $\tau \neq \epsilon$
+2. Input symbol $\sigma \neq \epsilon$, intermediate symbol $\tau = \epsilon$
+3. Input symbol $\sigma = \epsilon$, intermediate symbol $\tau \neq \epsilon$
+
+The composition algorithm must account for all these cases to ensure that the resulting transducer correctly implements the composed relation.
+
+### Example: Composing Phonological Rules
+
+In phonology, composition is especially useful for modeling ordered rule application. For example, given two phonological rules represented as FSTs:
+
+1. $T_1$: Implement vowel harmony (e.g., Turkish)
+2. $T_2$: Implement consonant alternation (e.g., Turkish k → ğ between vowels)
+
+We can compose them to create an FST that applies both rules in sequence:
+
+$$T = T_1 \circ T_2$$
+
+For example, applying this to "çiçek+E" (flower+DAT) would first apply vowel harmony to yield "çiçek+e", then apply consonant alternation to yield "çiçeğe".
+
+## Inversion of FSTs
+
+Another important operation on FSTs is inversion, which swaps the input and output labels on all transitions.
+
+### Formal Definition
+
+Given an FST $T$ that recognizes a relation $\mathbb{R}(T) \subseteq \Sigma^* \times \Gamma^*$, the inverse transducer $T^{-1}$ recognizes the relation:
+
+$$\mathbb{R}(T^{-1}) = \{(y, x) \mid (x, y) \in \mathbb{R}(T)\}$$
+
+### Construction Algorithm
+
+To construct the inverse of an FST $T = \langle Q, \Sigma, \Gamma, \delta, q_0, F \rangle$, we create a new FST $T^{-1} = \langle Q, \Gamma, \Sigma, \delta^{-1}, q_0, F \rangle$ where:
+
+$$\delta^{-1}(q, \gamma) = \{(p, \sigma) \mid (p, \gamma) \in \delta(q, \sigma)\}$$
+
+This simply swaps the input and output labels on all transitions.
+
+### Applications in Phonology
+
+Inversion is particularly useful in phonology for:
+
+1. **Bidirectional Analysis**: Converting a generation FST (UR → SR) into an analysis FST (SR → UR)
+2. **Rule Interaction**: Finding the inverse image of a surface form under a set of phonological rules
+3. **Testing**: Verifying the correctness of a phonological analysis by checking if $T \circ T^{-1} \circ T = T$
+
+## Conclusions and Practical Considerations
+
+The operations on FSTs provide a powerful toolkit for computational phonology. By combining these operations, we can:
+
+1. Build complex phonological grammars from simple rules
+2. Model rule ordering and interactions
+3. Analyze the properties of phonological systems
+
+However, some operations on FSTs can lead to significant increases in size and complexity. In particular, composition can cause "state explosion" when the intermediate language is complex. Advanced techniques such as lazy evaluation and minimization are often necessary to make these operations practical for real-world phonological analyses.
+
+In the next section, we'll explore algorithms for parsing and transduction with FSTs, which provide the computational foundation for applying these transducers to linguistic data.
