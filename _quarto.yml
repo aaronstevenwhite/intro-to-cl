@@ -34,6 +34,7 @@ project:
   - uncertainty-about-languages/random-variables-and-probability-distributions/index.qmd
   - uncertainty-about-languages/random-variables-and-probability-distributions/random-variables.qmd
   - uncertainty-about-languages/random-variables-and-probability-distributions/probability-distributions.qmd
+  - uncertainty-about-languages/some-more-useful-definitions.qmd
   - uncertainty-about-languages/language-models.qmd
   - uncertainty-about-languages/ngram-models.qmd
   - uncertainty-about-languages/beyond-ngrams.qmd
@@ -125,6 +126,7 @@ website:
           - uncertainty-about-languages/random-variables-and-probability-distributions/index.qmd
           - uncertainty-about-languages/random-variables-and-probability-distributions/random-variables.qmd
           - uncertainty-about-languages/random-variables-and-probability-distributions/probability-distributions.qmd
+        - uncertainty-about-languages/some-more-useful-definitions.qmd
         - uncertainty-about-languages/language-models.qmd
         - uncertainty-about-languages/ngram-models.qmd
         - uncertainty-about-languages/beyond-ngrams.qmd

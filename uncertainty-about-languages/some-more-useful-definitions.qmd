@@ -1,0 +1,106 @@
+---
+title: Some more useful definitions
+bibliography: ../references.bib
+---
+
+Since random variables are required to preserve the structure of the event space, the definitions of joint probability, conditional probability, and independence that we covered [earlier](some-useful-definitions.qmd) can all be extended to them. The introduction of random variables and probability distributions also allows us to define a notion of [expected value](https://en.wikipedia.org/wiki/Expected_value), which will be useful when we start fitting models to data.
+
+## Joint probability
+
+Defining the joint probability of random variables $X$ and $Y$ with underlying probability spaces $\langle \Omega_X, \mathcal{F}_X, \mathbb{P}_X \rangle$ and $\langle \Omega_Y, \mathcal{F}_Y, \mathbb{P}_Y \rangle$ requires us to define a new probability space $\langle \Omega_X \times \Omega_Y, \mathcal{F}_{X, Y}, \mathbb{P}_{X, Y} \rangle$, where $\mathcal{F}_{X, Y}$ is the [product $\sigma$-algebra](https://en.wikipedia.org/wiki/%CE%A3-algebra#Product_%CF%83-algebra) $\sigma\left(\left\{E_X \times E_Y \mid E_X \in \mathcal{F}_X, E_Y \in \mathcal{F}_Y\right\}\right)$ on $\Omega_X \times \Omega_Y$. We then define the joint distribution $p_{X, Y}$ in terms of $X'(\omega_X, \omega_Y) = X(\omega_X)$ and $Y'(\omega_X, \omega_Y) = Y(\omega_Y)$:
+
+$$\begin{align*}p_{X, Y}(x, y) &= \mathbb{P}_{X, Y}(X' = x, Y' = y)\\ &= \mathbb{P}_{X, Y}\left(\{\langle\omega_X, \omega_Y\rangle \mid X'(\langle\omega_X, \omega_Y\rangle) = x\} \cap \{\langle\omega_X, \omega_Y\rangle \mid Y'(\langle\omega_X, \omega_Y\rangle) = y\}\right)\\ &= \mathbb{P}_{X, Y}\left(\{\langle\omega_X, \omega_Y\rangle \mid X(\omega_X) = x \land Y(\omega_Y) = y\}\right)\end{align*}$$
+
+where $p_{X, Y}$ (and thus $\mathbb{P}_{X, Y}$) must be such that the *marginal distributions* $p_X$ and $p_Y$ satisfy:
+
+$$p_X(x) = \sum_{y \in Y(\Omega_Y)} p_{X, Y}(x, y)$$
+
+$$p_Y(y) = \sum_{x \in X(\Omega_X)} p_{X, Y}(x, y)$$
+
+I'm writing only the discrete case here, since the random variables we'll be working with in this module are discrete. (For continuous random variables, the sums become integrals.)
+
+I'll sometimes simply write $p(x, y)$ — with $x$ and $y$ as values of implicit random variables — instead of $p_{X, Y}(x, y)$. I'll also often drop all but the variable of summation from the sum over the range of a random variable. So I'll write things like $p(x) = \sum_{y} p(x, y)$ rather than $p_X(x) = \sum_{y \in Y(\Omega_Y)} p_{X, Y}(x, y)$. Just remember that $p_{X, Y}$ is a different function from $p_X$ or $p_Y$ — even when I use the shorthand.
+
+## Conditional probability
+
+The conditional probability of a random variable $X$ given a random variable $Y$ is defined in terms of their joint probability and the marginal probability of $Y$:
+
+$$p_{X \mid Y}(x \mid y) \equiv \frac{p_{X, Y}(x, y)}{p_{Y}(y)} = \frac{p_{X, Y}(x, y)}{\sum_{x'} p_{X, Y}(x', y)}$$
+
+This is the direct analogue of the conditional probability we defined for events: $\mathbb{P}(A \mid B) = \frac{\mathbb{P}(A, B)}{\mathbb{P}(B)}$.
+
+## Independence
+
+We can extend the definition of independent events to that of independent random variables by saying that two random variables $X$ and $Y$ are independent if and only if:
+
+$$p_{X \mid Y}(x \mid y) = p_X(x)$$
+$$p_{Y \mid X}(y \mid x) = p_Y(y)$$
+
+By the same reasoning as for independent events, this in turn implies that:
+
+$$p_{X, Y}(x, y) = p_X(x)p_Y(y)$$
+
+We say that two random variables $X$ and $Y$ are *conditionally independent* given another random variable $Z$ if and only if:
+
+$$p_{X \mid Y, Z}(x \mid y, z) = p_{X \mid Z}(x \mid z)$$
+$$p_{Y \mid X, Z}(y \mid x, z) = p_{Y \mid Z}(y \mid z)$$
+
+As before, this implies that:
+
+$$p_{X, Y \mid Z}(x, y \mid z) = p_{X \mid Z}(x \mid z)p_{Y \mid Z}(y \mid z)$$
+
+Note that being conditionally independent is not the same as being independent. Two random variables can be marginally independent but conditionally dependent, and vice versa.
+
+## Expected values
+
+The *expected value* $\mathbb{E}[X]$ of a random variable $X$ can be thought of as a weighted average over the values of that variable, where the weights are the probabilities.
+
+$$\mathbb{E}[X] \equiv \sum_{x} x \cdot p_X(x)$$
+
+The expected value of a random variable $X$ is often referred to as the *mean of* $X$. Given a PMF of a probability distribution, we can often (though not always) compute the mean analytically in terms of the distribution's parameters. For instance, the mean of a random variable $X \sim \text{Geom}(\pi)$ is:
+
+$$\mathbb{E}[X] = \sum_{k=0}^\infty k \cdot (1-\pi)^k\pi = \frac{1-\pi}{\pi}$$
+
+The moral is to be careful in assuming that the expected value is always defined — there exist distributions, such as the [Cauchy distribution](https://en.wikipedia.org/wiki/Cauchy_distribution), for which the expected value does not exist.
+
+### Expected value of a function of a random variable
+
+We'll often have cause to take the expected value of some function $g(X) \equiv g \circ X$ of a random variable, which we define as:
+
+$$\mathbb{E}\left[g(X)\right] \equiv \sum_{x} g(x) \cdot p(x)$$
+
+For simple [affine functions](https://en.wikipedia.org/wiki/Affine_transformation), it is straightforward to prove that $\mathbb{E}\left[aX + b\right] = a\mathbb{E}\left[X\right] + b$. But it's important to note that $\mathbb{E}\left[g(X)\right] \neq g\left(\mathbb{E}\left[X\right]\right)$ in general. If $g$ is [convex](https://en.wikipedia.org/wiki/Convex_function), however, $\mathbb{E}\left[g(X)\right] \geq g\left(\mathbb{E}\left[X\right]\right)$ by [Jensen's inequality](https://en.wikipedia.org/wiki/Jensen%27s_inequality).
+
+### Central moments
+
+One function of a random variable we'll use frequently is $\left(X - \mathbb{E}[X]\right)^k$, which gives us the concept of a [central moment](https://en.wikipedia.org/wiki/Central_moment):
+
+$$\mathbb{E}\left[\left(X - \mathbb{E}[X]\right)^k\right] = \sum_{x} \left(x - \mathbb{E}[X]\right)^k \cdot p_X(x)$$
+
+The second central moment $\mathbb{E}\left[\left(X - \mathbb{E}[X]\right)^2\right]$ is known as the [variance](https://en.wikipedia.org/wiki/Variance) $\mathbb{V}\left[X\right]$ or $\text{Var}[X]$, which is a common measure of [dispersion](https://en.wikipedia.org/wiki/Statistical_dispersion). The standard deviation is simply $\sqrt{\mathbb{V}[X]}$.
+
+Like the expected value, the variance of a particular distribution can often be computed analytically in terms of the distribution's parameters. For instance, the variance of a random variable $X \sim \text{Geom}(\pi)$ is:
+
+$$\mathbb{V}[X] = \sum_{k=0}^\infty (k - \mathbb{E}[X])^2 \cdot (1-\pi)^k\pi = \frac{1-\pi}{\pi^2}$$
+
+### Covariance and correlation
+
+It is often useful to know how two random variables $X$ and $Y$ "move together" or *covary*. The [covariance](https://en.wikipedia.org/wiki/Covariance) extends variance — which is a property of a single random variable — to pairs of random variables with a joint distribution $p_{X, Y}$.
+
+$$\text{cov}(X, Y) = \mathbb{E}[(X - \mathbb{E}[X])(Y - \mathbb{E}[Y])] = \sum_{x}\sum_{y} (x - \mathbb{E}[X]) \cdot (y - \mathbb{E}[Y]) \cdot p(x, y)$$
+
+The covariance of a random variable with itself is just the variance: $\text{cov}(X, X) = \mathbb{V}[X]$.
+
+The covariance has units corresponding to whatever the units of $X$ and $Y$ are. The (Pearson) [correlation](https://en.wikipedia.org/wiki/Pearson_correlation_coefficient) normalizes these units away to a quantity in $[-1, 1]$:
+
+$$\text{corr}(X, Y) \equiv \frac{\text{cov}(X, Y)}{\sqrt{\mathbb{V}[X]}\sqrt{\mathbb{V}[Y]}}$$
+
+This quantity is guaranteed to be between $[-1, 1]$ due to an application of the [Cauchy-Schwarz inequality](https://en.wikipedia.org/wiki/Cauchy%E2%80%93Schwarz_inequality#Probability_theory): $\text{cov}(X, Y)^2 \leq \mathbb{V}[X] \cdot \mathbb{V}[Y]$.
+
+### Conditional expectation
+
+In certain cases, we need the expected value of one random variable $X$ conditioned on another random variable $Y$: $\mathbb{E}[X \mid Y]$. When we know the value of $Y$ (or want to assume we do):
+
+$$\mathbb{E}[X \mid Y = y] = \sum_x x \cdot p(x \mid y)$$
+
+We can think of $\mathbb{E}[X \mid Y = y]$ as a function $g: \text{cod}(Y) \rightarrow \text{cod}(X)$. Alternatively, we can think of $\mathbb{E}[X \mid Y]$ as itself a random variable $g(Y) = g \circ Y: \text{dom}(Y) \rightarrow \text{cod}(X)$, where $\text{dom}(Y)$ is the sample space of the probability space underlying $Y$.
