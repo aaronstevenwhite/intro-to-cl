@@ -51,6 +51,10 @@ $$p_{X, Y \mid Z}(x, y \mid z) = p_{X \mid Z}(x \mid z)p_{Y \mid Z}(y \mid z)$$
 
 Note that being conditionally independent is not the same as being independent. Two random variables can be marginally independent but conditionally dependent, and vice versa.
 
+To see why, consider a concrete example using the position-specific random variables $W_1, W_2, W_3$ that we will define in the [next section](language-models.qmd), where $W_i$ extracts the phone at position $i$ of a string. Suppose we're sampling three-phone strings from an English lexicon. It might be the case that $W_1$ and $W_3$ are approximately independent: knowing the first phone of a word doesn't tell you much about the third. But now condition on $W_2$ being a specific vowel—say $\text{æ}$. Given that the middle phone is $\text{æ}$, the string is a CVC monosyllable, and now $W_1$ and $W_3$ are both constrained to be consonants. More than that, certain onset–coda pairings are more or less likely than others (e.g. $\text{bæt}$ and $\text{kæt}$ are words, but $\text{ʒæŋ}$ is not). So conditioning on $W_2$ can introduce a dependence between $W_1$ and $W_3$ that wasn't there marginally.
+
+The reverse can happen too. The [earlier section](some-useful-definitions.qmd) showed that highness and backness are not independent in the vowel space under a uniform measure: $\mathbb{P}(H, B) \neq \mathbb{P}(H)\mathbb{P}(B)$. But one could imagine a probability measure under which they *are* dependent marginally but become conditionally independent given some third variable—say, the prosodic context in which the vowel appears.
+
 ## Expected values
 
 The *expected value* $\mathbb{E}[X]$ of a random variable $X$ can be thought of as a weighted average over the values of that variable, where the weights are the probabilities.
