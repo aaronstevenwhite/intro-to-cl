@@ -36,8 +36,6 @@ We can generate all the regular expressions given an alphabet.
 
 
 ```{python}
-#| id: 3JJ6GAFpToLc
-#| id: 3JJ6GAFpToLc
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {status: ok, timestamp: 1676911112070, user_tz: 300, elapsed: 4, user: {displayName: Aaron Steven White, userId: 06256629009318567325}}
 #| outputId: d686027b-b944-4624-ecda-e2d0e5c2dfab
@@ -83,9 +81,7 @@ We can define this evaluation procedure formally as a function $\text{eval}: R(\
 $\text{eval}(\rho) = \begin{cases}\{\} & \text{if } \rho = \emptyset \\\{\_\} & \text{if } \rho = \epsilon \\ \{\rho\} & \text{if } \rho \in \Sigma\\ \text{eval}(\rho_1) \times \text{eval}(\rho_2) & \text{if } \rho = (\rho_1 \circ \rho_2) \\ \text{eval}(\rho_1) \cup \text{eval}(\rho_2) & \text{if } \rho = (\rho_1 \cup \rho_2)\\  \bigcup_{i = 0}^\infty \text{eval}(\rho_1)^i & \text{if } \rho = \rho_1^*\\ \end{cases}$
 
 ```{python}
-#| id: Jj3YpAhSsGR-
 #| colab: {base_uri: 'https://localhost:8080/'}
-#| id: Jj3YpAhSsGR-
 #| executionInfo: {status: ok, timestamp: 1676911226344, user_tz: 300, elapsed: 165, user: {displayName: Aaron Steven White, userId: 06256629009318567325}}
 #| outputId: d39d8586-99bb-431f-e13f-5fc7d061f354
 def evaluate_regular_expression(regex):
@@ -160,18 +156,14 @@ The point here is that we need to be careful about the class of languages we pic
 We'll start with an application of [FSAs to modeling licit English syllables](https://drive.google.com/file/d/1OreZ2dUdyDYRIKet7bzn617rYDG2NbIz/view?usp=share_link) to get a sense for what they look like, then we'll formalize them. To visualize FSAs, we'll use [`pynini`](https://www.openfst.org/twiki/bin/view/GRM/Pynini) (We'll also use `pynini` later when we define finite state transducers.)
 
 ```{python}
-#| id: rsJO-Fb8RBfb
 #| colab: {base_uri: 'https://localhost:8080/'}
-#| id: rsJO-Fb8RBfb
 #| executionInfo: {status: ok, timestamp: 1677524796752, user_tz: 300, elapsed: 21158, user: {displayName: Aaron Steven White, userId: 06256629009318567325}}
 #| outputId: 4defe7ae-eb0b-41c6-9cee-4fc595a0c0c3
 ! pip install --only-binary :all: pynini
 ```
 
 ```{python}
-#| id: 2eCl9Tz3RpYY
 #| colab: {base_uri: 'https://localhost:8080/'}
-#| id: 2eCl9Tz3RpYY
 #| executionInfo: {status: ok, timestamp: 1677524931668, user_tz: 300, elapsed: 5322, user: {displayName: Aaron Steven White, userId: 06256629009318567325}}
 #| outputId: 3040141b-dc9e-45ec-8c55-5445870d2c56
 !pip install wurlitzer
@@ -180,8 +172,6 @@ We'll start with an application of [FSAs to modeling licit English syllables](ht
 ```
 
 ```{python}
-#| id: eVaoTGjWRifj
-#| id: eVaoTGjWRifj
 import pynini
 ```
 
@@ -208,8 +198,6 @@ A Nondeterministic Finite State Automaton (NFA) is also a grammar with 5 compone
 5. A set of final states $F \subseteq Q$
 
 ```{python}
-#| id: CDHQSsAsCTE9
-#| id: CDHQSsAsCTE9
 from copy import copy, deepcopy
 from typing import Union, Optional, Dict, List
 from functools import lru_cache
@@ -375,8 +363,6 @@ class FiniteStateAutomaton:
 We often define (and draw) FSAs s.t. their transition functions are partial. We can assume all FSA transition functions $\delta$ are in fact total by adding a *sink state* $q_\text{sink} \not\in F$ to the FSA and mapping all $\langle q, \sigma \rangle$ pairs for which $\delta$ is undefined to $q_\text{sink}$.
 
 ```{python}
-#| id: d-bYDFKQKLXR
-#| id: d-bYDFKQKLXR
 class TransitionFunction(TransitionFunction):
     """A finite state machine transition function
 
@@ -423,8 +409,6 @@ It turns out that these two ways of defining FSAs are at least weakly equivalent
 Every DFA can be converted to a strongly equivalent NFA. A DFA $G = \langle Q, \Sigma, \delta, q_0, F \rangle$ can be converted to an NFA $G' = \langle Q', \Sigma, \delta', q'_0, F' \rangle$ by defining the $G'$ transition function $\delta'(q,\sigma) = \{\delta(q,\sigma)\}$
 
 ```{python}
-#| id: '-BLPOsSoJCUq'
-#| id: '-BLPOsSoJCUq'
 class TransitionFunction(TransitionFunction):
     """A finite state machine transition function
 
@@ -487,8 +471,6 @@ An NFA $G = \langle Q, \Sigma, \delta, q_0, F \rangle$ can be converted to a DFA
 
 
 ```{python}
-#| id: dKfvqypDIGIA
-#| id: dKfvqypDIGIA
 from functools import reduce
 from itertools import chain, combinations
 
@@ -653,8 +635,6 @@ Given NFAs $M_1 = \langle Q_1, \Sigma_1, \delta_1, q_1, F_1 \rangle$ recognizing
 3. Define $F = F_1 \cup F_2$
 
 ```{python}
-#| id: ZG5I--AtK4vg
-#| id: ZG5I--AtK4vg
 class FiniteStateAutomaton(FiniteStateAutomaton):
     """A finite state automaton
 
@@ -741,8 +721,6 @@ Given NFAs $M_1 = \langle Q_1, \Sigma_1, \delta_1, q_1, F_1 \rangle$ recognizing
 \end{cases}$$
 
 ```{python}
-#| id: W5fW2cUyNPTQ
-#| id: W5fW2cUyNPTQ
 class FiniteStateAutomaton(FiniteStateAutomaton):
     """A finite state automaton
 
@@ -812,8 +790,6 @@ q_0 & \text{if } (q = q'_0 \lor q \in F) \land \sigma = \epsilon \\
 
 
 ```{python}
-#| id: CNk2Rv7CNSkk
-#| id: CNk2Rv7CNSkk
 class FiniteStateAutomaton(FiniteStateAutomaton):
     """A finite state automaton
 
@@ -875,8 +851,6 @@ Given and NFA $M_1 = \langle Q_1, \Sigma, \delta_1, q_1, F_1 \rangle$ recognizin
 
 
 ```{python}
-#| id: JR-tQ6kONX-3
-#| id: JR-tQ6kONX-3
 class FiniteStateAutomaton(FiniteStateAutomaton):
     """A finite state automaton
 
@@ -920,8 +894,6 @@ The idea behind imposing a constraint in this context is that we can build anoth
 
 
 ```{python}
-#| id: Efn-DxYANZSd
-#| id: Efn-DxYANZSd
 class FiniteStateAutomaton(FiniteStateAutomaton):
     """A finite state automaton
 
@@ -964,8 +936,6 @@ $\text{recognize}_{\langle Q, \Sigma, \delta, q_0, F \rangle}(\mathbf{s}, q) = \
 A parser looks very similar to a recognizer except that it additionally tracks the states that are traversed in recognizing the string. Because there are possibly multiple such traversals, a parser needs to produce a collection of such state traversal.
 
 ```{python}
-#| id: TCGf2lzdDUzG
-#| id: TCGf2lzdDUzG
 FiniteStateAutomatonParse = List[Tuple[str, str]]
 
 

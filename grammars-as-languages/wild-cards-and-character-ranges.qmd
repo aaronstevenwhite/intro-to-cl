@@ -1,0 +1,69 @@
+---
+title: Wild cards and character ranges
+jupyter: python3
+---
+
+We can represent all simple regular expressions according to our formal definition, but in certain cases, doing so would be tedious. For instance, suppose I want to represent the set of all English phonemes $\Sigma$. Using our formal definition, we would need to list out all of the phonemes joined by $\cup$: $(\text{i} \cup (\text{ɝ} \cup (\text{a} \cup (\text{ɪ} \cup \ldots))))$. 
+
+To make this less tedious, Python (and many other languages) introduce additional special characters into the definition of $R(\Sigma)$. The most basic is the wildcard `.`, which matches any single character (alphanumeric or otherwise) except the newline `\n`.
+
+```{python}
+#| code-fold: true
+#| code-summary: Load IPA representation of CMU Pronouncing Dictionary
+
+with open("cmudict-ipa") as f:
+    entries: list[tuple[str, str]] = [
+        l.strip().split(",") for l in f
+    ]
+    entries: dict[str, list[str]] = {
+        w: ipa.split() for w, ipa in entries
+    }
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 396, status: ok, timestamp: 1675102126972, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 20e11f17-403b-40d5-c75d-bdc4c0aaa220
+import re
+
+regex_dot_bstɹ_dot_kʃən = '.bstɹ.kʃən'
+
+for w, ipa in entries.items():
+    if re.fullmatch(regex_dot_bstɹ_dot_kʃən, "".join(ipa)):
+        print("".join(ipa), f"({w})")
+```
+
+If you want to match the `.` itself (or any special character we introduce below), you need to *escape* it.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 3, status: ok, timestamp: 1675099877339, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: b2891a3d-8d30-4bfa-88ec-9be3cbe4031a
+regex_period_bstɹækʃən = '\.bstɹækʃən'
+
+re.fullmatch(regex_period_bstɹækʃən, '.' + string_æbstɹækʃən[1:])
+```
+
+Besides `.`, we can also use character ranges to target more specific sets, like upper- and lower-case alphabetic characters (`[A-z]`), lower-case alphabetic character (`[a-z]`), numerals `[0-9]`.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 4, status: ok, timestamp: 1675099877340, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 514765f5-aa61-4337-ba82-0089835e0ad8
+regex_numeric_bstɹækʃən = '[0-9]bstɹækʃən'
+string_4bstɹækʃən = '4bstɹækʃən'
+
+re.fullmatch(regex_numeric_bstɹækʃən, string_4bstɹækʃən)
+```
+
+In addition to ranges, there are even more compact escape characters. For instance, alphanumeric characters plus `_` can be gotten with `\w` (the same as the range `[A-z0-9_]`).
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 155, status: ok, timestamp: 1675099877492, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: ad48ce13-606b-42ad-b740-43e0dbb426e6
+regex_alphanumeric_bstɹækʃən = '\wbstɹækʃən'
+
+re.fullmatch(regex_alphanumeric_bstɹækʃən, string_æbstɹækʃən)
+```
+

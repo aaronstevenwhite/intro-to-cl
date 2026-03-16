@@ -1,0 +1,267 @@
+---
+title: Indexation
+jupyter: python3
+---
+
+```{python}
+#| code-fold: true
+#| code-summary: Definition of `Tree` up to this point
+
+from typing import TypeVar
+
+DataType = TypeVar("DataType")
+
+class Tree:
+    """A tree
+    
+    Parameters
+    ----------
+    data
+        The data contained in this tree
+    children
+        The subtrees of this tree
+    """
+    def __init__(self, data: DataType, children: list['Tree']=[]):
+        self._data = data
+        self._children = children
+        
+        self._validate()
+        
+    def _validate(self) -> None:
+        try:
+            assert all(isinstance(c, Tree)
+                       for c in self._children)
+        except AssertionError:
+            msg = 'all children must be trees'
+            raise TypeError(msg)
+        
+    @property
+    def data(self) -> DataType:
+        return self._data 
+    
+    @property
+    def children(self) -> list['Tree']:
+        return self._children
+
+    def __str__(self):
+        if self._children:
+            return ' '.join(c.__str__() for c in self._children)
+        else:
+            return str(self._data)
+        
+    def __repr__(self):
+        return self.to_string(0)
+     
+    def to_string(self, depth: int) -> str:
+        s = (depth - 1) * '  ' +\
+            int(depth > 0) * '--' +\
+            self._data + '\n'
+        s += ''.join(c.to_string(depth+1)
+                     for c in self._children)
+        
+        return s
+
+    def __contains__(self, data: DataType) -> bool:
+        # pre-order depth-first search
+        if self._data == data:
+            return True
+        else:
+            for child in self._children:
+                if data in child:
+                    return True
+                
+            return False
+```
+
+Let's return to the motivating example from the last section: suppose I’m interested in finding all sentences with a definite determiner in a subject.
+
+We know how to compute containment. The next question is: how do we find particular subtrees? The basic idea is going to be that, when searching, we want to return a subtree instead of a boolean. But it's also going to be important to know *where* that subtree is with respect to other subtrees–e.g. to figure out whether it is a subject. This is going to require a way of indexing trees.
+
+## Indexation by search traversal
+
+One way to index trees is analogous to lists: an `int`. But what does that `int` represent? The idea is that it will represent when a particular search algorithm visits a node. One way to do this is to flatten or *linearize* the tree according to the order in which, say, *pre-order depth-first search* visits subtrees, then to index into the flattened version of the tree. 
+
+```{python}
+#| executionInfo: {elapsed: 7, status: ok, timestamp: 1680619944133, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+class Tree(Tree):
+            
+    def __getitem__(self, idx):
+        return self.flattened[idx]
+    
+    def __len__(self):
+        return len(self.flattened)
+
+    @property
+    def flattened(self):
+        try:
+            return self._flattened
+        except AttributeError:
+            # pre-order depth-first search
+            self._flattened = [self] +\
+                              [elem 
+                               for c in self._children
+                               for elem in c.flattened]
+            return self._flattened
+```
+
+```{python}
+#| executionInfo: {elapsed: 7, status: ok, timestamp: 1680619944133, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+tree = Tree('S', 
+             [Tree('NP', 
+                   [Tree('D', 
+                         [Tree('a')]),
+                    Tree('N', 
+                         [Tree('greyhound')])]),
+             Tree('VP', 
+                   [Tree('V', 
+                         [Tree('loves')]),
+                    Tree('NP',
+                         [Tree('D',
+                               [Tree('a')]),
+                          Tree('N',
+                               [Tree('greyhound')])])])])
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 6, status: ok, timestamp: 1680619944133, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+#| outputId: 0215b906-fded-4fef-b23d-1b13c43f6a24
+tree[0]
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 5, status: ok, timestamp: 1680619944133, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+#| outputId: c7324d25-cf26-428c-94e2-4fb26ac8e24a
+tree[1]
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 5, status: ok, timestamp: 1680619944134, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+#| outputId: 6f58ed80-15cd-4613-e3a6-361f8f45f957
+tree[2]
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 4, status: ok, timestamp: 1680619944134, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+#| outputId: 1ec86bed-5ada-4760-c528-0d0f65f88471
+tree[4]
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 913, status: ok, timestamp: 1680619945043, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+#| outputId: 2ee8373f-2f44-4eb4-8499-0f31b5e15ee2
+for i in range(len(tree1)):
+    print(i, tree[i].data)
+```
+
+## Indexation by path to root
+
+One issue with this indexation scheme is that it makes it a bit hard to represent relations like parenthood or sisterhood in a tree. One way to deal with this issue is to instead index using `tuple`s representing the index path to the root.
+
+```{python}
+#| executionInfo: {elapsed: 17, status: ok, timestamp: 1680619945043, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+class Tree(Tree):
+        
+    def __getitem__(self, idx: tuple[int]) -> 'Tree':
+        idx = (idx,) if isinstance(idx, int) else idx
+        
+        try:
+            assert all(isinstance(i, int) for i in idx)
+            assert all(i >= 0 for i in idx)
+        except AssertionError:
+            errmsg = 'index must be a positive int or tuple of positive ints'
+            raise IndexError(errmsg)
+        
+        if not idx:
+            return self
+        elif len(idx) == 1:
+            return self._children[idx[0]]
+        else:
+            return self._children[idx[0]][idx[1:]]
+```
+
+```{python}
+#| executionInfo: {elapsed: 17, status: ok, timestamp: 1680619945043, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+tree = Tree('S', 
+             [Tree('NP', 
+                   [Tree('D', 
+                         [Tree('a')]),
+                    Tree('N', 
+                         [Tree('greyhound')])]),
+             Tree('VP', 
+                   [Tree('V', 
+                         [Tree('loves')]),
+                    Tree('NP',
+                         [Tree('D',
+                               [Tree('a')]),
+                          Tree('N',
+                               [Tree('greyhound')])])])])
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 17, status: ok, timestamp: 1680619945043, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+#| outputId: e2c429ea-ca8c-432e-b49e-8d6c1864ac2d
+tree1[tuple()]
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 15, status: ok, timestamp: 1680619945043, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+#| outputId: eb3ba0ca-e0ee-4230-b422-d222f7b4d56e
+tree1[0]
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 14, status: ok, timestamp: 1680619945043, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+#| outputId: 368c65bc-e6fb-429b-e9e1-c17ed0a863a2
+tree1[0,0]
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 13, status: ok, timestamp: 1680619945043, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+#| outputId: 6c8ec7b3-de69-4e0d-9fcd-34d5a8aa8c93
+tree1[0,1]
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 14, status: ok, timestamp: 1680619945044, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+#| outputId: 1ed9cf18-b95f-4bc8-a91a-b29ee58f7258
+tree1[0,1,0]
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 13, status: ok, timestamp: 1680619945044, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+#| outputId: c1007a50-e4f3-4c8d-b783-59a56543d9d6
+tree1[1]
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 13, status: ok, timestamp: 1680619945044, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+#| outputId: 7ca0b262-a684-4802-9431-525856465362
+tree1[1,1]
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 12, status: ok, timestamp: 1680619945044, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+#| outputId: 5974d449-7cac-4be5-c806-ff26fde9d3ec
+tree1[1,1,0]
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 12, status: ok, timestamp: 1680619945044, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+#| outputId: ac58075d-d9b9-4861-f5f7-1bd0939cbaf2
+tree1[1,1,0,0]
+```
+

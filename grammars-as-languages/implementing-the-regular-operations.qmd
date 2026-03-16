@@ -1,0 +1,114 @@
+---
+title: Implementing the Regular Operations
+jupyter: python3
+---
+
+So far, we've seen only a trivial regular expression: one containing a single character `æ`, which evaluates to the language {`æ`} $\in 2^{\Sigma^*}$. How do we represent other kinds of regular expressions?
+
+## Concatenation
+
+The operation of concatenation, which we represented using $\circ$, is implicit in putting two characters next to each other. For instance, to represent the regular expression $(\text{æ} \circ (\text{b} \circ (\text{s} \circ (\text{t} \circ (\text{ɹ} \circ (\text{æ} \circ (\text{k} \circ (\text{ʃ} \circ (\text{ə} \circ \text{n})))))))))$, we can simply write `æbstɹækʃən`.
+
+```{python}
+#| code-fold: true
+#| code-summary: Load IPA representation of CMU Pronouncing Dictionary
+
+with open("cmudict-ipa") as f:
+    entries: list[tuple[str, str]] = [
+        l.strip().split(",") for l in f
+    ]
+    entries: dict[str, list[str]] = {
+        w: ipa.split() for w, ipa in entries
+    }
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 5, status: ok, timestamp: 1675099877210, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 5d7bad17-1650-4f75-b254-7ebc79807582
+import re
+
+regex_æbstɹækʃən = "æbstɹækʃən"
+
+string_æbstɹækʃən = "".join(entries["abstraction"])
+
+re.fullmatch(regex_æbstɹækʃən, string_æbstɹækʃən)
+```
+
+## Union
+
+In contrast, to represent the regular expression $((\text{æ} \cup \text{ə}) \circ (\text{b} \circ (\text{s} \circ (\text{t} \circ (\text{ɹ} \circ ((\text{æ} \cup \text{ə}) \circ (\text{k} \circ (\text{ʃ} \circ (\text{ə} \circ \text{n})))))))))$, which evaluates to {`æbstɹækʃən`, `əbstɹækʃən`, `æbstɹəkʃən`, `əbstɹəkʃən`}, we either use `[]`...
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 5, status: ok, timestamp: 1675099877210, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: c14e422a-08e0-49f3-d9f8-de4dbc73d9f3
+regex_æəbstɹæəkʃən = "[æə]bstɹ[æə]kʃən"
+
+string_əbstɹəkʃən = "".join(entries["obstruction"])
+string_æbstɹəkʃən = "æbstɹəkʃən"
+string_əbstɹækʃən = "əbstɹækʃən"
+
+(re.fullmatch(regex_æəbstɹæəkʃən, string_æbstɹækʃən),
+ re.fullmatch(regex_æəbstɹæəkʃən, string_æbstɹəkʃən),
+ re.fullmatch(regex_æəbstɹæəkʃən, string_əbstɹækʃən), 
+ re.fullmatch(regex_æəbstɹæəkʃən, string_əbstɹəkʃən))
+```
+
+...or an explicit `|`.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 170, status: ok, timestamp: 1675101583867, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 6aa6227b-8dcc-48f2-a330-427a3742ae18
+regex_æəbstɹæəkʃən = "(æ|ə)bstɹ(æ|ə)kʃən"
+
+(re.fullmatch(regex_æəbstɹæəkʃən, string_æbstɹækʃən),
+ re.fullmatch(regex_æəbstɹæəkʃən, string_æbstɹəkʃən),
+ re.fullmatch(regex_æəbstɹæəkʃən, string_əbstɹækʃən), 
+ re.fullmatch(regex_æəbstɹæəkʃən, string_əbstɹəkʃən))
+```
+
+Note that the `()` are important in the latter case!
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 244, status: ok, timestamp: 1675101698294, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: bf78d2b7-fea9-4c49-e587-e281db5346bd
+regex_æəbstɹæəkʃən = "æ|əbstɹæ|əkʃən"
+
+(re.fullmatch(regex_æəbstɹæəkʃən, string_æbstɹækʃən),
+ re.fullmatch(regex_æəbstɹæəkʃən, string_æbstɹəkʃən),
+ re.fullmatch(regex_æəbstɹæəkʃən, string_əbstɹækʃən), 
+ re.fullmatch(regex_æəbstɹæəkʃən, string_əbstɹəkʃən))
+```
+
+## Kleene star
+
+Finally, the Kleene star works the way you would expect.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 3, status: ok, timestamp: 1675099877211, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 5b56b60b-b14d-4425-b744-ccafb0acec35
+regex_ææææbstɹækʃən = "æ*bstɹækʃən"
+
+for i in range(10):
+    print(re.fullmatch(regex_ææææbstɹækʃən, "æ"*i + string_æbstɹækʃən[1:]))
+```
+
+To apply the Kleene star to a complex regular expression, we need `()`.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 117, status: ok, timestamp: 1675101893835, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: a5fefd60-c072-44d9-cc92-c942953f4ce9
+regex_reæbstɹækʃən = "(ɹi|di)*æbstɹækʃən"
+
+for i in range(3):
+    print(re.fullmatch(regex_reæbstɹækʃən, "ɹi"*i + string_æbstɹækʃən))
+    print(re.fullmatch(regex_reæbstɹækʃən, "di"*i + string_æbstɹækʃən))
+    print(re.fullmatch(regex_reæbstɹækʃən, "ɹidi"*i + string_æbstɹækʃən))
+    print(re.fullmatch(regex_reæbstɹækʃən, "diɹi"*i + string_æbstɹækʃən))
+```
+

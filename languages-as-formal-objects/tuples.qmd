@@ -1,0 +1,48 @@
+---
+title: Tuples
+jupyter: python3
+---
+
+[*Tuples*](https://en.wikipedia.org/wiki/Tuple) are *ordered*, *nonuniqued* collections. In this course, we will use tuples to model words, phrases, and sentences. We will refer to these objects generically as [strings](https://en.wikipedia.org/wiki/String_(computer_science)).
+
+Tuples are often represented using the notation $\langle \cdot, \cdot, \ldots \rangle$. For instance, we might represent the phonological word *ruder* as:
+
+$$\mathbf{w} \equiv \langle \text{ɹ,u,d,ə,ɹ} \rangle$$
+
+In Python, there are multiple ways to represent a tuple: as a `str`, as a `tuple`, or as a `list`.
+
+```{python}
+w_str = "ɹud"
+w_tuple = ("ɹ", "u", "d")
+w_list = ["ɹ", "u", "d"]
+```
+
+
+
+A tuple with $n$ elements is called an $n$-tuple. So $\mathbf{w}$ is a 3-tuple. We can assess what kind of $n$-tuple we have using the `len()` function.
+
+```{python}
+len(w_str), len(w_tuple), len(w_list)
+```
+
+Why would we use a `tuple` or a `list` to represent a string, when we have `str` available? Well. Many times, the elements string are themselves complex. So for instance, if we want to represent the morphological word *ruder*, we might want to represent the morpheme $\langle \text{ɹ,u,d,ə,ɹ} \rangle$ as a separate element from the morpheme $\langle \text{ə,r} \rangle$.
+
+$$\bar{\mathbf{w}} \equiv \langle \langle \text{ɹ,u,d} \rangle, \langle \text{ə,r} \rangle \rangle$$
+
+```{python}
+w_rude_tuple = ("ɹ", "u", "d")
+w_er_tuple = ("ə", "r")
+w_bar_tuple = (w_rude, w_er)
+
+print(w_bar_tuple)
+```
+
+We commonly refer to the elements of a tuple using the notation $w_i$. So for instance, $w_1 = \text{ɹ}$, $w_2 = \text{u}$, and $w_3 = \text{d}$. This notation corresponds directly to indexation in Python, but unlike in Python, we will often use 1-indexation (as above).
+
+```{python}
+for i in range(len(w_str)):
+    print(f"w_{i+1} = {w_str[i]}")
+```
+
+You'll note that I am using bolded $\mathbf{w}$ to represent a tuple, but italic $w$ when indexing its elements. This is a common convention for tuples.^[If you have taken linear algebra, you may be familiar with this notation.]
+

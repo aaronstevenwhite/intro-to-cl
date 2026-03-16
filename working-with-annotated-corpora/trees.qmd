@@ -1,0 +1,225 @@
+---
+title: Trees
+jupyter: python3
+---
+
+We're going to be working through how to load a treebank into memory, and the first thing we need to know is how to deal with the objects contained in a treebank: trees. To structure this discussion, we'll use a motivating example: suppose I’m interested in finding all sentences with a definite determiner in a subject.
+
+## Initial design
+
+The first question we need to ask is: what are trees in the abstract?
+
+An initial approximation is that a tree is something that is...
+
+- ...empty (base case)
+- ...a nonempty sequence of trees
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 12, status: ok, timestamp: 1680619933967, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+#| outputId: 2e7d1c1e-5fea-4f64-92fe-d14a4e4b9944
+class Tree:
+    """A tree
+    
+    Parameters
+    ----------
+    children
+        The subtrees of this tree
+    """
+    def __init__(self, children: list['Tree']=[]):
+        self._children = children
+
+Tree([Tree(), Tree()])
+```
+
+One problem is that these sorts of abstract trees aren’t super useful. So we can augment our definition. 
+
+A tree is something that is...
+  
+- ...empty (base case)
+- ...a piece of data paired with a nonempty sequence of trees
+
+```{python}
+#| executionInfo: {elapsed: 11, status: ok, timestamp: 1680619933967, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+from typing import TypeVar
+
+DataType = TypeVar("DataType")
+
+class Tree:
+    """A tree
+    
+    Parameters
+    ----------
+    data
+        The data contained in this tree
+    children
+        The subtrees of this tree
+    """
+    def __init__(self, data: DataType, children: list['Tree']=[]):
+        self._data = data
+        self._children = children
+```
+
+By convention, we shouldn't access the private attributes `_data` and `_children`, so a common thing to do is to build read-only accessors using the `@property` decorators.
+
+```{python}
+#| executionInfo: {elapsed: 11, status: ok, timestamp: 1680619933967, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+class Tree(Tree):
+
+    @property
+    def data(self) -> DataType:
+        return self._data 
+    
+    @property
+    def children(self) -> list['Tree']:
+        return self._children
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/', height: 35}
+#| executionInfo: {elapsed: 11, status: ok, timestamp: 1680619933967, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+#| outputId: 4cafe3c3-6c61-4620-e183-7967b27ad2bc
+t = Tree('S', [Tree('NP', ['the', Tree('children')]), Tree('VP')])
+
+t.children[0].data
+```
+
+Our class doesn't currently enforce that the children be `Tree`s. To enforce this, we can build a validator private method into the intialization.
+
+```{python}
+#| executionInfo: {elapsed: 11, status: ok, timestamp: 1680619933968, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+class Tree:
+    """A tree
+    
+    Parameters
+    ----------
+    data
+        The data contained in this tree
+    children
+        The subtrees of this tree
+    """
+    def __init__(self, data: DataType, children: list['Tree']=[]):
+        self._data = data
+        self._children = children
+        
+        self._validate()
+        
+    def _validate(self) -> None:
+        try:
+            assert all(isinstance(c, Tree)
+                       for c in self._children)
+        except AssertionError:
+            msg = 'all children must be trees'
+            raise TypeError(msg)
+```
+
+So now the following won't work.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 11, status: ok, timestamp: 1680619933968, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+#| outputId: 8e347997-2a40-46aa-e283-93054086c3ce
+try:
+    Tree('S', ['NP', 'VP'])
+except TypeError as e:
+    print("TypeError:", e)
+```
+
+But these will.
+
+```{python}
+#| executionInfo: {elapsed: 10, status: ok, timestamp: 1680619933968, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+tree1 = Tree('S', 
+             [Tree('NP', 
+                   [Tree('D', 
+                         [Tree('a')]),
+                    Tree('N', 
+                         [Tree('greyhound')])]),
+             Tree('VP', 
+                   [Tree('V', 
+                         [Tree('loves')]),
+                    Tree('NP',
+                         [Tree('D',
+                               [Tree('a')]),
+                          Tree('N',
+                               [Tree('greyhound')])])])])
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 10, status: ok, timestamp: 1680619933968, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+#| outputId: 18c71cab-9142-4b60-f56c-2cbc93113ae9
+tree1
+```
+
+### Stringifying the tree
+
+If we try to look at the tree, the result isn't very informative.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 10, status: ok, timestamp: 1680619933968, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+#| outputId: f975045b-9e54-40f9-a3e5-34fc6965741d
+tree1
+```
+
+This is because we need to tell python how to display objects of our class. There are two obvious things to do: print the **yield** of the tree or print some representation of the tree itself. We implement both using the `__str__` (what is shown when we call `print()`) and `__repr__` (what is shown when we evaluate) magic methods. 
+
+We'll have `__str__` return the yield and `__repr__` return the tree representation.
+
+```{python}
+#| executionInfo: {elapsed: 9, status: ok, timestamp: 1680619933968, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+class Tree(Tree):
+    
+    def __str__(self):
+        if self._children:
+            return ' '.join(c.__str__() for c in self._children)
+        else:
+            return str(self._data)
+        
+    def __repr__(self):
+        return self.to_string(0)
+     
+    def to_string(self, depth: int) -> str:
+        s = (depth - 1) * '  ' +\
+            int(depth > 0) * '--' +\
+            self._data + '\n'
+        s += ''.join(c.to_string(depth+1)
+                     for c in self._children)
+        
+        return s
+```
+
+So if we print a `Tree`, we get the sentence it corresponds to.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 10, status: ok, timestamp: 1680619933969, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+#| outputId: 7699c512-9b90-412b-c4a6-c6f105491de6
+tree1 = Tree('S', 
+             [Tree('NP', 
+                   [Tree('D', 
+                         [Tree('a')]),
+                    Tree('N', 
+                         [Tree('greyhound')])]),
+             Tree('VP', 
+                   [Tree('V', 
+                         [Tree('loves')]),
+                    Tree('NP',
+                         [Tree('D',
+                               [Tree('a')]),
+                          Tree('N',
+                               [Tree('greyhound')])])])])
+
+print(tree1)
+```
+
+And if we try to evaluate the `Tree`, we get a visualization of its structure.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 9, status: ok, timestamp: 1680619933969, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+#| outputId: 100b1065-0b83-4d84-ad28-8047a65b34e3
+tree1
+```
+

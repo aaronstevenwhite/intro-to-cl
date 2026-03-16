@@ -1,0 +1,98 @@
+---
+title: Language models
+bibliography: ../references.bib
+---
+
+At the beginning of this module, I said that some strings are clearly possible phonological forms of English morphemes, some clearly aren't, and others fall somewhere in between. The example I used was that strings starting with $\text{bs}$ or $\text{gs}$ seem worse than ones starting with $\text{bn}$ or $\text{gn}$, and I said that we'd investigate ways of modeling this gradation as a kind of uncertainty about what is in the set of possible phonological forms.
+
+We now have the tools to do this. In this section, I'll define what a language model is and connect it to the probability theory we've been developing. Then, in the next section, we'll look at a specific kind of language model—the $N$-gram model—and ask how well it predicts the sort of gradient acceptability judgments I just described.
+
+## Gradient acceptability
+
+Before getting into the formalism, it's useful to have a concrete sense of the data we want to explain. @daland_explaining_2011 collected acceptability judgments for nonword strings of English. Participants rated each nonword on a Likert scale, and the resulting judgments show clear gradience: some nonwords are judged as very wordlike, others as very un-wordlike, and many fall in between.
+
+There are at least two ways to think about what this gradience reflects. One is that the grammar makes a binary distinction between sequences that it recognizes and sequences that it doesn't, and it's the mapping from that binary distinction to a multi-valued judgment scale that introduces the gradience. Under this view, the grammar says "yes" or "no," and the noise comes from the judgment process. The other is that the grammar itself has no binary distinction—that the notion of well-formedness is inherently a matter of degree, and the grammar assigns a graded value to each string directly.
+
+Either way, we need a way of assigning numbers to strings. Probability gives us one.
+
+## The probability triple for a language model
+
+In the section on [modeling possibilities](how-we-model-possibilities.qmd), I discussed the case where the sample space is the set of all strings on an alphabet: $\Omega = \Sigma^*$. I noted there that the event space for this sample space would consist of sets of strings—i.e. languages on $\Sigma$—and that this pairing of strings and languages is what underlies all language models. Let me now make this more precise.
+
+A language model is defined in terms of a probability space $\langle \Omega, \mathcal{F}, \mathbb{P} \rangle$, where:
+
+- The sample space is $\Omega = \Sigma^*$, the set of all strings over an alphabet $\Sigma$.
+- The event space $\mathcal{F}$ is a $\sigma$-algebra on $\Sigma^*$.
+- The probability measure $\mathbb{P}: \mathcal{F} \rightarrow [0,1]$ assigns probabilities to events—i.e. to languages.
+
+The event space deserves some attention. Assuming $\Sigma$ is finite and nonempty, $\Sigma^*$ is countably infinite.^[Each $\Sigma^i$ is finite (with $|\Sigma|^i$ elements), and $\Sigma^* = \bigcup_{i=0}^\infty \Sigma^i$ is a countable union of finite sets, which is countable.] This means $2^{\Sigma^*}$ is a valid choice for $\mathcal{F}$. To check this, we just need to verify the $\sigma$-algebra axioms:
+
+1. $\emptyset \in 2^{\Sigma^*}$ — the empty language is a subset of $\Sigma^*$.
+2. If $E \in 2^{\Sigma^*}$, then $\Sigma^* - E \in 2^{\Sigma^*}$ — closure under complement.
+3. Any countable union of subsets of $\Sigma^*$ is itself a subset of $\Sigma^*$ — closure under countable union.
+
+So $\langle \Sigma^*, 2^{\Sigma^*} \rangle$ is a measurable space. Every element of $2^{\Sigma^*}$ is a set of strings, which is to say: every event is a language. The event space is the set of all languages on $\Sigma$.
+
+::: {.callout-caution}
+## Question
+
+Recall that we earlier asked whether the regular languages on $\Sigma$ form a $\sigma$-algebra. They don't—they're not closed under countable union. Does this cause a problem for using $2^{\Sigma^*}$ as the event space?
+:::
+
+::: {.callout-tip collapse=true}
+## Answer
+
+No. $2^{\Sigma^*}$ contains all languages on $\Sigma$—regular and otherwise. The regular languages are a tiny (countable) subset of $2^{\Sigma^*}$, and the fact that they don't form a $\sigma$-algebra on their own just means we can't use them alone as an event space. But $2^{\Sigma^*}$ is much larger, and it satisfies the axioms.
+:::
+
+Now, the probability measure $\mathbb{P}$ assigns probabilities to languages—sets of strings—not to individual strings. The probability of an individual string $w$ is the probability of the singleton language containing only that string: $\mathbb{P}(\{w\})$. Since $\Sigma^*$ is countable, we can define a probability mass function $p: \Sigma^* \rightarrow [0, 1]$, where $p(w) = \mathbb{P}(\{w\})$, and the probability of any language $L \subseteq \Sigma^*$ is:
+
+$$\mathbb{P}(L) = \sum_{w \in L} p(w)$$
+
+A language model, then, is a specification of this probability measure $\mathbb{P}$—or equivalently, of the PMF $p$ on $\Sigma^*$. Different language models differ in how they parameterize or approximate $p$.
+
+## Random variables for language models
+
+The probability of a string $p(w_1 w_2 \ldots w_n)$ can be viewed as a joint distribution over the symbols at each position. Making this precise requires random variables, and in particular, it requires us to generalize the notion of a random variable slightly from the way I introduced it earlier.
+
+### Generalizing the codomain
+
+When I defined random variables in the [section on random variables](random-variables-and-probability-distributions/random-variables.qmd), I said that a random variable is a measurable function $X: \Omega \rightarrow A$, where $\langle A, \mathcal{G} \rangle$ is a measurable space. In all the examples there, I took $A = \mathbb{R}$ with the Borel $\sigma$-algebra. But what I want to point out now is that a random variable doesn't require its codomain to be $\mathbb{R}$. It just needs to be a measurable space—any set equipped with a $\sigma$-algebra.
+
+In particular, we can take $A = \Sigma$ with $\mathcal{G} = 2^\Sigma$. Since $\Sigma$ is finite, $2^\Sigma$ is a $\sigma$-algebra—the argument is the same as the one above for $2^{\Sigma^*}$, just applied to a finite set. So $\langle \Sigma, 2^\Sigma \rangle$ is a measurable space, and a function $X: \Omega \rightarrow \Sigma$ is a random variable as long as it satisfies the measurability condition: $\{X^{-1}(E) \mid E \in 2^\Sigma\} \subseteq \mathcal{F}$.
+
+### Position-specific random variables
+
+With this in hand, we can define random variables that extract the symbol at each position of a string. Let $W_i: \Sigma^* \rightarrow \Sigma$ be the function that maps a string to the symbol at position $i$:
+
+$$W_i(w_1 w_2 \ldots w_n) = w_i$$
+
+for strings of length at least $i$.^[I'm being a bit loose here about what happens when $i > n$. There are a few ways to handle this—for instance, by introducing a special end-of-string symbol—but for the purpose of building intuition, the important thing is that $W_i$ picks out the $i^{\text{th}}$ symbol.] Each $W_i$ is a measurable function from $\langle \Sigma^*, 2^{\Sigma^*} \rangle$ to $\langle \Sigma, 2^\Sigma \rangle$. The measurability condition is satisfied trivially: for any $E \subseteq \Sigma$, the preimage $W_i^{-1}(E) = \{w \in \Sigma^* \mid w_i \in E\}$ is a subset of $\Sigma^*$, and therefore an element of $2^{\Sigma^*}$.
+
+### String probability as a joint distribution
+
+Using these random variables, the probability of a string $p(w_1 w_2 \ldots w_n)$ can be written as a joint probability:
+
+$$p(w_1 w_2 \ldots w_n) = \mathbb{P}(W_1 = w_1, W_2 = w_2, \ldots, W_n = w_n)$$
+
+This is useful because it lets us bring to bear all the tools we developed for working with joint and conditional probability.
+
+I want to stress, though, that viewing the probability of a string as a joint distribution is a *choice*—a way of working with the probability measure $\mathbb{P}$ on $\Sigma^*$, not a requirement of it. The probability measure is defined on languages, and that is the more fundamental object. The joint distribution view is convenient because it opens the door to factorizations, which is where we turn next.
+
+## The chain rule and autoregressive factorization
+
+In the [section on conditional probability](some-useful-definitions.qmd), I introduced the chain rule:
+
+$$\mathbb{P}(E_1, E_2, \ldots, E_N) = \mathbb{P}(E_1)\prod_{i=2}^N \mathbb{P}(E_i \mid E_1, \ldots, E_{i-1})$$
+
+Applying this to the position-specific random variables gives us:
+
+$$p(w_1 w_2 \ldots w_n) = p(w_1) \prod_{i=2}^{n} p(w_i \mid w_1 \ldots w_{i-1})$$
+
+This decomposition is exact: no approximation or independence assumption has been made. It is sometimes called an *autoregressive* factorization, because each position is conditioned on all the ones that precede it, left to right.
+
+I'm calling attention to the fact that this is exact because it will be important to keep in mind when we start making approximations in the next section. It will also be important to note that this is not the only possible factorization. We could factor right-to-left, or group positions differently, and the chain rule would give us an equally valid decomposition. More fundamentally, there are ways of specifying the probability measure on $\Sigma^*$ that don't decompose it position-by-position at all. We will encounter some of these later when we discuss finite-state methods and context-free grammars, where probability is defined in terms of the *derivation* that generates a string rather than a left-to-right scan of its symbols.
+
+## Evaluating language models
+
+If a language model assigns higher probability to strings that speakers judge as more acceptable, we have evidence that the model captures something about phonotactic knowledge. In the next section, we'll make this concrete: we'll define a particular kind of language model—the $N$-gram model—fit it to a lexicon, and ask how well the probabilities it assigns to nonwords predict the acceptability judgments that @daland_explaining_2011 collected.

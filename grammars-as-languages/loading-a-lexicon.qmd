@@ -1,0 +1,104 @@
+---
+title: Loading a Lexicon
+jupyter: python3
+---
+
+One use case for regular expressions in the context of computational linguistics is querying a lexicon. To look at this use case, we will use the lexicon of word forms found in the [CMU Pronouncing Dictionary](https://web.archive.org/web/20210216211828/http://www.speech.cs.cmu.edu/cgi-bin/cmudict).
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 945, status: ok, timestamp: 1675099878882, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 3ed7f9ba-4da5-4139-f7f0-5b09b66fb61c
+!wget https://raw.githubusercontent.com/Alexir/CMUdict/master/cmudict-0.7b
+```
+
+```{python}
+!head -n 200 cmudict-0.7b
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 1816, status: ok, timestamp: 1675099880695, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 62f854bc-6bab-4061-f274-77038c46c107
+with open('cmudict-0.7b', encoding = "ISO-8859-1") as f:
+    cmudict = [l.split() for l in f if l[:3] != ";;;"]
+    cmudict = {w[0].lower(): w[1:] for w in cmudict}
+    
+cmudict["abstraction"]
+```
+
+This dictionary uses what's known as the [ARPABET](https://en.wikipedia.org/wiki/ARPABET) and represents stress using numeric indicators: 0 for no stress, 1 for primary stress, and 2 for secondary stress. The ARPABET maps to more recognizable IPA representations in the following way.
+
+```{python}
+arpabet_to_phoneme = {'AA': 'ɑ', 
+                      'AE': 'æ', 
+                      'AH': 'ə', 
+                      'AO': 'ɔ', 
+                      'AW': 'aʊ', 
+                      'AY': 'aɪ', 
+                      'B': 'b', 
+                      'CH': 'tʃ', 
+                      'D': 'd', 
+                      'DH': 'ð', 
+                      'EH': 'ɛ',
+                      'ER': 'ɝ', 
+                      'EY': 'eɪ', 
+                      'F': 'f', 
+                      'G': 'g', 
+                      'HH': 'h', 
+                      'IH': 'ɪ', 
+                      'IY': 'i', 
+                      'JH': 'dʒ', 
+                      'K': 'k', 
+                      'L': 'l', 
+                      'M': 'm', 
+                      'N': 'n',
+                      'NG': 'ŋ', 
+                      'OW': 'oʊ', 
+                      'OY': 'ɔɪ', 
+                      'P': 'p', 
+                      'R': 'ɹ', 
+                      'S': 's', 
+                      'SH': 'ʃ', 
+                      'T': 't', 
+                      'TH': 'θ', 
+                      'UH': 'ʊ', 
+                      'UW': 'u', 
+                      'V': 'v',
+                      'W': 'w', 
+                      'Y': 'j', 
+                      'Z': 'z', 
+                      'ZH': 'ʒ'}
+```
+
+We'll use this mapping to construct the IPA representation from the ARPABET representation.
+
+```{python}
+import re
+
+entries: dict[str, list[str]] = {
+    w: [arpabet_to_phoneme[''.join(re.findall('[A-z]', phoneme))]
+        for phoneme in transcription]
+        for w, transcription in cmudict.items()
+        if len({c for c in w})>1
+        if len(transcription)>1 
+        if not re.findall('[^A-z]', w[0])
+}
+```
+
+For instance, the IPA representation for the word *abstraction* can be accessed in the following way.
+
+```{python}
+entries["abstraction"]
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: Dump IPA representation to file
+
+with open("cmudict-ipa", "w") as f:
+    for w, ipa in entries.items():
+        ipa = " ".join(ipa)
+        f.write(f"{w},{ipa}\n")
+```
+

@@ -1,0 +1,49 @@
+---
+title: Sequences
+jupyter: python3
+---
+
+A *sequence* $S$ is a partial function from the natural numbers $\mathbb{N}$ to a set $\Sigma$.
+
+$$\mathbb{N} = \{0, 1, 2, 3, \ldots\}$$
+$$\Sigma = \{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ, ɹ, d, t}\}$$
+$$S = \begin{Bmatrix}
+0 & \rightarrow & \text{d}\\
+1 & \rightarrow & \text{u}\\
+2 & \rightarrow & \text{d}\\
+\end{Bmatrix}$$
+
+This definition admits of sequences with gaps in the natural numbers. 
+
+$$\begin{Bmatrix}
+0 & \rightarrow & \text{d}\\
+1 & \rightarrow & \text{u}\\
+205 & \rightarrow & \text{d}\\
+\end{Bmatrix}$$
+
+We will generally assume that our sequences map the first $|S^{-1}(\Sigma)|$ natural numbers to $\Sigma$, because these "gappy" sequences can always be mapped to one where $S^{-1}(\Sigma) = \{0, ..., |S^{-1}(\Sigma)|-1\}$. But there are cases—one discussed below—where we don't necessarily want our sequences to start at 0.
+
+Functions can be represented as sets of pairs and therefore sequences can be too.
+
+$$S = \{\langle 0, \text{d} \rangle, \langle 1, \text{u} \rangle, \langle 2, \text{d} \rangle\} \subseteq \mathbb{N}\times \Sigma$$
+
+We often denote the $i^{th}$ element of a sequence using a subscript rather than function notation.
+
+$$s_i \equiv S(i)$$
+
+This notation should remind you of the notation we use for indexing tuples. This is no coincidence: we can always map a sequence $S$ to a $|S^{-1}(\Sigma)|$-tuple $\mathbf{s}$ without losing any information. That is, we can map sequences to elements of $\Sigma^{|S^{-1}(\Sigma)|}$.
+
+$$\mathrm{func2tuple}(S, i) = \begin{cases}\langle S(i), \mathrm{func2tuple}(S, i+1) \rangle & \text{if } i + 1 \in S^{-1}(\Sigma) \\
+S(i) & \text{otherwise}
+           \end{cases}$$
+
+And as we saw, we can always flatten these elements of $\Sigma^{|S^{-1}(\Sigma)|}$ to $|S^{-1}(\Sigma)|$-tuples. Because of this, we (often) implement sequences in Python using `list`s and `tuple`s, though we can implement them using `dict`s as well.
+
+```{python}
+x = ["d", "u", "d"]
+y = ("d", "u", "d")
+z = {0: "d",
+     1: "u",
+     2: "d"}
+```
+

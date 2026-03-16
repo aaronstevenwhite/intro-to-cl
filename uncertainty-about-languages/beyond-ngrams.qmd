@@ -1,0 +1,46 @@
+---
+title: Beyond $N$-gram models
+bibliography: ../references.bib
+---
+
+In the previous section, we saw that $N$-gram models can capture a substantial amount of phonotactic knowledge by conditioning on short contexts. But the $N$-gram approach has a fundamental limitation: the number of possible contexts grows as $|\Sigma|^{N-1}$. For a phone inventory of 40 symbols, a bigram model has 40 contexts; a trigram model has 1,600; a 4-gram model has 64,000. This exponential growth means that as we try to condition on longer contexts, we quickly run out of data to estimate the parameters, and the memory required to store them becomes impractical.
+
+For phonotactics—where the strings of interest are short—this limitation is often manageable. But if we wanted to model longer sequences, like sentences, we'd need a way to represent the relevant information in a prefix $w_1 \ldots w_{i-1}$ without enumerating every possible prefix. The question, in other words, is whether we can *abstract* the context: compress it into a representation that is both compact and informative enough to predict what comes next.
+
+The various language models developed over the last few decades differ primarily in how they perform this abstraction. I'll briefly describe two approaches here—hidden Markov models and neural language models—not in full technical detail, but enough to see the common thread.
+
+## Hidden Markov Models
+
+A hidden Markov model (HMM) replaces the literal context $w_1 \ldots w_{i-1}$ with a distribution over a set of *hidden symbols* $Q$. At a high level, the model involves two components:
+
+- A function that maps the prefix to a distribution over hidden symbols: $w_1 \ldots w_{i-1} \mapsto \mathbb{P}(Q_i = q \mid w_1 \ldots w_{i-1})$
+- A function that maps each hidden symbol to a distribution over $\Sigma$: $q \mapsto \mathbb{P}(W_i = w \mid Q_i = q)$
+
+The key point is that instead of conditioning on $|\Sigma|^{N-1}$ possible literal contexts, the model conditions on $|Q|$ possible hidden states, where $|Q|$ is typically much smaller than the number of possible prefixes. The tradeoff is that the hidden states must be rich enough to capture the distinctions that matter for predicting the next symbol.
+
+What might these hidden states correspond to? In the phonotactics case, one natural interpretation is that they track something like syllable structure. A state might correspond roughly to "we're currently in an onset" or "we're currently in a coda," so that the distribution over the next phone reflects the kinds of phones that tend to appear in that position. The model doesn't know these labels—it discovers structure that plays an analogous role from the data. Whether the structure it discovers aligns with familiar linguistic categories is an empirical question, and in practice the correspondence is often partial.
+
+## Neural language models
+
+Neural language models take the same basic idea—abstract the prefix into a compact representation—but instead of a distribution over a discrete set of hidden symbols, they map the prefix to a fixed-length real-valued vector $\mathbf{h} \in \mathbb{R}^d$. The high-level structure looks similar:
+
+- A function that maps the prefix to a vector: $w_1 \ldots w_{i-1} \mapsto \mathbf{h} \in \mathbb{R}^d$
+- A function that maps the vector to a distribution over $\Sigma$: $\mathbf{h} \mapsto \mathbb{P}(W_i = w \mid \mathbf{h})$
+
+The advantage of using a continuous vector rather than a distribution over a small discrete set is that a vector can, in principle, encode a richer range of distinctions. Where an HMM with $|Q| = 10$ can distinguish among 10 possible states of the world at each time step, a vector in $\mathbb{R}^{256}$ can encode far more information about the prefix.
+
+Different neural architectures differ in how they compute $\mathbf{h}$ from the prefix:
+
+- **Recurrent neural networks (RNNs)** process the prefix one symbol at a time, updating $\mathbf{h}$ as each new symbol comes in. The vector at position $i$ is a function of the vector at position $i - 1$ and the new symbol $w_{i-1}$. This means information about early parts of the prefix can only reach position $i$ by passing through every intermediate update, which in practice makes it difficult for the model to retain information over long distances. **Long short-term memory networks (LSTMs)** and **gated recurrent units (GRUs)** are variants that address this difficulty by introducing mechanisms for selectively retaining and discarding information at each step.
+
+- **Transformers** take a different approach. Rather than processing the prefix sequentially, they compute $\mathbf{h}$ by attending to all positions in the prefix simultaneously, assigning a weight to each position based on how relevant it is to predicting the next symbol. This is the architecture underlying the large language models (such as GPT and similar systems) that have received considerable attention in recent years.
+
+There are other approaches as well—state space models, convolutional architectures—but RNNs (and their variants) and transformers are the two most widely used families.
+
+The tradeoff relative to both $N$-gram models and HMMs is interpretability. With an $N$-gram model, we can directly inspect which contexts the model has learned distributions over. With an HMM, we can sometimes interpret the hidden states in terms of linguistic categories. With a neural model, the vector $\mathbf{h}$ is a point in a high-dimensional space, and understanding what it encodes requires additional analysis.
+
+## The common thread
+
+All of these are language models in the sense defined in the [previous section](language-models.qmd): they specify a probability measure on $\Sigma^*$. More specifically, they all work within the autoregressive factorization, estimating the conditional distribution $p(w_i \mid w_1 \ldots w_{i-1})$ at each position. What differs is how they represent the context that this conditional depends on: a literal window of preceding symbols ($N$-grams), a distribution over hidden symbols (HMMs), or a continuous vector (neural models).
+
+As I mentioned in the previous section, the autoregressive factorization is not the only way to specify a language model. Later in the course, when we discuss probabilistic finite-state automata and probabilistic context-free grammars, we will see models that define probabilities in terms of the derivation that generates a string, which leads to a rather different way of thinking about the relationship between the model and the strings it assigns probability to.

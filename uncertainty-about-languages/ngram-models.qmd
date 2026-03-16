@@ -1,0 +1,353 @@
+---
+title: $N$-gram models
+bibliography: ../references.bib
+jupyter: python3
+---
+
+In the previous section, I defined a language model as a specification of a probability measure on $\Sigma^*$ and showed that the chain rule gives us an exact decomposition:
+
+$$p(w_1 w_2 \ldots w_n) = p(w_1) \prod_{i=2}^{n} p(w_i \mid w_1 \ldots w_{i-1})$$
+
+The trouble with using this decomposition directly is that each conditional $p(w_i \mid w_1 \ldots w_{i-1})$ depends on the entire prefix $w_1 \ldots w_{i-1}$. As the prefix gets longer, the number of possible prefixes grows exponentially: there are $|\Sigma|^{i-1}$ possible prefixes of length $i - 1$. Estimating a separate distribution for every possible prefix would require an enormous amount of data and memory, and for most prefixes we'd never observe enough examples to get a reliable estimate.
+
+An $N$-gram model deals with this by making an independence assumption: the distribution of $w_i$ depends only on the preceding $N - 1$ symbols, not on the entire prefix. That is:
+
+$$p(w_i \mid w_1 \ldots w_{i-1}) \approx p(w_i \mid w_{i-N+1} \ldots w_{i-1})$$
+
+Substituting this approximation into the exact chain rule decomposition gives us:
+
+$$p(w_1 w_2 \ldots w_n) \approx \prod_{i=1}^{n+1} p(w_i \mid w_{i-N+1} \ldots w_{i-1})$$
+
+where we pad the beginning of the string with $N-1$ copies of a start symbol $\langle\text{s}\rangle$ and append an end symbol $\langle\text{/s}\rangle$ at position $n + 1$.^[The start and end symbols ensure that the model can learn which phones tend to begin and end words. Without them, the model wouldn't distinguish between a phone that appears word-initially and one that appears word-medially.]
+
+Each conditional distribution $p(w_i \mid w_{i-N+1} \ldots w_{i-1})$ is a categorical distribution over $\Sigma$ (plus the end symbol), parameterized by a vector $\boldsymbol{\theta}^{(w_{i-N+1} \ldots w_{i-1})}$. So the full model is parameterized by a collection $\boldsymbol{\Theta}$ of such vectors—one for each possible context of length $N - 1$.
+
+## Maximum likelihood estimation
+
+Given a corpus of strings, we want to find the parameters $\boldsymbol{\Theta}$ that maximize the likelihood of the observed data. For a unigram model ($N = 1$), where there is no conditioning context, this amounts to:
+
+$$\hat{\boldsymbol{\Theta}}_\text{MLE} = \arg_{\boldsymbol{\Theta}}\max \prod_{j=1}^{V} \theta_j^{c_j}$$
+
+where $c_j$ is the number of times phone $j$ occurs in the corpus and $V = |\Sigma|$. The solution is to set each $\theta_j$ proportional to its count:
+
+$$\hat{\theta}_j = \frac{c_j}{\sum_k c_k}$$
+
+More generally, for any $N$-gram model:
+
+$$\hat{\theta}_{w_{i_1} \ldots w_{i_N}} = \frac{c_{i_1 i_2 \ldots i_N}}{\sum_j c_{i_1 i_2 \ldots j}}$$
+
+where $c_{i_1 i_2 \ldots i_N}$ is the number of times the sequence $w_{i_1} \ldots w_{i_N}$ occurs in the corpus. In words: the estimated probability of a phone given a context is just the proportion of times that phone follows that context in the training data.
+
+## Smoothing
+
+One issue with the MLE is that any $N$-gram that never occurs in the training data will be assigned probability zero. This is a problem because when we compute the probability of a string, we multiply conditionals together—and a single zero sends the entire product to zero. In log space, this looks like a single $-\infty$ sending the sum to $-\infty$.
+
+A simple fix is *add-$\lambda$ smoothing*: we add a pseudocount $\lambda$ to every $N$-gram count before normalizing.
+
+$$\hat{\theta}_{w_{i_1} \ldots w_{i_N}} = \frac{c_{i_1 i_2 \ldots i_N} + \lambda}{\sum_j \left[c_{i_1 i_2 \ldots j} + \lambda\right]}$$
+
+This ensures that no probability is ever exactly zero. When $\lambda = 0$, we recover the MLE. As $\lambda$ grows, the distribution becomes more uniform—the model relies less on the data and more on the assumption that all phones are roughly equally likely in any context. The value of $\lambda$ is a hyperparameter that we can tune.
+
+(For those interested: add-$\lambda$ smoothing corresponds to placing a symmetric Dirichlet prior $\text{Dir}(\mathbf{1} + \lambda)$ on each conditional distribution and computing a maximum a posteriori (MAP) estimate rather than an MLE. When $\lambda = 0$—i.e. a uniform Dirichlet $\text{Dir}(\mathbf{1})$—the MAP estimate reduces to the MLE.)
+
+We can thus view an $N$-gram model as having two hyperparameters: the order $N$ and the smoothing parameter $\lambda$.
+
+## Fitting $N$-gram models to a lexicon
+
+To see how well $N$-gram models predict phonotactic acceptability, we'll fit models to the [CMU Pronouncing Dictionary](https://web.archive.org/web/20210216211828/http://www.speech.cs.cmu.edu/cgi-bin/cmudict) and evaluate them against the acceptability judgments from @daland_explaining_2011.
+
+We begin by loading the dictionary, which uses the [ARPABET](https://en.wikipedia.org/wiki/ARPABET) representation, and converting it to IPA.
+
+```{python}
+#| code-fold: true
+#| code-summary: Load CMU Pronouncing Dictionary and convert to IPA
+
+import re
+import numpy as np
+import pandas as pd
+import nltk
+
+nltk.download('cmudict', quiet=True)
+
+from nltk.corpus import cmudict
+
+arpabet_to_phoneme = {
+    'AA': 'ɑ', 'AE': 'æ', 'AH': 'ʌ', 'AO': 'ɔ', 'AW': 'aʊ', 'AY': 'aɪ',
+    'B': 'b', 'CH': 'tʃ', 'D': 'd', 'DH': 'ð', 'EH': 'ɛ', 'ER': 'ɝ',
+    'EY': 'eɪ', 'F': 'f', 'G': 'g', 'HH': 'h', 'IH': 'ɪ', 'IY': 'i',
+    'JH': 'dʒ', 'K': 'k', 'L': 'l', 'M': 'm', 'N': 'n', 'NG': 'ŋ',
+    'OW': 'oʊ', 'OY': 'ɔɪ', 'P': 'p', 'R': 'ɹ', 'S': 's', 'SH': 'ʃ',
+    'T': 't', 'TH': 'θ', 'UH': 'ʊ', 'UW': 'u', 'V': 'v', 'W': 'w',
+    'Y': 'j', 'Z': 'z', 'ZH': 'ʒ'
+}
+
+entries = {
+    word: [arpabet_to_phoneme[re.sub(r'[0-9]', '', phone)] for phone in phones]
+    for word, phones in cmudict.entries()
+    if len(set(word)) > 1
+    if len(phones) > 1
+    if not re.findall(r'[^a-z]', word)
+}
+
+len(entries)
+```
+
+Next, we define the $N$-gram model. The implementation stores log-probabilities to avoid numerical underflow.
+
+```{python}
+#| code-fold: true
+#| code-summary: Define `NgramModel`
+
+from typing import List, Set, Iterable, Dict
+from collections import defaultdict, Counter
+from itertools import product
+
+alphabet = {phone for phones in entries.values() for phone in phones}
+
+
+class NgramModel:
+    """An N-gram language model with add-λ smoothing."""
+
+    def __init__(self, alphabet: Set[str], n: int = 2, lam: float = 0.):
+        self._alphabet = alphabet
+        self._n = n
+        self._lam = lam
+
+    def predict(self, string: List[str]) -> float:
+        """Compute the log-probability of a string."""
+        padded = ['<s>'] * (self._n - 1) + list(string) + ['</s>']
+
+        logprob = 0.
+        for i in range(self._n - 1, len(padded)):
+            context = tuple(padded[i - self._n + 1:i])
+            token = padded[i]
+
+            if self._n == 1:
+                context = ()
+                if token in ('<s>',):
+                    continue
+
+            if context in self._logprob and token in self._logprob[context]:
+                logprob += self._logprob[context][token]
+            else:
+                logprob += -np.inf
+
+        return logprob
+
+    def fit(self, lexicon: Iterable[List[str]]) -> 'NgramModel':
+        """Fit the model to a lexicon of phone sequences."""
+        vocab = self._alphabet | {'</s>'}
+
+        # Initialize frequency tables
+        freq: Dict[tuple, Counter] = {}
+
+        # Contexts that start with <s> padding
+        for k in range(1, self._n):
+            for ctx in product(*[self._alphabet] * (k - 1)):
+                full_ctx = tuple(['<s>'] * (self._n - k)) + ctx
+                freq[full_ctx] = Counter({v: 0 for v in vocab})
+
+        # All other contexts
+        for ctx in product(*[self._alphabet] * (self._n - 1)):
+            freq[ctx] = Counter({v: 0 for v in vocab})
+
+        # Unigram context
+        if self._n == 1:
+            freq[()] = Counter({v: 0 for v in vocab})
+
+        # Count N-grams
+        for word in lexicon:
+            padded = ['<s>'] * (self._n - 1) + list(word) + ['</s>']
+            for i in range(self._n - 1, len(padded)):
+                context = tuple(padded[i - self._n + 1:i])
+                token = padded[i]
+                if self._n == 1:
+                    context = ()
+                    if token == '<s>':
+                        continue
+                if context in freq:
+                    freq[context][token] += 1
+
+        # Compute log-probabilities with add-λ smoothing
+        self._logprob = {
+            ctx: {
+                tok: np.log(count + self._lam) -
+                     np.log(sum(counts.values()) + len(counts) * self._lam)
+                for tok, count in counts.items()
+            }
+            for ctx, counts in freq.items()
+        }
+
+        return self
+```
+
+We'll fit models with $N \in \{1, 2, 3, 4\}$ and a range of smoothing values $\lambda \in \{0, 0.1, 0.5, 1, 2, 5, 10\}$.
+
+```{python}
+models = defaultdict(dict)
+
+for n in range(1, 5):
+    for lam in [0., 0.1, 0.5, 1., 2., 5., 10.]:
+        models[n][lam] = NgramModel(alphabet, n=n, lam=lam).fit(entries.values())
+```
+
+## A few test cases
+
+To get an initial sense for how these models behave, we can look at the probabilities they assign to a few test words. These are constructed to have the same vowel and coda but different onsets, ranging from well-attested ($\text{blɪk}$) to unattested ($\text{bnɪk}$, $\text{bzɪk}$, $\text{bsɪk}$).
+
+```{python}
+test_words = [
+    ['b', 'l', 'ɪ', 'k'],
+    ['b', 'n', 'ɪ', 'k'],
+    ['b', 'z', 'ɪ', 'k'],
+    ['b', 's', 'ɪ', 'k'],
+]
+
+for n in [2, 3]:
+    for lam in [0., 1.]:
+        print(f'N={n}, λ={lam}:')
+        for w in test_words:
+            print(f'  {"".join(w):6s} {models[n][lam].predict(w):8.2f}')
+        print()
+```
+
+Notice that the models with $N > 1$ consistently assign higher probability to $\text{blɪk}$ (which has an attested onset cluster) than to $\text{bnɪk}$, $\text{bzɪk}$, or $\text{bsɪk}$ (which do not). The unigram model doesn't make this distinction, since it doesn't condition on previous phones at all.
+
+## Predicting acceptability
+
+Now let's ask a more systematic question: how well do these models predict the acceptability judgments from @daland_explaining_2011? We load the acceptability data and convert the ARPABET representations to IPA.
+
+```{python}
+#| code-fold: true
+#| code-summary: Load acceptability data and convert to IPA
+
+acceptability = pd.read_csv('Daland_etal_2011__AverageScores.csv')
+acceptability['phono_cmu'] = acceptability.phono_cmu.str.strip('Coda').str.split()
+
+
+def map_to_ipa(phones):
+    return [arpabet_to_phoneme[re.sub(r'[0-9]', '', p)] for p in phones]
+
+
+acceptability['phono_ipa'] = acceptability.phono_cmu.map(map_to_ipa)
+```
+
+The approach is straightforward. For each model, we compute the log-probability of each nonword in the dataset, then ask how well that log-probability predicts the human acceptability rating. We test the hypothesis that the relationship is linear:
+
+$$a_\mathbf{w} \sim \mathcal{N}(m \log p(\mathbf{w} \mid \boldsymbol\Theta) + b, \sigma^2)$$
+
+Because all the nonwords in the dataset happen to be the same length, we don't need to worry about length normalization here—though in general, we would need to, since longer strings tend to have lower log-probabilities simply because more terms are being multiplied together.
+
+We evaluate each model using 5-fold cross-validation, fitting a linear regression from log-probability to Likert rating.
+
+```{python}
+#| code-fold: true
+#| code-summary: Cross-validation
+
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import cross_val_score
+
+acceptability_shuffled = acceptability.sort_values(
+    'likert_rating'
+).sample(frac=1., random_state=40393, replace=False)
+
+cv_stats = []
+all_logprobs = []
+
+for n in range(1, 5):
+    for lam in [0., 0.1, 0.5, 1., 2., 5., 10.]:
+        logprob = acceptability_shuffled.phono_ipa.map(models[n][lam].predict)
+        logprob_min = logprob[logprob != -np.inf].min()
+        logprob = np.maximum(logprob, logprob_min - 1)
+
+        logprob_df = pd.DataFrame({
+            'logprob': logprob.values,
+            'likert_rating': acceptability_shuffled.likert_rating.values
+        })
+        logprob_df = logprob_df[~logprob_df.logprob.isnull()]
+        logprob_df['n'] = n
+        logprob_df['lam'] = lam
+
+        all_logprobs.append(logprob_df)
+
+        scores = cross_val_score(
+            LinearRegression(),
+            logprob_df.logprob.values[:, None],
+            logprob_df.likert_rating.values[:, None],
+            cv=5
+        )
+        stats = np.quantile(
+            [np.mean(np.random.choice(scores, size=5)) for _ in range(99)],
+            [0.5, 0.025, 0.975]
+        )
+        cv_stats.append([n, lam] + list(stats))
+
+all_logprobs = pd.concat(all_logprobs, axis=0)
+cv_stats = pd.DataFrame(cv_stats, columns=['n', 'lam', 'r2', 'ci_lo', 'ci_hi'])
+```
+
+The following plot shows the relationship between log-probability and acceptability rating for each combination of $N$ and $\lambda$.
+
+```{python}
+#| code-fold: true
+#| code-summary: Scatter plots of log-probability vs. acceptability
+
+import matplotlib.pyplot as plt
+
+fig, axes = plt.subplots(4, 7, figsize=(20, 12), sharex=False, sharey=True)
+lam_values = [0., 0.1, 0.5, 1., 2., 5., 10.]
+
+for row, n in enumerate(range(1, 5)):
+    for col, lam in enumerate(lam_values):
+        ax = axes[row, col]
+        subset = all_logprobs[(all_logprobs.n == n) & (all_logprobs.lam == lam)]
+        ax.scatter(subset.logprob, subset.likert_rating, alpha=0.3, s=8)
+
+        if len(subset) > 0:
+            m, b = np.polyfit(subset.logprob, subset.likert_rating, 1)
+            x_range = np.linspace(subset.logprob.min(), subset.logprob.max(), 50)
+            ax.plot(x_range, m * x_range + b, color='C1', linewidth=1.5)
+
+        if row == 0:
+            ax.set_title(f'λ={lam}', fontsize=10)
+        if col == 0:
+            ax.set_ylabel(f'N={n}', fontsize=10)
+
+        ax.tick_params(labelsize=7)
+
+fig.supxlabel('Log-probability', fontsize=12)
+fig.supylabel('Likert rating', fontsize=12)
+fig.tight_layout()
+plt.show()
+```
+
+And the following plot shows the cross-validated $R^2$ as a function of $\lambda$ for each value of $N$, with bootstrap confidence intervals.
+
+```{python}
+#| code-fold: true
+#| code-summary: Cross-validation performance
+
+fig, axes = plt.subplots(1, 4, figsize=(14, 3.5), sharey=True)
+
+for i, n in enumerate(range(1, 5)):
+    ax = axes[i]
+    subset = cv_stats[cv_stats.n == n]
+    ax.plot(subset.lam, subset.r2, marker='o', markersize=4)
+    ax.fill_between(subset.lam, subset.ci_lo, subset.ci_hi, alpha=0.15)
+    ax.set_title(f'N = {n}', fontsize=11)
+    ax.set_xlabel('λ', fontsize=10)
+    if i == 0:
+        ax.set_ylabel('$R^2$ (5-fold CV)', fontsize=10)
+    ax.tick_params(labelsize=8)
+
+fig.tight_layout()
+plt.show()
+```
+
+```{python}
+cv_stats.sort_values('r2', ascending=False).head(10)
+```
+
+A few things are worth noting. The unigram model ($N = 1$) does poorly regardless of $\lambda$, which makes sense: it has no way of capturing the fact that some sequences of phones are more acceptable than others, since it treats each phone independently. The bigram and trigram models do substantially better, and the best-performing models tend to use moderate smoothing. Too little smoothing and the model overfits to the training data; too much and it washes out the distinctions it learned.
+
+The fact that a simple bigram or trigram model trained on a dictionary can predict a reasonable amount of variance in human acceptability judgments is striking. It suggests that a good deal of phonotactic knowledge can be captured by tracking short-range sequential regularities in the lexicon—consistent with the lexicalist approach that @daland_explaining_2011 investigate.

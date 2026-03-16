@@ -1,0 +1,486 @@
+---
+title: Final Project
+highlight-style: oblivion
+format:
+  html:
+    code-tools: true
+jupyter: python3
+---
+
+In the final project for the course, you will develop a package for parsing with multiple context free grammars (MCFGs). This package must implement an agenda-based parser as described in [Shieber et al. 1995](https://doi.org/10.1016/0743-1066(95)00035-I). You should use the inference rules laid out in [Kallmeyer 2013](https://onlinelibrary.wiley.com/doi/pdf/10.1002/lnc3.359).
+
+In addition to a working agenda-based parser, the package must use the standard directory structure for a python package, including a full test suite implemented in [`pytest`](https://docs.pytest.org/). If you have not written a python package before, I encourage you to read [this tutorial](https://packaging.python.org/en/latest/tutorials/packaging-projects/) and use the directory structure they discuss:
+
+```
+PACKAGE_NAME/
+├── LICENSE
+├── pyproject.toml
+├── README.md
+├── src/
+│   └── PACKAGE_NAME/
+│       ├── __init__.py
+│       └── example.py
+└── tests/
+```
+
+## Test Grammar
+
+In writing tests, it will be useful to have a grammar to test your parser against. Rather than have you write your own, you might find it useful to use the one below.
+
+```
+S(uv) -> NP(u) VP(v)
+S(uv) -> NPwh(u) VP(v)
+S(vuw) -> Aux(u) Swhmain(v, w)
+S(uwv) -> NPdisloc(u, v) VP(w)
+S(uwv) -> NPwhdisloc(u, v) VP(w)
+Sbar(uv) -> C(u) S(v)
+Sbarwh(v, uw) -> C(u) Swhemb(v, w)
+Sbarwh(u, v) -> NPwh(u) VP(v)
+Swhmain(v, uw) -> NP(u) VPwhmain(v, w)
+Swhmain(w, uxv) -> NPdisloc(u, v) VPwhmain(w, x)
+Swhemb(v, uw) -> NP(u) VPwhemb(v, w)
+Swhemb(w, uxv) -> NPdisloc(u, v) VPwhemb(w, x)
+Src(v, uw) -> NP(u) VPrc(v, w)
+Src(w, uxv) -> NPdisloc(u, v) VPrc(w, x)
+Src(u, v) -> N(u) VP(v)
+Swhrc(u, v) -> Nwh(u) VP(v)
+Swhrc(v, uw) -> NP(u) VPwhrc(v, w)
+Sbarwhrc(v, uw) -> C(u) Swhrc(v, w)
+VP(uv) -> Vpres(u) NP(v)
+VP(uv) -> Vpres(u) Sbar(v)
+VPwhmain(u, v) -> NPwh(u) Vroot(v)
+VPwhmain(u, wv) -> NPwhdisloc(u, v) Vroot(w)
+VPwhmain(v, uw) -> Vroot(u) Sbarwh(v, w)
+VPwhemb(u, v) -> NPwh(u) Vpres(v)
+VPwhemb(u, wv) -> NPwhdisloc(u, v) Vpres(w)
+VPwhemb(v, uw) -> Vpres(u) Sbarwh(v, w)
+VPrc(u, v) -> N(u) Vpres(v)
+VPrc(v, uw) -> Vpres(u) Nrc(v, w)
+VPwhrc(u, v) -> Nwh(u) Vpres(v)
+VPwhrc(v, uw) -> Vpres(u) Sbarwhrc(v, w)
+NP(uv) -> D(u) N(v)
+NP(uvw) -> D(u) Nrc(v, w)
+NPdisloc(uv, w) -> D(u) Nrc(v, w)
+NPwh(uv) -> Dwh(u) N(v)
+NPwh(uvw) -> Dwh(u) Nrc(v, w)
+NPwhdisloc(uv, w) -> Dwh(u) Nrc(v, w)
+Nrc(v, uw) -> C(u) Src(v, w)
+Nrc(u, vw) -> N(u) Swhrc(v, w)
+Nrc(u, vwx) -> Nrc(u, v) Swhrc(w, x)
+Dwh(which)
+Nwh(who)
+D(the)
+D(a)
+N(greyhound)
+N(human)
+Vpres(believes)
+Vroot(believe)
+Aux(does)
+C(that)
+```
+
+Whatever grammar you use, you'll want to load this grammar as a `pytest.fixture` within your tests.
+
+## Rules
+
+To get you off the ground, I've provided some tools for representing rules in an MCFG. Like the context free grammar `Rule`s you worked with in [Assignments 9 and 10](assignments-9-and-10.ipynb), `MCFGRule`s have a left side and a right side, but rather than simply being composed of a right side of type `str` and a left side of type `tuple[str, ...]`, they are composed of a right side of type `MCFGRuleElement` and a left side of type `tuple[MCFGRuleElement, ...]`. The reason for this is that we need to track not only the variable—e.g. `S`, `NP`, `VP`, etc.—but also the string variable(s) associated with that variable.
+
+```{python}
+import re
+
+StringVariables = tuple[int, ...]
+
+class MCFGRuleElement:
+
+    """A multiple context free grammar rule element
+
+    Parameters
+    ----------
+    variable
+    string_variables
+
+    Attributes
+    ----------
+    symbol
+    string_variables
+    """
+
+    def __init__(self, variable: str, *string_variables: StringVariables):
+        self._variable = variable
+        self._string_variables = string_variables
+
+    def __str__(self) -> str:
+        strvars = ', '.join(
+            ''.join(str(v) for v in vtup)
+            for vtup in self._string_variables
+        )
+        
+        return f"{self._variable}({strvars})"
+
+    def __eq__(self, other) -> bool:
+        vareq = self._variable == other._variable
+        strvareq = self._string_variables == other._string_variables
+        
+        return vareq and strvareq
+        
+    def to_tuple(self) -> tuple[str, tuple[StringVariables, ...]]:
+        return (self._variable, self._string_variables)
+
+    def __hash__(self) -> int:
+        return hash(self.to_tuple())
+        
+    @property
+    def variable(self) -> str:
+        return self._variable
+
+    @property
+    def string_variables(self) -> tuple[StringVariables, ...]:
+        return self._string_variables
+
+    @property    
+    def unique_string_variables(self) -> set[int]:
+        return {
+            i
+            for tup in self.string_variables
+            for i in tup
+        }
+```
+
+An `MCFGRuleElement` is thus basically a wrapper around a variable, represented as a `str`, and a (possibly singleton or empty) tuple of variables, represented as `tuple[int, ...]`. For instance, one rule in the grammar is `VPwhemb(u, v) -> NPwh(u) Vpres(v)`, where `u` and `v` might be represented as `Tuple[int]`s `(0,)` and `(1,)`, respectively.
+
+```{python}
+print(
+    MCFGRuleElement('VPwhemb', (0,), (1,)),
+    "->", 
+    MCFGRuleElement('NPwh', (0,)), 
+    MCFGRuleElement('Vpres', (1,))
+)
+```
+
+The reason string variables must be represented as `tuple[int, ...]`s, rather than simply `int`, is to ensure that we can correctly represent left sides of rules that concatenate string variables, like `VPwhemb(u, wv) -> NPwhdisloc(u, v) Vpres(w)`.
+
+```{python}
+print(
+    MCFGRuleElement('VPwhemb', (0,), (2, 1)),
+    "->", 
+    MCFGRuleElement('NPwhdisloc', (0,), (1,)),
+    MCFGRuleElement('Vpres', (2,))
+)
+```
+
+One complexity that MCFGs add on top of CFGs is that we now need to explicitly track which string spans correspond to which variables. For instance, in _who does the greyhound believe_, `u` and `v` in `VPwhmain(u, v) -> NPwh(u) Vroot(v)` will be instantiated by _who_ at $(0, 1)$ and _believe_ at $(4, 5)$, respectively. 
+
+And if we want to put that `VPwhmain` constituent together with _the greyhound_ at $(2, 4),$ which instantiates `NP(uv) -> D(u) N(v)`, we need to know that the span at $(2, 4)$ instantiates `uv` to ensure that, e.g., the spans satisfy the constraints implied by some other rule. For instance, to know that `Swhmain(v, uw) -> NP(u) VPwhmain(v, w)` can be instantiated by _who_ and _the greyhound believe_, we need to know that the span instantiating `u`, _the greyound_ at $(2, 4)$, has a right edge matching the left edge of the span instantiating `w`, _believe_ at $(4, 5)$—though there are no similar constraints for the left edge of the span instantiating `u` or the left or right edge of the span instantiating `v`. 
+
+Because it is non-trivial to implement, I have already done the work of calculating satisfaction of those constraints in methods defined in `MCFGRule` below. You will write docstrings for these methods in Task 1. To keep track of this sort of information, we will use `MCFGRuleElementInstance`s, which pair a variable with a span (represented as a `tuple[int, ...]`).
+
+```{python}
+SpanIndices = tuple[int, ...]
+
+class MCFGRuleElementInstance:
+    """An instantiated multiple context free grammar rule element
+
+    Parameters
+    ----------
+    symbol
+    string_spans
+
+    Attributes
+    ----------
+    symbol
+    string_spans
+    """
+    def __init__(self, variable: str, *string_spans: SpanIndices):
+        self._variable = variable
+        self._string_spans = string_spans
+
+    def __eq__(self, other: 'MCFGRuleElementInstance') -> bool:
+        vareq = self._variable == other._variable
+        strspaneq = self._string_spans == other._string_spans
+        
+        return vareq and strspaneq
+        
+    def to_tuple(self) -> tuple[str, tuple[SpanIndices, ...]]:
+        return (self._variable, self._string_spans)
+
+    def __hash__(self) -> int:
+        return hash(self.to_tuple())
+
+    def __str__(self):
+        strspans = ', '.join(
+            str(list(stup))
+            for stup in self._string_spans
+        )
+        
+        return f"{self._variable}({strspans})"
+
+    def __repr__(self) -> str:
+        return self.__str__()
+    
+    @property
+    def variable(self) -> str:
+        return self._variable
+
+    @property
+    def string_spans(self) -> tuple[SpanIndices, ...]:
+        return self._string_spans
+```
+
+The full `MCFGRule` implementation is given below.
+
+```{python}
+SpanMap = dict[int, SpanIndices]
+
+class MCFGRule:
+    """A linear multiple context free grammar rule
+
+    Parameters
+    ----------
+    left_side 
+    right_side
+
+    Attributes
+    ----------
+    left_side
+    right_side
+    """
+
+    def __init__(self, left_side: MCFGRuleElement, *right_side: MCFGRuleElement):
+        self._left_side = left_side
+        self._right_side = right_side
+
+        self._validate()
+
+    def to_tuple(self) -> tuple[MCFGRuleElement, tuple[MCFGRuleElement, ...]]:
+        return (self._left_side, self._right_side)
+
+    def __hash__(self) -> int:
+        return hash(self.to_tuple())
+    
+    def __repr__(self) -> str:
+        return '<Rule: '+str(self)+'>'
+        
+    def __str__(self) -> str:
+        if self.is_epsilon:
+            return str(self._left_side)                
+
+        else:
+            return str(self._left_side) +\
+                ' -> ' +\
+                ' '.join(str(el) for el in self._right_side)
+
+    def __eq__(self, other: 'MCFGRule') -> bool:
+        left_side_equal = self._left_side == other._left_side
+        right_side_equal = self._right_side == other._right_side
+
+        return left_side_equal and right_side_equal
+
+    def _validate(self):
+        vs = [
+            el.unique_string_variables
+            for el in self.right_side
+        ]
+        sharing = any(
+            vs1.intersection(vs2)
+            for i, vs1 in enumerate(vs)
+            for j, vs2 in enumerate(vs)
+            if i < j
+        )
+
+        if sharing:
+            raise ValueError(
+                'right side variables cannot share '
+                'string variables'
+            )
+
+        if not self.is_epsilon:
+            left_vars = self.left_side.unique_string_variables
+            right_vars = {
+                var for el in self.right_side
+                for var in el.unique_string_variables
+            }
+            if left_vars != right_vars:
+                raise ValueError(
+                    'number of arguments to instantiate must '
+                    'be equal to number of unique string_variables'
+                )
+        
+    @property
+    def left_side(self) -> MCFGRuleElement:
+        return self._left_side
+
+    @property
+    def right_side(self) -> tuple[MCFGRuleElement, ...]:
+        return self._right_side
+
+    @property
+    def is_epsilon(self) -> bool:
+        return len(self._right_side) == 0
+
+    @property
+    def unique_variables(self) -> set[str]:
+        return {
+            el.variable
+            for el in [self._left_side]+list(self._right_side)
+        }
+
+    def instantiate_left_side(self, *right_side: MCFGRuleElementInstance) -> MCFGRuleElementInstance:
+        """Instantiate the left side of the rule given an instantiated right side
+
+        Parameters
+        ----------
+        right_side
+            The instantiated right side of the rule.
+        """
+        
+        if self.is_epsilon:
+            strvars = tuple(v[0] for v in self._left_side.string_variables)
+            strconst = tuple(el.variable for el in right_side)
+            
+            if strconst == strvars:
+                return MCFGRuleElementInstance(
+                    self._left_side.variable,
+                    *[s for el in right_side for s in el.string_spans]
+                )
+
+        new_spans = []
+        span_map = self._build_span_map(right_side)
+        
+        for vs in self._left_side.string_variables:
+            for i in range(1,len(vs)):
+                end_prev = span_map[vs[i-1]][1]
+                begin_curr = span_map[vs[i]][0]
+
+                if end_prev != begin_curr:
+                    raise ValueError(
+                        f"Spans {span_map[vs[i-1]]} and {span_map[vs[i]]} "
+                        f"must be adjacent according to {self} but they "
+                        "are not."
+                    )
+                
+            begin_span = span_map[vs[0]][0]
+            end_span = span_map[vs[-1]][1]
+
+            new_spans.append((begin_span, end_span))
+
+        return MCFGRuleElementInstance(
+            self._left_side.variable, *new_spans
+        )
+
+    
+    def _build_span_map(self, right_side: tuple[MCFGRuleElementInstance, ...]) -> SpanMap:
+        """Construct a mapping from string variables to string spans"""
+        
+        if self._right_side_aligns(right_side):
+            return {
+                strvar[0]: strspan
+                for elem, eleminst in zip(
+                    self._right_side,
+                    right_side
+                )
+                for strvar, strspan in zip(
+                    elem.string_variables,
+                    eleminst.string_spans
+                )
+            }
+        else:
+            raise ValueError(
+                f"Instantiated right side {right_side} do not "
+                f"align with rule's right side {self._right_side}"
+            )
+
+    def _right_side_aligns(self, right_side: tuple[MCFGRuleElementInstance, ...]) -> bool:
+        """Check whether the right side aligns"""
+
+        if len(right_side) == len(self._right_side):
+            vars_match = all(
+                elem.variable == eleminst.variable
+                for elem, eleminst in zip(self._right_side, right_side)
+            )
+            strvars_match = all(
+                len(elem.string_variables) == len(eleminst.string_spans)
+                for elem, eleminst in zip(self._right_side, right_side)
+            )
+
+            return vars_match and strvars_match
+        else:
+            return False 
+
+    @classmethod
+    def from_string(cls, rule_string) -> 'MCFGRule':
+        elem_strs = re.findall('(\w+)\(((?:\w+,? ?)+?)\)', rule_string)
+
+        elem_tuples = [(var, [v.strip()
+                              for v in svs.split(',')])
+                       for var, svs in elem_strs]
+
+        if len(elem_tuples) == 1:
+            return cls(MCFGRuleElement(elem_tuples[0][0],
+                                   tuple(w for w in elem_tuples[0][1])))
+
+        else:
+            strvars = [v for _, sv in elem_tuples[1:] for v in sv]
+
+            # no duplicate string variables
+            try:
+                assert len(strvars) == len(set(strvars))
+            except AssertionError:
+                msg = 'variables duplicated on right side of '+rule_string
+                raise ValueError(msg)
+
+            
+            elem_left = MCFGRuleElement(elem_tuples[0][0],
+                                    *[tuple([strvars.index(v)
+                                             for v in re.findall('('+'|'.join(strvars)+')', vs)])
+                                      for vs in elem_tuples[0][1]])
+
+            elems_right = [MCFGRuleElement(var, *[(strvars.index(sv),)
+                                              for sv in svs])
+                           for var, svs in elem_tuples[1:]]
+
+            return cls(elem_left, *elems_right)
+        
+    def string_yield(self):
+        if self.is_epsilon:
+            return self._left_side.variable
+        else:
+            raise ValueError(
+                'string_yield is only implemented for epsilon rules'
+            )
+```
+
+To make grammar loading easier, I have provided a class method for reading rules from strings.
+
+```{python}
+rule = MCFGRule.from_string('A(w1u, x1v) -> B(w1, x1) C(u, v)')
+
+rule
+```
+
+One very important instance method to note in this implementation is `MCFGRule.instantiate_left_side`. This method will be crucial in your implementations–particularly, in implementing the inference rules of the parser. Before you do anything else, you should make sure to understand how it works. An example usage can be found below.
+
+```{python}
+rule.instantiate_left_side(
+    MCFGRuleElementInstance("B", (1, 2), (5, 7)),
+    MCFGRuleElementInstance("C", (2, 4), (7, 8))
+)
+```
+
+This functionality is the main reason I'm providing you an implementation of `MCFGRule` in the first place: it is nontrivial but mostly because it is tedious, rather than difficult to understand conceptually. I'm more concerned with you demonstrating understanding of deductive parsing in general and agenda-based parsing specifically.
+
+## Structuring your package
+
+I suggest structuring your package into three separate modules:
+
+1. `grammar`: classes for representing MCFGs, including the classes for representing rules given above and a class for representing a grammar as a collection of such rules that provides an interface to your agenda-based parser.
+2. `parser`: classes for representing your parser and any data structures that your parser manipulates.
+3. `tree`: a class for representing parse trees produced by your parser.
+
+You may draw on any code I have provided you in the course. The code from [Assignments 9 and 10](assignments-9-and-10.ipynb) may be particularly useful for you.
+
+The structure of your test suite should mirror the structure of your package–with each module having its own test module and each test module being structured analogously to the module it tests. For instance, if you are testing a class, you should have a corresponding [test class](https://docs.pytest.org/en/7.1.x/getting-started.html#group-multiple-tests-in-a-class) in your test module that bundles together all of the tests for methods in that class. 
+
+**You must have tests every class and every method within that class, even the most trivial.** This requirement includes the code I give you above: you must provide tests of `MCFGRuleElement`, `MCFGRuleElementInstance`, and `MCFGRule`. Indeed, I would suggest that the first thing you do is to create a `grammar` module that contains these classes and begin writing your test suite with a `test_grammar` module in `tests/`.
+
+Finally, all of your code must contain docstrings in `numpy` style for every module, every class, and every public method implemented in a class. (Ideally, you would provide docstrings for the private methods as well, but I will not require that.) I suggest you also type-hint every method.
+

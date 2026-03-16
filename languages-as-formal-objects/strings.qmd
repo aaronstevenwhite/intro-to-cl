@@ -1,0 +1,101 @@
+---
+title: Strings
+jupyter: python3
+---
+
+We build strings from some alphabet/lexicon $\Sigma$.
+
+Strings of length $N$ are given by $\Sigma^N$ and the **Kleene
+closure** of $\Sigma$—notated $\Sigma^*$—gives us the set
+of all such sets.
+
+$$\Sigma^* \equiv \bigcup_{i\in\mathbb{N}} \Sigma^i$$
+
+As an infinite set, we need to implement $\Sigma^*$ using a generator. We'll start by defining a function that produces $\Sigma^i$.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 181, status: ok, timestamp: 1643219172265, user: {displayName: Aaron Steven White, photoUrl: 'https://lh3.googleusercontent.com/a-/AOh14GjIthWcbbAkpz4qrGfqtOGZvudhRK2mQl0LCAJjbw=s64', userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 00baa0be-47d1-403f-b8e9-9982f849a890
+from itertools import product
+
+def sigma_i(sigma: set[str], i: int) -> product:
+    sigma_repeated = [sigma]*i
+    return product(*sigma_repeated)
+
+sigma = ["ɹ", "d", "u"]
+
+for s in sigma_i(sigma, 3):
+    print(''.join(s))
+```
+
+We can then define $\Sigma^*$ using a generator comprehension.
+
+```{python}
+#| code-fold: true
+#| code-summary: Generator for natural numbers
+
+def natural_numbers() -> int:
+    """Initialize a generator for the natural numbers"""
+    i = 0
+    while True:
+        yield i
+        i += 1
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 171, status: ok, timestamp: 1643219179301, user: {displayName: Aaron Steven White, photoUrl: 'https://lh3.googleusercontent.com/a-/AOh14GjIthWcbbAkpz4qrGfqtOGZvudhRK2mQl0LCAJjbw=s64', userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 3040ebc6-db96-4e19-ad5f-0a1672e7b8bf
+sigma_star = (''.join(s) 
+              for i in natural_numbers() 
+              for s in sigma_n(sigma, i))
+
+for s in sigma_star:
+    if len(s) < 4:
+        print(s)
+    else:
+        break
+```
+
+::: {.callout-caution}
+## Question
+
+How many strings are there in $\Sigma^*$ (assuming that $\Sigma$ is finite)? That is, what is $|\Sigma^*| = |\bigcup_{i\in\mathbb{N}} \Sigma^i|$?
+:::
+
+It must be at least at least as big as $|\mathbb{N}|$, since we have a nonempty set $\Sigma^i$ corresponding to each natural number $i$.
+
+Surprisingly, $|\Sigma^*|$ turns out to be exactly as big as $|\mathbb{N}|$, which we can show by demonstrating that there is a _bijection_ from $\mathbb{N}$ to $\Sigma^*$: for each $i \in \mathbb{N}$ we can map $i$ to a unique string in $\Sigma^*$ and for each string in $\Sigma^*$, we can map that string to a unique natural number $i$. This bijection is a total function from $\mathbb{N}$ to $\Sigma^*$.
+
+The trick is to notice that each $\Sigma^i$ is itself of finite cardinality. This means that we can always break off a chunk of the natural numbers to allocate for building a sequence of all strings in $\Sigma^i$. The idea is then that we can then stitch those sequences together to get a sequence of all $\Sigma^*$ that never repeats strings.
+
+You can get an idea for how this works by enumerating the strings we generate from `sigma_star`.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 226, status: ok, timestamp: 1643219187279, user: {displayName: Aaron Steven White, photoUrl: 'https://lh3.googleusercontent.com/a-/AOh14GjIthWcbbAkpz4qrGfqtOGZvudhRK2mQl0LCAJjbw=s64', userId: 06256629009318567325}, user_tz: 300}
+#| outputId: a33a5267-d0fc-49ed-add2-5f1d14f7f7bd
+N = natural_numbers()
+
+sigma_star = (''.join(s) 
+              for i in N 
+              for s in sigma_n(sigma, i))
+
+for j, s in enumerate(sigma_star):
+    if len(s) < 5:
+        print(j, s)
+    else:
+        break
+```
+
+So for instance, in the above, you can think of the enumeration as setting aside $\{1, 2, 3\}$ for the strings of length 1, $\{4, \ldots, 12\}$ for the strings of length 2, and so on.
+
+More formally, we'll set aside a chunk of natural numbers $N_i \equiv \left\{\left[\max N_{i-1}\right] + 1, ..., [\max N_{i-1}] + |\Sigma^i| + 1\right\}$–with $N_0 \equiv \{|\Sigma^0| - 1\} = \{0\}$–for each $\Sigma^i$. Note that this definition ensures that $N_i \cap N_j = \emptyset$ for all $i \neq j$. That is, the chunk of natural numbers $N_i$ we set aside for $\Sigma^i$ is disjoint from the chunk of natural numbers $N_j$ we set aside for $\Sigma^j$ when $i \neq j$, and $|N_i| = |\Sigma^i|$.
+
+We then use $N_i$ to construct a sequence $S_i: N_i \rightarrow \Sigma ^i$. Finally, we can stitch those sequences together by defining $S_*: \mathbb{N} \rightarrow \Sigma^*$ in terms of those $S_i$ along with a function $k: \mathbb{N} \rightarrow \mathbb{N}$ that satisfies $k^{-1}(\{i\}) = N_i$ for all $i \in \mathbb{N}$–i.e. the preimage of $\{i\}$ under $k$ is $N_i$.
+
+$$S_*(n) = S_{k(n)}(n)$$
+
+One question you might have is how do we know how to build the sequence $S_i$ for an arbitrary set of strings $\Sigma^i$ of length $i$. As long as the alphabet/lexicon $\Sigma$ is finite, we can do this by imposing an order on $\Sigma$ itself, then use that to order sort the elements of $\Sigma^i$ in lexicographic order.
+

@@ -1,0 +1,135 @@
+---
+title: Relations and Functions
+jupyter: python3
+---
+
+## Relations
+
+A *relation* $R$ is a subset of the product of sets $A_1 \times A_2 \times \ldots \times A_N$. That means that elements of a relation are $N$-tuples. Including a particular tuple in the relation represents that the things in the tuple have that relationship to each other.
+
+For example, the relation between vowel height $H = \{\mathrm{high}, \mathrm{mid}, \mathrm{low}\}$ and the English vowels $V = \{\mathrm{i}, \mathrm{u}, ...\}$ that have that height and can be represented as a relation $R_\text{height-of}$.
+
+```{python}
+height_of: set[tuple[str, str]] = {
+    ('high', 'i'),
+    ('high', 'ɪ'),
+    ('high', 'u'),
+    ('high', 'ʊ'),
+    ('mid', 'e'),
+    ('mid', 'ɛ'),
+    ('mid', 'o'),
+    ('mid', 'ɔ'),
+    ('mid', 'ə'),
+    ('low', 'ɑ'),
+    ('low', 'æ')
+}
+```
+
+$R_\text{height-of}$ is a relation, since it is the subset of $H \times V$.
+
+$$R_\text{height-of} \subseteq H \times V$$
+
+## Functions
+
+Functions–or more specifically, their *graphs*–are particular kinds of relations. The (graph of a) **function** $F \subseteq X \times Y$ is a relation s.t. if $\langle x, y \rangle \in F \land \langle x, z \rangle \in F$, then $y = z$.
+
+For instance, the relation $R_\text{height-of}$ is not a function, but its inverse relation $R_\text{height-of}^{-1} = R_\text{has-height}$ is.
+
+$$R^{-1}_\text{height-of} = R_\text{has-height} = \{\langle y, x \rangle \;|\; \langle x, y \rangle \in R_\text{height-of}\}$$
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 183, status: ok, timestamp: 1643047553438, user: {displayName: Aaron Steven White, photoUrl: 'https://lh3.googleusercontent.com/a-/AOh14GjIthWcbbAkpz4qrGfqtOGZvudhRK2mQl0LCAJjbw=s64', userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 9ff029fe-0e04-445c-911b-808e54858fd4
+has_height: set[tuple[str, str]] = {(y, x) for x, y in height_of}
+
+has_height
+```
+
+We can check that it is a function by checking that:
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 202, status: ok, timestamp: 1643047574771, user: {displayName: Aaron Steven White, photoUrl: 'https://lh3.googleusercontent.com/a-/AOh14GjIthWcbbAkpz4qrGfqtOGZvudhRK2mQl0LCAJjbw=s64', userId: 06256629009318567325}, user_tz: 300}
+#| outputId: e5501d14-079c-4c37-9853-5b714737438a
+len({x for x, _ in has_height}) == len(has_height)
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 194, status: ok, timestamp: 1643047578357, user: {displayName: Aaron Steven White, photoUrl: 'https://lh3.googleusercontent.com/a-/AOh14GjIthWcbbAkpz4qrGfqtOGZvudhRK2mQl0LCAJjbw=s64', userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 063369b3-36b3-4c9e-b761-2aea1461b577
+len({x for x, y in height_of}) == len(height_of)
+```
+
+### Partiality
+
+A function is *total* if $X = \{x \;|\; \langle x, y \rangle \in F\}$; otherwise it is *partial*.
+
+### Domain and codomain
+
+We often think of functions as mapping inputs to outputs. The inputs of the function come from its *domain* and the outputs come from its *codomain*.
+
+For instance, if we view $R_\text{has-height}$ as a function $f_\text{has-height}$, the domain of $f_\text{has-height}$ is the set of vowels $V$ and the codomain is the set of heights $H$. We will often express this using the following notation.
+
+$$f_\text{has-height}: V \rightarrow H$$
+
+Sometimes we will express it using two other functions $\text{dom}$ and $\text{cod}$.
+
+$$\text{dom}(f_\text{has-height}) = V$$
+$$\text{cod}(f_\text{has-height}) = H$$
+
+For a function $f$ with graph $R$, we denote each $y$ s.t. $\langle x, y \rangle \in F$ as $f(x)$.
+
+### Image
+
+The **image** of $W \subseteq X$ under $f$ is $f(W) = \{f(x) \;|\; x \in W\}$.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 217, status: ok, timestamp: 1643047802023, user: {displayName: Aaron Steven White, photoUrl: 'https://lh3.googleusercontent.com/a-/AOh14GjIthWcbbAkpz4qrGfqtOGZvudhRK2mQl0LCAJjbw=s64', userId: 06256629009318567325}, user_tz: 300}
+#| outputId: b0a28e6d-ef94-4f99-8547-0d76955e96af
+from typing import TypeVar
+
+T = TypeVar("T")
+
+def image(w: set[T], f: set[tuple[T, T]]) -> set[T]:
+    return {y for x, y in f if x in w}
+
+image({'i'}, has_height)
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 221, status: ok, timestamp: 1643047881818, user: {displayName: Aaron Steven White, photoUrl: 'https://lh3.googleusercontent.com/a-/AOh14GjIthWcbbAkpz4qrGfqtOGZvudhRK2mQl0LCAJjbw=s64', userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 0b6f12ea-5bf1-439c-bf8f-d92df02715a5
+image({'i', 'e'}, has_height)
+```
+
+### Preimage
+
+The **preimage** of $Z \subseteq Y$ under $f$ is $f^{-1}(Z) = \{x \;|\;  f(x) \in Z\}$.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 213, status: ok, timestamp: 1643047943947, user: {displayName: Aaron Steven White, photoUrl: 'https://lh3.googleusercontent.com/a-/AOh14GjIthWcbbAkpz4qrGfqtOGZvudhRK2mQl0LCAJjbw=s64', userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 0957c36f-bb55-4bd9-eea3-a48824e27645
+def preimage(z: set[T], f: set[tuple[T, T]]) -> set[T]:
+    return {x for x, y in f if y in z}
+
+preimage({'high'}, has_height)
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 204, status: ok, timestamp: 1643048001547, user: {displayName: Aaron Steven White, photoUrl: 'https://lh3.googleusercontent.com/a-/AOh14GjIthWcbbAkpz4qrGfqtOGZvudhRK2mQl0LCAJjbw=s64', userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 26aaf92c-6cd4-4636-e279-2bd667310235
+heights: set[str] = {h for h, _ in height_of}
+
+preimage(heights - {'low'}, has_height)
+```
+
+### Range
+
+The *range* of $X$ under $f$ is the image of $X$ under $f$: $f(X)$.
+

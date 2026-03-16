@@ -1,0 +1,157 @@
+---
+title: Power Sets
+jupyter: python3
+---
+
+The set of all subsets of a set is its **power set**.
+
+$$\mathcal{P}(A) = 2^A = \{X \mid X \subseteq A\}$$
+
+For example, for the set $\{\text{i}, \text{u}, \text{ə}\}$, we have:
+
+$$\mathcal{P}(\{\text{i},\text{u},\text{ə}\}) = 2^{\{\text{i},\text{u},\text{ə}\}} = \{\emptyset, \{\text{i}\}, \{\text{u}\}, \{\text{ə}\}, \{\text{i}, \text{u}\}, \{\text{u},\text{ə}\}, \{\text{i},\text{ə}\}, \{\text{i}, \text{u}, \text{ə}\}\}$$
+
+To obtain the power set of some set, we can loop through all possible subset cardinalities, and use the `itertools.combinations` function to obtain all subsets of our set of interest (the high vowels) of a particular cardinality. To do this, we need a second loop over the output of `itertools.combinations` at each cardinality is necessary to flatten the sets.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 289, status: ok, timestamp: 1673978223849, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: cc9987fb-af45-4c1a-82fb-451bbcbc3268
+from itertools import combinations
+
+high_vowels: set[str] = {'u', 'ʊ', 'i', 'ɪ'}
+
+powerset_of_high_vowels = {subset 
+                           for cardinality in range(len(high_vowels)+1) 
+                           for subset in combinations(high_vowels, cardinality)}
+
+powerset_of_high_vowels
+```
+
+One slightly weird thing about this output is that the set we get has `tuple`s as elements. For most purposes, this result is fine, but sometimes we want the elements to themselves be `set`s, so we can do `set` operations on them easily. The issue is that, as we've already seen, `set`s can't be elements of `set`s in Python. This is a case where we need `frozenset`s.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 289, status: ok, timestamp: 1673978230587, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: f28b222e-9971-47e0-b8e3-2cb9a579f818
+powerset_of_high_vowels = {frozenset(subset) 
+                           for cardinality in range(len(high_vowels)+1) 
+                           for subset in combinations(high_vowels, cardinality)}
+
+powerset_of_high_vowels
+```
+
+So if we wanted to be able to take the power set of anything we can represent in python as a `set`, we could wrap this comprehension in a function. 
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 267, status: ok, timestamp: 1673979085882, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: fd4e1f31-e6b9-4a6f-984c-c9e51ff60274
+from typing import Set
+
+def powerset(x: set) -> Set[frozenset]:
+  return {
+      frozenset(subset) 
+      for cardinality in range(len(x)+1) 
+      for subset in combinations(x, cardinality)
+  }
+
+powerset(high_vowels)
+```
+
+Alternatively, we can use the following [`itertools` recipe](https://docs.python.org/3/library/itertools.html#itertools-recipes). The main difference here is that we don't have the explicit `for` loop over subsets of a particular cardinality, which we needed for the purposes of flattening sets. That's what `itertools.chain.from_iterable` does for us. This returns an `itertools.chain` object, which you can treat as a generator.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/', height: 201}
+#| executionInfo: {elapsed: 144, status: error, timestamp: 1674064543080, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 6eef178b-8a66-443f-d540-bdbc9c552f5a
+from typing import Iterable
+from itertools import chain
+
+def powerset(iterable: Iterable) -> chain:
+    s = list(iterable)
+    return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
+
+powerset(high_vowels)
+```
+
+To get a `set` of `frozenset`s, we need to some explicit type casting (so we don't really avoid the second `for` loop...).
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 4, status: ok, timestamp: 1673978476727, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 3287ece2-406f-4cb2-d066-1b99143d9bd8
+{frozenset(subset) for subset in powerset(high_vowels)}
+```
+
+Note that the thing we're taking the power set of needs to be of finite size in both implementations–i.e. it can't be a generator that runs forever. To see this, let's create a generator for the natural numbers using `yield` statements. If we create a generator by calling `natural_numbers` with no arguments, it would run forever. (Below I `break` it after 10 iterations.) 
+
+And if I pass this generator (an iterable) to `powerset`, it will hang.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 5, status: ok, timestamp: 1674064831667, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: d6421ab4-3ce2-4890-b759-368d6690bbc3
+from collections.abc import Generator
+from multiprocessing import Process
+
+def natural_numbers() -> int:
+    """Initialize a generator for the natural numbers"""
+    i = 0
+    while True:
+        yield i
+        i += 1
+
+# initialize a generator of the natural numbers
+N: Generator[int] = natural_numbers()
+
+# this will hang
+# powerset(N)
+```
+
+If we want to be able to generate elements of the power set of an infinite set, we will have to do it in a slightly smarter way.
+
+```{python}
+#| executionInfo: {elapsed: 4, status: ok, timestamp: 1674495161559, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+from typing import TypeVar, Set, Iterable
+
+T = TypeVar("T")
+
+emptyset = frozenset()
+
+def powerset(iterable: Iterable[T]) -> Set[T]:
+    yield emptyset
+
+    seen = {emptyset}
+
+    for r in iterable:
+        new = {s | frozenset({r}) for s in seen}
+        for n in new:
+            yield n
+            seen.add(n)
+```
+
+This will still get us the correct result for finite sets.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 5, status: ok, timestamp: 1673982365714, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 99f709c4-da6d-4796-ca1c-d29f0750ef97
+{s for s in powerset(high_vowels)}
+```
+
+And it will also work for infinite sets.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 263, status: ok, timestamp: 1673982368798, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: fdc622c5-6591-4442-a63b-325691f736aa
+N = natural_numbers()
+
+for i, s in enumerate(powerset(N)):
+  if i < 100:
+    print(s)
+  else:
+    break
+```
+

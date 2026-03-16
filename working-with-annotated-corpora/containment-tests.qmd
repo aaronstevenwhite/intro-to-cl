@@ -1,0 +1,260 @@
+---
+title: Containment Tests
+jupyter: python3
+---
+
+Suppose I’m interested in finding all sentences with a definite determiner in a subject. This means checking whether a particular subtree (corresponding to the subject) contains a particular element. 
+
+Let's figure out how to compute whether a tree contains a particular piece of data, and then we'll get back to figuring out how to grab the relevant subtree. 
+
+Containment tests for a particular class (viewed as a sort of container) are often implemented in the `__contains__` magic method, which defines the behavior of `in`. The idea is that `__contains__` should take a piece of data and tell us whether it matches a piece of data somewhere in the tree. So basically, we want the analogue of asking whether a list contains some element using `in`.
+
+For a list, containment could be naturally implemented using a `for`-loop. So suppose we're redefining the `list` class, `__contains__` could be implemented something like this:
+
+```python
+def __contains__(self, data):
+    for d in self:
+        if d == data:
+            return True
+    
+    return False
+```
+
+The way we'll implement `__contains__` for `Tree` is analogous, but we have to take into account that the tree has a more interesting structure to it. We'll do this by implementing two kinds of tree search algorithms: 
+
+- depth-first search
+- breath-first search
+
+In both kinds of search, we start at the top of the tree and work our way down, the question is which nodes we look at.
+
+## Depth-first search
+
+We'll look at two ways we can implement depth-first search: pre-order and post-order.
+
+### Pre-order depth-first search
+
+To conduct pre-order depth-first search, we start from the left-most child subtree and,
+moving right, look at the data at the root of that subtree; then do
+pre-order depth-first search on that subtree. 
+
+This search path is visualized in the image below, where the line is our traversal path and the dots are wehn we look at a piece of data in a node.
+
+![500px-Sorted_binary_tree_preorder.svg.png](https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Sorted_binary_tree_preorder.svg/500px-Sorted_binary_tree_preorder.svg.png)
+
+```{python}
+#| executionInfo: {elapsed: 8, status: ok, timestamp: 1680619933969, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+from typing import TypeVar
+
+DataType = TypeVar("DataType")
+
+class Tree:
+    """A tree
+    
+    Parameters
+    ----------
+    data
+        The data contained in this tree
+    children
+        The subtrees of this tree
+    """
+    def __init__(self, data: DataType, children: list['Tree']=[]):
+        self._data = data
+        self._children = children
+        
+        self._validate()
+        
+    def _validate(self) -> None:
+        try:
+            assert all(isinstance(c, Tree)
+                       for c in self._children)
+        except AssertionError:
+            msg = 'all children must be trees'
+            raise TypeError(msg)
+        
+    @property
+    def data(self) -> DataType:
+        return self._data 
+    
+    @property
+    def children(self) -> list['Tree']:
+        return self._children
+
+    def __str__(self):
+        if self._children:
+            return ' '.join(c.__str__() for c in self._children)
+        else:
+            return str(self._data)
+        
+    def __repr__(self):
+        return self.to_string(0)
+     
+    def to_string(self, depth: int) -> str:
+        s = (depth - 1) * '  ' +\
+            int(depth > 0) * '--' +\
+            self._data + '\n'
+        s += ''.join(c.to_string(depth+1)
+                     for c in self._children)
+        
+        return s
+
+    def __contains__(self, data: DataType) -> bool:
+        # pre-order depth-first search
+        if self._data == data:
+            return True
+        else:
+            for child in self._children:
+                if data in child:
+                    return True
+                
+            return False
+```
+
+```{python}
+#| executionInfo: {elapsed: 12, status: ok, timestamp: 1680619933973, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+tree = Tree('S', 
+             [Tree('NP', 
+                   [Tree('D', 
+                         [Tree('a')]),
+                    Tree('N', 
+                         [Tree('greyhound')])]),
+             Tree('VP', 
+                   [Tree('V', 
+                         [Tree('loves')]),
+                    Tree('NP',
+                         [Tree('D',
+                               [Tree('a')]),
+                          Tree('N',
+                               [Tree('greyhound')])])])])
+```
+
+```{python}
+"loves" in tree, "hates" in tree
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 1636, status: ok, timestamp: 1680619935597, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+#| outputId: 04c6ec13-f00b-4647-e0a3-acaa9107d490
+%%timeit
+"loves" in tree
+```
+
+```{python}
+%%timeit
+"hates" in tree
+```
+
+### Post-order depth-first search
+
+In post-order depth-first search, we start from the left-most child subtree and
+moving right, do post-order depth-first search on that subtree, then look
+at the data at the root of that subtree.
+
+![500px-Sorted_binary_tree_postorder.svg.png](https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Sorted_binary_tree_postorder.svg/500px-Sorted_binary_tree_postorder.svg.png)
+
+```{python}
+#| executionInfo: {elapsed: 4, status: ok, timestamp: 1680619943220, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+class Tree(Tree):
+
+    def __contains__(self, data: DataType) -> bool:
+        # post-order depth-first search
+        if not self._children:
+            return self._data == data
+        else:
+            for c in self._children:
+                if data in c:
+                    return True
+            
+            return self._data == data
+```
+
+```{python}
+#| executionInfo: {elapsed: 591, status: ok, timestamp: 1680619943809, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+tree = Tree('S', 
+             [Tree('NP', 
+                   [Tree('D', 
+                         [Tree('a')]),
+                    Tree('N', 
+                         [Tree('greyhound')])]),
+             Tree('VP', 
+                   [Tree('V', 
+                         [Tree('loves')]),
+                    Tree('NP',
+                         [Tree('D',
+                               [Tree('a')]),
+                          Tree('N',
+                               [Tree('greyhound')])])])])
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 4, status: ok, timestamp: 1680619943810, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+#| outputId: 750900d9-3194-4b86-9982-71120f093acb
+"loves" in tree, "hates" in tree
+```
+
+#### Breadth-first search
+
+Rather than recursing on subtrees, bread-first search looks at the data in all nodes at depth $i$ then
+to breadth-first search at depth $i+1$.
+
+![500px-Sorted_binary_tree_breadth-first_traversal.svg.png](https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Sorted_binary_tree_breadth-first_traversal.svg/500px-Sorted_binary_tree_breadth-first_traversal.svg.png)
+
+One natural way to implement breadth-first search is using what's called [iteratively deepening depth-first search](https://en.wikipedia.org/wiki/Iterative_deepening_depth-first_search). 
+
+```{python}
+#| executionInfo: {elapsed: 2, status: ok, timestamp: 1680619943810, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+class Tree(Tree):
+
+    @property
+    def depth(self) -> int:
+        if self._children:
+            return 1 + max(c.depth for c in self._children)
+        else:
+            return 0
+
+    def __contains__(self, data: DataType) -> bool:
+        # breadth-first search
+        for d in range(self.depth):
+            if self._iddfs(data, d):
+                return True
+
+        return False
+
+    def _iddfs(self, data, depth):
+        # iterative deepening depth-first search
+        if depth == 0:
+            return self._data == data
+        elif depth > 0:
+            for c in self._children:
+                if c._iddfs(data, depth-1):
+                    return True
+        
+        return False
+```
+
+```{python}
+#| executionInfo: {elapsed: 8, status: ok, timestamp: 1680619944132, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+tree = Tree('S', 
+             [Tree('NP', 
+                   [Tree('D', 
+                         [Tree('a')]),
+                    Tree('N', 
+                         [Tree('greyhound')])]),
+             Tree('VP', 
+                   [Tree('V', 
+                         [Tree('loves')]),
+                    Tree('NP',
+                         [Tree('D',
+                               [Tree('a')]),
+                          Tree('N',
+                               [Tree('greyhound')])])])])
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 8, status: ok, timestamp: 1680619944132, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+#| outputId: de69c31b-9faf-44c3-da30-1342de9c6809
+"loves" in tree, "hates" in tree
+```
+

@@ -1,0 +1,265 @@
+---
+title: What it means to measure a possibility
+bibliography: ../references.bib
+jupyter: python3
+---
+
+I said that a probability is a measurement of a possibility. We've now formalized what a possibility is in this context. Now let's turn to the measurement part.
+
+The Kolmogorov axioms build the notion of a [probability measure](https://en.wikipedia.org/wiki/Probability_measure) from the more general concept of a [measure](https://en.wikipedia.org/wiki/Measure_(mathematics)). All a probability measure $\mathbb{P}$ is going to do is to map from some event in the event space (e.g. high vowel, high back vowel, etc.) to a non-negative real value–with values corresponding to higher probabilities. So it is a function $\mathbb{P}: \mathcal{F} \rightarrow \mathbb{R}_+$. This condition is the first of the Kolmogorov axioms.
+
+1. $\mathbb{P}: \mathcal{F} \rightarrow \mathbb{R}_+$
+
+You might be used to thinking of probabilities as being between $[0, 1]$. This property is a consequence of the two other axioms:
+
+2. The probability of the entire sample space $\mathbb{P}(\Omega) = 1$ (the *assumption of unit measure*)
+3. Given a countable collection of events $E_1, E_2, \ldots \in \mathcal{F}$ that is pairwise disjoint–i.e. $E_i \cap E_j = \emptyset$ for all $i \neq j$–$\mathbb{P}\left(\bigcup_i E_i\right) = \sum_i \mathbb{P}(E_i)$ (the *assumption of [$\sigma$-additivity](https://en.wikipedia.org/wiki/Sigma-additive_set_function)*)
+
+```{python}
+#| code-fold: true
+#| code-summary: Define `FiniteMeasurableSpace`
+
+from typing import Iterable
+from itertools import chain, combinations
+from functools import reduce
+
+SampleSpace = frozenset[str]
+Event = frozenset[str]
+SigmaAlgebra = frozenset[Event]
+
+def powerset(iterable: Iterable) -> Iterable:
+    """The power set of a set
+
+    See https://docs.python.org/3/library/itertools.html#itertools-recipes
+
+    Parameters
+    ----------
+    iterable
+      The set to take the power set of
+    """
+    s = list(iterable)
+    return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
+
+class FiniteMeasurableSpace:
+  """A finite measurable space
+
+  Parameters
+  ----------
+  atoms
+    The atoms of the space
+  sigma_algebra
+    The σ-algebra of the space
+  """
+  def __init__(self, atoms: SampleSpace, sigma_algebra: SigmaAlgebra):
+    self._atoms = atoms
+    self._sigma_algebra = sigma_algebra
+
+    self._validate()
+
+  def _validate(self):
+    for subset in self._sigma_algebra:
+      # check powerset condition
+      if not subset <= self._atoms:
+        raise ValueError("All events must be a subset of the atoms")
+
+      # check closure under complement
+      if not (self._atoms - subset) in self._sigma_algebra:
+        raise ValueError("The σ-algebra must be closed under complements")
+
+    for subsets in powerset(self._sigma_algebra):
+      subsets = list(subsets)
+
+      # python doesn't like to reduce empty iterables
+      if not subsets:
+        continue
+
+      # check closure under finite union
+      union = frozenset(reduce(frozenset.union, subsets))
+      if union not in self._sigma_algebra:
+        raise ValueError(
+            "The σ-algebra must be closed under countable union"
+        )
+
+      # check closure under finite intersection
+      intersection = frozenset(reduce(frozenset.intersection, subsets))
+      if intersection not in self._sigma_algebra:
+        raise ValueError(
+            "The σ-algebra must be closed under countable intersection"
+        )
+
+  @property
+  def atoms(self) -> SampleSpace:
+    return self._atoms
+
+  @property
+  def sigma_algebra(self) -> SigmaAlgebra:
+    return self._sigma_algebra
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: Define `generate_sigma_algebra`
+
+def generate_sigma_algebra(family: SigmaAlgebra) -> SigmaAlgebra:
+  """Generate a σ-algebra from a family of sets
+
+  Parameters
+  ----------
+  family
+    The family of sets from which to generate the σ-algebra
+  """
+
+  sigma_algebra = set(family)
+  old_sigma_algebra = set(family)
+
+  complete = False
+
+  while not complete:
+    for subsets in powerset(old_sigma_algebra):
+      subsets = list(subsets)
+
+      if not subsets:
+        continue
+
+      union = reduce(frozenset.union, subsets)
+      sigma_algebra.add(union)
+
+      intersection = reduce(frozenset.intersection, subsets)
+      sigma_algebra.add(intersection)
+
+    complete = sigma_algebra == old_sigma_algebra
+    old_sigma_algebra = set(sigma_algebra)
+
+  return frozenset(sigma_algebra)
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: Define `highness_backness_space`
+
+emptyset = frozenset()
+vowels = frozenset({'e', 'i', 'o', 'u', 'æ', 'ɑ', 'ɔ', 'ə', 'ɛ', 'ɪ', 'ʊ'})
+
+# high v. nonhigh
+high = frozenset({'i', 'u', 'ɪ', 'ʊ'})
+nonhigh = vowels - high
+
+f_highness = frozenset({
+    frozenset(emptyset),
+    frozenset(high), frozenset(nonhigh),
+    frozenset(vowels)
+})
+
+# back v. nonback
+back = frozenset({'u', 'ʊ', 'o', 'ɔ'})
+nonback = vowels - back
+
+f_backness = frozenset({
+    frozenset(emptyset),
+    frozenset(back), frozenset(nonback),
+    frozenset(vowels)
+})
+
+highness_space = FiniteMeasurableSpace(vowels, f_highness)
+backness_space = FiniteMeasurableSpace(vowels, f_backness)
+
+f_highness_backness = generate_sigma_algebra(f_highness | f_backness)
+
+highness_backness_space = FiniteMeasurableSpace(vowels, f_highness_backness)
+```
+
+```{python}
+from typing import Dict
+from itertools import combinations
+
+class ProbabilityMeasure:
+  """A probability measure with finite support
+
+  Parameters
+  ----------
+  domain
+    The domain of the probability measure
+  measure
+    The graph of the measure
+  """
+
+  def __init__(self, domain: FiniteMeasurableSpace, measure: Dict[Event, float]):
+    self._domain = domain
+    self._measure = measure
+
+    self._validate()
+
+  def __call__(self, event: Event) -> float:
+    return self._measure[event]
+
+  def _validate(self):
+    # check that the measure covers the domain
+    for event in self._domain.sigma_algebra:
+      if event not in self._measure:
+        raise ValueError("Probability measure must be defined for all events.")
+
+    # check the assumption of unit measure
+    if self._measure[frozenset(self._domain.atoms)] != 1:
+      raise ValueError("The probability of the sample space must be 1.")
+
+    # check assumption of 𝜎-additivity
+    for events in powerset(self._domain.sigma_algebra):
+      events = list(events)
+
+      if not events:
+        continue
+
+      if not any(e1.intersection(e2) for e1, e2 in combinations(events, 2)):
+        prob_union = self._measure[reduce(frozenset.union, events)]
+        prob_sum = sum(self._measure[e] for e in events)
+
+        if round(prob_union, 4) != round(prob_sum, 4):
+          raise ValueError("The measure does not satisfy 𝜎-additivity.")
+```
+
+One example of a probability measure for our measurable space $\langle \Omega, \mathcal{F}_\text{highness-backness}\rangle$ is the uniform measure: $\mathbb{P}(E) = \frac{|E|}{|\Omega|}$.
+
+```{python}
+measure_highness_backness = ProbabilityMeasure(
+    highness_backness_space,
+    {e: len(e)/len(highness_backness_space.atoms)
+     for e in highness_backness_space.sigma_algebra}
+)
+```
+
+
+These axioms imply that the range of $\mathbb{P}$ is $[0, 1]$, even if its codomain is $\mathbb{R}_+$; otherwise, it would have to be the case that $\mathbb{P}(E) > 1$ for some $E \subset \Omega$. ($E$ would have to be a strict subset of $\Omega$, since $\Omega \supseteq E$ for all $E \in \mathcal{F}$ and $\mathbb{P}(\Omega) = 1$ by definition.) But $\mathbb{P}(E) > 1$ cannot hold, since $\mathbb{P}(\Omega - E)$–which must be defined, given that $\mathcal{F}$ is closed under complementation–is nonnegative; and thus  $\mathbb{P}(E) + \mathbb{P}(\Omega - E) > \mathbb{P}(\Omega) = 1$ contradicts the third axiom $\mathbb{P}(E) + \mathbb{P}(\Omega - E) = \mathbb{P}(E \cup [\Omega - E]) = \mathbb{P}(\Omega) = 1$.  
+
+(One reason the codomain of $\mathbb{P}$ is often specified as the more general $\mathbb{R}_+$–rather than $[0, 1]$ is to make salient the fact that probabilities are analogous to other kinds of measurements, like weight, height, temperature, etc.)
+
+These axioms also imply that $\mathbb{P}(\emptyset) = 0$, since $\mathbb{P}(\Omega) = \mathbb{P}(\Omega \cup \emptyset) = \mathbb{P}(\Omega) + \mathbb{P}(\emptyset) = 1$, and so $\mathbb{P}(\emptyset) = 1 - \mathbb{P}(\Omega) = 0$.
+
+```{python}
+class ProbabilityMeasure(ProbabilityMeasure):
+
+  def are_mutually_exclusive(self, *events: Iterable[Event]):
+    self._validate_events(events)
+    return not any(e1.intersection(e2) for e1, e2 in combinations(events, 2))
+
+  def _validate_events(self, events: Iterable[Event]):
+    for i, event in enumerate(events):
+      if event not in self._domain.sigma_algebra:
+        raise ValueError(f"event{i} is not in the event space.")
+```
+
+
+
+In our running example, the set of high vowels $H$ and the set of not high vowels $L$ are mutually exclusive events because $H \cap L = \emptyset$.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| outputId: f1bc196d-1c02-43b7-d035-d778846f0800
+measure_highness_backness = ProbabilityMeasure(
+    highness_backness_space,
+    {e: len(e)/len(highness_backness_space.atoms)
+     for e in highness_backness_space.sigma_algebra}
+)
+
+measure_highness_backness.are_mutually_exclusive(high, nonhigh)
+```
+

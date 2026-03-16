@@ -1,0 +1,237 @@
+---
+title: Set relations
+jupyter: python3
+---
+
+## Subsets 
+
+Subcollections of elements of a set are **subsets (of that set)**
+
+$$\{\text{i, u, ɪ, ʊ}\} \subseteq \{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\}$$
+
+```{python}
+vowels: set[str] = {"e", "i", "o", "u", "æ", "ɑ", "ɔ", "ə", "ɛ", "ɪ", "ʊ"}
+high_vowels: set[str] = {'u', 'ʊ', 'i', 'ɪ'}
+
+if high_vowels <= vowels:
+    print(f"{high_vowels} ⊆ {vowels}")
+else:
+    print(f"{high_vowels} ⊄ {vowels} ∨ {high_vowels} ≠ {vowels}")
+```
+
+
+A set is an *improper subset* of itself
+
+$$\{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\} \subseteq \{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\}$$
+
+```{python}
+if vowels <= vowels:
+    print(f"{vowels} ⊆ {vowels}")
+else:
+    print(f"{vowels} ⊄ {vowels} ∨ {vowels} ≠ {vowels}")
+```
+
+
+
+All other sets of a subset are *proper subsets*.
+
+$$\{\text{i}\} \subset \{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\}$$
+
+```{python}
+if {'i'} < vowels:
+    print(f"{{'i'}} ⊂ {vowels}")
+else:
+    print(f"{{'i'}} ⊄ {vowels}")
+
+if vowels < vowels:
+    print(f"{vowels} ⊂ {vowels}")
+else:
+    print(f"{vowels} ⊄ {vowels}")
+```
+
+
+## Supersets 
+
+The dual of *subset* is *superset*.
+
+$$\{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\} \supseteq \{\text{i}\}$$ 
+$$\{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\} \supseteq \{\text{i, u, ɪ, ʊ}\}$$
+
+A set is an *improper superset* of itself
+
+$$\{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\} \supseteq \{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\}$$
+
+All other supersets of a set are *proper supersets*.
+
+$$\{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\} \supset \{\text{i}\}$$ 
+
+## Empty set
+
+The empty set $\emptyset$ is a set containing no elements.
+
+$$\emptyset \equiv \{\}$$
+
+```{python}
+emptyset: set = set()
+```
+
+
+The empty set is a subset of all sets.
+
+$$\emptyset \subset \{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\}$$
+
+```{python}
+
+if emptyset < vowels:
+    print(f"∅ ⊂ {vowels}")
+else:
+    print(f"∅ ⊄ {vowels}")
+```
+
+
+The empty set is **not** *in* all sets, though it is in some sets
+
+$$\emptyset \not\in \{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\}$$
+$$\emptyset \in \{\emptyset, \text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\}$$
+
+```{python}
+vowels_with_empty: set[str] = set(vowels)
+vowels_with_empty.add(frozenset(emptyset))
+
+if emptyset in vowels:
+    print(f"∅ ∈ {vowels}")
+else:
+    print(f"∅ ∉ {vowels}")
+    
+if emptyset in vowels_with_empty:
+    print(f"∅ ∈ {vowels_with_empty}")
+else:
+    print(f"∅ ∉ {vowels_with_empty}")
+```
+
+## Intersection
+
+The *intersection* of two sets is the set of their shared elements. For instance, if we take the intersection of the set of high vowels with the set of back vowels, we get the high back vowels.
+
+$$\{\text{i, u, ɪ, ʊ}\} \cap \{\text{u, ʊ, o, ɔ, ɑ}\} = \{\text{u, ʊ}\}$$
+
+```{python}
+back_vowels: set[str] = {'u', 'ʊ', 'ɑ', 'ɔ', 'o'}
+
+print(f"{high_vowels} ∩ {back_vowels} = {high_vowels & back_vowels}")
+```
+
+
+The intersection of a set with a subset of that set is that subset.
+
+$$\{\text{i, u, ɪ, ʊ}\} \cap \{\text{u, ʊ}\} = \{\text{u, ʊ}\}$$
+$$\{\text{i, u, ɪ, ʊ}\} \cap \emptyset = \emptyset$$
+
+```{python}
+high_back_vowels: set[str] = {'u', 'ʊ'}
+
+print(f"{high_vowels} ∩ {high_back_vowels} = {high_vowels & high_back_vowels}") 
+```
+
+
+Intersection can yield the empty set.
+
+$$\{\text{i, u, ɪ, ʊ}\} \cap \{\text{o, ɔ}\} = \emptyset$$
+
+```{python}
+mid_back_vowels: set[str] = {'o', 'ɔ'}
+
+print(f"{high_vowels} ∩ {mid_back_vowels} = {high_vowels & mid_back_vowels}") 
+```
+
+## Union
+
+The *union* of two sets is the set of elements in both. For instance, if we take the union of the set of high vowels with the set of back vowels, we get the set of high and/or back vowels.
+
+$$\{\text{i, u, ɪ, ʊ}\} \cup \{\text{u, ʊ, o, ɔ, ɑ}\} = \{\text{i, ɪ, u, ʊ, o, ɔ, ɑ}\}$$
+
+```{python}
+print(f"{high_vowels} ∪ {back_vowels} = {high_vowels | back_vowels}")
+```
+
+
+The union of a set with itself or one of its subsets (including the empty set) is that set.
+
+$$\{\text{i, u, ɪ, ʊ}\} \cup \{\text{i, u, ɪ, ʊ}\} = \{\text{i, u, ɪ, ʊ}\}$$
+$$\{\text{i, u, ɪ, ʊ}\} \cup \{\text{u, ʊ}\} = \{\text{i, u, ɪ, ʊ}\}$$
+
+```{python}
+print(f"{high_vowels} ∪ {high_back_vowels} = {high_vowels | high_back_vowels}")
+```
+
+The `+` operator does not work for sets like it does for lists! You need to use `|` or `union()` explicitly.
+
+```{python}
+try:
+    high_vowels + high_back_vowels
+except TypeError:
+    print("+ for sets does not implement union!")
+```
+
+## Set builder notation
+
+It is commonly the case that we want to filter a larger set–e.g. the vowels–down to a set containing only elements of that set with particular properties. For instance, suppose we want the high front vowels and we know how to check whether a vowel is high and whether it is front. We could describe the high front vowels using [*set-builder notation*](https://en.wikipedia.org/wiki/Set-builder_notation).
+
+$$\{x \in \text{vowels} \mid x \text{ is high and } x \text{ is front}\}$$
+
+Set-builder notation can be implemented using set comprehensions.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 259, status: ok, timestamp: 1673980339515, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 94d8b8ea-69e1-4126-f2f2-a24cf377d312
+vowels: set[str] = {"e", "i", "o", "u", "æ", "ɑ", "ɔ", "ə", "ɛ", "ɪ", "ʊ"}
+
+def is_high(x: str) -> bool:
+  return x in {"i", "u", "ɪ", "ʊ"}
+
+def is_front(x: str) -> bool:
+  return x in {"i", "ɪ", "e", "æ", "ɛ"}
+
+{v for v in vowels if is_high(v) and is_front(v)}
+```
+
+Note that:
+
+$$\{x \in \text{vowels} \mid x \text{ is high and } x \text{ is front}\} = \{x \in \text{vowels} \mid x \text{ is high}\} \cap \{x \in \text{vowels} \mid x \text{ is front}\}$$
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 867, status: ok, timestamp: 1673980720749, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 897d5c83-2b02-4be1-85c5-e26d0cb21e5c
+{v for v in vowels if is_high(v)} & {v for v in vowels if is_front(v)}
+```
+
+This fact will be important for your first homework.
+
+## Complement
+
+The *(absolute) complement* of a set $A$ relative to a universe $U$ (a possibly improper superset of $A$) is all elements in $U$ that are not in $A$.
+
+$$A^\complement = \overline{A} = A' = \{x\;|\;x \in U \land x \not\in A\}$$
+
+For instance, if $U \equiv \{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\}$, then the complement of the high vowels is the non-high vowels.
+
+$$\{\text{i, u, ɪ, ʊ}\}^\complement = \{\text{e, o, æ, ɑ, ɔ, ə, ɛ}\}$$ 
+
+Note that $U = A \cup \overline{A}$.
+
+## Set difference 
+
+The set difference (or *relative complement*) of a set $A$ relative to another set $B$ is all elements in $B$ that are not in $A$
+
+$$B - A = \{x\;|\;x \in B \land x \not\in A\}$$
+
+For instance, the difference of the set of high vowels relative to the set of high back vowels, is the high non-back vowels. 
+
+$$\{\text{i, u, ɪ, ʊ}\} - \{\text{u, ʊ}\} = \{\text{i, ɪ}\}$$
+
+```{python}
+print(f"{high_vowels} - {high_back_vowels} = {high_vowels - high_back_vowels}")
+```
+

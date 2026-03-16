@@ -1,0 +1,108 @@
+---
+title: Basic Matching
+jupyter: python3
+---
+
+We mainly use regular expressions for searching, extracting from, and modifying strings. Each such use is underwritten by a string being in the set of strings that a regular expression evaluates to.
+
+One core use of regular expressions is basic matching, which checks whether a string falls into the language that a regular expression evaluates to. We can describe matching formally in a couple ways. One is to view it as a function from a regular expression and a string to a boolean.
+
+$$\text{match}: R(\Sigma)\;\times\;\Sigma^*  \rightarrow \{\top, \bot\}$$
+
+$$\text{match}(\rho, \sigma) = \begin{cases}\top & \text{if } \sigma \in \text{eval}(\rho) \\
+\bot & \text{otherwise}\end{cases}$$
+
+We can compute this function with `fullmatch` from the `re` module.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 3, status: ok, timestamp: 1675099876889, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 38d09b9f-a3c1-4e6d-a9f9-cf4a9236b14f
+import re
+
+regex_æ = 'æ'
+string_æ = 'æ'
+
+re.fullmatch(regex_æ, string_æ)
+```
+
+Another is to view it as a function from strings to booleans *parameterized* by a regular expression $\rho$.
+
+$$\text{match}_\rho: \Sigma^*  \rightarrow \{\top, \bot\}$$
+
+$$\text{match}_\rho(\sigma) = \begin{cases}\top & \text{if } \sigma \in \text{eval}(\rho) \\
+\bot & \text{otherwise}\end{cases}$$
+
+I'm pointing out this seemingly trivial distinction because it will be important when we discuss the concept of a grammar *recognizing* a string, where we will define a recognition algorithm for a particular class of grammars that we parameterize by grammars in that class.  
+
+We can compute this function by *compiling* the regular expression to a `Pattern` object...
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 172, status: ok, timestamp: 1675099877059, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 17ee513a-5676-47c8-a603-907468aee8d3
+match_æ = re.compile(regex_æ)
+
+type(match_æ)
+```
+
+...then call the `fullmatch` instance method on this object.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 8, status: ok, timestamp: 1675099877059, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 497a0d24-7e94-47fd-8f7a-ae1e7aaaa8e8
+match_æ.fullmatch(string_æ)
+```
+
+Both return a `Match` object (so its not a perfect implementation of the formal definition).
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 7, status: ok, timestamp: 1675099877059, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 31d95c28-682a-4185-c60a-12858068ec2d
+type(re.fullmatch(regex_æ, string_æ)), type(match_æ.fullmatch(string_æ))
+```
+
+But if we try to cast this object to a `bool` we get `True`.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 6, status: ok, timestamp: 1675099877059, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 29a80b71-0cd5-4d71-ca9f-6fc65cabbc17
+bool(re.fullmatch(regex_æ, string_æ))
+```
+
+In contrast, `match` returns `None` if there is no match.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 5, status: ok, timestamp: 1675099877059, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: e39c4bbd-78aa-41e9-ab16-90bc5a829d2f
+string_æbstɹækʃən = 'æbstɹækʃən'
+
+type(re.fullmatch(regex_æ, string_æbstɹækʃən))
+```
+
+This means that casting a non-match to a `bool` returns `False`.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 4, status: ok, timestamp: 1675099877059, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: b1d0ddcd-1e5b-45dd-e000-25f1bb0db843
+bool(re.fullmatch(regex_æ, string_æbstɹækʃən))
+```
+
+I point this out because you might expect that `fullmatch` would return a `bool`, but it doesn't. This can be a problem if you're not calling `match` within some `if-else` statement. Nonetheless, this is probably the most straightforward way to check whether a particularly pattern is matched by a string.
+
+You might have noticed that there is another function `match`. It might seem like this functon would be simpler, but it has some odd behavior: it matches characters at the beginning of the string and ignores the rest of the string. 
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 3, status: ok, timestamp: 1675099877059, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 5a91e1a0-d7fc-4f83-9971-c205ad98c281
+re.match(regex_æ, string_æbstɹækʃən)
+```
+
+The reason this is annoying is that this "beginning of the string" matching behavior is already built into regular expressions, which we'll see in a second. It also means that **`re.match` is not an implementation of the formal definition above**.
+

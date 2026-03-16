@@ -1,0 +1,342 @@
+---
+title: Some useful definitions
+bibliography: ../references.bib
+jupyter: python3
+---
+
+
+## Joint probability
+
+The *joint probability* $\mathbb{P}(A, B)$ of two events $A \in \mathcal{F}$ and $B \in \mathcal{F}$ is defined as the probability of the intersection of those two events $\mathbb{P}(A, B) = \mathbb{P}(A \cap B)$, which must be defined give that $\mathcal{F}$ is closed under countable intersection.
+
+```{python}
+#| code-fold: true
+#| code-summary: Define `FiniteMeasurableSpace`
+
+from typing import Iterable
+from itertools import chain, combinations
+from functools import reduce
+
+SampleSpace = frozenset[str]
+Event = frozenset[str]
+SigmaAlgebra = frozenset[Event]
+
+def powerset(iterable: Iterable) -> Iterable:
+    """The power set of a set
+
+    See https://docs.python.org/3/library/itertools.html#itertools-recipes
+
+    Parameters
+    ----------
+    iterable
+      The set to take the power set of
+    """
+    s = list(iterable)
+    return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
+
+class FiniteMeasurableSpace:
+  """A finite measurable space
+
+  Parameters
+  ----------
+  atoms
+    The atoms of the space
+  sigma_algebra
+    The σ-algebra of the space
+  """
+  def __init__(self, atoms: SampleSpace, sigma_algebra: SigmaAlgebra):
+    self._atoms = atoms
+    self._sigma_algebra = sigma_algebra
+
+    self._validate()
+
+  def _validate(self):
+    for subset in self._sigma_algebra:
+      # check powerset condition
+      if not subset <= self._atoms:
+        raise ValueError("All events must be a subset of the atoms")
+
+      # check closure under complement
+      if not (self._atoms - subset) in self._sigma_algebra:
+        raise ValueError("The σ-algebra must be closed under complements")
+
+    for subsets in powerset(self._sigma_algebra):
+      subsets = list(subsets)
+
+      # python doesn't like to reduce empty iterables
+      if not subsets:
+        continue
+
+      # check closure under finite union
+      union = frozenset(reduce(frozenset.union, subsets))
+      if union not in self._sigma_algebra:
+        raise ValueError(
+            "The σ-algebra must be closed under countable union"
+        )
+
+      # check closure under finite intersection
+      intersection = frozenset(reduce(frozenset.intersection, subsets))
+      if intersection not in self._sigma_algebra:
+        raise ValueError(
+            "The σ-algebra must be closed under countable intersection"
+        )
+
+  @property
+  def atoms(self) -> SampleSpace:
+    return self._atoms
+
+  @property
+  def sigma_algebra(self) -> SigmaAlgebra:
+    return self._sigma_algebra
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: Define `ProbabilityMeasure`
+
+from typing import Dict
+from itertools import combinations
+
+class ProbabilityMeasure:
+  """A probability measure with finite support
+
+  Parameters
+  ----------
+  domain
+    The domain of the probability measure
+  measure
+    The graph of the measure
+  """
+
+  def __init__(self, domain: FiniteMeasurableSpace, measure: Dict[Event, float]):
+    self._domain = domain
+    self._measure = measure
+
+    self._validate()
+
+  def __call__(self, event: Event) -> float:
+    return self._measure[event]
+
+  def _validate(self):
+    # check that the measure covers the domain
+    for event in self._domain.sigma_algebra:
+      if event not in self._measure:
+        raise ValueError("Probability measure must be defined for all events.")
+
+    # check the assumption of unit measure
+    if self._measure[frozenset(self._domain.atoms)] != 1:
+      raise ValueError("The probability of the sample space must be 1.")
+
+    # check assumption of 𝜎-additivity
+    for events in powerset(self._domain.sigma_algebra):
+      events = list(events)
+
+      if not events:
+        continue
+
+      if not any(e1.intersection(e2) for e1, e2 in combinations(events, 2)):
+        prob_union = self._measure[reduce(frozenset.union, events)]
+        prob_sum = sum(self._measure[e] for e in events)
+
+        if round(prob_union, 4) != round(prob_sum, 4):
+          raise ValueError("The measure does not satisfy 𝜎-additivity.")
+        
+  def are_mutually_exclusive(self, *events: Iterable[Event]):
+    self._validate_events(events)
+    return not any(e1.intersection(e2) for e1, e2 in combinations(events, 2))
+
+  def _validate_events(self, events: Iterable[Event]):
+    for i, event in enumerate(events):
+      if event not in self._domain.sigma_algebra:
+        raise ValueError(f"event{i} is not in the event space.")
+```
+
+```{python}
+class ProbabilityMeasure(ProbabilityMeasure):
+
+  def __call__(self, *events: Iterable[Event]) -> float:
+    self._validate_events(events)
+
+    intersection = reduce(frozenset.intersection, events)
+
+    return self._measure[intersection]
+```
+
+In our running example, the probability of a high back vowel is the joint probability $\mathbb{P}(H, B)$.  
+
+```{python}
+#| code-fold: true
+#| code-summary: Define `generate_sigma_algebra`
+
+def generate_sigma_algebra(family: SigmaAlgebra) -> SigmaAlgebra:
+  """Generate a σ-algebra from a family of sets
+
+  Parameters
+  ----------
+  family
+    The family of sets from which to generate the σ-algebra
+  """
+
+  sigma_algebra = set(family)
+  old_sigma_algebra = set(family)
+
+  complete = False
+
+  while not complete:
+    for subsets in powerset(old_sigma_algebra):
+      subsets = list(subsets)
+
+      if not subsets:
+        continue
+
+      union = reduce(frozenset.union, subsets)
+      sigma_algebra.add(union)
+
+      intersection = reduce(frozenset.intersection, subsets)
+      sigma_algebra.add(intersection)
+
+    complete = sigma_algebra == old_sigma_algebra
+    old_sigma_algebra = set(sigma_algebra)
+
+  return frozenset(sigma_algebra)
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: Define `highness_backness_space`
+
+emptyset = frozenset()
+vowels = frozenset({'e', 'i', 'o', 'u', 'æ', 'ɑ', 'ɔ', 'ə', 'ɛ', 'ɪ', 'ʊ'})
+
+# high v. nonhigh
+high = frozenset({'i', 'u', 'ɪ', 'ʊ'})
+nonhigh = vowels - high
+
+f_highness = frozenset({
+    frozenset(emptyset),
+    frozenset(high), frozenset(nonhigh),
+    frozenset(vowels)
+})
+
+# back v. nonback
+back = frozenset({'u', 'ʊ', 'o', 'ɔ'})
+nonback = vowels - back
+
+f_backness = frozenset({
+    frozenset(emptyset),
+    frozenset(back), frozenset(nonback),
+    frozenset(vowels)
+})
+
+highness_space = FiniteMeasurableSpace(vowels, f_highness)
+backness_space = FiniteMeasurableSpace(vowels, f_backness)
+
+f_highness_backness = generate_sigma_algebra(f_highness | f_backness)
+
+highness_backness_space = FiniteMeasurableSpace(vowels, f_highness_backness)
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| outputId: 4d7e4345-0898-47b7-a9e1-e4b875063abc
+measure_highness_backness = ProbabilityMeasure(
+    highness_backness_space,
+    {e: len(e)/len(highness_backness_space.atoms)
+     for e in highness_backness_space.sigma_algebra}
+)
+
+measure_highness_backness(frozenset(high), frozenset(back))
+```
+
+## Conditional probability
+
+The probability of an event $A \in \mathcal{F}$ *conditioned on* (or *given*) an event $B \in \mathcal{F}$ is defined as $\mathbb{P}(A \mid B) = \frac{\mathbb{P}(A, B)}{\mathbb{P}(B)}$. Note that $\mathbb{P}(A \mid B)$ is undefined if $\mathbb{P}(B) = 0$.
+
+```{python}
+class ProbabilityMeasure(ProbabilityMeasure):
+
+  def __or__(self, conditions: Iterable[Event]) -> ProbabilityMeasure:
+    condition = reduce(frozenset.intersection, conditions)
+
+    self._validate_condition(condition)
+
+    measure = {
+        event: self(event, condition)/self(condition)
+        for event in self._domain.sigma_algebra
+    }
+
+    return ProbabilityMeasure(self._domain, measure)
+
+  def _validate_condition(self, condition: Event):
+    if condition not in self._domain.sigma_algebra:
+      raise ValueError("The conditions must be in the event space.")
+
+    if self._measure[condition] == 0:
+      raise ZeroDivisionError("Conditions cannot have probability 0.")
+```
+
+In our running example, the probability that a vowel is high given that it is back is the conditional probability $\mathbb{P}(H \mid B) = \frac{\mathbb{P}(H, B)}{\mathbb{P}(B)}$.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| outputId: 4ce759cb-a3e7-40dc-880a-f58a046ff49f
+highness_backness_measure = {
+    event: len(event)/len(highness_backness_space.atoms)
+    for event in highness_backness_space.sigma_algebra
+}
+
+measure_highness_backness = ProbabilityMeasure(
+    highness_backness_space,
+    highness_backness_measure
+)
+
+measure_given_back = measure_highness_backness | [back]
+
+measure_given_back(high)
+```
+
+From this definition, it immediately follows that $\mathbb{P}(A, B) = \mathbb{P}(A \mid B)\mathbb{P}(B) = \mathbb{P}(B \mid A)\mathbb{P}(A)$, which in turn implies [*Bayes' theorem*](https://en.wikipedia.org/wiki/Bayes%27_theorem).
+
+$$\mathbb{P}(A \mid B) = \frac{\mathbb{P}(A, B)}{\mathbb{P}(B)} = \frac{\mathbb{P}(B \mid A)\mathbb{P}(A)}{\mathbb{P}(B)}$$
+
+Bayes' theorem will be very important in this course.
+
+Another important consequence of the definition of conditional probability is the [chain rule](https://en.wikipedia.org/wiki/Chain_rule_(probability)):
+
+$$\begin{align*}\mathbb{P}(E_1, E_2, E_3, \ldots, E_N) &= \mathbb{P}(E_1)\mathbb{P}(E_2 \mid E_1)\mathbb{P}(E_3 \mid E_1, E_2)\ldots\mathbb{P}(E_N \mid E_1, E_2, \ldots, E_{N-1})\\ &= \mathbb{P}(E_1)\prod_{i=2}^N \mathbb{P}(E_i\mid E_1, \ldots, E_{i-1})\end{align*}$$
+
+The chain rule will also be very important in this course.
+
+## Independence
+
+An event $A \in \mathcal{F}$ is *independent* of an event $B \in \mathcal{F}$ (under $\mathbb{P}$) if $\mathbb{P}(A \mid B) = \mathbb{P}(A)$. A theoreom that immediately follows from this definition is that $A$ and $B$ are independent under $\mathbb{P}$ if and only if $\mathbb{P}(A, B) = \mathbb{P}(A \mid B)\mathbb{P}(B) = \mathbb{P}(A)\mathbb{P}(B)$.
+
+```{python}
+class ProbabilityMeasure(ProbabilityMeasure):
+
+  def are_independent(self, *events):
+    self._validate_events(events)
+
+    joint = self(*events)
+    product = reduce(lambda x, y: x * y, [self(e) for e in events])
+
+    return joint == product
+```
+
+In our running example of an event space structured by high and back vowels, assuming all vowels are equiprobable, none of the events are independent. In the discrete event space, many events will be independent.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| outputId: ba72bd41-3541-4154-ff90-ee0b19030173
+measure_highness_backness = ProbabilityMeasure(
+    highness_backness_space,
+    {e: len(e)/len(highness_backness_space.atoms)
+     for e in highness_backness_space.sigma_algebra}
+)
+
+measure_highness_backness.are_independent(frozenset(high), frozenset(back))
+```
+
+
+Note that independence is not the same as *mutual exclusivity*; indeed, mutually exclusive events are *not* independent, since $\mathbb{P}(A \mid B) = \frac{\mathbb{P}(A, B)}{\mathbb{P}(B)} = \frac{0}{\mathbb{P}(B)} = 0$ (or is undefined if $\mathbb{P}(B) = 0$) regardless of $\mathbb{P}(A)$, and therefore either $\mathbb{P}(A \mid B)$ does not equal $\mathbb{P}(A)$ or $\mathbb{P}(B \mid A)$ is undefined (because $\mathbb{P}(A) = 0$), even when $\mathbb{P}(B)$ is.
+

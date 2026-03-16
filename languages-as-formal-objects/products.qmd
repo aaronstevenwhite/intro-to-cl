@@ -1,0 +1,67 @@
+---
+title: Products
+jupyter: python3
+---
+
+The *cartesian product* of a set $A$ with a set $B$ is the set of all pairs of some element in $A$ with some element in $B$ (in that order).
+
+$$A \times B = \{\langle x, y \rangle\;|\;x \in A \land y \in B\}$$
+
+The cardinality of a cartesian product of two sets is the product of their cardinalities.
+
+$$|A \times B| = |A| \times |B|$$
+
+```{python}
+from itertools import product
+
+x = {1, 2, 3}
+y = {"d", "u", "r"}
+
+# cartesian product using nested for loop
+# in set comprehension
+z = {(i, j) for i in x for j in y}
+set(product(x, y)) == z # evaluates to True
+```
+
+The cartesian product can be iterated–notated using exponentiation notation
+
+$$A^3 = A \times (A \times A)$$ 
+$$A^4 = A \times (A \times (A \times A))$$
+
+Since we know $|A \times B|$, we also know the cardinality of $|A^N| = |\times_{i=1}^N A| = |A| \times |A^{N-1}| = |A|^N$.
+
+```{python}
+vowels: set[str] = {"e", "i", "o", "u", "æ", "ɑ", "ɔ", "ə", "ɛ", "ɪ", "ʊ"}
+
+def exponentiate(a, n):
+    if n == 1:
+        return a
+    else:
+        return {(x, t) for t in exponentiate(a, n-1) for x in a}
+        
+    
+exponentiate(vowels, 5)
+```
+
+While exponentiation is defined in terms of the application of a bunch of binary $\times$, resulting in pairs of an element of $A$ with pairs of an element of $A$ with pairs of...we can always treat $A^N$ as a set of $N$-tuples because we can always map elements of $A^N$ to $N$-tuples.
+
+$$\mathrm{flatten}_A(a) = \begin{cases}\langle a \rangle & \text{if } a \in A\\
+\langle x\;:\;x \in \mathrm{flatten}(y) \land y \in a \rangle & \text{otherwise}\end{cases}$$
+
+```{python}
+def flatten(t, a):
+    if t in a:
+        return (t,)
+    else:
+        return tuple(x for y in t for x in flatten(y, a))
+ 
+{flatten(x, vowels) for x in exponentiate(vowels, 2)}
+```
+
+And we can always map back to the element of $A^N$.
+
+$$\mathrm{reconstruct}_A(a) = \begin{cases}a & \text{if } a \in A\\
+\langle \mathrm{head}(a), \mathrm{reconstruct}_A(\mathrm{tail}(a))\rangle & \text{otherwise}\end{cases}$$
+
+where $\mathrm{head}$ returns the first element of a tuple and $\mathrm{tail}$ returns the tuple with the first element removed.
+

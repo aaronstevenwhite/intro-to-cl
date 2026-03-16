@@ -1,0 +1,85 @@
+---
+title: Defining Regular Expressions
+jupyter: python3
+---
+
+Regular expressions themselves are strings. We formally define these strings recursively, starting with an alphabet $\Sigma$, a symbol for the empty string $\epsilon$, and a symbol for the empty set $\emptyset$. Let's assume the alphabet is the set of English phonemes:
+
+$$\Sigma \equiv \{\text{ɑ, æ, ʌ, ɔ, aʊ, aɪ, b, tʃ, d, ð,} \ldots\}$$
+
+$\rho$ is a regular expression if and only if:
+
+1. $\rho \in \Sigma \cup \{\epsilon, \emptyset\}$
+2. $\rho$ is $(\rho_1 \cup \rho_2)$ for some regular expressions $\rho_1$ and $\rho_2$
+3. $\rho$ is $(\rho_1 \circ \rho_2)$ for some regular expressions $\rho_1$ and $\rho_2$
+4. $\rho$ is $\rho_1^*$ for some regular expression $\rho_1$
+
+Thus, given the $\Sigma$ above, the following are all regular expressions.
+
+1. æ
+2. b
+3. (æ $\cup$ b)
+4. (æ $\circ$ b$^*$)
+4. (æ $\circ$ b)$^*$
+5. ((æ $\circ$ b) $\cup$ b)
+6. (æ $\circ$ (b $\cup$ b))
+
+The following are *not* regular expressions.
+
+1. æ $\cup$ b
+2. æ $\circ$ b$^*$
+3. æ $\circ$ b $\cup$ b
+
+Another way of saying this is that the regular expressions on $\Sigma$ are a language on $\Sigma \cup\{\epsilon, \emptyset, \cup, \circ, (, ), *\}$. Note that, based on the recursive definition above, the set of regular expressions is infinite. Thus, the regular expressions on $\Sigma$ are the first infinite language we've described (besides $\Sigma^*$ itself).
+
+We can generate all the regular expressions given an alphabet. Note that because the set of regular expressions is infinite, we need to use a generator.
+
+```{python}
+#| executionInfo: {elapsed: 141, status: ok, timestamp: 1675099872833, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+from collections.abc import Iterable
+
+def regular_expressions(sigma: set[str]) -> Iterable[str]:
+    old_regex_set = frozenset(sigma | {'∅', '𝜖'})
+    
+    for rho in old_regex_set:
+        yield rho
+    
+    while True:
+        new_regex_set = set(old_regex_set)
+            
+        for rho in old_regex_set:
+            elem = rho+'*'
+            new_regex_set |= {elem}
+            yield elem
+            
+        for rho1 in old_regex_set:
+            for rho2 in old_regex_set:
+                elem = '('+rho1+' ∪ '+rho2+')'
+                new_regex_set |= {elem}
+                yield elem
+                
+        for rho1 in old_regex_set:
+            for rho2 in old_regex_set:
+                elem = '('+rho1+' ∘ '+rho2+')'
+                new_regex_set |= {elem}
+                yield elem
+                
+        old_regex_set = frozenset(new_regex_set)
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 3934, status: ok, timestamp: 1675099876765, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: babeefbd-7970-4005-985c-0eb4aa189eb3
+english_phonemes = {"ɑ", "æ", "ə", "ʌ", "ɔ", "aʊ", "aɪ", "b", "tʃ", "d", "ð", "ɛ", 
+                    "ɝ", "eɪ", "f", "g", "h", "ɪ", "i", "dʒ", "k", "l", "m", 
+                    "n", "ŋ", "oʊ", "ɔɪ", "p", "ɹ", "s", "ʃ", "t", "θ", "ʊ", 
+                    "u", "v", "w", "j", "z", "ʒ"}
+
+for i, r in enumerate(regular_expressions(english_phonemes)):
+    print(r)
+    
+    if i > 100:
+      break
+```
+

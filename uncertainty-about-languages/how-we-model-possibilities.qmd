@@ -1,0 +1,231 @@
+---
+title: How we model possibilities
+bibliography: ../references.bib
+jupyter: python3
+---
+
+The Kolmogorov axioms start by specifying a set $\Omega$ that contains all and only the things that can possibly happen. This set is known as the *sample space*. So what it means to be a possibility is a brute fact: it's all and only the things in $\Omega$.
+
+That's very abstract, so let's consider a few examples:
+
+1. $\Omega$ could be the set of all vowel types in a language–e.g. for English $\Omega = \{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\}$.
+2. $\Omega$ could be the set of all strings of phonemes in a language–e.g. if $\Sigma$ is the set of phonemes, then $\Omega = \Sigma^* = \bigcup_{i=0}^\infty \Sigma^i$.
+3. $\Omega$ could be the language $\text{eval}(r)$ that a regular expression $r \in R(\Sigma)$ evaluates to.
+4. $\Omega$ could be the set of all regular expressions in a language–e.g. if $\Sigma$ is the set of phonemes, then $\Omega = R(\Sigma)$. That is, $\Omega$ could be possible grammars, which in turn correspond to possible languages.
+
+The axioms then move forward by defining a way of classifying possibilities $\mathcal{F} \subseteq 2^\Omega$. These classes of possibilities are known as *events* and the set of said classes is known as the *event space*. It is events, which can contain just a single possibility, that we measure the probability of.^[Don't ask me why, but $\mathcal{F}$ is standard notation for the event space. Why we don't use $\mathcal{E}$ is beyond me. It might be some convention from measure theory I'm not aware of; or it might have to do with not confusing the event space with the expectation $\mathbb{E}$, which we'll review below.]
+
+The event space is where interesting linguistic structure enters the picture. Let's look at a few examples of event spaces that assume our first example of a sample space above: $\Omega = \{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\}$.
+
+1. One possible event space distinguishes vowels with respect to highness: $\mathcal{F}_\text{highness} = \{H, L, \Omega, \emptyset\}$, with $H = \{\text{i, u, ɪ, ʊ}\}$ and $L = \Omega - H$.
+2. Another possible event space distinguishes vowels with respect to backness: $\mathcal{F}_\text{backness} = \{B, F, \Omega, \emptyset\}$, with $B = \{\text{u, ʊ, o, ɔ}\}$ and $F = \Omega - B$.
+
+
+```{python}
+emptyset = frozenset()
+vowels = frozenset({'e', 'i', 'o', 'u', 'æ', 'ɑ', 'ɔ', 'ə', 'ɛ', 'ɪ', 'ʊ'})
+
+# high v. nonhigh
+high = frozenset({'i', 'u', 'ɪ', 'ʊ'})
+nonhigh = vowels - high
+
+f_highness = frozenset({
+    frozenset(emptyset),
+    frozenset(high), frozenset(nonhigh),
+    frozenset(vowels)
+})
+
+# back v. nonback
+back = frozenset({'u', 'ʊ', 'o', 'ɔ'})
+nonback = vowels - back
+
+f_backness = frozenset({
+    frozenset(emptyset),
+    frozenset(back), frozenset(nonback),
+    frozenset(vowels)
+})
+```
+
+
+
+You'll notice that beyond having just the set of high v. non-high vowels, or the set of back v. non-back vowels in these event spaces, we also have the entire set of vowels itself alongside the empty set. The reasons for this are technical: to make certain aspects of the formalization of what it means to measure probabilties work out nicely, we need the event space $\mathcal{F}$ to form what is known as a [$\sigma$-algebra](https://en.wikipedia.org/wiki/%CE%A3-algebra) on the sample space $\Omega$. All this means is that:
+
+1. $\mathcal{F} \subseteq 2^\Omega$
+2. $E \in \mathcal{F}$ iff $\Omega - E \in \mathcal{F}$ (*closure under complement*)
+3. $\bigcup \mathcal{E} \in \mathcal{F}$ for all countable $\mathcal{E} \subseteq \mathcal{F}$ (*closure under countable union*)
+4. $\bigcap \mathcal{E} \in \mathcal{F}$ for all countable $\mathcal{E} \subseteq \mathcal{F}$ (*closure under countable intersection*)
+
+```{python}
+from typing import Set, FrozenSet, Iterable
+from itertools import chain, combinations
+from functools import reduce
+
+SampleSpace = FrozenSet[str]
+Event = FrozenSet[str]
+SigmaAlgebra = FrozenSet[Event]
+
+def powerset(iterable: Iterable) -> Iterable:
+    """The power set of a set
+
+    See https://docs.python.org/3/library/itertools.html#itertools-recipes
+
+    Parameters
+    ----------
+    iterable
+      The set to take the power set of
+    """
+    s = list(iterable)
+    return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
+
+class FiniteMeasurableSpace:
+  """A finite measurable space
+
+  Parameters
+  ----------
+  atoms
+    The atoms of the space
+  sigma_algebra
+    The σ-algebra of the space
+  """
+  def __init__(self, atoms: SampleSpace, sigma_algebra: SigmaAlgebra):
+    self._atoms = atoms
+    self._sigma_algebra = sigma_algebra
+
+    self._validate()
+
+  def _validate(self):
+    for subset in self._sigma_algebra:
+      # check powerset condition
+      if not subset <= self._atoms:
+        raise ValueError("All events must be a subset of the atoms")
+
+      # check closure under complement
+      if not (self._atoms - subset) in self._sigma_algebra:
+        raise ValueError("The σ-algebra must be closed under complements")
+
+    for subsets in powerset(self._sigma_algebra):
+      subsets = list(subsets)
+
+      # python doesn't like to reduce empty iterables
+      if not subsets:
+        continue
+
+      # check closure under finite union
+      union = frozenset(reduce(frozenset.union, subsets))
+      if union not in self._sigma_algebra:
+        raise ValueError(
+            "The σ-algebra must be closed under countable union"
+        )
+
+      # check closure under finite intersection
+      intersection = frozenset(reduce(frozenset.intersection, subsets))
+      if intersection not in self._sigma_algebra:
+        raise ValueError(
+            "The σ-algebra must be closed under countable intersection"
+        )
+
+  @property
+  def atoms(self) -> SampleSpace:
+    return self._atoms
+
+  @property
+  def sigma_algebra(self) -> SigmaAlgebra:
+    return self._sigma_algebra
+```
+
+
+You can check that all of these conditions are satisfied for our two examples above as long as $\Omega$ and $\emptyset$ are both in $\mathcal{F}$. When $\mathcal{F} \subseteq 2^\Omega$ is a $\sigma$-algebra, the pair $\langle \Omega, \mathcal{F} \rangle$ is referred to as a [measurable space](https://en.wikipedia.org/wiki/Measurable_space).
+
+
+```{python}
+highness_space = FiniteMeasurableSpace(vowels, f_highness)
+backness_space = FiniteMeasurableSpace(vowels, f_backness)
+```
+
+The two examples above are close to trivial in the sense that the only "interesting" events are complements of each other. But what if we put both together, distinguishing vowels with respect to both highness and backness? Both have the same sample space, so nothing needs to change there.
+
+::: {.callout-caution}
+## Question
+
+Can we simply define $\mathcal{F}_\text{highness-backness} = \mathcal{F}_\text{highness} \cup \mathcal{F}_\text{backness}$?
+:::
+
+::: {.callout-tip collapse=true}
+## Answer
+
+No. While Condition 1 above would be satisfied (that's easy), we would be missing quite a few sets that Conditions 2-4 require: e.g. the high back vowels $H \cap B$ and the high and/or back vowels $H \cup B$.
+:::
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| outputId: 930414ce-e929-4bab-8581-11c4718ee218
+try:
+  highness_space = FiniteMeasurableSpace(vowels, f_highness.union(f_backness))
+except ValueError as e:
+  print(f"ValueError: {e}")
+```
+
+This point demonstrates an important fact about $\sigma$-algebras: if you design a classification based on some (countable) set of features like highness and backness, the constraint that $\mathcal{F}$ be a $\sigma$-algebra on $\Omega$ implies that $\mathcal{F}$ contains events corresponding to all possible conjunctions (e.g. high and back) and disjunctions (e.g. high and/or back) of those features. So we need to extend $\mathcal{F}_\text{highness} \cup \mathcal{F}_\text{backness}$ with additional sets. We call this extension the $\sigma$-algebra *generated by the family of sets* $\mathcal{F}_\text{highness} \cup \mathcal{F}_\text{backness}$, denoted $\sigma\left(\mathcal{F}_\text{highness} \cup \mathcal{F}_\text{backness}\right)$.
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| outputId: 73f585f7-b3ad-4d73-c852-425dfd570166
+def generate_sigma_algebra(family: SigmaAlgebra) -> SigmaAlgebra:
+  """Generate a σ-algebra from a family of sets
+
+  Parameters
+  ----------
+  family
+    The family of sets from which to generate the σ-algebra
+  """
+
+  sigma_algebra = set(family)
+  old_sigma_algebra = set(family)
+
+  complete = False
+
+  while not complete:
+    for subsets in powerset(old_sigma_algebra):
+      subsets = list(subsets)
+
+      if not subsets:
+        continue
+
+      union = reduce(frozenset.union, subsets)
+      sigma_algebra.add(union)
+
+      intersection = reduce(frozenset.intersection, subsets)
+      sigma_algebra.add(intersection)
+
+    complete = sigma_algebra == old_sigma_algebra
+    old_sigma_algebra = set(sigma_algebra)
+
+  return frozenset(sigma_algebra)
+
+f_highness_backness = generate_sigma_algebra(f_highness | f_backness)
+
+f_highness_backness
+```
+
+```{python}
+highness_backness_space = FiniteMeasurableSpace(vowels, f_highness_backness)
+```
+
+So far, we've seen a case where the sample space is finite. How about when the sample space is infinite? For example, what if we define $\Omega$ to be the set of all strings $\Sigma^*$? In that case, our event space will be a subset of $2^{\Sigma^*}$–i.e. it will consist of languages on $\Sigma$. This pairing of a sample space (the strings on $\Sigma$) and an event space (the languages on $\Sigma$) is what underlies all [language models](https://en.wikipedia.org/wiki/Language_model).
+
+Because an event space on $\Sigma^*$ is simply a set of languages, one natural way to define the event space is using a grammar.
+
+::: {.callout-caution}
+## Question
+
+Do the regular languages on $\Sigma$–i.e. the image of $R(\Sigma)$ under $\text{eval}$–form a $\sigma$-algebra?
+:::
+
+::: {.callout-tip collapse=true}
+## Answer
+
+No. And the reason has to do with the fact that the set of regular languages on $\Sigma$ are not closed under countable union. We will prove this later in the course when we discuss the pumping lemma for regular languages.
+:::
+
+An alternative way to do it is to assume that the event space is simply all possible languages on $\Sigma$. In that case, the event space gets a bit trickier to define: the powerset is uncountable for even a countably infinite sample space–something that we need to consider in the context of working with strings and derivations. This property can be a problem for reasons I'll gesture at in a second. So in general, we won't work with event spaces that are power sets of their corresponding sample space in this context. We'll instead work with what are called [Borel $\sigma$-algebras](https://en.wikipedia.org/wiki/Borel_set). It's not important to understand the intricacies of what a Borel $\sigma$-algebra is; I'll try to give you an intuition in a second.
+

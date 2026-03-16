@@ -1,0 +1,123 @@
+---
+title: Sets
+jupyter: python3
+---
+
+[*Sets*](https://en.wikipedia.org/wiki/Set_(mathematics)) are *unordered*, *uniqued* collections of things. One way to represent sets is by placing (representations of) their *elements* between curly braces.
+
+For instance, we can represent the set of vowel phonemes in English in the following way.
+
+$$V_1 \equiv \{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\}$$
+
+We express that something is an element of a set using the notation $\cdot \in \cdot$ and that it is not an element using the notation $\cdot \not\in \cdot$. So for instance, $\text{e}$ is an element of $V_1$, while $\text{t}$ is not.
+
+$$\text{e} \in V_1 \quad \text{t} \not\in V_1$$
+
+To work with sets in Python, we can use the standard library's [`set`](https://docs.python.org/3/tutorial/datastructures.html#sets) type. These objects function as we would expect in terms of elementhood.
+
+```{python}
+vowels_1: set[str] = {"e", "i", "o", "u", "æ", "ɑ", "ɔ", "ə", "ɛ", "ɪ", "ʊ"}
+
+if "e" in vowels_1:
+    print("e ∈ V_1")
+else:
+    print("e ∉ V_1")
+    
+if "t" in vowels_1:
+    print("t ∈ V_3")
+else:
+    print("t ∉ V_3")
+```
+
+Sets can be represented in many ways. For instance, we could also represent the set $V_1$ in this way:
+
+$$V_2 \equiv \{\text{o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ, e, i}\}$$
+
+Because sets are unordered, both $V_1$ and $V_2$ are representations of the exact same set ($V_1 = V_2$). And because sets are uniqued, $V_3$ is also a representation of the same set as $V_1$ and $V_2$–i.e. $V_1=V_2=V_3$–even though there are multiple copies of some vowels in this representation.
+
+$$V_3 \equiv \{\text{o, o, o, u, u, æ, ɑ, ɔ, ə, ə, ə, ɛ, ɪ, ʊ, e, i}\}$$
+
+Python `set`s work as we would expect in terms of equality.
+
+```{python}
+vowels_2: set[str] = {"o", "u", "æ", "ɑ", "ɔ", "ə", "ɛ", "ɪ", "ʊ", "e", "i"}
+vowels_3: set[str] = {"o", "o", "o", "u", "u", "æ", "ɑ", "ɔ", "ə", "ə", "ə", "ɛ", "ɪ", "ʊ", "e", "i"}
+
+if vowels_1 == vowels_2:
+    print("V_1 = V_2")
+else:
+    print("V_1 ≠ V_2")
+    
+if vowels_1 == vowels_3:
+    print("V_1 = V_3")
+else:
+    print("V_1 ≠ V_3")
+```
+
+I'll just call this set $V \equiv V_1 = V_2 = V_3$ moving forward.
+
+```{python}
+vowels: set[str] = vowels_1
+```
+
+Python has another way of representing sets that we will have reason to use: `frozenset`. These work very similarly to `set`s in a lot of ways.
+
+```{python}
+vowels_frozen: frozenset[str] = frozenset(vowels)
+
+if vowels == vowels_frozen:
+    print("V = V_frozen")
+else:
+    print("V ≠ V_frozen")
+```
+
+One big difference between the two is that `set`s are [mutable](https://docs.python.org/3/glossary.html#term-mutable), while `frozenset`s are [immutable](https://docs.python.org/3/glossary.html#term-immutable). Basically, we can alter `set`s, but we can't alter `frozenset`s. For instance, we can add elements to a `set` but not a `frozenset`.
+
+```{python}
+try:
+    vowels.add("t")
+    print("Successfully added 't' to vowels.")
+except AttributeError:
+    print("Failed to add 't' to vowels.")
+
+try:
+    vowels_frozen.add("t")
+    print("Successfully added 't' to vowels_frozen.")
+except AttributeError:
+    print("Failed to add 't' to vowels_frozen.")
+```
+
+Similarly, we can remove elements from `set`s but not `frozenset`s.
+
+```{python}
+try:
+    vowels.remove("t")
+    print("Successfully removed 't' to vowels.")
+except AttributeError:
+    print("Failed to remove 't' to vowels.")
+
+try:
+    vowels_frozen.remove("ə")
+    print("Successfully removed 'ə' to vowels_frozen.")
+except AttributeError:
+    print("Failed to remove 'ə' to vowels_frozen.")
+```
+
+This behavior makes `frozenset`s seem pretty useless, since it would seem they can do fewer things with them. But `frozenset`s turn out to have a really useful property: they can be *elements* of other `set`s or `frozenset`s.
+
+```{python}
+try:
+    vowels_singleton: set[set[str]] = {vowels}
+    print("Successfully constructed the set {V}.")
+except TypeError:
+    print("Failed to construct the set {V}.")
+
+try:
+    vowels_frozen_singleton: set[frozenset[str]] = {vowels_frozen}
+    print("Successfully constructed the set {V_frozen}.")
+except TypeError:
+    print("Failed to construct the set {V_frozen}.")
+```
+
+The reason `frozenset`s can be elements of `set`s or `frozenset`s is that they are [hashable](https://docs.python.org/3/glossary.html#term-hashable), while `set`s are not.^[There is a correlation between hashability and immutability, but they are not the same thing.] We are going to use this property extensively throughout this course.
+

@@ -1,0 +1,145 @@
+---
+title: Evaluating Regular Expressions
+jupyter: python3
+---
+
+Regular expressions *evaluate* to sets of strings on $\Sigma$–i.e. languages on $\Sigma$. Another way of thinking about this is that a regular expression on $\Sigma$ *describes* a language on $\Sigma$.
+
+We can define this evaluation procedure formally as a function $\text{eval}: R(\Sigma) \rightarrow 2^{\Sigma^*}$, where $R(\Sigma)$ is the set of regular expressions on $\Sigma$.
+
+$\text{eval}(\rho) = \begin{cases}\{\} & \text{if } \rho = \emptyset \\\{\_\} & \text{if } \rho = \epsilon \\ \{\rho\} & \text{if } \rho \in \Sigma\\ \text{eval}(\rho_1) \times \text{eval}(\rho_2) & \text{if } \rho = (\rho_1 \circ \rho_2) \\ \text{eval}(\rho_1) \cup \text{eval}(\rho_2) & \text{if } \rho = (\rho_1 \cup \rho_2)\\  \bigcup_{i = 0}^\infty \text{eval}(\rho_1)^i & \text{if } \rho = \rho_1^*\\ \end{cases}$
+
+So first, we're going to want to have access to the regular expressions' structure for the purposes of evaluating them. We could do this by using `pyparsing` or some hand-built parser to reconstruct the structure of each expression, but we may as well just build retain the structure while generating the expression.
+
+```{python}
+#| executionInfo: {elapsed: 87, status: ok, timestamp: 1675099876765, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+def regular_expressions_structured(sigma):
+    old_regex_set = frozenset(sigma | {'∅', '𝜖'})
+    
+    for rho in old_regex_set:
+        yield rho
+    
+    while True:
+        new_regex_set = set(old_regex_set)
+            
+        for rho in old_regex_set:
+            elem = (rho, '*')
+            new_regex_set |= {elem}
+            yield elem
+            
+        for rho1 in old_regex_set:
+            for rho2 in old_regex_set:
+                elem = (rho1, '∪', rho2)
+                new_regex_set |= {elem}
+                yield elem
+                
+        for rho1 in old_regex_set:
+            for rho2 in old_regex_set:
+                elem = (rho1, '∘', rho2)
+                new_regex_set |= {elem}
+                yield elem
+                
+        old_regex_set = frozenset(new_regex_set)
+        
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 87, status: ok, timestamp: 1675099876765, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 94eef156-4d7c-4762-ce09-3cb9e2ee8912
+for i, r in enumerate(regular_expressions_structured({'ə', 'm'})):
+    print(r)
+    
+    if i > 100:
+        break
+```
+
+Next, we can write a function that recursively evaluates a regular expression.
+
+```{python}
+#| executionInfo: {elapsed: 126, status: ok, timestamp: 1675099876889, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+def evaluate_regular_expression(regex):
+    if regex == '∅':
+        return
+    
+    elif regex == '𝜖':
+        yield ''
+    
+    elif isinstance(regex, str):
+        yield regex
+    
+    elif regex[1] == '*':
+        i = 0
+        while True:
+            for s in evaluate_regular_expression(regex[0]):
+                yield s*i
+            
+            i += 1
+            
+    elif regex[1] == '∪':
+        for s1 in evaluate_regular_expression(regex[0]):
+            yield s1
+            
+        for s2 in evaluate_regular_expression(regex[2]):
+            yield s2
+            
+    elif regex[1] == '∘':
+        for s1 in evaluate_regular_expression(regex[0]):
+            for s2 in evaluate_regular_expression(regex[2]):
+                yield s1 + s2
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 8, status: ok, timestamp: 1675099876889, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 44200f37-13ea-418d-f97e-9193e457c3aa
+for s in evaluate_regular_expression('ə'):
+    print(s)
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 7, status: ok, timestamp: 1675099876889, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: eccdf0e1-a197-4e87-af9f-a794f9381be8
+for s in evaluate_regular_expression(('ə', '∪', 'm')):
+    print(s)
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 6, status: ok, timestamp: 1675099876889, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: 16b6fe71-3e3a-4d9e-da06-64ef82d04d5c
+for s in evaluate_regular_expression(('ə', '∘', 'm')):
+    print(s)
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 5, status: ok, timestamp: 1675099876889, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: e48b493d-b8fb-497a-fb9d-3c7b0bb62075
+for s in evaluate_regular_expression(('ə', '∘', ('m', '∪', 'g'))):
+    print(s)
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 4, status: ok, timestamp: 1675099876889, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: ef00eee1-90f9-4fe0-b254-de3b22951d82
+for i, s in enumerate(evaluate_regular_expression(('ə', '*'))):
+    print(s)
+    
+    if i > 10:
+        break
+```
+
+```{python}
+#| colab: {base_uri: 'https://localhost:8080/'}
+#| executionInfo: {elapsed: 3, status: ok, timestamp: 1675099876889, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
+#| outputId: cee9736e-c294-45cd-920a-4875b1f0f9b6
+for i, s in enumerate(evaluate_regular_expression((('ə', '∪', 'm'), '*'))):
+    print(s)
+    
+    if i > 10:
+        break
+```
+

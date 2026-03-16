@@ -1,0 +1,101 @@
+---
+title: Languages
+jupyter: python3
+---
+
+We build languages from some alphabet/lexicon $\Sigma$ by defining a language $L$ on $\Sigma$ as a subset of the strings $\Sigma^*$ that can be built from $\Sigma$. 
+
+$$L \subseteq \Sigma^*$$
+
+This definition implies that the set of all languages on $\Sigma$ is the power set of $\Sigma^*$
+
+$$L \in 2^{\Sigma^*}$$
+
+This terminology arises from the fact that, if $\Sigma$ were, say, all of the phonemes of English, at least one element of $2^{\Sigma^*}$ would be all and only the words of English (or at least one persons English idiolect). If $\Sigma$ were all English words (and assuming that _grammaticality_ is a coherent binary concept), at least one element of $2^{\Sigma^*}$ would be all the grammatical sentences of English (or at least one persons English idiolect). Of course, many of the sets in $2^{\Sigma^*}$ won't look anything like English or any other languages, and a big part of this class is going to be figuring out how to find subsets of $2^{\Sigma^*}$ that look like possible languages.
+
+To generate the set of all languages, we can compose our generator for $\Sigma^*$ with our power set generator.
+
+```{python}
+
+from itertools import product
+
+#| code-fold: true
+#| code-summary: Generator for natural numbers
+
+def natural_numbers() -> int:
+    """Initialize a generator for the natural numbers"""
+    i = 0
+    while True:
+        yield i
+        i += 1
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: Generator for power set
+
+from typing import TypeVar
+from collections.abc import Iterable
+
+T = TypeVar("T")
+
+emptyset = frozenset()
+
+def powerset(iterable: Iterable[T]) -> set[T]:
+    yield emptyset
+
+    seen = {emptyset}
+
+    for r in iterable:
+        new = {s | frozenset({r}) for s in seen}
+        for n in new:
+            yield n
+            seen.add(n)
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: Generator for Σ*
+
+def sigma_i(sigma: set[str], i: int) -> product:
+    sigma_repeated = [sigma]*i
+    return product(*sigma_repeated)
+
+def sigma_star(sigma: set[str]) -> str:
+    for i in natural_numbers():
+        for s in sigma_i(sigma, i):
+            yield ''.join(s)
+```
+
+```{python}
+from collections.abc import Generator
+
+english_phonemes = {"ɑ", "æ", "ə", "ʌ", "ɔ", "aʊ", "aɪ", "b", "tʃ", "d", "ð", "ɛ", 
+                    "ɝ", "eɪ", "f", "g", "h", "ɪ", "i", "dʒ", "k", "l", "m", 
+                    "n", "ŋ", "oʊ", "ɔɪ", "p", "ɹ", "s", "ʃ", "t", "θ", "ʊ", 
+                    "u", "v", "w", "j", "z", "ʒ"}
+
+languages: Generator[frozenset[str]] = powerset(sigma_star(english_phonemes))
+
+for i, l in enumerate(languages):
+    if not i % 100000:
+        print(l)
+    
+    if i > 1000000:
+        break
+```
+
+Notice that even if we compute a million of these languages using our power set generator, we are still ending up with small languages consisting of only singleton strings.
+
+::: {.callout-caution}
+## Question
+
+How many languages are there in $2^{\Sigma^*}$? That is, what is $|2^{\Sigma^*}|$?
+:::
+
+Because $\{s\} \in 2^{\Sigma^*}$ for all $s \in \Sigma^*$, we know that $2^{\Sigma^*}$ must be at least as large as $\mathbb{\Sigma}^*$, which is the same size as $\mathbb{N}$. But unlike $\mathbb{\Sigma}^*$ in comparison to $\mathbb{N}$, it turns out that $2^{\Sigma^*}$ is larger than either.
+
+The trick to seeing this is to try to sequence all languages in $2^{\Sigma^*}$. Suppose there were such a sequence of languages $L_*: \mathbb{N} \rightarrow 2^{\Sigma^*}$ such that $L$ is bijective: if $L_*(i) = L_*(j)$, then $i = j$ ($L_*$ is injective), and $L_*(\mathbb{N}) = 2^{\Sigma^*}$ ($L_*$ is surjective). Given a sequence $S_*$ on the strings, which we know we can construct, define a language $\bar{L}$ such that $S(i) \in \bar{L}$ if $S(i) \not\in L_*(i)$, otherwise $S(i) \not\in \bar{L}$ for all $i \in \mathbb{N}$. 
+
+By definition, $\bar{L} \neq L_*(i)$ for any $i$, since $\bar{L}$ and $L_*(i)$ differ on at least $S(i)$: either $S(i) \in \bar{L}$ and $S(i) \not\in L_*(i)$ or $S(i) \in L_*(i)$ and $S(i) \not\in \bar{L}$. But if $\bar{L} \neq L_*(i)$ for any $i$, that means that $\bar{L} \not\in L_*(\mathbb{N})$ and therefore $L_*$ is not bijective (because it is not surjective): there will always be some $\bar{L}$ not in a particular sequence $L_*$. Therefore, $|2^{\Sigma^*}| > |\Sigma^*| = |\mathbb{N}|$.
+

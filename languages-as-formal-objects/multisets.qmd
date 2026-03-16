@@ -1,0 +1,66 @@
+---
+title: Multisets
+jupyter: python3
+---
+
+[*Multisets*](https://en.wikipedia.org/wiki/Multiset) (or *bags*) are *unordered*, *nonuniqued* collections.
+
+Multisets are often (somewhat confusingly) represented using the same notation as sets. For instance, the following is a multiset containing only vowels.
+
+$$\bar{V}_1 \equiv \{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\}$$
+
+And this is a representation of the same multiset, since multisets are unordered.
+
+$$\bar{V}_2 \equiv \{\text{o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ, e, i}\}$$
+
+But this is not a representation of a multiset, since multisets are nonuniqued.
+
+$$\bar{V}_3 \equiv \{\text{o, o, o, u, u, æ, ɑ, ɔ, ə, ə, ə, ɛ, ɪ, ʊ, e, i}\}$$
+
+Another way of saying this is that the [*multiplicity*](https://en.wikipedia.org/wiki/Multiplicity_(mathematics)) of a particular element matters in a multiset in a way it doesn't matter in a set.
+
+We often work with multisets in Python using [`dict`s](https://docs.python.org/3/tutorial/datastructures.html#dictionaries) or specialized subclasses thereof. One special subclass of `dict` that is useful for representing multisets (and that you should know) is [`collections.Counter`](https://docs.python.org/3/library/collections.html#collections.Counter). 
+
+The nice thing about `Counter` is that it can be initialized with an iterable or mapping (such as a `set`) containing hashable objects (such as `str`s) and it will make a dictionary mapping the elements of that iterable/mapping to their multiplicity–i.e. how many times they show up in that iterable/mapping.^[Note that I'm passing the vowels in the multiset as a `list` to `Counter`. We crucially don't want to pass them as a `set`, because that would destroy the multiplicities of the items.]
+
+```{python}
+from pprint import pprint
+from collections import Counter
+
+vowels_bar_1: Counter[str] = Counter(
+    ["e", "i", "o", "u", "æ", "ɑ", "ɔ", "ə", "ɛ", "ɪ", "ʊ"]
+)
+
+pprint(vowels_bar_1)
+```
+
+```{python}
+vowels_bar_2: Counter[str] = Counter(
+    ["o", "u", "æ", "ɑ", "ɔ", "ə", "ɛ", "ɪ", "ʊ", "e", "i"]
+)
+
+pprint(vowels_bar_2)
+```
+
+```{python}
+vowels_bar_3: Counter[str] = Counter(
+    ["o", "o", "o", "u", "u", "æ", "ɑ", "ɔ", "ə", "ə", "ə", "ɛ", "ɪ", "ʊ", "e", "i"]
+)
+
+pprint(vowels_bar_3)
+```
+
+And `Counter`s behave as we would expect of a multiset–at least in terms of equality. 
+
+```{python}
+if vowels_bar_1 == vowels_bar_2:
+    print("Vbar_1 = Vbar_2")
+else:
+    print("Vbar_1 ≠ Vbar_2")
+    
+if vowels_bar_1 == vowels_bar_3:
+    print("Vbar_1 = Vbar_3")
+else:
+    print("Vbar_1 ≠ Vbar_3")
+```
+

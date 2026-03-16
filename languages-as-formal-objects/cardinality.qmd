@@ -1,0 +1,44 @@
+---
+title: Cardinality
+jupyter: python3
+---
+
+The number of things in a set is its [*cardinality*](https://en.wikipedia.org/wiki/Cardinality).
+
+$$|V| = |\{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\}| = 11$$
+
+In Python, we compute the cardinality using `len`.
+
+```{python}
+vowels: set[str] = {"e", "i", "o", "u", "æ", "ɑ", "ɔ", "ə", "ɛ", "ɪ", "ʊ"}
+
+print(f"|V| = {len(vowels)}")
+```
+
+Sets can have infinite cardinality. For instance, the set of natural numbers is infinite.
+
+$$\mathbb{N} = \{0, 1, 2, 3, \ldots\}\text{ (or }\{1, 2, 3, \ldots\})$$
+
+We unfortunately can't use `set` to work with infinite sets in Python. Instead, we have to use [generators](https://docs.python.org/3/tutorial/classes.html#generators). One way to initialize a generator is to define a function containing a [`yield` statement](https://docs.python.org/3/reference/simple_stmts.html#yield).
+
+```{python}
+from collections.abc import Generator
+
+def natural_numbers() -> int:
+    """Initialize a generator for the natural numbers"""
+    i = 0
+    while True:
+        yield i
+        i += 1
+
+# initialize a generator of the natural numbers
+N: Generator[int] = natural_numbers()
+
+# print the first 10 natural numbers
+for i in N:
+  if i < 10:
+    print(i)
+  else:
+    break
+```
+
