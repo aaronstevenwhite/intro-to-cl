@@ -1,0 +1,19 @@
+.gitignore
+/.quarto/
+/docs/
+/.luarc.json
+.ipynb_checkpoints
+.DS_Store
+*.hpp
+__MACOSX
+*.zip
+.dockerignore
+
+formal-and-practical-preliminaries/regular-expressions/cmudict-0.7b
+formal-and-practical-preliminaries/regular-expressions/cmudict-ipa
+
+assignments/*-solution.ipynb
+assignments/tur.txt
+assignments/features.csv
+
+finite-state-models/Finite State Automata.*

@@ -1,0 +1,14 @@
+numpy
+pandas
+matplotlib
+nltk
+scipy
+scikit-learn
+arcweight
+pyparsing
+rdflib
+stanza
+statsmodels
+requests
+jupyter
+ipykernel
