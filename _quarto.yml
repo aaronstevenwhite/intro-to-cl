@@ -73,12 +73,12 @@ project:
   - morphological-patterns/probabilistic-context-free-grammars.qmd
   - syntactic-patterns/index.qmd
   - analysis-as-deduction/index.qmd
-  - assignments/assignments-1-and-2.qmd
-  - assignments/assignments-3-and-4.qmd
-  - assignments/assignments-5-and-6.qmd
-  - assignments/assignments-7-and-8.qmd
-  - assignments/assignments-9-and-10.qmd
-  - assignments/final-project.qmd
+  - assignments/assignments-1-and-2.ipynb
+  - assignments/assignments-3-and-4.ipynb
+  - assignments/assignments-5-and-6.ipynb
+  - assignments/assignments-7-and-8.ipynb
+  - assignments/assignments-9-and-10.ipynb
+  - assignments/final-project.ipynb
 
 website:
   title: "Introduction to Computational Linguistics"
@@ -187,12 +187,12 @@ website:
         - syntactic-patterns/index.qmd
       - section: "Assignments"
         contents:
-        - assignments/assignments-1-and-2.qmd
-        - assignments/assignments-3-and-4.qmd
-        - assignments/assignments-5-and-6.qmd
-        - assignments/assignments-7-and-8.qmd
-        - assignments/assignments-9-and-10.qmd
-        - assignments/final-project.qmd
+        - assignments/assignments-1-and-2.ipynb
+        - assignments/assignments-3-and-4.ipynb
+        - assignments/assignments-5-and-6.ipynb
+        - assignments/assignments-7-and-8.ipynb
+        - assignments/assignments-9-and-10.ipynb
+        - assignments/final-project.ipynb
 
 format:
   html:
