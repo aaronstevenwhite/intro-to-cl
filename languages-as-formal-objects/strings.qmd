@@ -49,7 +49,7 @@ def natural_numbers() -> int:
 #| outputId: 3040ebc6-db96-4e19-ad5f-0a1672e7b8bf
 sigma_star = (''.join(s) 
               for i in natural_numbers() 
-              for s in sigma_n(sigma, i))
+              for s in sigma_i(sigma, i))
 
 for s in sigma_star:
     if len(s) < 4:
@@ -80,7 +80,7 @@ N = natural_numbers()
 
 sigma_star = (''.join(s) 
               for i in N 
-              for s in sigma_n(sigma, i))
+              for s in sigma_i(sigma, i))
 
 for j, s in enumerate(sigma_star):
     if len(s) < 5:
