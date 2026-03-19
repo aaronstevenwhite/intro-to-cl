@@ -30,8 +30,8 @@ Why would we use a `tuple` or a `list` to represent a string, when we have `str`
 $$\bar{\mathbf{w}} \equiv \langle \langle \text{ɹ,u,d} \rangle, \langle \text{ə,r} \rangle \rangle$$
 
 ```{python}
-w_rude_tuple = ("ɹ", "u", "d")
-w_er_tuple = ("ə", "r")
+w_rude = ("ɹ", "u", "d")
+w_er = ("ə", "r")
 w_bar_tuple = (w_rude, w_er)
 
 print(w_bar_tuple)
