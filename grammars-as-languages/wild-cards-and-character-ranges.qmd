@@ -40,6 +40,7 @@ If you want to match the `.` itself (or any special character we introduce below
 #| executionInfo: {elapsed: 3, status: ok, timestamp: 1675099877339, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
 #| outputId: b2891a3d-8d30-4bfa-88ec-9be3cbe4031a
 regex_period_bstɹækʃən = '\.bstɹækʃən'
+string_æbstɹækʃən = "".join(entries["abstraction"])
 
 re.fullmatch(regex_period_bstɹækʃən, '.' + string_æbstɹækʃən[1:])
 ```
