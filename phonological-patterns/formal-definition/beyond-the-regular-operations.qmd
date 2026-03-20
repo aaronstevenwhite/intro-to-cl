@@ -15,6 +15,13 @@ Given a deterministic finite automaton (DFA) $G = \langle Q, \Sigma, \delta, q_0
 Note that for the complement operation to work correctly, the automaton must be a complete DFA (every state has a transition for every symbol in the alphabet). If the NFA is not deterministic or not complete, it must first be converted to a complete DFA.
 
 ```{python}
+from copy import copy, deepcopy
+
+class TransitionFunction:
+    """Placeholder for transition function used in intersection."""
+    def __init__(self, graph):
+        self._graph = graph
+
 class FiniteStateAutomaton:
     """A finite state automaton
 
@@ -26,6 +33,10 @@ class FiniteStateAutomaton:
     final states
     transition_graph
     """
+
+    def _deepcopy(self):
+        fsa = copy(self)
+        return deepcopy(fsa)
 
     def complement(self) -> 'FiniteStateAutomaton':
         """

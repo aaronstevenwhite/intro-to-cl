@@ -17,6 +17,8 @@ Given NFAs $M_1 = \langle Q_1, \Sigma_1, \delta_1, q_1, F_1 \rangle$ recognizing
 3. Define $F = F_1 \cup F_2$
 
 ```{python}
+from copy import copy, deepcopy
+
 class FiniteStateAutomaton:
     """A finite state automaton
 

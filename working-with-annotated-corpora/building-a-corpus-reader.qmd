@@ -175,6 +175,8 @@ data = pyparsing.Regex(r'[^\(\)\s]+')
 exp = pyparsing.Forward()
 expList = pyparsing.Group(LPAR + data + exp[...] + RPAR)
 exp <<= data | expList
+
+Tree.PARSER = exp
 ```
 
 ```{python}

@@ -154,7 +154,7 @@ tree[4]
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 913, status: ok, timestamp: 1680619945043, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 #| outputId: 2ee8373f-2f44-4eb4-8499-0f31b5e15ee2
-for i in range(len(tree1)):
+for i in range(len(tree)):
     print(i, tree[i].data)
 ```
 
@@ -206,62 +206,62 @@ tree = Tree('S',
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 17, status: ok, timestamp: 1680619945043, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 #| outputId: e2c429ea-ca8c-432e-b49e-8d6c1864ac2d
-tree1[tuple()]
+tree[tuple()]
 ```
 
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 15, status: ok, timestamp: 1680619945043, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 #| outputId: eb3ba0ca-e0ee-4230-b422-d222f7b4d56e
-tree1[0]
+tree[0]
 ```
 
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 14, status: ok, timestamp: 1680619945043, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 #| outputId: 368c65bc-e6fb-429b-e9e1-c17ed0a863a2
-tree1[0,0]
+tree[0,0]
 ```
 
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 13, status: ok, timestamp: 1680619945043, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 #| outputId: 6c8ec7b3-de69-4e0d-9fcd-34d5a8aa8c93
-tree1[0,1]
+tree[0,1]
 ```
 
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 14, status: ok, timestamp: 1680619945044, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 #| outputId: 1ed9cf18-b95f-4bc8-a91a-b29ee58f7258
-tree1[0,1,0]
+tree[0,1,0]
 ```
 
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 13, status: ok, timestamp: 1680619945044, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 #| outputId: c1007a50-e4f3-4c8d-b783-59a56543d9d6
-tree1[1]
+tree[1]
 ```
 
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 13, status: ok, timestamp: 1680619945044, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 #| outputId: 7ca0b262-a684-4802-9431-525856465362
-tree1[1,1]
+tree[1,1]
 ```
 
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 12, status: ok, timestamp: 1680619945044, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 #| outputId: 5974d449-7cac-4be5-c806-ff26fde9d3ec
-tree1[1,1,0]
+tree[1,1,0]
 ```
 
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 12, status: ok, timestamp: 1680619945044, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 #| outputId: ac58075d-d9b9-4861-f5f7-1bd0939cbaf2
-tree1[1,1,0,0]
+tree[1,1,0,0]
 ```
 
