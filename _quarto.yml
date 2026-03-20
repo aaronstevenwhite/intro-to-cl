@@ -41,6 +41,7 @@ project:
   - languages-in-terms-of-strings/index.qmd
   - languages-in-terms-of-strings/distance-in-the-abstract.qmd
   - languages-in-terms-of-strings/levenshtein-distance.qmd
+  - languages-in-terms-of-strings/neighborhood-density.qmd
   - working-with-annotated-corpora/index.qmd
   - working-with-annotated-corpora/trees.qmd
   - working-with-annotated-corpora/containment-tests.qmd
@@ -154,6 +155,7 @@ website:
         - languages-in-terms-of-strings/index.qmd
         - languages-in-terms-of-strings/distance-in-the-abstract.qmd
         - languages-in-terms-of-strings/levenshtein-distance.qmd
+        - languages-in-terms-of-strings/neighborhood-density.qmd
       - section: "The nature of phonological patterns"
         contents:
         - phonological-patterns/index.qmd
