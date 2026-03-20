@@ -1,0 +1,106 @@
+---
+title: Piecewise and tier-based languages
+bibliography: ../../references.bib
+jupyter: python3
+---
+
+The SL and LT classes from the previous section capture constraints that depend on *contiguous* substrings. But not all phonological patterns are local in this sense. Consider sibilant harmony in Navajo: the sibilants [s] and [ʃ] must agree in anteriority throughout a word, even when separated by other segments. The constraint is not about adjacent symbols—it's about symbols that may be arbitrarily far apart.
+
+To handle these kinds of long-distance patterns, we need a notion of "appearing in a string" that doesn't require contiguity. This is where *subsequences* come in.
+
+## Strictly Piecewise languages
+
+Recall that a *substring* (or *factor*) of $w$ is a contiguous block of symbols: $w_i w_{i+1} \ldots w_j$. A *subsequence* of $w$ is a (not necessarily contiguous) sequence of symbols drawn from $w$ in order: $w_{i_1} w_{i_2} \ldots w_{i_m}$ where $i_1 < i_2 < \ldots < i_m$. For instance, [sɪʃ] contains [sʃ] as a subsequence (take the first and third symbols) even though [sʃ] is not a substring.
+
+A *Strictly Piecewise* language of order $k$, or SP-$k$ language, is one whose membership is determined by the set of length-$k$ subsequences that appear in the string [@heinz2010learning; @rogers2010languages]. Just as SL-$k$ is defined by forbidden $k$-grams (contiguous), SP-$k$ is defined by forbidden $k$-subsequences (not necessarily contiguous).
+
+A language $L$ is SP-$k$ if and only if there exists a finite set $\mathcal{F}$ of sequences of length $\leq k$ over $\Sigma$ such that:
+
+$$w \in L \iff \text{no element of } \mathcal{F} \text{ is a subsequence of } w$$
+
+For example, sibilant harmony can be expressed as an SP-2 constraint with $\mathcal{F} = \{\text{sʃ}, \text{ʃs}\}$: the forbidden subsequences are [sʃ] and [ʃs]—a word cannot contain both [s] and [ʃ] in either order.^[This is a simplification. Real sibilant harmony systems are often more nuanced, but the SP characterization captures the core pattern.]
+
+The crucial difference from SL is that subsequences can skip over intervening material. The constraint [sʃ] $\in \mathcal{F}$ forbids [s] from preceding [ʃ] *anywhere* in the word, regardless of how many symbols intervene. This is exactly the property needed for long-distance harmony.
+
+The automata that recognize SP languages have a distinctive structure. Where an SL-$k$ automaton tracks the last $k - 1$ symbols (a sliding window), an SP-$k$ automaton tracks which subsequences of length up to $k - 1$ have been started but not yet completed. The state space is different in kind: rather than a tuple of recent symbols, it's a record of which "open" subsequences are in progress.
+
+## Piecewise Testable languages
+
+Just as LT generalizes SL to Boolean combinations of factor constraints, *Piecewise Testable* (PT) languages generalize SP to Boolean combinations of subsequence constraints [@simon1975piecewise]. A language is PT-$k$ if membership can be determined by a Boolean formula over statements of the form "the subsequence $u$ (of length $\leq k$) appears in $w$."
+
+PT properly contains SP, for the same reason that LT properly contains SL: SP can only forbid subsequences, while PT can also require them.
+
+## Tier-based Strictly Local languages
+
+SL captures local constraints. SP captures long-distance constraints. But there is a class of long-distance phonological patterns that neither SL nor SP handles cleanly: patterns where the constraint is *local on a relevant subset of the alphabet*.
+
+Vowel harmony is a good example. In Turkish, the vowels in a word must agree in backness: a word with [a] (back) in one syllable cannot have [e] (front) in the next, and vice versa.^[Again, this is a simplification—Turkish vowel harmony is sensitive to both backness and rounding—but the backness pattern illustrates the idea.] This is a long-distance constraint (the vowels may be separated by consonants), so it's not SL on the full alphabet. And while it could in principle be captured as an SP constraint, the SP characterization doesn't reflect the linguistic insight that the constraint is *about the vowels specifically*, with consonants being irrelevant.
+
+*Tier-based Strictly Local* (TSL) languages formalize this insight [@heinz2011tier; @jardine2016learning; @lambert2020tier]. A language is TSL if, after projecting onto a relevant *tier*—a subset $\tau \subseteq \Sigma$ of the alphabet—the projected language is SL.
+
+More precisely, let $\pi_\tau: \Sigma^* \rightarrow \tau^*$ be the projection that deletes all symbols not in $\tau$. A language $L$ is TSL-$k$ with tier $\tau$ if and only if the projected language $\pi_\tau(L) = \{\pi_\tau(w) \mid w \in L\}$ is SL-$k$ over the alphabet $\tau$.
+
+For Turkish vowel harmony, the tier $\tau$ is the set of vowels and the SL constraint on the tier is SL-2: adjacent vowels (on the vowel tier) must agree in backness. The consonants between them are irrelevant—they are projected away before the constraint is checked.
+
+We can implement a tier projection as a finite state transducer that maps non-tier symbols to $\epsilon$ and then compose it with an SL constraint.
+
+```{python}
+#| code-fold: true
+#| code-summary: Build a TSL constraint via tier projection and composition
+
+import arcweight
+
+# Simple alphabet: two vowels (front, back) and two consonants
+phones = ['e', 'a', 't', 'n']
+syms = arcweight.SymbolTable()
+sym_ids = {}
+for p in phones:
+    sym_ids[p] = syms.add_symbol(p)
+
+# Tier: vowels only
+tier = ['e', 'a']
+
+# Build the tier projection transducer: vowels map to themselves, consonants map to epsilon (0)
+proj = arcweight.VectorFst()
+s = proj.add_state()
+proj.set_start(s)
+proj.set_final(s, 0.0)
+
+for p in phones:
+    if p in tier:
+        # Vowel: keep it (input = output)
+        proj.add_arc(s, sym_ids[p], sym_ids[p], 0.0, s)
+    else:
+        # Consonant: delete (output = epsilon = 0)
+        proj.add_arc(s, sym_ids[p], 0, 0.0, s)
+
+# Build an SL-2 constraint on the vowel tier: forbid [ea] and [ae]
+# (adjacent vowels on the tier must agree)
+# This FSA operates over the vowel alphabet only
+vowel_syms = arcweight.SymbolTable()
+v_ids = {}
+for v in tier:
+    v_ids[v] = vowel_syms.add_symbol(v)
+
+# FSA accepting strings that contain the forbidden bigram [ea]
+contains_ea = arcweight.VectorFst()
+s0 = contains_ea.add_state()
+s1 = contains_ea.add_state()
+s2 = contains_ea.add_state()
+contains_ea.set_start(s0)
+contains_ea.set_final(s2, 0.0)
+
+contains_ea.add_arc(s0, v_ids['e'], v_ids['e'], 0.0, s1)
+contains_ea.add_arc(s0, v_ids['a'], v_ids['a'], 0.0, s0)
+contains_ea.add_arc(s1, v_ids['a'], v_ids['a'], 0.0, s2)
+contains_ea.add_arc(s1, v_ids['e'], v_ids['e'], 0.0, s1)
+for v in tier:
+    contains_ea.add_arc(s2, v_ids[v], v_ids[v], 0.0, s2)
+
+print(f"Tier projection transducer states: {proj.num_states()}")
+print(f"Contains [ea] automaton states: {contains_ea.num_states()}")
+```
+
+The linguistic naturalness of TSL is worth emphasizing. Phonologists have worked with tiers since at least autosegmental phonology in the 1970s—the idea that certain features "live on" a separate tier and interact locally on that tier even when separated on the surface. TSL formalizes this intuition: the constraint is strictly local, just not on the full string.
+
+TSL is not a subclass of either SL or SP. It captures patterns that are non-local on the full alphabet (so not SL) but that are not well-described as subsequence constraints either (so not naturally SP, though there is some overlap). It occupies its own position in the hierarchy, crosscutting the SL/LT and SP/PT branches.

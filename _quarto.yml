@@ -55,16 +55,22 @@ project:
   - phonological-patterns/formal-definition/two-equivalent-definitions.qmd
   - phonological-patterns/formal-definition/translating-between-formalisms.qmd
   - phonological-patterns/formal-definition/beyond-the-regular-operations.qmd
-  - phonological-patterns/generative-capacity/index.qmd
-  - phonological-patterns/generative-capacity/pumping-lemma.qmd
+  - phonological-patterns/subregular-hierarchy/index.qmd
+  - phonological-patterns/subregular-hierarchy/local-languages.qmd
+  - phonological-patterns/subregular-hierarchy/piecewise-languages.qmd
+  - phonological-patterns/subregular-hierarchy/star-free-and-the-full-picture.qmd
+  - phonological-patterns/recognition-and-parsing/index.qmd
+  - phonological-patterns/recognition-and-parsing/recognition.qmd
+  - phonological-patterns/recognition-and-parsing/parsing.qmd
   - phonological-patterns/phonological-rules-as-fsas/index.qmd
   - phonological-patterns/phonological-rules-as-fsas/finite-state-transducers.qmd
   - phonological-patterns/phonological-rules-as-fsas/fst-operations.qmd
   - phonological-patterns/phonological-rules-as-fsas/parsing-and-transduction.qmd
   - phonological-patterns/phonological-rules-as-fsas/rule-formalism.qmd
-  - phonological-patterns/recognition-and-parsing/index.qmd
-  - phonological-patterns/recognition-and-parsing/recognition.qmd
-  - phonological-patterns/recognition-and-parsing/parsing.qmd
+  - phonological-patterns/phonological-rules-as-fsas/opacity-and-rule-ordering.qmd
+  - phonological-patterns/generative-capacity/index.qmd
+  - phonological-patterns/generative-capacity/pumping-lemma.qmd
+  - phonological-patterns/generative-capacity/non-regular-morphology.qmd
   - morphological-patterns/index.qmd
   - morphological-patterns/operations.qmd
   - morphological-patterns/normal-forms.qmd
@@ -140,29 +146,37 @@ website:
         - phonological-patterns/index.qmd
         - phonological-patterns/generation.qmd
         - phonological-patterns/the-generativist-conceit.qmd
-        - section: "Formal definition"
+        - section: "Finite state automata"
           contents:
           - phonological-patterns/formal-definition/index.qmd
           - phonological-patterns/formal-definition/two-equivalent-definitions.qmd
           - phonological-patterns/formal-definition/the-regular-operations.qmd
           - phonological-patterns/formal-definition/translating-between-formalisms.qmd
           - phonological-patterns/formal-definition/beyond-the-regular-operations.qmd
+        - section: "The subregular hierarchy"
+          contents:
+          - phonological-patterns/subregular-hierarchy/index.qmd
+          - phonological-patterns/subregular-hierarchy/local-languages.qmd
+          - phonological-patterns/subregular-hierarchy/piecewise-languages.qmd
+          - phonological-patterns/subregular-hierarchy/star-free-and-the-full-picture.qmd
         - section: "Recognition and parsing"
           contents:
           - phonological-patterns/recognition-and-parsing/index.qmd
           - phonological-patterns/recognition-and-parsing/recognition.qmd
           - phonological-patterns/recognition-and-parsing/parsing.qmd
-        - section: "Phonological rules as FSAs"
+        - section: "Phonological rules as finite state transducers"
           contents:
           - phonological-patterns/phonological-rules-as-fsas/index.qmd
           - phonological-patterns/phonological-rules-as-fsas/finite-state-transducers.qmd
           - phonological-patterns/phonological-rules-as-fsas/fst-operations.qmd
           - phonological-patterns/phonological-rules-as-fsas/parsing-and-transduction.qmd
           - phonological-patterns/phonological-rules-as-fsas/rule-formalism.qmd
+          - phonological-patterns/phonological-rules-as-fsas/opacity-and-rule-ordering.qmd
         - section: "Generative capacity"
           contents:
           - phonological-patterns/generative-capacity/index.qmd
           - phonological-patterns/generative-capacity/pumping-lemma.qmd
+          - phonological-patterns/generative-capacity/non-regular-morphology.qmd
       - section: "The nature of morphological patterns"
         contents:
         - morphological-patterns/index.qmd

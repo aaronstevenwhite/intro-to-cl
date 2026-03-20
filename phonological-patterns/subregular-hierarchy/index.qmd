@@ -1,0 +1,23 @@
+---
+title: Overview
+bibliography: ../../references.bib
+---
+
+We've now seen that the regular languages on an alphabet $\Sigma$ are closed under union, concatenation, Kleene star, complement, and intersection. This means that if we start with any finite collection of regular languages and combine them using these operations, we always get another regular language. It's a powerful class—and as I mentioned in the [section on generation](../generation.qmd), it seems likely that all phonological grammars of natural languages fall within it.
+
+But recall the point I made in the [section on the Generativist Conceit](../the-generativist-conceit.qmd): Gold's theorem tells us that the full class of regular languages is not learnable in the limit from positive data, because it contains infinite chains of languages $L_1 \subset L_2 \subset \ldots$ that allow the learner to be tricked. If phonological grammars are regular, and if children learn phonological grammars from positive data, then the class of phonological grammars cannot be the *entire* class of regular languages. It must be a proper subclass—one that avoids these infinite containment chains.
+
+This observation raises a natural question: which subclass? Is there a principled way to identify the region of the regular languages where phonological patterns live?
+
+It turns out there is. Over the past several decades, a body of work in formal language theory and computational phonology has identified a collection of subclasses of the regular languages—known collectively as the *subregular hierarchy*—that have two important properties: (i) they are learnable in the limit from positive data; and (ii) the phonological patterns of natural languages overwhelmingly fall into them [@heinz_computational_2018; @rogers2011aural; @rogers2013cognitive; @lambert2021typology].
+
+The hierarchy looks roughly like this:
+
+$$\text{SL} \subset \text{LT} \subset \text{Star-Free} \subset \text{Regular}$$
+$$\text{SP} \subset \text{PT} \subset \text{Star-Free} \subset \text{Regular}$$
+
+where SL (Strictly Local) and SP (Strictly Piecewise) are the smallest classes, LT (Locally Testable) and PT (Piecewise Testable) are somewhat larger, and the Star-Free languages sit just below the full regular languages. There is also a class called TSL (Tier-based Strictly Local) that crosscuts this picture in a way I'll describe shortly.
+
+The key empirical finding is that attested phonological patterns cluster at the bottom of this hierarchy—primarily in SL, SP, and TSL. Very few phonological patterns require even LT or PT, and essentially none require the full power of the regular languages. This is a striking convergence between formal language theory and linguistic typology, and it suggests that the learnability constraint is doing real work in shaping what phonological systems look like.
+
+In the following sections, I'll define each of these classes, ground them in phonological examples, and show how they relate to each other and to the finite state automata we've been studying.

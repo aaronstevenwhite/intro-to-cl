@@ -1,0 +1,129 @@
+---
+title: Star-free languages and the full picture
+bibliography: ../../references.bib
+jupyter: python3
+---
+
+We've now seen two branches of the subregular hierarchy: the local side (SL $\subset$ LT) and the piecewise side (SP $\subset$ PT), along with TSL crosscutting both. These branches converge at a class called the *star-free languages*, which sits just below the full regular languages and just above both LT and PT.
+
+## Star-free languages
+
+A language is *star-free* if it can be described by a generalized regular expression that uses union, concatenation, and *complement* but not Kleene star [@mcnaughton1971counter; @schutzenberger1965finite]. That is, we replace the $*$ operation with $\overline{\cdot}$ (complement with respect to $\Sigma^*$).
+
+This might sound like a minor change, but it turns out to carve out a very specific subclass of the regular languages. The reason is that Kleene star is what gives regular expressions the ability to count modulo a number. For instance, the language $\{w \in \{a, b\}^* \mid |w|_a \equiv 0 \pmod{2}\}$—strings with an even number of $a$'s—is regular (you can build a two-state DFA for it) but not star-free.
+
+We can build star-free expressions using `arcweight` by constructing automata with `union`, `concat`, and `difference` (complement) only.
+
+```{python}
+#| code-fold: true
+#| code-summary: Build a star-free language using only union, concatenation, and complement
+
+import arcweight
+
+# Alphabet: {a, b}
+syms = arcweight.SymbolTable()
+a = syms.add_symbol('a')
+b = syms.add_symbol('b')
+
+# Sigma-star: accepts all strings over {a, b}
+sigma_star = arcweight.VectorFst()
+s = sigma_star.add_state()
+sigma_star.set_start(s)
+sigma_star.set_final(s, 0.0)
+sigma_star.add_arc(s, a, a, 0.0, s)
+sigma_star.add_arc(s, b, b, 0.0, s)
+
+# Single-symbol FSAs
+fst_a = arcweight.VectorFst()
+s0 = fst_a.add_state()
+s1 = fst_a.add_state()
+fst_a.set_start(s0)
+fst_a.set_final(s1, 0.0)
+fst_a.add_arc(s0, a, a, 0.0, s1)
+
+fst_b = arcweight.VectorFst()
+s0 = fst_b.add_state()
+s1 = fst_b.add_state()
+fst_b.set_start(s0)
+fst_b.set_final(s1, 0.0)
+fst_b.add_arc(s0, b, b, 0.0, s1)
+
+# Star-free expression for "strings that contain at least one 'a'":
+# complement(complement({a}) ∘ sigma_star)... actually let's do it directly.
+# "strings containing 'a'" = sigma_star ∘ {a} ∘ sigma_star
+# But we can't use Kleene star! We use complement instead:
+# "strings NOT containing 'a'" = complement of (sigma_star ∘ {a} ∘ sigma_star)
+# But sigma_star itself uses star...
+# The trick: sigma_star = complement(empty_set), and empty_set is star-free.
+
+# Actually, the standard star-free construction for sigma_star:
+# Σ* = complement(∅)
+# So we need ∅ first
+empty = arcweight.VectorFst()
+s = empty.add_state()
+empty.set_start(s)
+# No final state — accepts nothing
+
+# Σ* = complement(∅) = difference(sigma_star, empty)
+# But we need sigma_star to compute the difference...
+# In practice, we work with sigma_star as given and use difference for complement.
+
+# "Strings that contain [ab] as a substring" (star-free):
+# Σ* ∘ {a} ∘ {b} ∘ Σ* — but this uses concatenation, not star.
+# We concatenate with sigma_star (= complement(∅)) on both sides.
+ab_substr = arcweight.concat(arcweight.concat(sigma_star, fst_a), arcweight.concat(fst_b, sigma_star))
+
+# "Strings that do NOT contain [ab]" (complement of the above)
+no_ab = arcweight.difference(sigma_star, ab_substr)
+no_ab = arcweight.minimize(no_ab)
+
+print(f"no_ab states: {no_ab.num_states()}")
+```
+
+### The McNaughton-Papert theorem
+
+The star-free languages have a beautiful algebraic characterization due to @mcnaughton1971counter and @schutzenberger1965finite: a regular language is star-free if and only if its syntactic monoid is *aperiodic*—meaning it contains no nontrivial cyclic groups. The equivalent automaton-theoretic statement is that a regular language is star-free if and only if it is recognizable by a *counter-free* automaton: a DFA with no state $q$ and string $w$ such that $\delta(q, w) = q$ and $\delta(q, w^i) \neq q$ for some $0 < i < |w|$. (In other words, if following $w$ from $q$ returns to $q$, then following any prefix of any power of $w$ from $q$ also returns to $q$—the automaton cannot count.)
+
+There is also a logical characterization: the star-free languages are exactly the languages definable in first-order logic with the linear order and successor predicates on string positions. This connects the subregular hierarchy to a broader program of relating language classes to logical expressiveness.
+
+I won't prove these equivalences here, but they are worth knowing about because they illuminate *why* star-free languages are a natural boundary: the languages above them (but still regular) are exactly those that require modular counting, and there is no known phonological pattern that requires counting modulo a number.
+
+## The complete hierarchy
+
+We can now assemble the full picture. The following containments are all proper:
+
+$$\text{SL}_k \subset \text{SL}_{k+1} \subset \ldots \subset \text{SL} \subset \text{LT} \subset \text{Star-Free} \subset \text{Regular}$$
+$$\text{SP}_k \subset \text{SP}_{k+1} \subset \ldots \subset \text{SP} \subset \text{PT} \subset \text{Star-Free} \subset \text{Regular}$$
+
+where SL $= \bigcup_k \text{SL}_k$ and SP $= \bigcup_k \text{SP}_k$. TSL sits to the side: it is not contained in SL or SP, but many TSL languages are contained in the star-free languages. The relationships among SL, SP, LT, PT, and TSL are not simple containment—there are languages in each that are not in the others—but they all live within the star-free languages, and all are well below the full regular class.
+
+::: {.callout-caution}
+## Question
+
+The language "strings over $\{a, b\}$ with an even number of $a$'s" is regular. Is it star-free?
+:::
+
+::: {.callout-tip collapse=true}
+## Answer
+
+No. This language requires counting $a$'s modulo 2, which requires a cyclic group in the syntactic monoid. The minimal DFA has two states that cycle with each $a$, making it a counter. Since the syntactic monoid is not aperiodic, the language is not star-free.
+:::
+
+## The empirical picture
+
+The striking finding, documented across a large body of work, is that attested phonological patterns overwhelmingly fall into the lowest levels of this hierarchy [@heinz_computational_2018; @rogers2013cognitive; @lambert2021typology; @graf2017power].
+
+- Most phonotactic constraints (restrictions on what sequences of sounds can appear) are SL—they depend on short contiguous contexts.
+- Long-distance phonological processes like harmony are typically SP or TSL.
+- Very few phonological patterns require even LT or PT.
+- No known phonological pattern requires the full power of the regular languages.
+
+This is not a logical necessity. There is nothing in the definition of a DFA that prevents a phonological pattern from using modular counting or other non-star-free capabilities. The fact that phonological patterns *don't* use these capabilities is an empirical observation about natural language—one that calls for explanation.
+
+## Learnability revisited
+
+One candidate explanation comes from learnability. Recall Gold's result: the full class of regular languages is not learnable in the limit from positive data, because it contains infinite chains $L_1 \subset L_2 \subset \ldots$ that allow the learner to be tricked.
+
+The subregular classes avoid this problem. @heinz2010learning showed that SL and SP languages are learnable in the limit from positive data using straightforward algorithms that track $k$-grams or $k$-subsequences. @jardine2016learning extended this to TSL. @heinz2013learning provided a general framework for learning subregular classes using factored deterministic automata. And @lambert2021typology argued that the convergence between learnability and typology is not a coincidence—that the distributional properties of subregular classes predict which patterns should be common cross-linguistically.
+
+The picture that emerges is this: the constraint that phonological systems must be learnable from the kind of data children have access to pushes the class of possible phonological grammars into exactly the region of the regular languages where we find them. The subregular hierarchy provides a precise characterization of that region.
