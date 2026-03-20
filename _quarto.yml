@@ -84,7 +84,14 @@ project:
   - morphological-patterns/probabilistic-context-free-grammars.qmd
   - morphological-patterns/unsupervised-grammar-learning.qmd
   - syntactic-patterns/index.qmd
-  - analysis-as-deduction/index.qmd
+  - syntactic-patterns/cfgs-for-syntax.qmd
+  - syntactic-patterns/deductive-parsing.qmd
+  - syntactic-patterns/mildly-context-sensitive/index.qmd
+  - syntactic-patterns/mildly-context-sensitive/tree-adjoining-grammars.qmd
+  - syntactic-patterns/mildly-context-sensitive/type-logical-grammars.qmd
+  - syntactic-patterns/mildly-context-sensitive/combinatory-categorial-grammars.qmd
+  - syntactic-patterns/mildly-context-sensitive/mcfgs-and-lcfrs.qmd
+  - syntactic-patterns/mildly-context-sensitive/minimalist-grammars.qmd
   - assignments/assignments-1-and-2.ipynb
   - assignments/assignments-3-and-4.ipynb
   - assignments/assignments-5-and-6.ipynb
@@ -197,12 +204,19 @@ website:
         - morphological-patterns/segmentation-with-structured-prediction.qmd
         - morphological-patterns/probabilistic-context-free-grammars.qmd
         - morphological-patterns/unsupervised-grammar-learning.qmd
-      - section: "Analysis as deduction"
-        contents:
-        - analysis-as-deduction/index.qmd
       - section: "The nature of syntactic patterns"
         contents:
         - syntactic-patterns/index.qmd
+        - syntactic-patterns/cfgs-for-syntax.qmd
+        - syntactic-patterns/deductive-parsing.qmd
+        - section: "Mildly context-sensitive formalisms"
+          contents:
+          - syntactic-patterns/mildly-context-sensitive/index.qmd
+          - syntactic-patterns/mildly-context-sensitive/tree-adjoining-grammars.qmd
+          - syntactic-patterns/mildly-context-sensitive/type-logical-grammars.qmd
+          - syntactic-patterns/mildly-context-sensitive/combinatory-categorial-grammars.qmd
+          - syntactic-patterns/mildly-context-sensitive/mcfgs-and-lcfrs.qmd
+          - syntactic-patterns/mildly-context-sensitive/minimalist-grammars.qmd
       - section: "Assignments"
         contents:
         - assignments/assignments-1-and-2.ipynb

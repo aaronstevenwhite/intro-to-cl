@@ -1,0 +1,76 @@
+---
+title: Multiple Context-Free Grammars
+bibliography: ../../references.bib
+---
+
+Multiple Context-Free Grammars (MCFGs) generalize context-free grammars in a way that is both simple to state and far-reaching in its consequences [@seki1991multiple]. The key idea is that where a CFG nonterminal yields a single contiguous string, an MCFG nonterminal can yield a *tuple* of strings—potentially discontinuous pieces that together form the contribution of that nonterminal. This is the formal mechanism that allows MCFGs to handle the cross-serial dependencies and discontinuous constituents that CFGs cannot.
+
+MCFGs are equivalent to Linear Context-Free Rewriting Systems (LCFRS), introduced independently by @vijayshanker1987characterizing. The two formalisms differ in presentation but generate the same class of languages. I'll use the MCFG notation here, since it's what the [final project](../../assignments/final-project.ipynb) uses, but I'll point out the connection to LCFRS as presented by @kallmeyer_linear_2013, whose inference rules you'll implement in the final project.
+
+## Formal definition
+
+An MCFG $G = \langle N, T, F, P, S \rangle$ consists of:
+
+- $N$: a finite set of nonterminals, each with an associated *fan-out* $\text{dim}(A) \in \mathbb{N}^+$
+- $T$: a finite terminal alphabet
+- $F$: a set of *linear, non-erasing* functions used in rules
+- $P$: a finite set of production rules
+- $S \in N$: the start symbol, with $\text{dim}(S) = 1$
+
+The fan-out $\text{dim}(A)$ of a nonterminal $A$ is the number of string components it yields. A CFG nonterminal has fan-out 1—it yields a single contiguous string. An MCFG nonterminal with fan-out 2 yields a *pair* of strings, which may be separated by material from other nonterminals.
+
+A rule has the form:
+
+$$A(\alpha_1, \ldots, \alpha_{\text{dim}(A)}) \rightarrow B_1(x_1^{(1)}, \ldots, x_{\text{dim}(B_1)}^{(1)}) \cdots B_k(x_1^{(k)}, \ldots, x_{\text{dim}(B_k)}^{(k)})$$
+
+where each $\alpha_i$ is a concatenation of terminal strings and variables drawn from the right-hand side nonterminals. The constraints are:
+
+- **Linearity**: each variable from the right-hand side appears exactly once on the left-hand side.
+- **Non-erasure**: every variable from the right-hand side appears somewhere on the left-hand side.
+
+These constraints ensure that the rule is a *function* from the yields of the right-hand side nonterminals to the yield of the left-hand side nonterminal, and that this function is both deterministic and non-erasing.
+
+## Example: Swiss German cross-serial dependencies
+
+Recall the [Swiss German pattern](../cfgs-for-syntax.qmd) that is not context-free: sequences of NPs followed by matching sequences of verbs. In an MCFG, we can handle this using nonterminals with fan-out 2.
+
+Define the nonterminals: $S$ with $\text{dim}(S) = 1$, and $\text{VP}$ with $\text{dim}(\text{VP}) = 2$—yielding a pair of strings, one for the NP part and one for the verb part.
+
+$$\begin{align*}
+S(uv) &\rightarrow \text{VP}(u, v) \\
+\text{VP}(u_1 \cdot \text{NP}_i \cdot u_2,\; v_1 \cdot \text{V}_i \cdot v_2) &\rightarrow \text{VP}(u_1 \cdot u_2,\; v_1 \cdot v_2)
+\end{align*}$$
+
+The second rule says: to build a VP that yields a pair of strings, take an existing VP pair and insert an NP into the first component and a matching verb into the second component. The first rule combines the two components of VP into a single string for $S$. Because each VP contributes to both the NP-part and the verb-part, the cross-serial dependencies are maintained.
+
+## Example: the final project grammar
+
+The [final project](../../assignments/final-project.ipynb) provides an MCFG grammar for a fragment of English that includes wh-movement. For instance, the rule:
+
+$$\text{VPwhmain}(u, v) \rightarrow \text{NPwh}(u)\;\text{Vroot}(v)$$
+
+says that a $\text{VPwhmain}$ yields *two* string components: $u$ (the wh-phrase, which may have been extracted) and $v$ (the verb). The fan-out of $\text{VPwhmain}$ is 2, reflecting the discontinuity introduced by extraction.
+
+This is the grammar you'll implement a parser for. The notation in the final project uses `MCFGRule` and `MCFGRuleElement` classes; the mathematical content is exactly what I've described here.
+
+## MCFG parsing
+
+Parsing MCFGs uses the [deductive parsing framework](../deductive-parsing.qmd) with items that track *tuples of spans* rather than single spans. An item $[A, \langle (i_1, j_1), \ldots, (i_m, j_m) \rangle]$ records that nonterminal $A$ (with fan-out $m$) yields the string components spanning positions $(i_1, j_1), \ldots, (i_m, j_m)$.
+
+The inference rules, as presented by @kallmeyer_linear_2013, generalize the CKY rules in a natural way. The key rule is:
+
+$$\frac{[B_1, \vec{s}_1] \quad \cdots \quad [B_k, \vec{s}_k]}{[A, f(\vec{s}_1, \ldots, \vec{s}_k)]}$$
+
+where $f$ is the function specified by the MCFG rule $A \rightarrow B_1 \cdots B_k$ and $\vec{s}_i$ is the tuple of spans for $B_i$. The function $f$ concatenates and rearranges the spans according to the rule.
+
+The parsing complexity is $O(n^{3m})$ where $m$ is the maximum fan-out in the grammar. For fan-out 1 (CFGs), this is $O(n^3)$; for fan-out 2, $O(n^6)$; and so on. The exponent grows with fan-out, but for any fixed fan-out, parsing is polynomial—satisfying the MCS requirement.
+
+## The fan-out hierarchy
+
+MCFGs with different maximum fan-outs form a strict hierarchy:
+
+$$\text{MCFG}(1) \subset \text{MCFG}(2) \subset \text{MCFG}(3) \subset \cdots$$
+
+$\text{MCFG}(1)$ generates exactly the same string languages as [TAGs](tree-adjoining-grammars.qmd) and [CCGs](combinatory-categorial-grammars.qmd). Higher fan-outs capture more phenomena. The full class $\text{MCFG} = \bigcup_k \text{MCFG}(k)$ is exactly the class of languages generated by LCFRS, and it properly contains the context-free languages while remaining within the class of languages parsable in polynomial time.
+
+This hierarchy mirrors the [subregular hierarchy](../../phonological-patterns/subregular-hierarchy/index.qmd) from the phonological module in an interesting way: both are ways of stratifying a larger class of languages (regular, or mildly context-sensitive) into increasingly powerful subclasses, where natural language phenomena cluster in the lower levels.

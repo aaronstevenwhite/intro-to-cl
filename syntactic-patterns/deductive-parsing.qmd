@@ -1,0 +1,73 @@
+---
+title: Analysis as deduction
+bibliography: ../references.bib
+---
+
+In the [morphological-patterns module](../morphological-patterns/cky-parsing.qmd), we implemented CKY and Earley as specific algorithms with specific data structures—charts, chart entries, loops over spans. These implementations work, but they obscure something important: CKY and Earley are instances of a more general pattern. Both can be described as systems of *inference rules* operating on *items*, and there is a single, uniform algorithm—*agenda-based parsing*—that can execute any such system.
+
+This framework, due to @shieber_principles_1995 [see also @sikkel1997parsing], is called *analysis as deduction* (or *parsing as deduction*). It will be particularly important for the [final project](../assignments/final-project.ipynb), where you'll implement an agenda-based parser for Multiple Context-Free Grammars using the inference rules from @kallmeyer_linear_2013.
+
+## Parsing as logical deduction
+
+The idea is to describe a parsing algorithm by specifying four things:
+
+1. **Items**: the pieces of partial information that the parser manipulates. In CKY, an item is a triple $[A, i, j]$ meaning "nonterminal $A$ spans positions $i$ through $j$." In Earley, an item is a dotted rule $[A \rightarrow \alpha \bullet \beta, i, j]$ meaning "we've recognized $\alpha$ starting at position $i$ and are now at position $j$, expecting $\beta$."
+
+2. **Axioms**: the items that are true without any inference. In CKY, the axioms are $[A, i, i+1]$ for every terminal rule $A \rightarrow w_i$.
+
+3. **Inference rules**: ways of combining existing items to produce new ones. In CKY, the key rule is:
+
+$$\frac{[B, i, k] \quad [C, k, j]}{[A, i, j]} \quad \text{if } A \rightarrow B\;C \in R$$
+
+This says: if $B$ spans $(i, k)$ and $C$ spans $(k, j)$, and there's a rule $A \rightarrow B\;C$, then $A$ spans $(i, j)$.
+
+4. **Goal**: the item we're looking for. In CKY, the goal is $[S, 0, n]$—the start symbol spanning the entire input.
+
+## CKY as a deductive system
+
+Let me recast the CKY algorithm we [developed for morphology](../morphological-patterns/cky-parsing.qmd) in this framework. Given a grammar $G = (V, \Sigma, R, S)$ in Chomsky Normal Form and an input string $w_1 \ldots w_n$:
+
+**Items:** $[A, i, j]$ where $A \in V$ and $0 \leq i < j \leq n$
+
+**Axioms:** $\dfrac{}{[A, i, i+1]}$ for each $A \rightarrow w_{i+1} \in R$
+
+**Inference rules:**
+
+$$\frac{[B, i, k] \quad [C, k, j]}{[A, i, j]} \quad \text{for each } A \rightarrow B\;C \in R$$
+
+**Goal:** $[S, 0, n]$
+
+This is exactly the same algorithm as the chart-filling procedure in [cky-parsing.qmd](../morphological-patterns/cky-parsing.qmd)—just described differently. The advantage of the deductive formulation is that it separates the *logic* of the parser (what items can be derived) from the *control* (the order in which items are processed). The same logic can be implemented by different control strategies, and the same control strategy can implement different logics.
+
+## Earley as a deductive system
+
+Similarly, the [Earley algorithm](../morphological-patterns/earley-parsing.qmd) can be recast:
+
+**Items:** $[A \rightarrow \alpha \bullet \beta, i, j]$ (dotted rules with start and current position)
+
+**Axioms (Predict):** $\dfrac{}{[S \rightarrow \bullet \gamma, 0, 0]}$ for each $S \rightarrow \gamma \in R$
+
+**Inference rules:**
+
+*Predict:* $\dfrac{[A \rightarrow \alpha \bullet B\;\beta, i, j]}{[B \rightarrow \bullet \gamma, j, j]}$ for each $B \rightarrow \gamma \in R$
+
+*Scan:* $\dfrac{[A \rightarrow \alpha \bullet w_{j+1}\;\beta, i, j]}{[A \rightarrow \alpha\;w_{j+1} \bullet \beta, i, j+1]}$
+
+*Complete:* $\dfrac{[A \rightarrow \alpha \bullet B\;\beta, i, k] \quad [B \rightarrow \gamma \bullet, k, j]}{[A \rightarrow \alpha\;B \bullet \beta, i, j]}$
+
+**Goal:** $[S \rightarrow \gamma \bullet, 0, n]$ for some $S \rightarrow \gamma \in R$
+
+## Agenda-based parsing
+
+Given a deductive system (items, axioms, inference rules, goal), there is a generic algorithm that finds all derivable items:
+
+1. Initialize an *agenda* (a queue or priority queue) with the axioms.
+2. Initialize a *chart* (a set of derived items), initially empty.
+3. While the agenda is not empty:
+   a. Remove an item $I$ from the agenda.
+   b. If $I$ is already in the chart, skip it.
+   c. Add $I$ to the chart.
+   d. For each inference rule and each combination of items in the chart that, together with $I$, trigger that rule, add the consequent item to the agenda (if not already in the chart).
+4. If the goal item is in the chart, the input is accepted.
+
+This is the algorithm you will implement in the [final project](../assignments/final-project.ipynb). The beauty of the approach is that the same agenda-based algorithm works for CKY, Earley, TAG parsing, and MCFG parsing—the only thing that changes is the set of items and inference rules. For MCFG parsing, you'll use the inference rules from @kallmeyer_linear_2013, which generalize the CKY rules above to handle the multi-component yields that MCFGs allow.

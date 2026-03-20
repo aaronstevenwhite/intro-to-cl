@@ -1,0 +1,244 @@
+---
+title: Combinatory Categorial Grammar
+bibliography: ../../references.bib
+jupyter: python3
+---
+
+Combinatory Categorial Grammar (CCG) extends the [type-logical tradition](type-logical-grammars.qmd) with a specific set of combinatory rules that give it the power to handle the non-context-free phenomena we discussed in the [section on CFG limitations](../cfgs-for-syntax.qmd), while remaining within the [mildly context-sensitive](index.qmd) boundary [@steedman2000syntactic; @steedman2011combinatory].
+
+The central idea of CCG—and of categorial grammar more generally—is that all the grammatical information resides in the *lexicon*. There are no phrase structure rules of the form $\text{S} \rightarrow \text{NP}\;\text{VP}$. Instead, each word carries a complex category that specifies what arguments it takes and what it returns. The combinatory rules are universal—they apply to any categories that have the right shape.
+
+## Categories
+
+Categories in CCG are built recursively from a set of atomic types using the forward and backward slash operators:
+
+- **Atomic categories**: $S$, $NP$, $N$, $PP$, etc.
+- **Complex categories**: if $X$ and $Y$ are categories, then $X/Y$ and $X\backslash Y$ are categories.
+
+A category $X/Y$ is a function that takes a $Y$ to its right and returns an $X$. A category $X\backslash Y$ is a function that takes a $Y$ to its left and returns an $X$.^[There are two conventions for the direction of the backslash. I'm following Steedman's convention, where $X\backslash Y$ means "give me a $Y$ on the left to produce an $X$." Some authors reverse this.]
+
+For example:
+
+| Word | Category | Meaning |
+|------|----------|---------|
+| the | $NP/N$ | Takes a noun to the right, yields an NP |
+| greyhound | $N$ | A noun |
+| loves | $(S\backslash NP)/NP$ | Takes an NP on the right, then an NP on the left, yields S |
+| runs | $S\backslash NP$ | Takes an NP on the left, yields S |
+| quickly | $(S\backslash NP)\backslash(S\backslash NP)$ | Modifies a VP (takes one on the left, returns one) |
+
+## Combinatory rules
+
+CCG has a small set of combinatory rules. The simplest are *application* rules, which are just the elimination rules of the [Lambek calculus](type-logical-grammars.qmd):
+
+**Forward application** ($>$):
+$$\frac{X/Y \quad Y}{X}$$
+
+**Backward application** ($<$):
+$$\frac{Y \quad X\backslash Y}{X}$$
+
+Application alone gives us exactly the power of a context-free grammar. What extends CCG beyond context-free is *composition*:
+
+**Forward composition** ($>$B):
+$$\frac{X/Y \quad Y/Z}{X/Z}$$
+
+**Backward composition** ($<$B):
+$$\frac{Y\backslash Z \quad X\backslash Y}{X\backslash Z}$$
+
+And *type raising*, which turns an argument into a function:
+
+**Forward type raising** ($>$T):
+$$\frac{X}{T/(T\backslash X)}$$
+
+**Backward type raising** ($<$T):
+$$\frac{X}{T\backslash(T/X)}$$
+
+Composition and type raising together give CCG the ability to build "non-standard" constituents—groupings of words that wouldn't be constituents under a CFG analysis—which is exactly what's needed for phenomena like coordination of unlike categories and extraction.
+
+## A CCG parser
+
+Let me implement a basic CCG chart parser. The idea is the same as [CKY](../../morphological-patterns/cky-parsing.qmd): fill a chart bottom-up, but instead of CFG rules, use the combinatory rules above.
+
+```{python}
+#| code-fold: true
+#| code-summary: Define CCG categories
+
+from dataclasses import dataclass
+from typing import Optional
+
+
+@dataclass(frozen=True)
+class Category:
+    """A CCG category."""
+
+    @staticmethod
+    def parse(s: str) -> 'Category':
+        """Parse a category string like '(S\\NP)/NP'."""
+        s = s.strip()
+        # Find the main connective (outermost slash not inside parens)
+        depth = 0
+        main_slash = None
+        for i in range(len(s) - 1, -1, -1):
+            if s[i] == ')':
+                depth += 1
+            elif s[i] == '(':
+                depth -= 1
+            elif depth == 0 and s[i] == '/':
+                main_slash = ('/', i)
+                break
+            elif depth == 0 and s[i] == '\\' and (i == 0 or s[i-1] != '\\'):
+                main_slash = ('\\', i)
+                break
+
+        if main_slash is None:
+            # Strip outer parens if present
+            if s.startswith('(') and s.endswith(')'):
+                return Category.parse(s[1:-1])
+            return AtomicCategory(s)
+
+        direction, idx = main_slash
+        left = Category.parse(s[:idx])
+        right = Category.parse(s[idx+1:])
+
+        if direction == '/':
+            return ForwardSlash(left, right)
+        else:
+            return BackwardSlash(left, right)
+
+
+@dataclass(frozen=True)
+class AtomicCategory(Category):
+    name: str
+
+    def __repr__(self):
+        return self.name
+
+
+@dataclass(frozen=True)
+class ForwardSlash(Category):
+    result: Category
+    argument: Category
+
+    def __repr__(self):
+        return f'({self.result}/{self.argument})'
+
+
+@dataclass(frozen=True)
+class BackwardSlash(Category):
+    result: Category
+    argument: Category
+
+    def __repr__(self):
+        return f'({self.result}\\{self.argument})'
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: CCG combinatory rules
+
+def forward_application(left: Category, right: Category) -> Optional[Category]:
+    """X/Y + Y => X"""
+    if isinstance(left, ForwardSlash) and left.argument == right:
+        return left.result
+    return None
+
+
+def backward_application(left: Category, right: Category) -> Optional[Category]:
+    """Y + X\\Y => X"""
+    if isinstance(right, BackwardSlash) and right.argument == left:
+        return right.result
+    return None
+
+
+def forward_composition(left: Category, right: Category) -> Optional[Category]:
+    """X/Y + Y/Z => X/Z"""
+    if isinstance(left, ForwardSlash) and isinstance(right, ForwardSlash):
+        if left.argument == right.result:
+            return ForwardSlash(left.result, right.argument)
+    return None
+
+
+def backward_composition(left: Category, right: Category) -> Optional[Category]:
+    """Y\\Z + X\\Y => X\\Z"""
+    if isinstance(left, BackwardSlash) and isinstance(right, BackwardSlash):
+        if right.argument == left.result:
+            return BackwardSlash(right.result, left.argument)
+    return None
+
+
+RULES = [forward_application, backward_application,
+         forward_composition, backward_composition]
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: CCG chart parser
+
+class CCGParser:
+    """A CKY-style chart parser for CCG."""
+
+    def __init__(self, lexicon: dict[str, list[Category]]):
+        self._lexicon = lexicon
+
+    def parse(self, words: list[str], goal: Category = None) -> list:
+        """Parse a list of words. Returns all categories spanning the input."""
+        if goal is None:
+            goal = AtomicCategory('S')
+
+        n = len(words)
+        # chart[i][j] = set of categories spanning positions i to j
+        chart = [[set() for _ in range(n + 1)] for _ in range(n + 1)]
+
+        # Fill lexical entries
+        for i, word in enumerate(words):
+            if word in self._lexicon:
+                chart[i][i + 1] = set(self._lexicon[word])
+
+        # Fill chart bottom-up
+        for span in range(2, n + 1):
+            for i in range(n - span + 1):
+                j = i + span
+                for k in range(i + 1, j):
+                    for left_cat in chart[i][k]:
+                        for right_cat in chart[k][j]:
+                            for rule in RULES:
+                                result = rule(left_cat, right_cat)
+                                if result is not None:
+                                    chart[i][j].add(result)
+
+        # Check for goal
+        results = [c for c in chart[0][n] if c == goal]
+        return results, chart
+```
+
+```{python}
+# Define a small lexicon
+lexicon = {
+    'the':       [ForwardSlash(AtomicCategory('NP'), AtomicCategory('N'))],
+    'a':         [ForwardSlash(AtomicCategory('NP'), AtomicCategory('N'))],
+    'greyhound': [AtomicCategory('N')],
+    'man':       [AtomicCategory('N')],
+    'loves':     [ForwardSlash(BackwardSlash(AtomicCategory('S'), AtomicCategory('NP')),
+                               AtomicCategory('NP'))],
+    'saw':       [ForwardSlash(BackwardSlash(AtomicCategory('S'), AtomicCategory('NP')),
+                               AtomicCategory('NP'))],
+    'runs':      [BackwardSlash(AtomicCategory('S'), AtomicCategory('NP'))],
+}
+
+parser = CCGParser(lexicon)
+
+# Parse "the greyhound loves a man"
+words = ['the', 'greyhound', 'loves', 'a', 'man']
+results, chart = parser.parse(words)
+
+print(f"Input: {' '.join(words)}")
+print(f"Parses found: {len(results)}")
+for r in results:
+    print(f"  {r}")
+```
+
+## CCG and the MCS boundary
+
+@vijayshanker1994equivalence showed that the string languages generated by CCG (with generalized composition of bounded degree) are exactly the same as those generated by [TAGs](tree-adjoining-grammars.qmd). This means CCG is mildly context-sensitive: it can handle cross-serial dependencies but stays within the polynomial-parsing boundary.
+
+The equivalence is not obvious from the surface—TAGs are tree-based and CCG is type-logical—but it reflects a deep structural fact: both formalisms permit exactly one level of "wrapping" beyond what CFGs can do. The practical consequence is that wide-coverage CCG parsers, like the one developed by @clark2007wide, have the formal power to handle the non-context-free phenomena in natural language while remaining computationally tractable.

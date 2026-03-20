@@ -1,0 +1,63 @@
+---
+title: Type-logical grammars
+bibliography: ../../references.bib
+---
+
+Before introducing Combinatory Categorial Grammar, I want to step back and describe the broader tradition it comes from. Categorial grammars have their roots in logic, and the connection between parsing and logical deduction is not merely an analogy—in the type-logical tradition, parsing *is* deduction in a formal logic. This perspective deepens the [deductive parsing framework](../deductive-parsing.qmd) we developed earlier: there, I described parsing as operating on items using inference rules; here, the items are formulas and the inference rules are rules of a logical calculus.
+
+## The Lambek calculus
+
+The starting point is the *Lambek calculus* [@lambek1958mathematics], one of the earliest formal systems for natural language syntax. In the Lambek calculus, each word in the lexicon is assigned one or more *categories* (or *types*), and a string is grammatical if and only if the categories assigned to its words can be combined—using the rules of the calculus—to yield a designated goal category (typically $S$).
+
+Categories are built from a set of atomic types $\{S, NP, N, \ldots\}$ using two binary connectives:
+
+- $A / B$ (*right implication* or *forward slash*): "something that, given a $B$ to its right, yields an $A$"
+- $B \backslash A$ (*left implication* or *backward slash*): "something that, given a $B$ to its left, yields an $A$"
+
+For example, an English intransitive verb like *runs* might be assigned the category $NP \backslash S$: given an NP to its left, it yields an $S$. A transitive verb like *loves* might be assigned $(NP \backslash S) / NP$: given an NP to its right, it yields something that, given an NP to its left, yields an $S$.
+
+The key rules of the Lambek calculus are:
+
+**Right slash elimination (forward application):**
+$$\frac{\Gamma \vdash A / B \quad \Delta \vdash B}{\Gamma, \Delta \vdash A}$$
+
+**Left slash elimination (backward application):**
+$$\frac{\Delta \vdash B \quad \Gamma \vdash B \backslash A}{\Delta, \Gamma \vdash A}$$
+
+**Right slash introduction (hypothetical reasoning):**
+$$\frac{\Gamma, B \vdash A}{\Gamma \vdash A / B}$$
+
+**Left slash introduction:**
+$$\frac{B, \Gamma \vdash A}{\Gamma \vdash B \backslash A}$$
+
+The elimination rules are just function application: if you have something that needs a $B$ and you have a $B$, you can combine them. The introduction rules are more interesting—they correspond to *hypothetical reasoning*: you can prove $A/B$ by assuming $B$ and deriving $A$.
+
+## Parsing as proof search
+
+In this framework, parsing a string $w_1 w_2 \ldots w_n$ with respect to a lexicon $\mathcal{L}$ and a goal category $S$ amounts to finding a proof of:
+
+$$\mathcal{L}(w_1), \mathcal{L}(w_2), \ldots, \mathcal{L}(w_n) \vdash S$$
+
+where $\mathcal{L}(w_i)$ is the category assigned to word $w_i$. The proof—if it exists—is itself the syntactic derivation, specifying how the categories combine step by step to yield the sentence.
+
+This is a direct instantiation of the "analysis as deduction" framework from the [previous section](../deductive-parsing.qmd): the items are sequents $\Gamma \vdash A$, the axioms are the lexical assignments, the inference rules are the rules of the calculus, and the goal is the sequent with all words on the left and $S$ on the right.
+
+## The Curry-Howard correspondence
+
+One of the most beautiful results in this area is that derivations in the Lambek calculus correspond, via the [Curry-Howard correspondence](https://en.wikipedia.org/wiki/Curry%E2%80%93Howard_correspondence), to terms in the simply typed lambda calculus. This means that a syntactic derivation *is* a semantic representation: the proof that a string is grammatical simultaneously computes its meaning as a lambda term.
+
+For instance, the derivation of *John runs* from $NP$ and $NP \backslash S$ via backward application corresponds to the lambda term $\text{runs}(\text{john})$—the application of the predicate to its argument. Compositional semantics falls out of the syntax for free.
+
+I mention this not because we'll develop it fully here—that would take us into formal semantics—but because it illustrates a deep structural point: in the type-logical tradition, syntax, semantics, and logic are not separate modules but aspects of the same system. This perspective is developed at length by @carpenter1997type and @moortgat1997categorial.
+
+## Substructural logics and their grammars
+
+The Lambek calculus is a *substructural* logic: it lacks the structural rules that classical logic takes for granted [@morrill2011categorial]. Specifically, it does not have:
+
+- **Weakening**: you cannot ignore hypotheses ($\Gamma, A, \Delta \vdash C$ does not imply $\Gamma, \Delta \vdash C$)
+- **Contraction**: you cannot use a hypothesis more than once
+- **Exchange** (commutativity): the order of hypotheses matters ($A, B \vdash C$ does not imply $B, A \vdash C$)
+
+These restrictions are exactly what we want for syntax: the order of words matters (no exchange), every word must be used (no weakening), and no word can be used twice (no contraction).
+
+Different categorial formalisms arise by selectively adding back some of these structural rules or adding controlled versions of them. This is where Combinatory Categorial Grammar enters the picture: CCG extends the Lambek calculus with specific additional rules—composition and type-raising—that permit more flexible constituency while remaining within the MCS boundary. We turn to CCG in the [next section](combinatory-categorial-grammars.qmd).

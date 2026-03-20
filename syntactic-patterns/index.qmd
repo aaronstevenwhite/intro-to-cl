@@ -3,8 +3,12 @@ title: Overview
 bibliography: ../references.bib
 ---
 
-::: {.callout-caution}
-## Availability
+In the morphological-patterns module, we used context-free grammars to describe how morphemes compose into words. We developed parsing algorithms—CKY and Earley—that recover the hierarchical structure of a word given a grammar, and we extended these grammars with probabilities to model gradient morphological well-formedness.
 
-This module will be available around April 14, 2025.
-:::
+Syntax is the same problem at a larger scale. Where morphological grammars describe how morphemes combine to form words, syntactic grammars describe how words combine to form phrases and sentences. The formal machinery is the same: context-free grammars, parsing, probabilistic estimation. But the shift from morphology to syntax introduces new challenges. Sentences are longer than words, so parsing is more expensive. Syntactic ambiguity is more pervasive—a single sentence may have dozens or hundreds of parses. And certain syntactic phenomena—cross-serial dependencies, unbounded extraction—push beyond what context-free grammars can express.
+
+This last point is the most theoretically interesting. In the phonological-patterns module, we saw that phonological constraints are subregular: they don't use the full power of the regular languages. In morphology, most processes are subsequential: they don't use the full power of the regular relations. In syntax, the situation is different. There is evidence that natural language syntax is not context-free—that it requires strictly more computational power than a CFG can provide. But it does not require the full power of context-sensitive grammars either. It falls in a narrow band just above the context-free languages, known as the *mildly context-sensitive* languages.
+
+Understanding this band—what it contains, what formalisms characterize it, and why natural languages fall into it—is the central topic of this module.
+
+We'll proceed as follows. First, I'll review how CFGs apply to syntax and discuss their limitations. Then I'll introduce a general framework for specifying parsing algorithms as deductive systems, which will be important for the final project. After that, we'll study four formalisms that characterize the mildly context-sensitive languages: Tree-Adjoining Grammars, type-logical and Combinatory Categorial Grammars, Multiple Context-Free Grammars (the formalism you'll implement a parser for in the final project), and Minimalist Grammars. The remarkable result is that these four formalisms—developed independently from very different linguistic and computational motivations—converge on the same class of languages.
