@@ -1,0 +1,132 @@
+---
+title: Morphological segmentation with BPE
+bibliography: ../references.bib
+jupyter: python3
+execute:
+  eval: false
+---
+
+Before we can parse the morphological structure of a word, we need to know where the morpheme boundaries are. This is the *segmentation* problem: given a word like *unhappiness*, identify that it decomposes into *un*, *happi*, and *ness*.^[The alternation between *happy* and *happi* is a regular phonological process—one of the cases where morphology and phonology interact.]
+
+In this section, we'll look at a simple but effective approach to morphological segmentation: [byte pair encoding](https://en.wikipedia.org/wiki/Byte_pair_encoding) (BPE), which was originally developed for data compression and later adapted for subword tokenization in NLP by @sennrich2016neural.
+
+## The BPE algorithm
+
+BPE works by iteratively merging the most frequent pair of adjacent symbols. Starting from a vocabulary of individual characters, the algorithm repeatedly:
+
+1. Counts all pairs of adjacent symbols in the training data
+2. Merges the most frequent pair into a new symbol
+3. Repeats until a target vocabulary size is reached
+
+When applied to a morphological lexicon, the merges tend to recover morpheme-like units: frequent morphemes get merged early, while rare or compositional forms are left as sequences of smaller units.
+
+```{python}
+#| code-fold: true
+#| code-summary: Learn BPE from a word list
+
+import re
+from collections import Counter
+
+def learn_bpe(words, num_merges=1000):
+    """Learn BPE merges from a word list."""
+    # Initialize vocabulary as character sequences
+    vocab = {}
+    for word in words:
+        chars = ' '.join(list(word)) + ' </w>'
+        vocab[chars] = vocab.get(chars, 0) + 1
+
+    merges = []
+
+    for i in range(num_merges):
+        # Count pairs
+        pairs = Counter()
+        for word, freq in vocab.items():
+            symbols = word.split()
+            for j in range(len(symbols) - 1):
+                pairs[(symbols[j], symbols[j+1])] += freq
+
+        if not pairs:
+            break
+
+        # Find most frequent pair
+        best = max(pairs, key=pairs.get)
+        merges.append(best)
+
+        # Merge
+        new_vocab = {}
+        pattern = re.escape(' '.join(best))
+        replacement = ''.join(best)
+
+        for word, freq in vocab.items():
+            new_word = re.sub(pattern, replacement, word)
+            new_vocab[new_word] = freq
+
+        vocab = new_vocab
+
+    return merges
+
+
+def apply_bpe(word, merges):
+    """Segment a word using learned BPE merges."""
+    symbols = list(word) + ['</w>']
+
+    for a, b in merges:
+        i = 0
+        while i < len(symbols) - 1:
+            if symbols[i] == a and symbols[i+1] == b:
+                symbols[i:i+2] = [a + b]
+            else:
+                i += 1
+
+    # Remove end-of-word marker
+    if symbols[-1] == '</w>':
+        symbols = symbols[:-1]
+    elif symbols[-1].endswith('</w>'):
+        symbols[-1] = symbols[-1][:-4]
+
+    return symbols
+```
+
+## Training on a lexicon
+
+We train BPE on the CELEX lexicon (or any word list) to learn morpheme-like segmentation rules.
+
+```{python}
+import pandas as pd
+
+# Load CELEX word list (or use a fallback)
+celex = pd.read_csv(
+    'celex/eml/eml.cd', sep='\\', header=None,
+    names=['IdNum', 'Head', 'MorphStatus', 'MorphCnt', 'StrucLab',
+           'MorphOp', 'StrucAllo', 'StrucLabAdj'],
+    encoding='latin-1'
+)
+
+words = celex.Head.dropna().unique().tolist()
+merges = learn_bpe(words, num_merges=5000)
+
+# Segment some test words
+test_words = ['unhappiness', 'unlockable', 'decoratorship', 'depublicize']
+
+for w in test_words:
+    segments = apply_bpe(w, merges)
+    print(f"{w:20s} → {' + '.join(segments)}")
+```
+
+## Evaluation
+
+To evaluate segmentation quality, we can compare the BPE output against the gold-standard morpheme boundaries in CELEX using the Jaccard similarity between the predicted and gold boundary sets.
+
+```{python}
+def boundary_jaccard(predicted, gold):
+    """Jaccard similarity between two sets of boundary positions."""
+    pred_set = set(predicted)
+    gold_set = set(gold)
+    if not pred_set and not gold_set:
+        return 1.0
+    return len(pred_set & gold_set) / len(pred_set | gold_set)
+```
+
+## Limitations
+
+BPE is frequency-based and greedy. It cannot capture hierarchical structure—it produces a flat sequence of subword units, not a parse tree. It also makes no use of linguistic knowledge: it treats morpheme boundaries the same as any other character boundary. For these reasons, BPE is best understood as a practical baseline. In the next section, we'll look at structured prediction methods that can incorporate richer features, and in the sections after that, we'll return to the context-free grammars developed earlier in this module to model hierarchical structure directly.

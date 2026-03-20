@@ -76,7 +76,12 @@ project:
   - morphological-patterns/normal-forms.qmd
   - morphological-patterns/cky-parsing.qmd
   - morphological-patterns/earley-parsing.qmd
+  - morphological-patterns/morphological-wellformedness.qmd
+  - morphological-patterns/loading-celex.qmd
+  - morphological-patterns/segmentation-with-bpe.qmd
+  - morphological-patterns/segmentation-with-structured-prediction.qmd
   - morphological-patterns/probabilistic-context-free-grammars.qmd
+  - morphological-patterns/unsupervised-grammar-learning.qmd
   - syntactic-patterns/index.qmd
   - analysis-as-deduction/index.qmd
   - assignments/assignments-1-and-2.ipynb
@@ -184,7 +189,12 @@ website:
         - morphological-patterns/normal-forms.qmd
         - morphological-patterns/cky-parsing.qmd
         - morphological-patterns/earley-parsing.qmd
+        - morphological-patterns/morphological-wellformedness.qmd
+        - morphological-patterns/loading-celex.qmd
+        - morphological-patterns/segmentation-with-bpe.qmd
+        - morphological-patterns/segmentation-with-structured-prediction.qmd
         - morphological-patterns/probabilistic-context-free-grammars.qmd
+        - morphological-patterns/unsupervised-grammar-learning.qmd
       - section: "Analysis as deduction"
         contents:
         - analysis-as-deduction/index.qmd

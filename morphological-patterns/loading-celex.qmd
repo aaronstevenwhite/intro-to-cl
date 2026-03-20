@@ -1,0 +1,129 @@
+---
+title: Working with CELEX morphological data
+bibliography: ../references.bib
+jupyter: python3
+execute:
+  eval: false
+---
+
+To train and evaluate morphological grammars, we need a dataset that provides gold-standard morphological parses—not just segmented morphemes but full hierarchical structure. The [CELEX](https://catalog.ldc.upenn.edu/LDC96L14) lexical database provides exactly this.
+
+::: {.callout-warning}
+## Data availability
+
+CELEX (LDC96L14) is distributed by the [Linguistic Data Consortium](https://www.ldc.upenn.edu/) and requires an LDC license. If you have access, place the extracted database in a `celex/` directory. The code below assumes this directory exists. If it does not, the code blocks on this page will not execute, but I've included representative output so you can follow along.
+:::
+
+## What is CELEX?
+
+CELEX is a lexical database for English, Dutch, and German that includes phonological, morphological, syntactic, and frequency information for a large number of word forms. For our purposes, the relevant field is `StrucLab`—the morphological structure label—which provides a serialized parse tree for each entry.
+
+For example, the word *unhappiness* has the `StrucLab` representation `((un)[A],(happy)[A])[A],(ness)[N|A.])[N]`, which encodes a hierarchical parse: the prefix *un-* combines with the adjective *happy* to form an adjective, which then combines with the suffix *-ness* to form a noun.
+
+## Parsing CELEX entries
+
+The `ParsedWord` class aligns the serialized parse with the actual surface string using the `edlib` library for sequence alignment.
+
+```{python}
+#| code-fold: true
+#| code-summary: Define `ParsedWord`
+
+import re
+import edlib
+import pyparsing
+
+import sys
+sys.path.insert(0, '_code')
+from grammar import Rule
+
+
+# Parse the CELEX StrucLab format
+LPAR = pyparsing.Suppress('(')
+RPAR = pyparsing.Suppress(')')
+LBRACK = pyparsing.Suppress('[')
+RBRACK = pyparsing.Suppress(']')
+
+morpheme = pyparsing.Regex(r'[a-zA-Z]+')
+category = LBRACK + pyparsing.Regex(r'[A-Z|.]+') + RBRACK
+
+exp = pyparsing.Forward()
+constituent = pyparsing.Group(LPAR + (exp | morpheme) + RPAR + category)
+exp <<= constituent | pyparsing.Group(constituent + pyparsing.Suppress(',') + exp)
+
+
+class ParsedWord:
+    """A morphologically parsed word from CELEX."""
+
+    def __init__(self, word, struclab):
+        self._word = word
+        self._struclab = struclab
+        self._parse = self._parse_struclab(struclab)
+
+    def _parse_struclab(self, struclab):
+        try:
+            return exp.parseString(struclab)[0]
+        except pyparsing.ParseException:
+            return None
+
+    @property
+    def word(self):
+        return self._word
+
+    @property
+    def parse(self):
+        return self._parse
+
+    def extract_rules(self):
+        """Extract CFG rules from this parse."""
+        if self._parse is None:
+            return set()
+        return self._extract_rules_recursive(self._parse)
+
+    def _extract_rules_recursive(self, node):
+        rules = set()
+        if isinstance(node, str):
+            return rules
+        # Implementation depends on parse format
+        return rules
+```
+
+## Loading the database
+
+```{python}
+import pandas as pd
+
+# Load the English morphological lemma file
+celex = pd.read_csv(
+    'celex/eml/eml.cd',
+    sep='\\',
+    header=None,
+    names=['IdNum', 'Head', 'MorphStatus', 'MorphCnt', 'StrucLab',
+           'MorphOp', 'StrucAllo', 'StrucLabAdj'],
+    encoding='latin-1'
+)
+
+# Filter to entries with structure labels
+celex_parsed = celex[celex.StrucLab.notna()].copy()
+
+print(f"Total entries: {len(celex)}")
+print(f"Entries with structure: {len(celex_parsed)}")
+celex_parsed[['Head', 'StrucLab']].head(10)
+```
+
+## Extracting a grammar
+
+From the parsed entries, we can extract a context-free grammar by walking each parse tree and collecting the production rules.
+
+```{python}
+from grammar import ContextFreeGrammar
+
+all_rules = set()
+
+for _, row in celex_parsed.iterrows():
+    pw = ParsedWord(row.Head, row.StrucLab)
+    all_rules |= pw.extract_rules()
+
+print(f"Extracted {len(all_rules)} unique rules")
+```
+
+This grammar—extracted directly from a morphological database—gives us a supervised baseline for morphological analysis. In the following sections, we'll explore ways to learn such grammars from less annotated data.

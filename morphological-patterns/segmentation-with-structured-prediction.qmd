@@ -1,0 +1,154 @@
+---
+title: Morphological segmentation as structured prediction
+bibliography: ../references.bib
+jupyter: python3
+execute:
+  eval: false
+---
+
+In the previous section, we used BPE to segment words into morpheme-like units. BPE is simple and fast, but it has a fundamental limitation: it makes segmentation decisions based solely on the frequency of character pairs, without considering the broader context in which those characters appear. A more linguistically informed approach is to treat segmentation as a *structured prediction* problem—one where the output is not a single label but a structured sequence of labels, and the model can learn to exploit contextual features.
+
+The idea is straightforward. Given a word like *unhappiness*, represented as a sequence of characters $\langle \text{u}, \text{n}, \text{h}, \text{a}, \text{p}, \text{p}, \text{i}, \text{n}, \text{e}, \text{s}, \text{s} \rangle$, we want to predict for each character whether it is the *beginning* of a morpheme, *inside* a morpheme, or (less commonly) *outside* any morpheme. This is known as BIO tagging, after the labels B (beginning), I (inside), and O (outside).
+
+For *unhappiness* with morphemes *un*, *happi*, *ness*, the BIO tags would be:
+
+| u | n | h | a | p | p | i | n | e | s | s |
+|---|---|---|---|---|---|---|---|---|---|---|
+| B | I | B | I | I | I | I | B | I | I | I |
+
+The first character of each morpheme gets a B tag, and the remaining characters get I tags. Converting back from tags to a segmentation is trivial: every B tag marks the start of a new morpheme.
+
+The advantage of this formulation is that it turns segmentation into a sequence labeling problem, for which there are well-studied models with strong theoretical properties. We'll look at two: hidden Markov models and conditional random fields.
+
+## Hidden Markov Models for segmentation
+
+We encountered hidden Markov models briefly in the [section on language models beyond $N$-grams](../uncertainty-about-languages/beyond-ngrams.qmd), where I described them as a way of abstracting context through hidden states. Here we'll use them for a different purpose: predicting the BIO tag at each position in a character sequence.
+
+The idea is to model the joint distribution of the character sequence $\mathbf{x} = x_1 x_2 \ldots x_n$ and the tag sequence $\mathbf{y} = y_1 y_2 \ldots y_n$ as:
+
+$$p(\mathbf{x}, \mathbf{y}) = \prod_{i=1}^n p(x_i \mid y_i) \cdot p(y_i \mid y_{i-1})$$
+
+where $p(x_i \mid y_i)$ is the *emission probability* (how likely is character $x_i$ given tag $y_i$?) and $p(y_i \mid y_{i-1})$ is the *transition probability* (how likely is tag $y_i$ given the previous tag $y_{i-1}$?). Given an observed character sequence $\mathbf{x}$, we want to find the tag sequence $\mathbf{y}^*$ that maximizes $p(\mathbf{y} \mid \mathbf{x})$. This is done using the Viterbi algorithm, which finds the most probable tag sequence in $O(n \cdot |Y|^2)$ time, where $|Y|$ is the number of possible tags (here, 2 or 3).
+
+We can train this model on the CELEX data, where we know the gold-standard morpheme boundaries and can therefore derive the correct BIO tags for each character.
+
+```{python}
+#| code-fold: true
+#| code-summary: Train an HMM for morpheme segmentation
+
+import numpy as np
+from hmmlearn.hmm import MultinomialHMM
+
+# Assume celex_segmented is a list of (word, morphemes) pairs from CELEX
+# We convert each to a character sequence with BIO tags
+
+def word_to_bio(word, morphemes):
+    """Convert a word and its morphemes to BIO tags."""
+    tags = []
+    for morph in morphemes:
+        tags.append('B')
+        tags.extend(['I'] * (len(morph) - 1))
+    return tags
+
+
+def chars_to_features(word):
+    """Convert characters to integer features for the HMM."""
+    return [ord(c) - ord('a') for c in word.lower() if c.isalpha()]
+
+
+# Training would look like:
+# tag_map = {'B': 0, 'I': 1}
+# hmm = MultinomialHMM(n_components=2, n_iter=100)
+# hmm.fit(X_train, lengths_train)
+```
+
+The HMM is simple and fast, but it has a limitation that follows directly from its generative structure: the emission probability $p(x_i \mid y_i)$ depends only on the tag at position $i$, not on the surrounding characters. This means the model cannot learn that, say, the character *n* is more likely to start a new morpheme when preceded by *u* (as in *un-*) than when preceded by *i* (as in the middle of *happiness*). The context is carried entirely through the transition probabilities, which only look at the previous tag.
+
+## Conditional Random Fields
+
+Conditional random fields (CRFs) address this limitation. Rather than modeling the joint distribution $p(\mathbf{x}, \mathbf{y})$, a CRF directly models the conditional distribution $p(\mathbf{y} \mid \mathbf{x})$—the probability of a tag sequence given the entire observed character sequence. This means the model can condition on arbitrary features of the input at every position.
+
+The conditional distribution takes the form:
+
+$$p(\mathbf{y} \mid \mathbf{x}) = \frac{1}{Z(\mathbf{x})} \exp\left(\sum_{i=1}^n \sum_k \lambda_k f_k(y_{i-1}, y_i, \mathbf{x}, i)\right)$$
+
+where $f_k$ are *feature functions* that can look at the current tag $y_i$, the previous tag $y_{i-1}$, and *any* property of the entire input sequence $\mathbf{x}$ at position $i$. The normalizing constant $Z(\mathbf{x})$ ensures the distribution sums to 1 over all possible tag sequences.
+
+The power of CRFs comes from the feature functions. For morphological segmentation, we might define features like:
+
+- The character at position $i$
+- The characters at positions $i - 1$ and $i + 1$
+- Whether position $i$ is at the beginning or end of the word
+- The character $n$-grams surrounding position $i$ (e.g. the trigram $x_{i-1} x_i x_{i+1}$)
+- Whether the character is a vowel or consonant
+
+These features give the model much more information than the HMM's emission probabilities, which can only look at the character at the current position.
+
+```{python}
+#| code-fold: true
+#| code-summary: Character-level feature extraction for CRF
+
+def char_features(word, i):
+    """Extract features for position i in word."""
+    features = {
+        'char': word[i],
+        'is_vowel': word[i] in 'aeiou',
+        'is_first': i == 0,
+        'is_last': i == len(word) - 1,
+    }
+
+    if i > 0:
+        features['prev_char'] = word[i-1]
+        features['bigram_left'] = word[i-1] + word[i]
+    else:
+        features['prev_char'] = '<START>'
+
+    if i < len(word) - 1:
+        features['next_char'] = word[i+1]
+        features['bigram_right'] = word[i] + word[i+1]
+    else:
+        features['next_char'] = '<END>'
+
+    if i > 1:
+        features['trigram_left'] = word[i-2:i+1]
+
+    if i < len(word) - 2:
+        features['trigram_right'] = word[i:i+3]
+
+    return features
+
+
+# Example
+word = 'unhappiness'
+for i, c in enumerate(word):
+    feats = char_features(word, i)
+    print(f"{c}: {feats}")
+```
+
+Training a CRF with these features is straightforward using `sklearn-crfsuite`:
+
+```{python}
+#| code-fold: true
+#| code-summary: Train a CRF for morpheme segmentation
+
+import sklearn_crfsuite
+
+
+def word_to_features(word):
+    return [char_features(word, i) for i in range(len(word))]
+
+
+# Training would look like:
+# X_train = [word_to_features(w) for w in train_words]
+# y_train = [word_to_bio(w, morphs) for w, morphs in train_data]
+# crf = sklearn_crfsuite.CRF(algorithm='lbfgs', max_iterations=100)
+# crf.fit(X_train, y_train)
+```
+
+## Comparing HMMs and CRFs
+
+The fundamental difference between the two models is directional. The HMM is *generative*: it models how characters and tags are jointly generated, and predicts tags by inverting that generative process. The CRF is *discriminative*: it directly models the distribution of tags given characters, without committing to a story about how the characters were generated.
+
+In practice, the CRF tends to outperform the HMM on segmentation tasks because it can exploit richer features of the input. The HMM's emission model treats each character independently (given the tag), while the CRF can look at the entire character context. The tradeoff is that CRFs are more expensive to train—the feature space is larger and the normalization constant $Z(\mathbf{x})$ must be computed for every training example.
+
+Both models, however, share a crucial limitation with BPE: they produce a *flat* segmentation. They tell you where the morpheme boundaries are, but not how the morphemes combine hierarchically. For that, we need to return to the context-free grammars we developed earlier in this module—which is exactly what we'll do in the next two sections.

@@ -1,0 +1,242 @@
+---
+title: Unsupervised morphological grammar learning
+bibliography: ../references.bib
+jupyter: python3
+execute:
+  eval: false
+---
+
+In the previous section on [probabilistic context-free grammars](probabilistic-context-free-grammars.qmd), we estimated rule probabilities from the CELEX database—a supervised approach that requires gold-standard morphological parses. But gold-standard parses are expensive to produce and are not available for most languages. This raises a natural question: can we learn a morphological grammar from raw data, without labeled parses?
+
+The answer is yes, at least in principle. The tool we'll use is the *expectation-maximization* (EM) algorithm, applied to probabilistic context-free grammars. The idea is to alternate between two steps: (i) use the current grammar to compute the expected counts of each rule across all possible parses of the training data (the E step); and (ii) use those expected counts to re-estimate the rule probabilities (the M step). This is the same basic strategy as EM for Gaussian mixture models or HMMs, but applied to the more complex structure of context-free grammars.
+
+## The inside-outside algorithm
+
+To perform the E step, we need to compute, for each rule $A \rightarrow B\; C$ and each span $(i, j)$ in a training string, the *expected number of times* that rule is used to derive the substring from position $i$ to position $j$. This requires two quantities:
+
+- The *inside probability* $\alpha_A(i, j)$: the probability that nonterminal $A$ generates the substring $w_i \ldots w_j$ under the current grammar. We already computed this in the previous section—it's the quantity filled in by the probabilistic CKY algorithm.
+
+- The *outside probability* $\beta_A(i, j)$: the probability of everything *except* the substring $w_i \ldots w_j$, given that $A$ is responsible for that substring. This is the new quantity we need.
+
+The outside probability is defined recursively. The base case is:
+
+$$\beta_S(1, n) = 1$$
+
+That is, the outside probability of the start symbol spanning the entire string is 1 (there is nothing "outside" it).
+
+For all other cases, the outside probability of $A$ spanning $(i, j)$ is computed by considering every way that $A$ could be a child of some parent nonterminal $B$:
+
+$$\beta_A(i, j) = \sum_{B \rightarrow A\; C} \sum_{k=j+1}^{n} p(B \rightarrow A\; C) \cdot \beta_B(i, k) \cdot \alpha_C(j+1, k) + \sum_{B \rightarrow C\; A} \sum_{k=1}^{i-1} p(B \rightarrow C\; A) \cdot \beta_B(k, j) \cdot \alpha_C(k, i-1)$$
+
+The first sum covers cases where $A$ is the left child of $B$, and the second covers cases where $A$ is the right child. In each case, the outside probability of the parent $B$ is multiplied by the inside probability of the sibling $C$.
+
+Once we have both inside and outside probabilities, the expected count of a rule $A \rightarrow B\; C$ applied at span $(i, j)$ with the split at position $k$ is:
+
+$$\text{count}(A \rightarrow B\; C, i, k, j) = \frac{\beta_A(i, j) \cdot p(A \rightarrow B\; C) \cdot \alpha_B(i, k) \cdot \alpha_C(k+1, j)}{\alpha_S(1, n)}$$
+
+The denominator $\alpha_S(1, n)$ is the total probability of the string under the current grammar—the inside probability of the start symbol spanning the whole string. Dividing by it normalizes the expected count so that it represents a posterior expectation.
+
+## The M step
+
+Given the expected counts from the E step, the M step is straightforward. For each nonterminal $A$, we re-estimate the probability of each rule $A \rightarrow \alpha$ as the proportion of expected uses of that rule among all rules with $A$ on the left-hand side:
+
+$$p(A \rightarrow \alpha) = \frac{\sum_{\text{spans}} \text{count}(A \rightarrow \alpha, \text{span})}{\sum_{\alpha'} \sum_{\text{spans}} \text{count}(A \rightarrow \alpha', \text{span})}$$
+
+This is the maximum likelihood estimate given the expected counts—the same formula we used for supervised estimation, but with fractional (expected) counts rather than hard counts.
+
+## Implementation
+
+The full EM algorithm for PCFGs alternates E and M steps until convergence (measured by the change in total log-likelihood of the training data). Here is an outline of the implementation:
+
+```{python}
+#| code-fold: true
+#| code-summary: Unsupervised PCFG learning via EM
+
+import numpy as np
+from collections import defaultdict
+
+import sys
+sys.path.insert(0, '_code')
+from grammar import Rule
+
+
+class UnsupervisedPCFG:
+    """A PCFG trained by expectation-maximization."""
+
+    def __init__(self, variables, alphabet, rules, start_variable,
+                 max_iter=50, tol=1e-4):
+        self._variables = variables
+        self._alphabet = alphabet
+        self._rules = rules
+        self._start = start_variable
+        self._max_iter = max_iter
+        self._tol = tol
+
+        # Initialize rule probabilities uniformly
+        self._probs = {}
+        for var in variables:
+            var_rules = [r for r in rules if r.left_side == var]
+            for r in var_rules:
+                self._probs[r.to_tuple()] = 1.0 / len(var_rules)
+
+    def _inside(self, words):
+        """Compute inside probabilities for a sequence of terminals."""
+        n = len(words)
+        alpha = defaultdict(float)
+
+        # Base case: unary rules
+        for i in range(n):
+            for r in self._rules:
+                if r.is_unary and r.right_side[0] == words[i]:
+                    alpha[(r.left_side, i, i)] = self._probs[r.to_tuple()]
+
+        # Fill chart bottom-up
+        for span in range(1, n):
+            for i in range(n - span):
+                j = i + span
+                for k in range(i, j):
+                    for r in self._rules:
+                        if r.is_binary:
+                            B, C = r.right_side
+                            prob = (self._probs[r.to_tuple()]
+                                    * alpha.get((B, i, k), 0)
+                                    * alpha.get((C, k+1, j), 0))
+                            alpha[(r.left_side, i, j)] += prob
+
+        return alpha
+
+    def _outside(self, words, alpha):
+        """Compute outside probabilities."""
+        n = len(words)
+        beta = defaultdict(float)
+
+        # Base case
+        beta[(self._start, 0, n-1)] = 1.0
+
+        # Fill chart top-down
+        for span in range(n-1, -1, -1):
+            for i in range(n - span):
+                j = i + span
+                for r in self._rules:
+                    if r.is_binary:
+                        A = r.left_side
+                        B, C = r.right_side
+
+                        # B is left child of A
+                        for k in range(j+1, n):
+                            beta[(B, i, j)] += (
+                                beta.get((A, i, k), 0)
+                                * self._probs[r.to_tuple()]
+                                * alpha.get((C, j+1, k), 0)
+                            )
+
+                        # C is right child of A
+                        for k in range(0, i):
+                            beta[(C, i, j)] += (
+                                beta.get((A, k, j), 0)
+                                * self._probs[r.to_tuple()]
+                                * alpha.get((B, k, i-1), 0)
+                            )
+
+        return beta
+
+    def fit(self, data):
+        """Train the grammar on a list of word sequences."""
+        log_likelihoods = []
+
+        for iteration in range(self._max_iter):
+            expected_counts = defaultdict(float)
+            total_ll = 0.0
+
+            # E step
+            for words in data:
+                n = len(words)
+                alpha = self._inside(words)
+                beta = self._outside(words, alpha)
+
+                string_prob = alpha.get((self._start, 0, n-1), 0)
+                if string_prob <= 0:
+                    continue
+
+                total_ll += np.log(string_prob)
+
+                # Accumulate expected counts
+                for r in self._rules:
+                    if r.is_unary:
+                        for i in range(n):
+                            if r.right_side[0] == words[i]:
+                                count = (beta.get((r.left_side, i, i), 0)
+                                         * self._probs[r.to_tuple()]
+                                         / string_prob)
+                                expected_counts[r.to_tuple()] += count
+
+                    elif r.is_binary:
+                        B, C = r.right_side
+                        for i in range(n):
+                            for j in range(i, n):
+                                for k in range(i, j):
+                                    count = (
+                                        beta.get((r.left_side, i, j), 0)
+                                        * self._probs[r.to_tuple()]
+                                        * alpha.get((B, i, k), 0)
+                                        * alpha.get((C, k+1, j), 0)
+                                        / string_prob
+                                    )
+                                    expected_counts[r.to_tuple()] += count
+
+            # M step
+            for var in self._variables:
+                var_rules = [r for r in self._rules if r.left_side == var]
+                total = sum(expected_counts[r.to_tuple()] for r in var_rules)
+                if total > 0:
+                    for r in var_rules:
+                        self._probs[r.to_tuple()] = (
+                            expected_counts[r.to_tuple()] / total
+                        )
+
+            log_likelihoods.append(total_ll)
+
+            if len(log_likelihoods) > 1:
+                improvement = log_likelihoods[-1] - log_likelihoods[-2]
+                if abs(improvement) < self._tol:
+                    break
+
+        return log_likelihoods
+```
+
+## Training and evaluation
+
+We can train this model on segmented words (using the BPE segmentations from the [previous section](segmentation-with-bpe.qmd)) and compare the resulting grammar's scores against the supervised PCFG trained on CELEX.
+
+```{python}
+# Define a simple grammar structure
+variables = {'Word', 'Left', 'Right', 'Morph'}
+alphabet = set()  # populated from training data
+
+# Rules would be defined based on the desired grammar structure
+# For binary branching: Word -> Left Right, Left -> Morph Left, etc.
+
+# unsupervised = UnsupervisedPCFG(variables, alphabet, rules, 'Word')
+# log_likelihoods = unsupervised.fit(segmented_words)
+```
+
+```{python}
+# Convergence plot
+# import matplotlib.pyplot as plt
+# plt.plot(log_likelihoods)
+# plt.xlabel('EM iteration')
+# plt.ylabel('Log-likelihood')
+# plt.show()
+```
+
+The log-likelihood should increase monotonically with each iteration—this is a guaranteed property of EM. When it converges, the resulting grammar assigns probabilities to morphological structures that, ideally, correlate with the acceptability judgments we explored in the [morphological well-formedness section](morphological-wellformedness.qmd).
+
+Whether the unsupervised grammar performs as well as the supervised one depends on how much structure the EM algorithm can recover without labeled parses. In practice, the unsupervised grammar tends to find *some* meaningful structure—frequent affixes get high-probability rules, and the grammar assigns higher probabilities to well-formed morphological combinations—but it rarely matches the supervised grammar's performance. This gap is itself informative: it tells us something about how much morphological knowledge is available from distributional patterns alone versus how much requires additional supervision or inductive bias.
+
+## Summary
+
+We have now traced the full arc of this module. We began with the observation—grounded in @chandlee2014strictly—that most morphological transformations are computationally simple (subsequential), but that hierarchical morphological structure requires context-free grammars. We defined CFGs formally, developed operations on them, transformed them into normal forms, and built parsing algorithms (CKY and Earley) to recover structure from strings.
+
+We then pivoted to the empirical question of morphological well-formedness, loaded and explored acceptability judgment data, worked with the CELEX morphological database, and explored three approaches to morphological segmentation: BPE, HMMs, and CRFs. Finally, we extended context-free grammars with probabilities, estimated those probabilities both from labeled data (supervised) and from raw data (unsupervised EM), and asked how well the resulting models predict human acceptability judgments.
+
+The tools developed here—context-free grammars, parsing algorithms, probabilistic estimation—will reappear when we turn to syntactic patterns, where the same formal machinery applies at a larger scale.

@@ -12,3 +12,7 @@ statsmodels
 requests
 jupyter
 ipykernel
+edlib
+subword-nmt
+hmmlearn
+sklearn-crfsuite

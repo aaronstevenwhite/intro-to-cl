@@ -1,250 +1,75 @@
 ---
-title: Overview of Context-Free Grammars
+title: Overview
 bibliography: ../references.bib
+jupyter: python3
 ---
 
-So far, we've explored finite state automata (FSAs) as a way to recognize patterns in strings. FSAs are powerful tools for describing phonotactic constraints - the permissible sound sequences in a language. However, to model more complex linguistic structures like syntax and morphology, we need a more powerful formalism: context-free grammars (CFGs).
+In the phonological-patterns module, we saw that phonological constraints on stringsets—the kinds of sound sequences a language allows—tend to fall into the lower levels of the subregular hierarchy: Strictly Local, Strictly Piecewise, or Tier-based Strictly Local. These are proper subclasses of the regular languages, and the finite state automata that recognize them have correspondingly restricted structure.
 
-CFGs are a step up in the Chomsky hierarchy from regular languages. While regular languages (those recognized by FSAs) can only handle local dependencies, CFGs can handle nested and hierarchical structures that are common in natural language.
+@chandlee2014strictly showed that a similar picture holds for morphological *maps*—the input-output transformations that relate underlying forms to surface forms in morphology. Most morphological processes—prefixation, suffixation, and local infixation—turn out to be *subsequential functions*, a proper subclass of the regular relations (the relations computable by finite state transducers). In other words, morphological transformations are, like phonological constraints, computationally simple in a precise sense.
 
-## What are Context-Free Grammars?
+But there is an important exception. Total reduplication—the process by which a word $w$ is mapped to $ww$, as in Indonesian *orang* → *orang-orang* (people)—is not a regular relation. We proved a version of this in the [section on the pumping lemma](../phonological-patterns/generative-capacity/pumping-lemma.qmd): the language $\{ww \mid w \in \Sigma^+\}$ is not regular, which means no finite state automaton can recognize it, and no finite state transducer can compute the map $w \mapsto ww$.
 
-A context-free grammar is formally defined as a 4-tuple $G = (V, \Sigma, R, S)$ where:
+This is one of the motivations for moving beyond finite state methods. Morphological structure exhibits *hierarchical nesting* that regular grammars cannot capture. Consider the word *unlockable*: it has two possible structures—$[\text{un}[\text{lock-able}]]$ (not able to be locked) and $[[\text{un-lock}]\text{-able}]$ (able to be unlocked)—and distinguishing between them requires tracking nested constituency, not just sequences of symbols.
 
-1. $V$ is a finite set of variables (also called non-terminals)
-2. $\Sigma$ is a finite set of terminals (the alphabet)
-3. $R \subseteq V \times (V \cup \Sigma \cup \{\epsilon\})^*$ is a finite set of rules (or productions) of the form $A \rightarrow \alpha$ where $A \in V$ and $\alpha \in (V \cup \Sigma \cup \{\epsilon\})^*$
-4. $S \in V$ is the start variable
+The formalism we'll use for this is the *context-free grammar* (CFG). A context-free grammar is a 4-tuple $G = (V, \Sigma, R, S)$ where:
 
-The key insight of context-free grammars is that each rule's application depends only on the single variable being expanded, not on the surrounding context (hence "context-free").
+1. $V$ is a finite set of *variables* (or *nonterminals*)
+2. $\Sigma$ is a finite set of *terminals* (the alphabet—in our case, morphemes)
+3. $R \subseteq V \times (V \cup \Sigma)^*$ is a finite set of *rules* (or *productions*) of the form $A \rightarrow \alpha$, where $A \in V$ and $\alpha \in (V \cup \Sigma)^*$
+4. $S \in V$ is the *start variable*
 
-## CFGs in Computational Linguistics
+The key property of context-free grammars is that each rule's application depends only on the variable being expanded, not on what surrounds it. This is what "context-free" means: the rule $A \rightarrow \alpha$ applies wherever $A$ appears, regardless of context.
 
-CFGs are especially useful in computational linguistics for:
+```{python}
+#| code-fold: true
+#| code-summary: Define `Rule` and `ContextFreeGrammar`
 
-1. **Syntactic parsing**: Analyzing the grammatical structure of sentences
-2. **Morphological analysis**: Describing the internal structure of words
-3. **Generation**: Producing well-formed linguistic structures
-
-In this module, we'll focus on CFGs for morphological analysis - the study of how words are formed from smaller meaningful units (morphemes). Unlike syntax, which deals with how words combine to form sentences, morphology deals with how morphemes combine to form words.
-
-## Comparing FSAs and CFGs
-
-While FSAs are sufficient for modeling many aspects of phonology (how sounds combine in a language), they fall short when it comes to capturing certain morphological patterns. Here's a comparison:
-
-| FSAs (Regular Languages) | CFGs (Context-Free Languages) |
-|--------------------------|-------------------------------|
-| Cannot handle center embedding | Can handle center embedding |
-| Cannot count matching elements | Can count matching elements |
-| Cannot model recursive structures | Can model recursive structures |
-| Efficient recognition algorithms | Less efficient recognition algorithms |
-| Simple representation | More complex representation |
-
-Let's implement a basic `ContextFreeGrammar` class that will be the foundation for our exploration of CFGs:
-
-```python
-class Rule:
-    """A context free grammar rule
-
-    Parameters
-    ----------
-    left_side : str
-    right_side : *str
-
-    Attributes
-    ----------
-    left_side : str
-    right_side : tuple(str)
-    """
-
-    def __init__(self, left_side, *right_side):
-        self._left_side = left_side
-        self._right_side = right_side
-
-    def __repr__(self) -> str:
-        return self._left_side + ' -> ' + ' '.join(self._right_side)
-        
-    def to_tuple(self) -> tuple[str, tuple[str, ...]]:
-        return (self._left_side, self._right_side)
-        
-    def __hash__(self) -> int:
-        return hash(self.to_tuple())
-
-    def __eq__(self, other: 'Rule') -> bool:
-        left_side_equal = self._left_side == other._left_side
-        right_side_equal = self._right_side == other._right_side
-
-        return left_side_equal and right_side_equal
-
-    @property
-    def left_side(self) -> str:
-        return self._left_side
-
-    @property
-    def right_side(self) -> tuple[str, ...]:
-        return self._right_side
-
-    @property
-    def is_unary(self) -> bool:
-        return len(self._right_side) == 1
-    
-    @property
-    def is_binary(self) -> bool:
-        return len(self._right_side) == 2
+import sys
+sys.path.insert(0, '_code')
+from grammar import Rule, ContextFreeGrammar
 ```
 
-And here's our basic `ContextFreeGrammar` class:
+To make this concrete, here is a simple morphological grammar for a fragment of English derivational morphology:
 
-```python
-from typing import Literal
-from functools import lru_cache
-
-Mode = Literal["recognize", "parse"]
-
-class ContextFreeGrammar:
-    """
-    A context free grammar
-
-    Parameters
-    ----------
-    alphabet : set(str)
-    variables : set(str)
-    rules : set(Rule)
-    start_variable : str
-
-    Attributes
-    ----------
-    alphabet : set(str)
-    variables : set(str)
-    rules : set(Rule)
-    start_variable : str
-    """
-    
-    parser_class = None
-    
-    def __init__(self, alphabet: set[str], variables: set[str], rules: set[Rule], start_variable: str):
-        self._alphabet = alphabet
-        self._variables = variables
-        self._rules = rules
-        self._start_variable = start_variable
-        
-        self._validate_variables()
-        self._validate_rules()
-
-        if self.parser_class is not None:
-            self._parser = self.parser_class(self)
-        else:
-            self._parser = None
-
-    def _validate_variables(self):
-        if self._alphabet & self._variables:
-            raise ValueError('alphabet and variables must not share elements')
-        
-        if self._start_variable not in self._variables:
-            raise ValueError('start variable must be in set of variables')
-
-    def _validate_rules(self):
-        pass
-
-    @property            
-    def alphabet(self) -> set[str]:
-        return self._alphabet
-
-    @property    
-    def variables(self) -> set[str]:
-        return self._variables
-   
-    @lru_cache(2**10)
-    def rules(self, left_side: str | None = None) -> set[Rule]:
-        if left_side is None:
-            return self._rules
-        else:
-            return {rule for rule in self._rules 
-                    if rule.left_side == left_side}
-
-    @property
-    def start_variable(self) -> str:
-        return self._start_variable
-
-    @lru_cache(2**14)
-    def parts_of_speech(self, word: str | None = None) -> set[str]:
-        if word is None:
-            return {rule.left_side for rule in self._rules 
-                    if rule.is_unary 
-                    if rule.right_side[0] in self._alphabet}
-        
-        else:
-            return {rule.left_side for rule in self._rules 
-                    if rule.is_unary 
-                    if rule.right_side[0] == word}
-  
-    @property
-    def phrase_variables(self) -> set[str]:
-        try:
-            return self._phrase_variables
-        except AttributeError:
-            self._phrase_variables = {rule.left_side for rule in self._rules 
-                                      if not rule.is_unary or 
-                                      rule.right_side[0] not in self._alphabet}
-            return self._phrase_variables
-
-    @lru_cache(2**15)
-    def reduce(self, *right_side: str) -> set[str]:
-        """
-        the nonterminals that can be rewritten as right_side
-
-        Parameters
-        ----------
-        right_side
-
-        Returns
-        -------
-        set(str)
-        """
-        return {r.left_side for r in self._rules
-                if r.right_side == tuple(right_side)}
-```
-
-## Example: A Simple Morphological Grammar
-
-Let's define a simple morphological grammar for a subset of English derivational morphology:
-
-```python
+```{python}
 grammar = ContextFreeGrammar(
     alphabet={'happy', 'un', 'ness', 'kind', 'ly', 'help', 'ful'},
     variables={'Word', 'Adj', 'Adv', 'N', 'Prefix', 'Suffix'},
     rules={
-        # Base words
         Rule('Adj', 'happy'),
         Rule('Adj', 'kind'),
-        Rule('Adj', 'helpful'),
-        
-        # Word formation rules
+        Rule('Adj', 'help', 'ful'),
+
         Rule('Word', 'Adj'),
         Rule('Word', 'Adv'),
         Rule('Word', 'N'),
-        
-        # Derivational rules
-        Rule('Adj', 'Prefix', 'Adj'),  # un + kind → unkind
-        Rule('N', 'Adj', 'Suffix'),    # kind + ness → kindness
-        Rule('Adv', 'Adj', 'Suffix'),  # kind + ly → kindly
-        Rule('Adj', 'N', 'Suffix'),    # help + ful → helpful
-        
-        # Affixes
+
+        Rule('Adj', 'Prefix', 'Adj'),   # un + kind → unkind
+        Rule('N', 'Adj', 'Suffix'),     # kind + ness → kindness
+        Rule('Adv', 'Adj', 'Suffix'),   # kind + ly → kindly
+
         Rule('Prefix', 'un'),
         Rule('Suffix', 'ness'),
         Rule('Suffix', 'ly'),
-        Rule('Suffix', 'ful')
+        Rule('Suffix', 'ful'),
     },
     start_variable='Word'
 )
+
+for rule in sorted(grammar.rules(), key=lambda r: str(r)):
+    print(rule)
 ```
 
-In the upcoming sections, we'll explore:
+This grammar generates words like *unkind*, *kindness*, *unkindly*, and *unhappiness*, each with a hierarchical structure that reflects its morphological composition.
 
-1. Operations on context-free grammars
-2. Normal forms (especially Chomsky Normal Form)
-3. Bottom-up parsing using the CKY algorithm
-4. Top-down parsing using the Earley algorithm
+In the following sections, we'll develop the tools needed to work with these grammars:
 
-These tools will allow us to analyze and generate complex morphological structures efficiently.
+1. **Operations on CFGs**: how to combine grammars using union, concatenation, and Kleene closure
+2. **Normal forms**: transforming grammars into canonical forms (especially Chomsky Normal Form) that enable efficient algorithms
+3. **Parsing**: two algorithms—CKY (bottom-up) and Earley (top-down)—for recovering the structure of a word given a grammar
+4. **Morphological well-formedness**: gradient acceptability judgments and what they tell us about morphological knowledge
+5. **Working with CELEX**: extracting morphological grammars from annotated lexical databases
+6. **Segmentation**: finding morpheme boundaries using BPE, HMMs, and CRFs
+7. **Probabilistic grammars**: extending CFGs with probabilities, estimating them from data, and using them to predict acceptability
+8. **Unsupervised grammar learning**: learning morphological structure without labeled parses
