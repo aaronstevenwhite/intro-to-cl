@@ -1,0 +1,51 @@
+---
+title: Weighted finite state automata and hidden Markov models
+bibliography: ../../references.bib
+---
+
+Up to this point, the finite state automata and transducers we've worked with have been *unweighted*: a transition is either present or absent, and a string is either accepted or rejected. But in many applications—including the language models we discussed in the [section on uncertainty about languages](../../uncertainty-about-languages/language-models.qmd)—we want to assign *probabilities* (or more general weights) to strings. Weighted finite state automata and transducers let us do exactly this.
+
+## Weighted finite state automata
+
+A *weighted finite state automaton* (WFSA) is an FSA in which every transition carries a weight, and the weight of a path through the automaton is obtained by combining the weights of its transitions. Formally, a WFSA is a tuple $\langle Q, \Sigma, \delta, q_0, F, \lambda, \rho \rangle$, where:
+
+- $Q$, $\Sigma$, $q_0$, and $F$ are as before (states, alphabet, initial state, final states)
+- $\delta: Q \times \Sigma \rightarrow Q$ is the transition function (which may be partial)
+- $\lambda: Q \times \Sigma \times Q \rightarrow \mathbb{R}$ assigns a weight to each transition
+- $\rho: F \rightarrow \mathbb{R}$ assigns a weight to each final state
+
+The weight of a path is the product (or sum, depending on the semiring) of the transition weights along the path, multiplied by the final-state weight. The weight of a string is the weight of the path (or the sum of the weights of all paths, in the nondeterministic case) that accepts it.
+
+When the weights are probabilities—and specifically, when the weights leaving each state sum to 1 (including the probability of stopping at a final state)—we get a *probabilistic finite state automaton* (PFSA). A PFSA defines a probability distribution over $\Sigma^*$: the probability of a string is the weight of the accepting path.
+
+I'm introducing this here because the connection between weighted automata and the probabilistic models we've been working with is tighter than it might appear. In fact, the hidden Markov model—which we first encountered in the [section on language models beyond $N$-grams](../../uncertainty-about-languages/beyond-ngrams.qmd)—is exactly a weighted finite state automaton, viewed from a particular angle.
+
+## Hidden Markov models as weighted automata
+
+Recall the structure of an HMM. We have a set of hidden states $Q$, an alphabet of observable symbols $\Sigma$, transition probabilities $p(q' \mid q)$, and emission probabilities $p(\sigma \mid q)$. Given a sequence of observations $\sigma_1 \sigma_2 \ldots \sigma_n$, the HMM defines a joint probability over the observation sequence and the hidden state sequence.
+
+Now consider a WFSA with the following structure:
+
+- The states are the hidden states $Q$ of the HMM
+- The alphabet is the observable alphabet $\Sigma$ of the HMM
+- For each state $q$, each symbol $\sigma$, and each state $q'$, there is a transition from $q$ to $q'$ labeled $\sigma$ with weight $p(q' \mid q) \cdot p(\sigma \mid q')$
+
+This WFSA assigns the same probability to each string as the HMM does. The weight of a path $q_0 \xrightarrow{\sigma_1} q_1 \xrightarrow{\sigma_2} q_2 \cdots \xrightarrow{\sigma_n} q_n$ is:
+
+$$\prod_{i=1}^n p(q_i \mid q_{i-1}) \cdot p(\sigma_i \mid q_i)$$
+
+which is exactly the joint probability of the observation and state sequences under the HMM. Summing over all paths that produce the same observation sequence $\sigma_1 \ldots \sigma_n$ gives the marginal probability of the observations—which is what the forward algorithm computes.
+
+The point is that an HMM *is* a nondeterministic WFSA. The nondeterminism corresponds to the hidden states: the same observation sequence can be produced by multiple state sequences (paths through the automaton), and the probability of the observation sequence is the sum of the probabilities of all such paths.
+
+## Why this matters
+
+This equivalence has practical consequences. All of the algorithms we've developed for finite state automata—composition, intersection, determinization, minimization—have weighted analogues that apply to WFSAs and therefore to HMMs. For instance:
+
+- *Composing* two WFSTs can be used to apply an HMM's emission model in series with a phonological rule, producing a combined model that jointly captures phonological constraints and probabilistic predictions.
+- *Determinizing* a WFSA (when possible) can speed up inference, since the resulting automaton has a unique path for each input.
+- *Intersecting* a WFSA with an unweighted FSA can be used to restrict the model to strings that satisfy some structural constraint—for instance, constraining an HMM to only produce sequences that obey a particular phonotactic pattern.
+
+We will make use of this connection in the [section on morphological segmentation](../../morphological-patterns/segmentation-with-structured-prediction.qmd), where HMMs are used to predict morpheme boundaries. The fact that HMMs are weighted automata means that the segmentation model is operating within the same formal framework as the phonological grammars and transducers we've been building throughout this module.
+
+More generally, the equivalence between HMMs and weighted automata is an instance of a broader pattern: many of the probabilistic models used in computational linguistics—including $N$-gram models, HMMs, and probabilistic finite state transducers—can be understood as weighted versions of the formal machines we've already studied. This perspective is useful because it means that the algebraic properties of these machines (closure under operations, decidability of various questions) carry over to the probabilistic setting, giving us formal guarantees about what can and cannot be computed.

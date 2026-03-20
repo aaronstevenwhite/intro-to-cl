@@ -22,7 +22,7 @@ The advantage of this formulation is that it turns segmentation into a sequence 
 
 ## Hidden Markov Models for segmentation
 
-We encountered hidden Markov models briefly in the [section on language models beyond $N$-grams](../uncertainty-about-languages/beyond-ngrams.qmd), where I described them as a way of abstracting context through hidden states. Here we'll use them for a different purpose: predicting the BIO tag at each position in a character sequence.
+We encountered hidden Markov models in the [section on language models beyond $N$-grams](../uncertainty-about-languages/beyond-ngrams.qmd) and saw in the [section on weighted automata and HMMs](../phonological-patterns/phonological-rules-as-fsas/weighted-fsas-and-hmms.qmd) that an HMM is exactly a nondeterministic weighted finite state automaton. Here we'll use HMMs for a different purpose: predicting the BIO tag at each position in a character sequence.
 
 The idea is to model the joint distribution of the character sequence $\mathbf{x} = x_1 x_2 \ldots x_n$ and the tag sequence $\mathbf{y} = y_1 y_2 \ldots y_n$ as:
 
