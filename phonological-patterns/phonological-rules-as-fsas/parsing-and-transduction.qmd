@@ -117,13 +117,13 @@ For example, the same FST that transduces /kæt+z/ to [kæts] can be inverted to
 
 ### 4. Optimality Theory Implementation
 
-While FSTs are traditionally associated with rule-based phonology, they can also be used to implement constraint-based approaches like Optimality Theory (OT) [@Prince1993]. This is typically done by:
+While FSTs are traditionally associated with rule-based phonology, they can also be used to implement constraint-based approaches like Optimality Theory (OT) [@prince1993optimality]. This is typically done by:
 
 1. Using a weighted FST to generate all possible candidates
 2. Using weighted constraints to assign violation marks to candidates
 3. Finding the optimal candidate(s) using the weighted transduction algorithm
 
-This approach has been successfully used to implement OT analyses of various phonological phenomena [@Karttunen1998].
+This approach has been successfully used to implement OT analyses of various phonological phenomena [@karttunen1998finite].
 
 ## Conclusion
 

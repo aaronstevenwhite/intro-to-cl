@@ -3,7 +3,7 @@ title: Phonological Rule Formalism
 bibliography: ../../references.bib
 ---
 
-One influential formalism for stating phonological rules comes from Chomsky and Halle's "The Sound Pattern of English" (SPE) [@Chomsky1968]. In this formalism, rules have the general form:
+One influential formalism for stating phonological rules comes from Chomsky and Halle's "The Sound Pattern of English" (SPE) [@chomsky1968sound]. In this formalism, rules have the general form:
 
 $$A \rightarrow B / C\_D$$
 
@@ -25,7 +25,7 @@ To convert a phonological rule $A \rightarrow B / C\_D$ into an FST, we need to:
 2. Ensure that when this pattern is recognized, $A$ is replaced by $B$ in the output
 3. Ensure that all other segments are copied unchanged from input to output
 
-The algorithm developed by @Kaplan1994 and refined by @Mohri1997 provides a systematic way to do this.
+The algorithm developed by @kaplan1994regular and refined by @mohri1997finite provides a systematic way to do this.
 
 ### The Replace Operator
 
@@ -37,7 +37,7 @@ This operator defines a regular relation that can be implemented as an FST.
 
 ## The Formal Algorithm
 
-The formal algorithm for converting a rule $A \rightarrow B / C\_D$ into an FST involves several sophisticated steps. Here we follow the improved algorithm by @Mohri1997, which fixed issues in the original @Kaplan1994 construction.
+The formal algorithm for converting a rule $A \rightarrow B / C\_D$ into an FST involves several sophisticated steps. Here we follow the improved algorithm by @mohri1997finite, which fixed issues in the original @kaplan1994regular construction.
 
 ### Preliminaries
 
@@ -105,7 +105,7 @@ $$T_{\text{Rule}} = T_{\text{Mark}} \circ T_{\text{Replace}} \circ T_{\text{Unma
 
 ### Mohri's Improvements
 
-@Mohri1997 introduced three key improvements to the original Kaplan and Kay algorithm:
+@mohri1997finite introduced three key improvements to the original Kaplan and Kay algorithm:
 
 1. **Factorization**: The replace operation is factored into simpler components, making it more efficient
 2. **Filter Transducers**: Special filter transducers are used to ensure correct applications in the presence of overlapping potential matches

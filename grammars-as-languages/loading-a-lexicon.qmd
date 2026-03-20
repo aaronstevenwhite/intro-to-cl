@@ -6,14 +6,22 @@ jupyter: python3
 One use case for regular expressions in the context of computational linguistics is querying a lexicon. To look at this use case, we will use the lexicon of word forms found in the [CMU Pronouncing Dictionary](https://web.archive.org/web/20210216211828/http://www.speech.cs.cmu.edu/cgi-bin/cmudict).
 
 ```{python}
-#| colab: {base_uri: 'https://localhost:8080/'}
-#| executionInfo: {elapsed: 945, status: ok, timestamp: 1675099878882, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
-#| outputId: 3ed7f9ba-4da5-4139-f7f0-5b09b66fb61c
-!wget https://raw.githubusercontent.com/Alexir/CMUdict/master/cmudict-0.7b
+import urllib.request
+import os
+
+if not os.path.exists("cmudict-0.7b"):
+    urllib.request.urlretrieve(
+        "https://raw.githubusercontent.com/Alexir/CMUdict/master/cmudict-0.7b",
+        "cmudict-0.7b"
+    )
 ```
 
 ```{python}
-!head -n 200 cmudict-0.7b
+with open("cmudict-0.7b") as f:
+    for i, line in enumerate(f):
+        if i >= 200:
+            break
+        print(line, end="")
 ```
 
 ```{python}

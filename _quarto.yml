@@ -5,7 +5,6 @@ project:
   - index.qmd
   - installation.qmd
   - languages-as-formal-objects/index.qmd
-  - languages-as-formal-objects/index.qmd
   - languages-as-formal-objects/sets.qmd
   - languages-as-formal-objects/multisets.qmd
   - languages-as-formal-objects/tuples.qmd

@@ -21,7 +21,7 @@ In addition to being a principal investigator on numerous federally funded grant
 
 ## About the site
 
-The site itself is built using [Quarto](https://quarto.org/). The source files for this site are available on github at [`aaronstevenwhite/intro-to-cl`](https://github.com/aaronstevenwhite/intro-to-cl). See [Installation](installation.qmd) for information on how to run the code documented here.
+The site itself is built using [Quarto](https://quarto.org/). The source files for this site are available on github at [aaronstevenwhite/intro-to-cl](https://github.com/aaronstevenwhite/intro-to-cl). See [Installation](installation.qmd) for information on how to run the code documented here.
 
 ## Acknowledgments
 

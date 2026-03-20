@@ -10,7 +10,7 @@ One of the most interesting challenges in phonological theory is the phenomenon 
 1. A rule applies even though its conditioning environment is not met at the surface level (counterfeeding opacity), or
 2. A rule fails to apply even though its conditioning environment is met at the surface level (counterbleeding opacity)
 
-Opacity arises from the interaction of multiple phonological rules and has been a central topic in phonological theory since @Kiparsky1973 introduced the concept.
+Opacity arises from the interaction of multiple phonological rules and has been a central topic in phonological theory since @kiparsky1973abstractness introduced the concept.
 
 ## Types of Rule Interaction
 

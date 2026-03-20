@@ -68,7 +68,7 @@ We can prove this is non-regular using the pumping lemma:
 
 ## Implications for Phonology and Morphology
 
-The non-regularity of certain morphological processes like reduplication has important implications for linguistic theory. While most phonological processes can be modeled using regular languages (as discussed in @Heinz2018), some morphological processes require more computational power.
+The non-regularity of certain morphological processes like reduplication has important implications for linguistic theory. While most phonological processes can be modeled using regular languages (as discussed in @heinz_computational_2018), some morphological processes require more computational power.
 
 This distinction helps explain why:
 
