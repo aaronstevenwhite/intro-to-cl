@@ -33,6 +33,8 @@ When there are a finite number of values that the random variables can take, as 
 ```{python}
 import numpy as np
 
+vowels = ('e', 'i', 'o', 'u', 'æ', 'ɑ', 'ɔ', 'ə', 'ɛ', 'ɪ', 'ʊ')
+
 # this theta is totally made up
 idx = np.arange(11)
 theta = (0.05, 0.1, 0.1, 0.05, 0.05, 0.25, 0.15, 0.1, 0.075, 0.025, 0.05)
