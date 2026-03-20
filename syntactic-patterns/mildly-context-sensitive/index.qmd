@@ -19,11 +19,11 @@ Joshi characterized the mildly context-sensitive (MCS) languages by four propert
 
 4. **The language $\{a^n b^n c^n d^n\}$ is generable.** This language is not context-free (it requires cross-serial dependencies between the $a$'s and $c$'s and between the $b$'s and $d$'s), so any formalism that generates it is strictly more powerful than CFGs.
 
-## The convergence result
+## Convergence of formalisms
 
-The most striking fact about the MCS class is that multiple independently developed formalisms converge on it. @vijayshanker1994equivalence showed that Tree-Adjoining Grammars (TAGs), Head Grammars, Linear Indexed Grammars, and Combinatory Categorial Grammars (CCGs) all generate the same class of string languages. @seki1991multiple showed that Multiple Context-Free Grammars (MCFGs) with fan-out 1 generate the same class. And @michaelis2001transforming showed that Minimalist Grammars (MGs)—a formalization of Chomsky's Minimalist Program—also generate exactly the MCS languages.
+Multiple independently developed formalisms turn out to characterize the same class of languages. @vijayshanker1994equivalence showed that Tree-Adjoining Grammars (TAGs), Head Grammars, Linear Indexed Grammars, and Combinatory Categorial Grammars (CCGs) all generate the same string languages. @seki1991multiple showed that Multiple Context-Free Grammars (MCFGs) with fan-out 1 do the same. And @michaelis2001transforming showed that Minimalist Grammars (MGs)—a formalization of Chomsky's Minimalist Program—also generate exactly this class.
 
-These formalisms were developed from very different starting points: TAGs from the study of locality in syntax [@joshi1975tree], CCGs from the logical tradition in categorial grammar [@steedman2000syntactic], MCFGs from the formal study of multiple string components [@seki1991multiple], and MGs from the Chomskyan generative tradition [@stabler1997derivational]. The fact that they converge on the same class suggests that the MCS boundary is not an artifact of any particular formalism but a genuine property of natural language.
+These formalisms were developed from very different starting points—TAGs from the study of locality in syntax [@joshi1975tree], CCGs from the logical tradition in categorial grammar [@steedman2000syntactic], MCFGs from the formal study of multiple string components [@seki1991multiple], and MGs from the Chomskyan generative tradition [@stabler1997derivational]—and yet they converge. This convergence is what gives the MCS hypothesis its force: the boundary between what natural language does and does not require does not seem to depend on how you choose to describe grammars.
 
 In the hierarchy we've been building throughout the course:
 
