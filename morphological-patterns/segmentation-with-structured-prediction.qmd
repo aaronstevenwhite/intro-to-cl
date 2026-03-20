@@ -6,7 +6,7 @@ execute:
   eval: false
 ---
 
-In the previous section, we used BPE to segment words into morpheme-like units. BPE is simple and fast, but it has a fundamental limitation: it makes segmentation decisions based solely on the frequency of character pairs, without considering the broader context in which those characters appear. A more linguistically informed approach is to treat segmentation as a *structured prediction* problem—one where the output is not a single label but a structured sequence of labels, and the model can learn to exploit contextual features.
+In the previous section, we used BPE to segment words into morpheme-like units. BPE makes segmentation decisions based solely on the frequency of character pairs, without considering the broader context in which those characters appear. An alternative is to treat segmentation as a *structured prediction* problem, in which the model predicts a sequence of labels (one per character) and can condition each label on features of the surrounding characters.
 
 The idea is straightforward. Given a word like *unhappiness*, represented as a sequence of characters $\langle \text{u}, \text{n}, \text{h}, \text{a}, \text{p}, \text{p}, \text{i}, \text{n}, \text{e}, \text{s}, \text{s} \rangle$, we want to predict for each character whether it is the *beginning* of a morpheme, *inside* a morpheme, or (less commonly) *outside* any morpheme. This is known as BIO tagging, after the labels B (beginning), I (inside), and O (outside).
 
@@ -18,7 +18,7 @@ For *unhappiness* with morphemes *un*, *happi*, *ness*, the BIO tags would be:
 
 The first character of each morpheme gets a B tag, and the remaining characters get I tags. Converting back from tags to a segmentation is trivial: every B tag marks the start of a new morpheme.
 
-The advantage of this formulation is that it turns segmentation into a sequence labeling problem, for which there are well-studied models with strong theoretical properties. We'll look at two: hidden Markov models and conditional random fields.
+This formulation turns segmentation into a sequence labeling problem, for which there are well-studied models. We'll look at two: hidden Markov models and conditional random fields.
 
 ## Hidden Markov Models for segmentation
 

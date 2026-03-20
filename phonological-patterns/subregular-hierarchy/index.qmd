@@ -9,7 +9,7 @@ But recall the point I made in the [section on the Generativist Conceit](../the-
 
 This observation raises a natural question: which subclass? Is there a principled way to identify the region of the regular languages where phonological patterns live?
 
-It turns out there is. Over the past several decades, a body of work in formal language theory and computational phonology has identified a collection of subclasses of the regular languages—known collectively as the *subregular hierarchy*—that have two important properties: (i) they are learnable in the limit from positive data; and (ii) the phonological patterns of natural languages overwhelmingly fall into them [@heinz_computational_2018; @rogers2011aural; @rogers2013cognitive; @lambert2021typology].
+Over the past several decades, a body of work in formal language theory and computational phonology has identified a collection of subclasses of the regular languages—known collectively as the *subregular hierarchy*—that have two properties relevant to this question: (i) they are learnable in the limit from positive data; and (ii) the phonological patterns of natural languages overwhelmingly fall into them [@heinz_computational_2018; @rogers2011aural; @rogers2013cognitive; @lambert2021typology].
 
 The hierarchy looks roughly like this:
 
@@ -18,6 +18,6 @@ $$\text{SP} \subset \text{PT} \subset \text{Star-Free} \subset \text{Regular}$$
 
 where SL (Strictly Local) and SP (Strictly Piecewise) are the smallest classes, LT (Locally Testable) and PT (Piecewise Testable) are somewhat larger, and the Star-Free languages sit just below the full regular languages. There is also a class called TSL (Tier-based Strictly Local) that crosscuts this picture in a way I'll describe shortly.
 
-The key empirical finding is that attested phonological patterns cluster at the bottom of this hierarchy—primarily in SL, SP, and TSL. Very few phonological patterns require even LT or PT, and essentially none require the full power of the regular languages. This is a striking convergence between formal language theory and linguistic typology, and it suggests that the learnability constraint is doing real work in shaping what phonological systems look like.
+Attested phonological patterns cluster at the bottom of this hierarchy, primarily in SL, SP, and TSL. Very few phonological patterns require even LT or PT, and essentially none require the full power of the regular languages. The convergence between the formal hierarchy and the typological distribution of phonological patterns suggests that the learnability constraint is doing real work in shaping what phonological systems look like.
 
 In the following sections, I'll define each of these classes, ground them in phonological examples, and show how they relate to each other and to the finite state automata we've been studying.

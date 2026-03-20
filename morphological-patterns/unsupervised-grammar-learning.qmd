@@ -8,7 +8,7 @@ execute:
 
 In the previous section on [probabilistic context-free grammars](probabilistic-context-free-grammars.qmd), we estimated rule probabilities from the CELEX database—a supervised approach that requires gold-standard morphological parses. But gold-standard parses are expensive to produce and are not available for most languages. This raises a natural question: can we learn a morphological grammar from raw data, without labeled parses?
 
-The answer is yes, at least in principle. The tool we'll use is the *expectation-maximization* (EM) algorithm, applied to probabilistic context-free grammars. The idea is to alternate between two steps: (i) use the current grammar to compute the expected counts of each rule across all possible parses of the training data (the E step); and (ii) use those expected counts to re-estimate the rule probabilities (the M step). This is the same basic strategy as EM for Gaussian mixture models or HMMs, but applied to the more complex structure of context-free grammars.
+It can be done, at least in principle, using the *expectation-maximization* (EM) algorithm applied to probabilistic context-free grammars. The idea is to alternate between two steps: (i) use the current grammar to compute the expected counts of each rule across all possible parses of the training data (the E step); and (ii) use those expected counts to re-estimate the rule probabilities (the M step). This is the same basic strategy as EM for Gaussian mixture models or HMMs, but applied to the more complex structure of context-free grammars.
 
 ## The inside-outside algorithm
 
@@ -231,7 +231,7 @@ alphabet = set()  # populated from training data
 
 The log-likelihood should increase monotonically with each iteration—this is a guaranteed property of EM. When it converges, the resulting grammar assigns probabilities to morphological structures that, ideally, correlate with the acceptability judgments we explored in the [morphological well-formedness section](morphological-wellformedness.qmd).
 
-Whether the unsupervised grammar performs as well as the supervised one depends on how much structure the EM algorithm can recover without labeled parses. In practice, the unsupervised grammar tends to find *some* meaningful structure—frequent affixes get high-probability rules, and the grammar assigns higher probabilities to well-formed morphological combinations—but it rarely matches the supervised grammar's performance. This gap is itself informative: it tells us something about how much morphological knowledge is available from distributional patterns alone versus how much requires additional supervision or inductive bias.
+In practice, the unsupervised grammar tends to find some meaningful structure—frequent affixes get high-probability rules, and the grammar assigns higher probabilities to well-formed morphological combinations—but it rarely matches the supervised grammar's performance. The gap between the two tells us something about how much morphological knowledge is available from distributional patterns alone versus how much requires additional supervision or inductive bias.
 
 ## Looking ahead
 

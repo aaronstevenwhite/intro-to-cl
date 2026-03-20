@@ -8,7 +8,7 @@ execute:
 
 Before we can parse the morphological structure of a word, we need to know where the morpheme boundaries are. This is the *segmentation* problem: given a word like *unhappiness*, identify that it decomposes into *un*, *happi*, and *ness*.^[The alternation between *happy* and *happi* is a regular phonological process—one of the cases where morphology and phonology interact.]
 
-In this section, we'll look at a simple but effective approach to morphological segmentation: [byte pair encoding](https://en.wikipedia.org/wiki/Byte_pair_encoding) (BPE), which was originally developed for data compression and later adapted for subword tokenization in NLP by @sennrich2016neural. If you've used a modern large language model, it almost certainly uses BPE (or a close relative) to tokenize its input, so this is a method worth understanding in its own right.
+In this section, we'll look at [byte pair encoding](https://en.wikipedia.org/wiki/Byte_pair_encoding) (BPE), which was originally developed for data compression and later adapted for subword tokenization in NLP by @sennrich2016neural. Most modern large language models use BPE or a close relative to tokenize their input.
 
 ## The BPE algorithm
 

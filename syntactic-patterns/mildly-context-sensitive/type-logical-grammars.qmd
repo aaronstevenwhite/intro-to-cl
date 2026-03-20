@@ -46,9 +46,7 @@ This is a direct instantiation of the "analysis as deduction" framework from the
 
 One of the most beautiful results in this area is that derivations in the Lambek calculus correspond, via the [Curry-Howard correspondence](https://en.wikipedia.org/wiki/Curry%E2%80%93Howard_correspondence), to terms in the simply typed lambda calculus. This means that a syntactic derivation *is* a semantic representation: the proof that a string is grammatical simultaneously computes its meaning as a lambda term.
 
-For instance, the derivation of *John runs* from $NP$ and $NP \backslash S$ via backward application corresponds to the lambda term $\text{runs}(\text{john})$—the application of the predicate to its argument. Compositional semantics falls out of the syntax for free.
-
-I mention this not because we'll develop it fully here—that would take us into formal semantics—but because it illustrates a deep structural point: in the type-logical tradition, syntax, semantics, and logic are not separate modules but aspects of the same system. This perspective is developed at length by @carpenter1997type and @moortgat1997categorial.
+For instance, the derivation of *John runs* from $NP$ and $NP \backslash S$ via backward application corresponds to the lambda term $\text{runs}(\text{john})$. The compositional semantics is determined by the derivation itself, without any additional machinery. I won't develop this connection further here (it would take us into formal semantics), but I mention it because it reveals something important about the type-logical tradition: syntax, semantics, and logic are not separate modules but aspects of the same formal system [see @carpenter1997type and @moortgat1997categorial for thorough treatments].
 
 ## Substructural logics and their grammars
 

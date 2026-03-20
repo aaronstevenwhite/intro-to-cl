@@ -37,7 +37,7 @@ $$\frac{[B, i, k] \quad [C, k, j]}{[A, i, j]} \quad \text{for each } A \rightarr
 
 **Goal:** $[S, 0, n]$
 
-This is exactly the same algorithm as the chart-filling procedure in [cky-parsing.qmd](../morphological-patterns/cky-parsing.qmd)—just described differently. The advantage of the deductive formulation is that it separates the *logic* of the parser (what items can be derived) from the *control* (the order in which items are processed). The same logic can be implemented by different control strategies, and the same control strategy can implement different logics.
+This is exactly the same algorithm as the chart-filling procedure in [cky-parsing.qmd](../morphological-patterns/cky-parsing.qmd)—just described differently. The deductive formulation separates the *logic* of the parser (what items can be derived) from the *control* (the order in which items are processed). You can change the logic without changing the control, or vice versa.
 
 ## Earley as a deductive system
 

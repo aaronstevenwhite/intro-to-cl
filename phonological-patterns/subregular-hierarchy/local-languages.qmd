@@ -78,9 +78,9 @@ print(f"contains_lb states: {contains_lb.num_states()}")
 print(f"no_lb states: {no_lb.num_states()}")
 ```
 
-The key observation is that the states of an SL-$k$ constraint automaton are determined by the last $k - 1$ symbols seen. In our SL-2 example, the state tracks only the previous symbol: whether it was an [l] (in which case a following [b] is forbidden) or something else. This is a very restricted kind of DFA—one where the state space is essentially $\Sigma^{k-1}$ (or a subset of it).
+Notice that the states of an SL-$k$ constraint automaton are determined by the last $k - 1$ symbols seen. In our SL-2 example, the state tracks only the previous symbol: whether it was an [l] (in which case a following [b] is forbidden) or something else. This is a very restricted kind of DFA—one where the state space is essentially $\Sigma^{k-1}$ (or a subset of it).
 
-If this reminds you of $N$-gram models from the [section on language models](../../uncertainty-about-languages/ngram-models.qmd), it should. An $N$-gram model conditions the probability of each symbol on the preceding $N - 1$ symbols, which is exactly the information tracked by an SL-$N$ automaton. The SL constraint is the deterministic (non-probabilistic) version of the same idea: instead of assigning probabilities conditional on a short context, it makes a binary decision about whether the context is licit.
+This is the same information that an [$N$-gram model](../../uncertainty-about-languages/ngram-models.qmd) conditions on: the preceding $N - 1$ symbols. An SL-$k$ automaton and a $k$-gram model are tracking the same context; the difference is that the SL automaton makes a binary decision about whether the context is licit, while the $N$-gram model assigns it a probability.
 
 ### Combining SL constraints
 

@@ -5,7 +5,7 @@ bibliography: ../references.bib
 
 In the previous section, we saw that $N$-gram models can capture a substantial amount of phonotactic knowledge by conditioning on short contexts. But the $N$-gram approach has a fundamental limitation: the number of possible contexts grows as $|\Sigma|^{N-1}$. For a phone inventory of 40 symbols, a bigram model has 40 contexts; a trigram model has 1,600; a 4-gram model has 64,000. This exponential growth means that as we try to condition on longer contexts, we quickly run out of data to estimate the parameters, and the memory required to store them becomes impractical.
 
-For phonotactics—where the strings of interest are short—this limitation is often manageable. But if we wanted to model longer sequences, like sentences, we'd need a way to represent the relevant information in a prefix $w_1 \ldots w_{i-1}$ without enumerating every possible prefix. The question, in other words, is whether we can *abstract* the context: compress it into a representation that is both compact and informative enough to predict what comes next.
+For phonotactics—where the strings of interest are short—this limitation is often manageable. But if we wanted to model longer sequences, like sentences, we'd need a way to represent the relevant information in a prefix $w_1 \ldots w_{i-1}$ without enumerating every possible prefix. We need a way to *abstract* the context—to compress it into a representation that is both compact and informative enough to predict what comes next.
 
 The various language models developed over the last few decades differ primarily in how they perform this abstraction. I'll briefly describe two approaches here—hidden Markov models and neural language models—not in full technical detail, but enough to see the common thread.
 
@@ -27,7 +27,7 @@ Neural language models take the same basic idea—abstract the prefix into a com
 - A function that maps the prefix to a vector: $w_1 \ldots w_{i-1} \mapsto \mathbf{h} \in \mathbb{R}^d$
 - A function that maps the vector to a distribution over $\Sigma$: $\mathbf{h} \mapsto \mathbb{P}(W_i = w \mid \mathbf{h})$
 
-The advantage of using a continuous vector rather than a distribution over a small discrete set is that a vector can, in principle, encode a richer range of distinctions. Where an HMM with $|Q| = 10$ can distinguish among 10 possible states of the world at each time step, a vector in $\mathbb{R}^{256}$ can encode far more information about the prefix.
+A continuous vector can, in principle, encode a richer range of distinctions than a distribution over a small discrete set. An HMM with $|Q| = 10$ can distinguish among 10 possible states of the world at each time step; a vector in $\mathbb{R}^{256}$ can encode far more information about the prefix.
 
 Different neural architectures differ in how they compute $\mathbf{h}$ from the prefix:
 

@@ -111,14 +111,14 @@ No. This language requires counting $a$'s modulo 2, which requires a cyclic grou
 
 ## The empirical picture
 
-The striking finding, documented across a large body of work, is that attested phonological patterns overwhelmingly fall into the lowest levels of this hierarchy [@heinz_computational_2018; @rogers2013cognitive; @lambert2021typology; @graf2017power].
+Documented across a large body of work [@heinz_computational_2018; @rogers2013cognitive; @lambert2021typology; @graf2017power], attested phonological patterns overwhelmingly fall into the lowest levels of this hierarchy.
 
 - Most phonotactic constraints (restrictions on what sequences of sounds can appear) are SL—they depend on short contiguous contexts.
 - Long-distance phonological processes like harmony are typically SP or TSL.
 - Very few phonological patterns require even LT or PT.
 - No known phonological pattern requires the full power of the regular languages.
 
-This is not a logical necessity. There is nothing in the definition of a DFA that prevents a phonological pattern from using modular counting or other non-star-free capabilities. The fact that phonological patterns *don't* use these capabilities is an empirical observation about natural language—one that calls for explanation.
+There is nothing in the definition of a DFA that prevents a phonological pattern from using modular counting or other non-star-free capabilities. That phonological patterns don't use them is an empirical observation about natural language, not a logical necessity.
 
 ## Learnability revisited
 

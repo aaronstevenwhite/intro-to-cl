@@ -38,16 +38,16 @@ $$\prod_{i=1}^n p(q_i \mid q_{i-1}) \cdot p(\sigma_i \mid q_i)$$
 
 which is exactly the joint probability of the observation and state sequences under the HMM. Summing over all paths that produce the same observation sequence $\sigma_1 \ldots \sigma_n$ gives the marginal probability of the observations—which is what the forward algorithm computes.
 
-The point is that an HMM *is* a nondeterministic WFSA. The nondeterminism corresponds to the hidden states: the same observation sequence can be produced by multiple state sequences (paths through the automaton), and the probability of the observation sequence is the sum of the probabilities of all such paths.
+So an HMM *is* a nondeterministic WFSA. The nondeterminism corresponds to the hidden states: the same observation sequence can be produced by multiple state sequences (paths through the automaton), and the probability of the observation sequence is the sum of the probabilities of all such paths.
 
-## Why this matters
+## Consequences
 
-This equivalence has practical consequences. All of the algorithms we've developed for finite state automata—composition, intersection, determinization, minimization—have weighted analogues that apply to WFSAs and therefore to HMMs. For instance:
+Because HMMs are WFSAs, all of the algorithms we've developed for finite state automata—composition, intersection, determinization, minimization—have weighted analogues that apply to them. For instance:
 
 - *Composing* two WFSTs can be used to apply an HMM's emission model in series with a phonological rule, producing a combined model that jointly captures phonological constraints and probabilistic predictions.
 - *Determinizing* a WFSA (when possible) can speed up inference, since the resulting automaton has a unique path for each input.
 - *Intersecting* a WFSA with an unweighted FSA can be used to restrict the model to strings that satisfy some structural constraint—for instance, constraining an HMM to only produce sequences that obey a particular phonotactic pattern.
 
-We will make use of this connection in the [section on morphological segmentation](../../morphological-patterns/segmentation-with-structured-prediction.qmd), where HMMs are used to predict morpheme boundaries. The fact that HMMs are weighted automata means that the segmentation model is operating within the same formal framework as the phonological grammars and transducers we've been building throughout this module.
+We will make use of this connection in the [section on morphological segmentation](../../morphological-patterns/segmentation-with-structured-prediction.qmd), where HMMs are used to predict morpheme boundaries. Because the HMM is a WFSA, the segmentation model operates within the same formal framework as the phonological grammars and transducers we've been building throughout this module.
 
-More generally, the equivalence between HMMs and weighted automata is an instance of a broader pattern: many of the probabilistic models used in computational linguistics—including $N$-gram models, HMMs, and probabilistic finite state transducers—can be understood as weighted versions of the formal machines we've already studied. This perspective is useful because it means that the algebraic properties of these machines (closure under operations, decidability of various questions) carry over to the probabilistic setting, giving us formal guarantees about what can and cannot be computed.
+More broadly, many of the probabilistic models used in computational linguistics—$N$-gram models, HMMs, probabilistic finite state transducers—can be understood as weighted versions of the formal machines we've already studied. The algebraic properties of those machines (closure under operations, decidability of various questions) carry over to the probabilistic setting, which gives us formal guarantees about what can and cannot be computed.
