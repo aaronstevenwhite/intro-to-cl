@@ -174,4 +174,4 @@ It turns out there's a better way, which we'll see in a second. But first, how d
 
 Everything we just discussed about boolean vectors can be thought of in terms of strings by thinking of boolean vectors as strings from an alphabet with two elements: $\top$ and $\bot$. And indeed, Hamming distance (the analogue of absolute difference we talked about earlier) is straightforwardly defined for strings by replacing the element-wise biconditional with element-wise equality.
 
-The reason to go through boolean vectors first is strings built from alphabets with more than two elements are hard to visualize, but the idea is basically the same: when we've got strings of different lengths, how do we determine how we should insert and/or delete elements?
+The reason to go through boolean vectors first is strings built from alphabets with more than two elements are hard to visualize, but the idea is basically the same: when we've got strings of different lengths, how do we determine how we should insert and/or delete elements? That is the question that [Levenshtein distance](levenshtein-distance.qmd) answers.

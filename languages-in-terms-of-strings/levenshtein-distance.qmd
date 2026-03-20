@@ -342,3 +342,5 @@ editdist = StringEdit5(1, 1)
 
 editdist('æbstɹækʃən', 'æbstɹækt')
 ```
+
+We now have a way of computing the distance between any two strings and recovering the alignment that achieves that distance. In the [next section](neighborhood-density.qmd), we'll put this to work: given a novel string and an entire lexicon, we'll compute the distance from the novel string to every word in the lexicon and use the resulting distribution of distances to predict how wordlike the novel string sounds—implementing the "language as a region around known strings" idea from the [module overview](index.qmd).

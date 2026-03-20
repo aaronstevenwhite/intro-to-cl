@@ -4,7 +4,7 @@ bibliography: ../references.bib
 jupyter: python3
 ---
 
-In the [module overview](index.qmd), I described two complementary perspectives on phonotactic acceptability. The first—developed in the [uncertainty-about-languages module](../uncertainty-about-languages/language-models.qmd)—treats acceptability as a function of probability under a language model. The second, which we develop here, treats acceptability as a function of similarity to known words. The formal tool underlying this second perspective is the edit distance we defined in the [previous sections](levenshtein-distance.qmd).
+In the [module overview](index.qmd), I described the idea of thinking about a language as a *region* around a finite set of known strings in a metric space on $\Sigma^*$. We've now built the metric—Levenshtein distance, developed in the [previous sections](levenshtein-distance.qmd)—and what remains is to define what we mean by "region." That is, given a novel string and a lexicon of known words, how do we aggregate the distances between the novel string and all the words in the lexicon into a single score that predicts how wordlike the novel string sounds?
 
 ## The Generalized Neighborhood Model
 
