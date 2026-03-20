@@ -1,6 +1,8 @@
 ---
 title: Building a corpus reader
 jupyter: python3
+execute:
+  eval: false
 ---
 
 ```{python}
