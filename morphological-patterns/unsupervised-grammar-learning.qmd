@@ -233,10 +233,8 @@ The log-likelihood should increase monotonically with each iteration—this is a
 
 Whether the unsupervised grammar performs as well as the supervised one depends on how much structure the EM algorithm can recover without labeled parses. In practice, the unsupervised grammar tends to find *some* meaningful structure—frequent affixes get high-probability rules, and the grammar assigns higher probabilities to well-formed morphological combinations—but it rarely matches the supervised grammar's performance. This gap is itself informative: it tells us something about how much morphological knowledge is available from distributional patterns alone versus how much requires additional supervision or inductive bias.
 
-## Summary
+## Looking ahead
 
-We have now traced the full arc of this module. We began with the observation—grounded in @chandlee2014strictly—that most morphological transformations are computationally simple (subsequential), but that hierarchical morphological structure requires context-free grammars. We defined CFGs formally, developed operations on them, transformed them into normal forms, and built parsing algorithms (CKY and Earley) to recover structure from strings.
+The unsupervised PCFG is the most ambitious model we've built in this module: it takes raw segmented strings and discovers hierarchical morphological structure without any labeled examples. Whether it does this well enough to be practically useful is a separate question, and the answer depends heavily on the quality of the segmentation it receives as input and the expressiveness of the grammar it's working with.
 
-We then pivoted to the empirical question of morphological well-formedness, loaded and explored acceptability judgment data, worked with the CELEX morphological database, and explored three approaches to morphological segmentation: BPE, HMMs, and CRFs. Finally, we extended context-free grammars with probabilities, estimated those probabilities both from labeled data (supervised) and from raw data (unsupervised EM), and asked how well the resulting models predict human acceptability judgments.
-
-The tools developed here—context-free grammars, parsing algorithms, probabilistic estimation—will reappear when we turn to syntactic patterns, where the same formal machinery applies at a larger scale.
+But the formal tools we've developed here—context-free grammars, parsing algorithms, probabilistic estimation via both supervised counting and unsupervised EM—are not specific to morphology. They apply equally well to syntax, where the strings are longer, the grammars are larger, and the ambiguity is more severe. That is where we'll turn next.

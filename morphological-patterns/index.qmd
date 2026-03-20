@@ -63,13 +63,4 @@ for rule in sorted(grammar.rules(), key=lambda r: str(r)):
 
 This grammar generates words like *unkind*, *kindness*, *unkindly*, and *unhappiness*, each with a hierarchical structure that reflects its morphological composition.
 
-In the following sections, we'll develop the tools needed to work with these grammars:
-
-1. **Operations on CFGs**: how to combine grammars using union, concatenation, and Kleene closure
-2. **Normal forms**: transforming grammars into canonical forms (especially Chomsky Normal Form) that enable efficient algorithms
-3. **Parsing**: two algorithms—CKY (bottom-up) and Earley (top-down)—for recovering the structure of a word given a grammar
-4. **Morphological well-formedness**: gradient acceptability judgments and what they tell us about morphological knowledge
-5. **Working with CELEX**: extracting morphological grammars from annotated lexical databases
-6. **Segmentation**: finding morpheme boundaries using BPE, HMMs, and CRFs
-7. **Probabilistic grammars**: extending CFGs with probabilities, estimating them from data, and using them to predict acceptability
-8. **Unsupervised grammar learning**: learning morphological structure without labeled parses
+In the following sections, we'll develop the tools needed to work with these grammars. We'll start with the formal machinery: operations on CFGs (union, concatenation, Kleene closure), normal forms (especially Chomsky Normal Form, which enables efficient algorithms), and two parsing algorithms—CKY (bottom-up) and Earley (top-down)—for recovering the structure of a word given a grammar. With that machinery in hand, we'll turn to the empirical question of morphological well-formedness: we'll look at gradient acceptability judgments for morphologically complex nonwords, explore methods for segmenting words into morphemes, and then train probabilistic context-free grammars—both from labeled data and from scratch—to predict how acceptable a given morphological structure is.

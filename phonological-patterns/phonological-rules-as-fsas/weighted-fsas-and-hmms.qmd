@@ -3,7 +3,9 @@ title: Weighted finite state automata and hidden Markov models
 bibliography: ../../references.bib
 ---
 
-Up to this point, the finite state automata and transducers we've worked with have been *unweighted*: a transition is either present or absent, and a string is either accepted or rejected. But in many applications—including the language models we discussed in the [section on uncertainty about languages](../../uncertainty-about-languages/language-models.qmd)—we want to assign *probabilities* (or more general weights) to strings. Weighted finite state automata and transducers let us do exactly this.
+Up to this point, the finite state automata and transducers we've worked with have been *unweighted*: a transition is either present or absent, and a string is either accepted or rejected. But in many applications—including the language models we discussed in the [section on uncertainty about languages](../../uncertainty-about-languages/language-models.qmd)—we want to assign *probabilities* (or more general weights) to strings.
+
+To see why this matters, consider the phonotactic constraint we've been using as a running example: English doesn't allow [lb] as a consonant cluster. An unweighted FSA can tell us that [lb] is forbidden—it either accepts or rejects a string. But it can't tell us that [bl] (as in *black*) is more common than [bɹ] (as in *brown*), which is in turn more common than [bw] (as in *buoy*). All three are accepted; none is forbidden. The unweighted FSA has nothing more to say. A *weighted* FSA, by contrast, can assign different weights to different transitions, capturing the fact that some licit sequences are more probable than others.
 
 ## Weighted finite state automata
 

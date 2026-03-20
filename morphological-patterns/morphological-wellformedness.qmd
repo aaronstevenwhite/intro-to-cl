@@ -69,7 +69,7 @@ print("\nLeast acceptable:")
 print(word_means.head(5))
 ```
 
-## Computational complexity of morphological processes
+## What kind of model do we need?
 
 The gradience in these judgments raises the same question we encountered for phonotactics: can we build a model that predicts it? Before doing so, it's worth pausing to consider what class of formal machinery we might need.
 
@@ -77,4 +77,4 @@ As I discussed in the [module overview](index.qmd), @chandlee2014strictly showed
 
 But the operative phrase is "for the most part." Total reduplication requires unbounded copying, which exceeds the power of any finite state device. And crucially, morphological *structure*—the hierarchical constituency that determines whether *unlockable* means "not able to be locked" or "able to be unlocked"—is not a property of the transformation itself but of the *grammar* that licenses it. Modeling this constituency requires context-free grammars, which is why we developed them in the preceding sections.
 
-In the pages that follow, we'll build up the tools needed to train such grammars on real data and evaluate how well they predict the kind of gradient acceptability judgments we've just seen. We'll start by loading a morphological database that provides gold-standard parses, then explore several approaches to morphological segmentation, and finally train probabilistic context-free grammars that assign scores to morphological structures.
+In the pages that follow, we'll build up the tools needed to train such grammars on real data and evaluate how well they predict the kind of gradient acceptability judgments we've just seen. The first step is to get our hands on a morphological database that provides gold-standard parses. Then we'll explore several approaches to morphological segmentation—the problem of finding morpheme boundaries—before turning to probabilistic context-free grammars that assign scores to morphological structures.

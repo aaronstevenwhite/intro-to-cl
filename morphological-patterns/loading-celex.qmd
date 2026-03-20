@@ -6,7 +6,7 @@ execute:
   eval: false
 ---
 
-To train and evaluate morphological grammars, we need a dataset that provides gold-standard morphological parses—not just segmented morphemes but full hierarchical structure. The [CELEX](https://catalog.ldc.upenn.edu/LDC96L14) lexical database provides exactly this.
+To train and evaluate the morphological grammars we've been building, we need a dataset that provides gold-standard morphological parses—not just a list of morpheme boundaries but full hierarchical structure showing how morphemes compose. The [CELEX](https://catalog.ldc.upenn.edu/LDC96L14) lexical database provides exactly this. It's one of the most widely used resources in computational morphology, and we'll use it throughout the rest of this module as both a training set (for estimating grammar parameters) and an evaluation set (for checking our models against known parses).
 
 ::: {.callout-warning}
 ## Data availability
@@ -16,9 +16,11 @@ CELEX (LDC96L14) is distributed by the [Linguistic Data Consortium](https://www.
 
 ## What is CELEX?
 
-CELEX is a lexical database for English, Dutch, and German that includes phonological, morphological, syntactic, and frequency information for a large number of word forms. For our purposes, the relevant field is `StrucLab`—the morphological structure label—which provides a serialized parse tree for each entry.
+CELEX is a lexical database for English, Dutch, and German that includes phonological, morphological, syntactic, and frequency information for a large number of word forms. It was compiled in the early 1990s at the Centre for Lexical Information in Nijmegen, and it remains one of the standard resources in psycholinguistics and computational linguistics despite its age.
 
-For example, the word *unhappiness* has the `StrucLab` representation `((un)[A],(happy)[A])[A],(ness)[N|A.])[N]`, which encodes a hierarchical parse: the prefix *un-* combines with the adjective *happy* to form an adjective, which then combines with the suffix *-ness* to form a noun.
+For our purposes, the relevant field is `StrucLab`—the morphological structure label—which provides a serialized parse tree for each entry. The notation looks a bit cryptic at first, but it encodes exactly the kind of hierarchical structure that our context-free grammars generate.
+
+For example, the word *unhappiness* has the `StrucLab` representation `((un)[A],(happy)[A])[A],(ness)[N|A.])[N]`. What this means is: the prefix *un-* combines with the adjective *happy* to form an adjective (the inner bracketing), which then combines with the suffix *-ness* to form a noun (the outer bracketing). The category labels in square brackets correspond to what we've been calling nonterminals in our CFG formalism.
 
 ## Parsing CELEX entries
 

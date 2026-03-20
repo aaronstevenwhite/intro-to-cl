@@ -8,11 +8,13 @@ execute:
 
 Before we can parse the morphological structure of a word, we need to know where the morpheme boundaries are. This is the *segmentation* problem: given a word like *unhappiness*, identify that it decomposes into *un*, *happi*, and *ness*.^[The alternation between *happy* and *happi* is a regular phonological process—one of the cases where morphology and phonology interact.]
 
-In this section, we'll look at a simple but effective approach to morphological segmentation: [byte pair encoding](https://en.wikipedia.org/wiki/Byte_pair_encoding) (BPE), which was originally developed for data compression and later adapted for subword tokenization in NLP by @sennrich2016neural.
+In this section, we'll look at a simple but effective approach to morphological segmentation: [byte pair encoding](https://en.wikipedia.org/wiki/Byte_pair_encoding) (BPE), which was originally developed for data compression and later adapted for subword tokenization in NLP by @sennrich2016neural. If you've used a modern large language model, it almost certainly uses BPE (or a close relative) to tokenize its input, so this is a method worth understanding in its own right.
 
 ## The BPE algorithm
 
-BPE works by iteratively merging the most frequent pair of adjacent symbols. Starting from a vocabulary of individual characters, the algorithm repeatedly:
+The intuition behind BPE is that frequently co-occurring characters should be merged into a single unit. If the characters *i*, *n*, and *g* appear together very often in the training data, BPE will eventually merge them into the single token *ing*—which, not coincidentally, is a productive English suffix. The algorithm doesn't know anything about morphology; it just tracks co-occurrence frequencies. But because morphemes are, by definition, recurrent meaningful units, frequency-based merging tends to recover morpheme-like chunks.
+
+More precisely, BPE works by iteratively merging the most frequent pair of adjacent symbols. Starting from a vocabulary of individual characters, the algorithm repeatedly:
 
 1. Counts all pairs of adjacent symbols in the training data
 2. Merges the most frequent pair into a new symbol
