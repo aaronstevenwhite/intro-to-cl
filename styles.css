@@ -1,11 +1,8 @@
 /* Inline code: override the dark highlight-style background so
    that `code` in running text is readable against the light page. */
-p code,
-li code,
-td code,
-.callout code:not(pre code) {
-  background-color: #f0f0f0;
-  color: #333;
+:not(pre) > code {
+  background-color: #f0f0f0 !important;
+  color: #333 !important;
   padding: 0.1em 0.3em;
   border-radius: 3px;
 }
