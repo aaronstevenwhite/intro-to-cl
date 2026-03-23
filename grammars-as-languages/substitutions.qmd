@@ -3,7 +3,7 @@ title: Substitutions
 jupyter: python3
 ---
 
-Everything we've done with regular expressions so far has been about *recognizing* or *extracting* from strings—asking whether a string is in the language that a regular expression evaluates to, or pulling out substrings that match a pattern. But regular expressions can also be used to *transform* strings, and this use case connects directly to how linguists formalize phonological and morphological processes.
+So far, we've used regular expressions to *recognize* and *extract from* strings—asking whether a string is in the language that a regular expression evaluates to, or pulling out substrings that match a pattern. Regular expressions can also be used to *transform* strings, and this is where the connection to phonological and morphological theory becomes most concrete: the transformations we'll write here are, formally, the same kind of object as the phonological rules we'll study in the next module.
 
 ```{python}
 #| code-fold: true
@@ -20,15 +20,13 @@ with open("cmudict-ipa") as f:
 
 ## Basic substitution with `re.sub`
 
-The function `re.sub(pattern, replacement, string)` finds all occurrences of `pattern` in `string` and replaces them with `replacement`. At its simplest, this is just string replacement—but the pattern can be any regular expression, and the replacement can refer back to captured groups.
+The function `re.sub(pattern, replacement, string)` finds all occurrences of `pattern` in `string` and replaces them with `replacement`. The pattern can be any regular expression, and the replacement can refer back to captured groups using backreferences (`\1`, `\2`, etc.).
 
-In the previous sections, we worked hard to extract stems from words ending in /ʃən/. We found, for instance, that /æbstɹækʃən/ has the stem /æbstɹæk(t)/, where the final /t/ was deleted before the suffix. We can model this *derivation in reverse* using `re.sub`: given the surface form, we can reconstruct the underlying stem by replacing the /ʃən/ suffix with /tʃən/ when the stem doesn't already end in /eɪ/.
+In the previous sections, we worked out that many words ending in /ʃən/ are derived from stems that end in /t/—the /t/ gets deleted before the suffix. We can model this derivation in reverse using `re.sub`: given the surface form /æbstɹækʃən/, we reconstruct the underlying stem by reinserting the /t/ before /ʃən/. We use a negative lookbehind to make sure we only do this when the suffix is plain /ʃən/, not /eɪʃən/ (where no /t/-deletion occurred).
 
 ```{python}
 import re
 
-# "Undo" /t/-deletion before /ʃən/ by reinserting /t/
-# Only when the suffix is plain /ʃən/, not /eɪʃən/
 regex = r'(.+?)(?<!eɪ)(ʃən)$'
 
 test_words = ['abstraction', 'attraction', 'accreditation', 'fashion', 'passion']
@@ -43,21 +41,15 @@ for w in test_words:
             print(f"{joined:20s} → (no /t/ restored)    ({w})")
 ```
 
-The backreference `\1` preserves whatever the stem was, and `\2` preserves the suffix /ʃən/. The negative lookbehind `(?<!eɪ)` ensures we don't insert /t/ in words like *accreditation*, where the suffix is /eɪʃən/ and no /t/-deletion occurred.
+The backreference `\1` preserves whatever the stem was, and `\2` preserves the suffix /ʃən/. Words like *accreditation* (where the suffix is /eɪʃən/) and *fashion* (where /ʃən/ isn't a suffix at all) are left alone.
 
-## Backreferences and phonological processes
+## Going forward: verb → noun
 
-Backreferences—the `\1`, `\2`, etc. in replacement strings—are what make substitutions much more than simple find-and-replace. The replacement can depend on what was matched, which is exactly what we need for modeling phonological processes that are sensitive to their environment.
-
-Consider the relationship between the words in our lexicon that end in /ʃən/ and their verbal stems. Many of these nouns are derived from verbs by a process that involves (among other things) replacing the final /t/ of the verb with /ʃən/. We can use `re.sub` to go in the *forward* direction—from the verb to the noun—by replacing word-final /t/ with /ʃən/:
+We can also use `re.sub` to go in the forward direction. Many of the /ʃən/ nouns in our lexicon are derived from verbs ending in /t/—*abstract* → *abstraction*, *attract* → *attraction*, and so on. The morphophonological rule is: delete the final /t/ of the verb and append /ʃən/. Let's implement that rule and check which verb-noun pairs it correctly predicts.
 
 ```{python}
-# Forward direction: verb → -tion noun
-# Replace final /t/ with /ʃən/
 regex_nominalize = r'(.+)t$'
 
-# Find verb-noun pairs where the verb ends in /t/ and the
-# corresponding -tion noun exists in the dictionary
 noun_forms = {w: "".join(ipa) for w, ipa in entries.items()
               if "".join(ipa).endswith('ʃən')}
 
@@ -66,9 +58,7 @@ n_matches = 0
 for w, ipa in entries.items():
     joined = "".join(ipa)
     if re.fullmatch(regex_nominalize, joined):
-        # Construct the predicted noun form
         predicted_noun = re.sub(regex_nominalize, r'\1ʃən', joined)
-        # Check if this noun actually exists
         for noun_w, noun_ipa in noun_forms.items():
             if noun_ipa == predicted_noun:
                 if n_matches < 15:
@@ -80,13 +70,13 @@ for w, ipa in entries.items():
         break
 ```
 
-This is finding real derivational relationships in the lexicon: *abstract* → *abstraction*, *attract* → *attraction*, *construct* → *construction*, and so on. The substitution `re.sub(r'(.+)t$', r'\1ʃən', stem)` implements the morphophonological rule: delete final /t/, append /ʃən/.
+The substitution `re.sub(r'(.+)t$', r'\1ʃən', stem)` is doing exactly what the morphophonological rule says: it captures everything before the final /t/, drops the /t/, and appends /ʃən/. And because we check whether the predicted noun form actually exists in the CMU dictionary, we're verifying that the rule is producing real words.
 
 ## Substitution with functions
 
-For more complex transformations, we can pass a function as the replacement argument to `re.sub`. The function receives the `Match` object and returns the replacement string. This is useful when the replacement depends on the matched content in ways that can't be expressed with simple backreferences.
+For more complex transformations, we can pass a function as the replacement argument to `re.sub`. The function receives the `Match` object and returns the replacement string.
 
-Let's model a more complete picture of the verb-to-noun derivation. Some verbs form their -tion noun with /eɪʃən/ rather than /ʃən/ (e.g. *accredit* → *accreditation*), and the conditioning factor is partly phonological: /eɪʃən/ tends to occur when the verb ends in a consonant cluster rather than a single /t/.
+We noted in the previous section that some verbs form their /-tion/ noun with /eɪʃən/ rather than /ʃən/—*accredit* → *accreditation*, for instance. The conditioning factor is partly phonological: /eɪʃən/ tends to occur when the verb ends in a consonant cluster rather than a bare /t/. We can model this with a function that inspects the final cluster and chooses the appropriate allomorph.
 
 ```{python}
 consonants = 'bcdfghjklmnŋpɹstvwzðθʃʒ'
@@ -107,14 +97,11 @@ def nominalize(m: re.Match) -> str:
     stem = m.group(1)
     final_cluster = m.group(2)
 
-    # If the verb ends in a consonant + /t/, use /eɪʃən/
     if len(final_cluster) > 1:
         return stem + 'eɪʃən'
-    # If the verb ends in just /t/, use /ʃən/
     else:
         return stem + 'ʃən'
 
-# Match verbs ending in (optional consonant +) /t/
 regex_verb = f'(.+?)([{consonants}]?t)$'
 
 n_matches = 0
@@ -124,7 +111,6 @@ for w, ipa in entries.items():
     m = re.fullmatch(regex_verb, joined)
     if m:
         predicted = re.sub(regex_verb, nominalize, joined)
-        # Check if this noun exists
         for noun_w, noun_ipa in entries.items():
             if "".join(noun_ipa) == predicted:
                 if n_matches < 15:
@@ -136,20 +122,32 @@ for w, ipa in entries.items():
         break
 ```
 
-By passing `nominalize` as the replacement, we can implement conditional logic that depends on the phonological shape of the match—something that would be impossible with a static replacement string.
+Passing a function as the replacement lets us implement conditional logic that depends on the phonological shape of the match—here, whether the verb ends in a single /t/ or a consonant-plus-/t/ cluster.
 
 ## Connection to phonological rules and transducers
 
-The substitutions we've been writing here are closely related to the phonological rule notation introduced by @chomsky1968sound in *The Sound Pattern of English*. The SPE notation for a phonological rule is:
+The substitutions we've been writing here are closely related to the phonological rule notation introduced by @chomsky1968sound in *The Sound Pattern of English* (SPE). The SPE notation for a phonological rule is:
 
 $$A \rightarrow B / C\_D$$
 
-which reads: "$A$ becomes $B$ in the context $C\_D$" (i.e., when preceded by $C$ and followed by $D$). Our /t/-deletion rule, for instance, could be written as:
+which reads: "$A$ becomes $B$ when preceded by $C$ and followed by $D$." Our /t/-deletion rule could be written as:
 
 $$\text{t} \rightarrow \emptyset / C\_\#$$
 
 where $C$ is any consonant and $\#$ is a word boundary. In `re.sub` terms, this is `re.sub(r'([consonants])t$', r'\1', string)`.
 
-The connection goes deeper than notation. As we'll see in the [phonological patterns module](../phonological-patterns/phonological-rules-as-fsas/finite-state-transducers.qmd), every SPE-style rule of this form can be compiled into a *finite state transducer*—a machine that reads an input string and produces an output string, implementing the rule application. The `re.sub` function is, in effect, a simple interface to this same computational machinery: the pattern defines when the rule applies, and the replacement defines what it does. The class of transformations expressible this way—where both the pattern and the replacement are regular—is exactly the class of *regular relations*, which are the relations computable by finite state transducers.
+As we'll see in the [phonological patterns module](../phonological-patterns/phonological-rules-as-fsas/finite-state-transducers.qmd), every SPE-style rule of this form can be compiled into a *finite state transducer*—a machine that reads an input string and produces an output string. The pattern in `re.sub` defines when the rule applies; the replacement defines what it does. When both the pattern and the replacement are regular, the resulting transformation is a *regular relation*—exactly the class of relations computable by finite state transducers. We'll formalize this connection when we get to transducers, but I want to flag it now because `re.sub` is where most people first encounter this idea, even if they don't realize it at the time.
 
-So `re.sub` is not merely a text-processing convenience. It is our first encounter with the formal apparatus of phonological rule systems: context-sensitive string transformations that can be implemented by finite state machines. We'll formalize this connection when we study transducers in the next module.
+## `re.subn`
+
+One practical note: `re.subn` works like `re.sub` but also returns the number of substitutions made, which is useful when you want to know whether a rule applied.
+
+```{python}
+result, n = re.subn(f'([{consonants}])t$', r'\1', 'wɛst')
+print(f"Result: {result}, substitutions made: {n}")
+
+result, n = re.subn(f'([{consonants}])t$', r'\1', 'kæt')
+print(f"Result: {result}, substitutions made: {n}")
+```
+
+The first call deleted the /t/ in /wɛst/ (one substitution); the second left /kæt/ alone (the /t/ is preceded by a vowel, not a consonant, so the rule didn't apply).
