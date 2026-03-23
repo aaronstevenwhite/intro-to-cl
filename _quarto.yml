@@ -25,6 +25,8 @@ project:
   - grammars-as-languages/wild-cards-and-character-ranges.qmd
   - grammars-as-languages/quantifiers.qmd
   - grammars-as-languages/groups-and-greediness.qmd
+  - grammars-as-languages/lookarounds.qmd
+  - grammars-as-languages/substitutions.qmd
   - uncertainty-about-languages/index.qmd
   - uncertainty-about-languages/what-is-a-probability.qmd
   - uncertainty-about-languages/how-we-model-possibilities.qmd
@@ -133,6 +135,8 @@ website:
         - grammars-as-languages/wild-cards-and-character-ranges.qmd
         - grammars-as-languages/quantifiers.qmd
         - grammars-as-languages/groups-and-greediness.qmd
+        - grammars-as-languages/lookarounds.qmd
+        - grammars-as-languages/substitutions.qmd
       - section: "Uncertainty about Languages"
         contents:
         - uncertainty-about-languages/index.qmd

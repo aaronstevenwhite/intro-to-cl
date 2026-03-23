@@ -1,0 +1,159 @@
+---
+title: Lookarounds
+jupyter: python3
+---
+
+In the previous section, we used groups and greediness to extract stems from words ending in /ʃən/—like extracting /æbstɹæk/ from /æbstɹækʃən/. We also saw the anchors `^` and `$`, which assert something about the *position* in the string (beginning or end) without consuming any characters. Lookarounds generalize this idea: they let us assert that a particular pattern does or does not occur at a given position, again without consuming any characters.
+
+```{python}
+#| code-fold: true
+#| code-summary: Load IPA representation of CMU Pronouncing Dictionary
+
+with open("cmudict-ipa") as f:
+    entries: list[tuple[str, str]] = [
+        l.strip().split(",") for l in f
+    ]
+    entries: dict[str, list[str]] = {
+        w: ipa.split() for w, ipa in entries
+    }
+```
+
+## Positive lookahead
+
+A *positive lookahead* `(?=...)` asserts that what follows the current position matches a given pattern. Consider our /ʃən/ extraction problem from the previous section. We captured the stem with `(.+?)(?:eɪ)?ʃən$`, which required us to carefully manage greediness to avoid swallowing the /eɪ/. An alternative approach is to use a lookahead to find the position just before /ʃən/ (or /eɪʃən/) without consuming the suffix itself.
+
+```{python}
+import re
+
+# Find words with /ʃən/ and extract the stem using lookahead
+regex_stem = r'(.+?)(?=(?:eɪ)?ʃən$)'
+
+n_matches = 0
+
+for w, ipa in entries.items():
+    joined = "".join(ipa)
+    m = re.search(regex_stem, joined)
+    if m and joined.endswith('ʃən'):
+        if n_matches < 15:
+            n_matches += 1
+            print(f"{joined:20s}  stem: {m.group(1):10s}  ({w})")
+        else:
+            break
+```
+
+The `(?=(?:eɪ)?ʃən$)` asserts that what follows the current position is (optionally /eɪ/ and then) /ʃən/ at the end of the string—but it doesn't consume those characters. So the capturing group `(.+?)` gets exactly the stem, without any of the suffix leaking in. Compare this to the approach in the previous section, where we had to reason about greediness to get the same result.
+
+## Negative lookahead
+
+A *negative lookahead* `(?!...)` asserts that what follows does *not* match a given pattern. This is useful for expressing phonotactic constraints—restrictions on what sequences of sounds a language allows.
+
+For instance, English has a constraint against the cluster /ŋ/ followed by anything other than /k/, /g/, or a word boundary. We can use a negative lookahead to find violations of a slightly different constraint: let's find all words in the CMU dictionary where /ʃ/ appears but is *not* followed by /ən/—i.e. cases where /ʃ/ is not part of the /-ʃən/ suffix we've been studying.
+
+```{python}
+# /ʃ/ NOT followed by /ən/
+regex = r'ʃ(?!ən)'
+
+n_matches = 0
+
+for w, ipa in entries.items():
+    joined = "".join(ipa)
+    if re.search(regex, joined):
+        if n_matches < 15:
+            n_matches += 1
+            # Highlight the /ʃ/ position
+            pos = re.search(regex, joined).start()
+            print(f"{joined:20s}  /ʃ/ at position {pos}  ({w})")
+        else:
+            break
+```
+
+These are words where /ʃ/ appears in contexts other than the /-ʃən/ suffix—initial /ʃ/ (as in *she*), medial /ʃ/ before other vowels (as in *fashion*), etc. The negative lookahead lets us express the constraint "not followed by /ən/" directly, rather than having to enumerate all the things /ʃ/ *can* be followed by.
+
+## Lookbehind
+
+A *lookbehind* asserts something about what *precedes* the current position: `(?<=...)` for positive and `(?<!...)` for negative. In Python's `re` module, the pattern inside a lookbehind must have a fixed length—you can't use `*` or `+` inside it.^[This restriction exists because the engine would need to try all possible lengths for the lookbehind at each position. The third-party `regex` module relaxes this restriction.]
+
+Lookbehinds are useful when we want to find a suffix and condition on what comes before it. Let's return to the /ʃən/ example and use a lookbehind to find cases where /ʃən/ is preceded by /eɪ/—the /eɪʃən/ allomorph we identified in the previous section.
+
+```{python}
+# Find /ʃən/ that IS preceded by /eɪ/ (the -ation allomorph)
+regex_ation = r'(?<=eɪ)ʃən$'
+
+# Find /ʃən/ that is NOT preceded by /eɪ/ (the plain -tion allomorph)
+regex_tion = r'(?<!eɪ)ʃən$'
+
+ation_words = []
+tion_words = []
+
+for w, ipa in entries.items():
+    joined = "".join(ipa)
+    if re.search(regex_ation, joined):
+        ation_words.append((w, joined))
+    elif re.search(regex_tion, joined):
+        tion_words.append((w, joined))
+
+print("/eɪʃən/ words:")
+for w, ipa in ation_words[:10]:
+    print(f"  {ipa:20s}  ({w})")
+
+print()
+print("/ʃən/ (without /eɪ/) words:")
+for w, ipa in tion_words[:10]:
+    print(f"  {ipa:20s}  ({w})")
+```
+
+This cleanly separates the two allomorphs of the suffix without any issues of greediness, because the lookbehind checks the preceding context without consuming it.
+
+## Combining lookarounds for phonotactic queries
+
+We can combine multiple lookarounds at the same position to express conjunctive constraints. Suppose we want to find all positions in the lexicon where a vowel is immediately followed by two consonants and then another vowel—a VCCV sequence. This is relevant for syllabification: in many languages, the consonant cluster between two vowels is split across syllables, and the question of where exactly the split falls depends on the sonority of the consonants.
+
+```{python}
+vowels = 'æəɑɔɛɝɪiʊu'
+consonants = 'bcdfghjklmnŋpɹstvwzðθʃʒ'
+
+# Find words with VCCV sequences
+regex_vccv = f'[{vowels}][{consonants}]{{2}}[{vowels}]'
+
+n_matches = 0
+
+for w, ipa in entries.items():
+    joined = "".join(ipa)
+    matches = list(re.finditer(regex_vccv, joined))
+    if matches:
+        if n_matches < 10:
+            n_matches += 1
+            for m in matches:
+                cluster = m.group()
+                print(f"{joined:20s}  VCCV: {cluster}  ({w})")
+        else:
+            break
+```
+
+Now suppose we want to refine this: we want VCCV sequences where the second consonant is specifically a stop (/p t k b d g/). A lookahead lets us express this without restructuring the whole pattern.
+
+```{python}
+stops = 'ptkbdg'
+
+# VCCV where the second consonant is a stop
+regex_vcsv = f'[{vowels}][{consonants}](?=[{stops}][{vowels}])[{stops}][{vowels}]'
+
+n_matches = 0
+
+for w, ipa in entries.items():
+    joined = "".join(ipa)
+    matches = list(re.finditer(regex_vcsv, joined))
+    if matches:
+        if n_matches < 10:
+            n_matches += 1
+            for m in matches:
+                print(f"{joined:20s}  VCstopV: {m.group()}  ({w})")
+        else:
+            break
+```
+
+## Formal perspective
+
+Lookarounds don't increase the expressive power of regular expressions. A positive lookahead `(?=\rho)` at some position is equivalent to requiring that the remaining substring starts with something in $\text{eval}(\rho)$—that is, the remaining substring is in $\text{eval}(\rho) \circ \Sigma^*$. A negative lookahead `(?!\rho)` requires the opposite: the remaining substring is *not* in $\text{eval}(\rho) \circ \Sigma^*$.
+
+Since the regular languages are closed under intersection and complement—as we'll see in detail when we study finite state automata—these assertions can always be expressed using just union, concatenation, Kleene star, intersection, and complement. The resulting expression would be far more verbose. Lookarounds, like quantifiers and character classes, are syntactic sugar: they make the notation more convenient without extending the class of languages that can be described.
