@@ -56,36 +56,41 @@ You'll notice that beyond having just the set of high v. non-high vowels, or the
 4. $\bigcap \mathcal{E} \in \mathcal{F}$ for all countable $\mathcal{E} \subseteq \mathcal{F}$ (*closure under countable intersection*)
 
 ```{python}
-from typing import Set, FrozenSet, Iterable
+from collections.abc import Iterable
 from itertools import chain, combinations
 from functools import reduce
 
-SampleSpace = FrozenSet[str]
-Event = FrozenSet[str]
-SigmaAlgebra = FrozenSet[Event]
+SampleSpace = frozenset[str]
+Event = frozenset[str]
+SigmaAlgebra = frozenset[Event]
 
 def powerset(iterable: Iterable) -> Iterable:
-    """The power set of a set
+    """Compute the power set of an iterable.
 
     See https://docs.python.org/3/library/itertools.html#itertools-recipes
 
     Parameters
     ----------
-    iterable
-      The set to take the power set of
+    iterable : Iterable
+        The set to take the power set of.
+
+    Returns
+    -------
+    Iterable
+        All subsets of the input as tuples.
     """
     s = list(iterable)
     return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
 
 class FiniteMeasurableSpace:
-  """A finite measurable space
+  """A finite measurable space.
 
   Parameters
   ----------
-  atoms
-    The atoms of the space
-  sigma_algebra
-    The σ-algebra of the space
+  atoms : SampleSpace
+      The atoms of the space.
+  sigma_algebra : SigmaAlgebra
+      The sigma-algebra of the space.
   """
   def __init__(self, atoms: SampleSpace, sigma_algebra: SigmaAlgebra):
     self._atoms = atoms
@@ -95,29 +100,25 @@ class FiniteMeasurableSpace:
 
   def _validate(self):
     for subset in self._sigma_algebra:
-      # check powerset condition
       if not subset <= self._atoms:
         raise ValueError("All events must be a subset of the atoms")
 
-      # check closure under complement
       if not (self._atoms - subset) in self._sigma_algebra:
         raise ValueError("The σ-algebra must be closed under complements")
 
     for subsets in powerset(self._sigma_algebra):
       subsets = list(subsets)
 
-      # python doesn't like to reduce empty iterables
+      # reduce raises on empty iterables
       if not subsets:
         continue
 
-      # check closure under finite union
       union = frozenset(reduce(frozenset.union, subsets))
       if union not in self._sigma_algebra:
         raise ValueError(
             "The σ-algebra must be closed under countable union"
         )
 
-      # check closure under finite intersection
       intersection = frozenset(reduce(frozenset.intersection, subsets))
       if intersection not in self._sigma_algebra:
         raise ValueError(
@@ -126,10 +127,12 @@ class FiniteMeasurableSpace:
 
   @property
   def atoms(self) -> SampleSpace:
+    """The atoms of the space."""
     return self._atoms
 
   @property
   def sigma_algebra(self) -> SigmaAlgebra:
+    """The sigma-algebra of the space."""
     return self._sigma_algebra
 ```
 
@@ -171,12 +174,17 @@ This point demonstrates an important fact about $\sigma$-algebras: if you design
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| outputId: 73f585f7-b3ad-4d73-c852-425dfd570166
 def generate_sigma_algebra(family: SigmaAlgebra) -> SigmaAlgebra:
-  """Generate a σ-algebra from a family of sets
+  """Generate a sigma-algebra from a family of sets.
 
   Parameters
   ----------
-  family
-    The family of sets from which to generate the σ-algebra
+  family : SigmaAlgebra
+      The family of sets from which to generate the sigma-algebra.
+
+  Returns
+  -------
+  SigmaAlgebra
+      The smallest sigma-algebra containing the family.
   """
 
   sigma_algebra = set(family)

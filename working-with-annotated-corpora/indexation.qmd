@@ -7,21 +7,17 @@ jupyter: python3
 #| code-fold: true
 #| code-summary: Definition of `Tree` up to this point
 
-from typing import TypeVar
-
-DataType = TypeVar("DataType")
-
 class Tree:
-    """A tree
-    
+    """A tree.
+
     Parameters
     ----------
-    data
-        The data contained in this tree
-    children
-        The subtrees of this tree
+    data : str
+        The data contained in this tree.
+    children : list[Tree]
+        The subtrees of this tree.
     """
-    def __init__(self, data: DataType, children: list['Tree']=[]):
+    def __init__(self, data: str, children: list['Tree']=[]):
         self._data = data
         self._children = children
         
@@ -36,11 +32,13 @@ class Tree:
             raise TypeError(msg)
         
     @property
-    def data(self) -> DataType:
-        return self._data 
-    
+    def data(self) -> str:
+        """The data at this node."""
+        return self._data
+
     @property
     def children(self) -> list['Tree']:
+        """The subtrees of this node."""
         return self._children
 
     def __str__(self):
@@ -53,15 +51,27 @@ class Tree:
         return self.to_string(0)
      
     def to_string(self, depth: int) -> str:
+        """Render the tree as an indented string.
+
+        Parameters
+        ----------
+        depth : int
+            The current depth for indentation.
+
+        Returns
+        -------
+        str
+            An indented text representation of the tree.
+        """
         s = (depth - 1) * '  ' +\
             int(depth > 0) * '--' +\
             self._data + '\n'
         s += ''.join(c.to_string(depth+1)
                      for c in self._children)
-        
+
         return s
 
-    def __contains__(self, data: DataType) -> bool:
+    def __contains__(self, data: str) -> bool:
         # pre-order depth-first search
         if self._data == data:
             return True
@@ -84,15 +94,18 @@ One way to index trees is analogous to lists: an `int`. But what does that `int`
 ```{python}
 #| executionInfo: {elapsed: 7, status: ok, timestamp: 1680619944133, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 class Tree(Tree):
-            
-    def __getitem__(self, idx):
+
+    def __getitem__(self, idx: int) -> 'Tree':
+        """Index into the pre-order linearization of the tree."""
         return self.flattened[idx]
-    
-    def __len__(self):
+
+    def __len__(self) -> int:
+        """Return the number of nodes in the tree."""
         return len(self.flattened)
 
     @property
-    def flattened(self):
+    def flattened(self) -> list['Tree']:
+        """The pre-order depth-first linearization of the tree."""
         try:
             return self._flattened
         except AttributeError:
@@ -165,10 +178,22 @@ One issue with this indexation scheme is that it makes it a bit hard to represen
 ```{python}
 #| executionInfo: {elapsed: 17, status: ok, timestamp: 1680619945043, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 class Tree(Tree):
-        
+
     def __getitem__(self, idx: tuple[int]) -> 'Tree':
+        """Index into the tree by path from root.
+
+        Parameters
+        ----------
+        idx : int or tuple[int]
+            A single child index or a tuple path from the root.
+
+        Returns
+        -------
+        Tree
+            The subtree at the given path.
+        """
         idx = (idx,) if isinstance(idx, int) else idx
-        
+
         try:
             assert all(isinstance(i, int) for i in idx)
             assert all(i >= 0 for i in idx)

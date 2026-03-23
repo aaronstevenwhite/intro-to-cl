@@ -61,10 +61,27 @@ from grammar import Rule
 
 
 class UnsupervisedPCFG:
-    """A PCFG trained by expectation-maximization."""
+    """A PCFG trained by expectation-maximization.
 
-    def __init__(self, variables, alphabet, rules, start_variable,
-                 max_iter=50, tol=1e-4):
+    Parameters
+    ----------
+    variables : set[str]
+        The nonterminal symbols.
+    alphabet : set[str]
+        The terminal symbols.
+    rules : list[Rule]
+        The production rules.
+    start_variable : str
+        The start symbol.
+    max_iter : int, default 50
+        Maximum number of EM iterations.
+    tol : float, default 1e-4
+        Convergence tolerance for log-likelihood improvement.
+    """
+
+    def __init__(self, variables: set[str], alphabet: set[str],
+                 rules: list[Rule], start_variable: str,
+                 max_iter: int = 50, tol: float = 1e-4):
         self._variables = variables
         self._alphabet = alphabet
         self._rules = rules
@@ -73,14 +90,25 @@ class UnsupervisedPCFG:
         self._tol = tol
 
         # Initialize rule probabilities uniformly
-        self._probs = {}
+        self._probs: dict[tuple, float] = {}
         for var in variables:
             var_rules = [r for r in rules if r.left_side == var]
             for r in var_rules:
                 self._probs[r.to_tuple()] = 1.0 / len(var_rules)
 
-    def _inside(self, words):
-        """Compute inside probabilities for a sequence of terminals."""
+    def _inside(self, words: list[str]) -> dict[tuple, float]:
+        """Compute inside probabilities for a sequence of terminals.
+
+        Parameters
+        ----------
+        words : list[str]
+            The terminal sequence.
+
+        Returns
+        -------
+        dict[tuple, float]
+            Mapping from (nonterminal, start, end) to probability.
+        """
         n = len(words)
         alpha = defaultdict(float)
 
@@ -105,8 +133,21 @@ class UnsupervisedPCFG:
 
         return alpha
 
-    def _outside(self, words, alpha):
-        """Compute outside probabilities."""
+    def _outside(self, words: list[str], alpha: dict[tuple, float]) -> dict[tuple, float]:
+        """Compute outside probabilities.
+
+        Parameters
+        ----------
+        words : list[str]
+            The terminal sequence.
+        alpha : dict[tuple, float]
+            The inside probabilities.
+
+        Returns
+        -------
+        dict[tuple, float]
+            Mapping from (nonterminal, start, end) to outside probability.
+        """
         n = len(words)
         beta = defaultdict(float)
 
@@ -140,8 +181,19 @@ class UnsupervisedPCFG:
 
         return beta
 
-    def fit(self, data):
-        """Train the grammar on a list of word sequences."""
+    def fit(self, data: list[list[str]]) -> list[float]:
+        """Train the grammar on a list of word sequences using EM.
+
+        Parameters
+        ----------
+        data : list[list[str]]
+            Training data as lists of terminal sequences.
+
+        Returns
+        -------
+        list[float]
+            The log-likelihood after each iteration.
+        """
         log_likelihoods = []
 
         for iteration in range(self._max_iter):

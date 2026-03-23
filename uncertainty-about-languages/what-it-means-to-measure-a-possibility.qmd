@@ -19,7 +19,7 @@ You might be used to thinking of probabilities as being between $[0, 1]$. This p
 #| code-fold: true
 #| code-summary: Define `FiniteMeasurableSpace`
 
-from typing import Iterable
+from collections.abc import Iterable
 from itertools import chain, combinations
 from functools import reduce
 
@@ -28,27 +28,32 @@ Event = frozenset[str]
 SigmaAlgebra = frozenset[Event]
 
 def powerset(iterable: Iterable) -> Iterable:
-    """The power set of a set
+    """Compute the power set of an iterable.
 
     See https://docs.python.org/3/library/itertools.html#itertools-recipes
 
     Parameters
     ----------
-    iterable
-      The set to take the power set of
+    iterable : Iterable
+        The set to take the power set of.
+
+    Returns
+    -------
+    Iterable
+        All subsets of the input as tuples.
     """
     s = list(iterable)
     return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
 
 class FiniteMeasurableSpace:
-  """A finite measurable space
+  """A finite measurable space.
 
   Parameters
   ----------
-  atoms
-    The atoms of the space
-  sigma_algebra
-    The σ-algebra of the space
+  atoms : SampleSpace
+      The atoms of the space.
+  sigma_algebra : SigmaAlgebra
+      The sigma-algebra of the space.
   """
   def __init__(self, atoms: SampleSpace, sigma_algebra: SigmaAlgebra):
     self._atoms = atoms
@@ -58,29 +63,25 @@ class FiniteMeasurableSpace:
 
   def _validate(self):
     for subset in self._sigma_algebra:
-      # check powerset condition
       if not subset <= self._atoms:
         raise ValueError("All events must be a subset of the atoms")
 
-      # check closure under complement
       if not (self._atoms - subset) in self._sigma_algebra:
         raise ValueError("The σ-algebra must be closed under complements")
 
     for subsets in powerset(self._sigma_algebra):
       subsets = list(subsets)
 
-      # python doesn't like to reduce empty iterables
+      # reduce raises on empty iterables
       if not subsets:
         continue
 
-      # check closure under finite union
       union = frozenset(reduce(frozenset.union, subsets))
       if union not in self._sigma_algebra:
         raise ValueError(
             "The σ-algebra must be closed under countable union"
         )
 
-      # check closure under finite intersection
       intersection = frozenset(reduce(frozenset.intersection, subsets))
       if intersection not in self._sigma_algebra:
         raise ValueError(
@@ -89,10 +90,12 @@ class FiniteMeasurableSpace:
 
   @property
   def atoms(self) -> SampleSpace:
+    """The atoms of the space."""
     return self._atoms
 
   @property
   def sigma_algebra(self) -> SigmaAlgebra:
+    """The sigma-algebra of the space."""
     return self._sigma_algebra
 ```
 
@@ -101,12 +104,17 @@ class FiniteMeasurableSpace:
 #| code-summary: Define `generate_sigma_algebra`
 
 def generate_sigma_algebra(family: SigmaAlgebra) -> SigmaAlgebra:
-  """Generate a σ-algebra from a family of sets
+  """Generate a sigma-algebra from a family of sets.
 
   Parameters
   ----------
-  family
-    The family of sets from which to generate the σ-algebra
+  family : SigmaAlgebra
+      The family of sets from which to generate the sigma-algebra.
+
+  Returns
+  -------
+  SigmaAlgebra
+      The smallest sigma-algebra containing the family.
   """
 
   sigma_algebra = set(family)
@@ -169,40 +177,47 @@ highness_backness_space = FiniteMeasurableSpace(vowels, f_highness_backness)
 ```
 
 ```{python}
-from typing import Dict
 from itertools import combinations
 
 class ProbabilityMeasure:
-  """A probability measure with finite support
+  """A probability measure with finite support.
 
   Parameters
   ----------
-  domain
-    The domain of the probability measure
-  measure
-    The graph of the measure
+  domain : FiniteMeasurableSpace
+      The domain of the probability measure.
+  measure : dict[Event, float]
+      The graph of the measure.
   """
 
-  def __init__(self, domain: FiniteMeasurableSpace, measure: Dict[Event, float]):
+  def __init__(self, domain: FiniteMeasurableSpace, measure: dict[Event, float]):
     self._domain = domain
     self._measure = measure
 
     self._validate()
 
   def __call__(self, event: Event) -> float:
+    """Return the probability of an event.
+
+    Parameters
+    ----------
+    event : Event
+        The event to measure.
+
+    Returns
+    -------
+    float
+        The probability of the event.
+    """
     return self._measure[event]
 
   def _validate(self):
-    # check that the measure covers the domain
     for event in self._domain.sigma_algebra:
       if event not in self._measure:
         raise ValueError("Probability measure must be defined for all events.")
 
-    # check the assumption of unit measure
     if self._measure[frozenset(self._domain.atoms)] != 1:
       raise ValueError("The probability of the sample space must be 1.")
-
-    # check assumption of 𝜎-additivity
     for events in powerset(self._domain.sigma_algebra):
       events = list(events)
 
@@ -237,7 +252,19 @@ These axioms also imply that $\mathbb{P}(\emptyset) = 0$, since $\mathbb{P}(\Ome
 ```{python}
 class ProbabilityMeasure(ProbabilityMeasure):
 
-  def are_mutually_exclusive(self, *events: Iterable[Event]):
+  def are_mutually_exclusive(self, *events: Event) -> bool:
+    """Check whether events are pairwise disjoint.
+
+    Parameters
+    ----------
+    *events : Event
+        The events to check.
+
+    Returns
+    -------
+    bool
+        True if no two events overlap.
+    """
     self._validate_events(events)
     return not any(e1.intersection(e2) for e1, e2 in combinations(events, 2))
 

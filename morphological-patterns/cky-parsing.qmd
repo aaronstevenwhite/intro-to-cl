@@ -63,109 +63,126 @@ For parsing (as opposed to just recognition), we also need to keep track of back
 Let's define the core classes needed for CKY parsing:
 
 ```python
-from typing import Union
-
-SpanIndices = tuple[int, int]
-CKYBackPointer = tuple[str, SpanIndices]
+type SpanIndices = tuple[int, int]
+type CKYBackPointer = tuple[str, SpanIndices]
 
 class Chart:
+    """Abstract base for parser charts."""
+
     @property
     def parses(self):
+        """Return the set of parse trees."""
         raise NotImplementedError
 
 class ChartEntry:
+    """Abstract base for chart entries."""
+
     def __hash__(self) -> int:
         raise NotImplementedError
 
     @property
     def backpointers(self):
+        """Return the backpointers for this entry."""
         raise NotImplementedError
 
 class CKYChartEntry(ChartEntry):
-    """
-    A chart entry for a CKY chart
+    """A chart entry for a CKY chart.
 
     Parameters
     ----------
-    symbol
-    backpointers
+    symbol : str
+        The nonterminal symbol.
+    *backpointers : CKYBackPointer
+        Pairs of (symbol, span) pointing to child entries.
 
     Attributes
     ----------
-    symbol
-    backpointers
+    symbol : str
+        The nonterminal symbol.
+    backpointers : tuple[CKYBackPointer, ...]
+        The child backpointers.
     """
 
     def __init__(self, symbol: str, *backpointers: CKYBackPointer):
         self._symbol = symbol
         self._backpointers = backpointers
 
-    def to_tuple(self):
+    def to_tuple(self) -> tuple[str, tuple[CKYBackPointer, ...]]:
+        """Return a hashable tuple representation.
+
+        Returns
+        -------
+        tuple[str, tuple[CKYBackPointer, ...]]
+            The symbol and backpointers.
+        """
         return (self._symbol, self._backpointers)
-        
+
     def __hash__(self) -> int:
         return hash(self.to_tuple())
 
     def __eq__(self, other: 'CKYChartEntry') -> bool:
         return self.to_tuple() == other.to_tuple()
-    
+
     def __repr__(self) -> str:
+        """Return a string showing the symbol and its backpointer spans."""
         return self._symbol + ' -> ' + ' '.join(
-            f"{bp[0]}({bp[1][0]}, {bp[1][1]})" 
+            f"{bp[0]}({bp[1][0]}, {bp[1][1]})"
             for bp in self.backpointers
         )
 
     def __str__(self) -> str:
         return self.__repr__()
-    
+
     @property
     def symbol(self) -> str:
+        """The nonterminal symbol."""
         return self._symbol
 
     @property
     def backpointers(self) -> tuple[CKYBackPointer, ...]:
+        """The child backpointers."""
         return self._backpointers
 
 class CKYChart(Chart):
-    """
-    A chart for a CKY parser
+    """A chart for a CKY parser.
 
-    Jurafsky & Martin call this a table
+    Jurafsky & Martin call this a table.
 
     Parameters
     ----------
-    input_size
+    input_size : int
+        The number of tokens in the input.
 
     Attributes
     ----------
-    parses
+    parses : set[Tree]
+        The parse trees extracted from the chart.
     """
 
     def __init__(self, input_size: int):
         self._input_size = input_size
-        
-        self._chart: list[list[set[CKYChartEntry]]] = [
-            [set({})
-             for _ in range(input_size+1)]
-            for _ in range(input_size+1)
-        ]
-        
-    def __getitem__(self, index: SpanIndices) -> set[CKYChartEntry]:
-        i, j = index
 
+        self._chart: list[list[set[CKYChartEntry]]] = [
+            [set() for _ in range(input_size + 1)]
+            for _ in range(input_size + 1)
+        ]
+
+    def __getitem__(self, index: SpanIndices) -> set[CKYChartEntry]:
+        """Retrieve the chart cell at the given span."""
+        i, j = index
         self._validate_index(i, j)
-        
         return self._chart[i][j]
 
-    def __setitem__(self, key: SpanIndices, item: set[CKYChartEntry]):
+    def __setitem__(self, key: SpanIndices, item: set[CKYChartEntry]) -> None:
+        """Set the chart cell at the given span."""
         i, j = key
-
         self._chart[i][j] = item
-        
-    def _validate_index(self, i, j):
+
+    def _validate_index(self, i: int, j: int) -> None:
+        """Raise ValueError if the index is out of bounds or in the lower triangle."""
         if i >= j:
-            msg = "cannot index into the lower " +\
-                  "triangle of the chart"
+            msg = ("cannot index into the lower "
+                   "triangle of the chart")
             raise ValueError(msg)
 
         try:
@@ -181,19 +198,26 @@ class CKYChart(Chart):
             raise ValueError(msg)
 
     @property
-    def parses(self) -> set[Tree]:
+    def parses(self) -> set:
+        """The parse trees extracted from the chart."""
         try:
             return self._parses
         except AttributeError:
             self._parses = self._construct_parses()
             return self._parses
 
-    def _construct_parses(self, entry: Union['CKYChartEntry', None] = None) -> set[Tree]:
-        """Construct the parses implied by the chart
+    def _construct_parses(self, entry: 'CKYChartEntry | None' = None) -> set:
+        """Construct parse trees from chart backpointers.
 
         Parameters
         ----------
-        entry
+        entry : CKYChartEntry | None, default None
+            The entry to start from; if None, starts from the root span.
+
+        Returns
+        -------
+        set[Tree]
+            The parse trees reachable from this entry.
         """
         if entry is None:
             return {parse for entry in self[0, self._input_size] 
@@ -225,95 +249,107 @@ Now let's define the `CKYParser` class that will use the chart to parse input st
 
 ```python
 class ContextFreeGrammarParser:
-    
+    """Base class for CFG parsers.
+
+    Parameters
+    ----------
+    grammar : ContextFreeGrammar
+        The grammar to parse with.
+    """
+
     def __init__(self, grammar: ContextFreeGrammar):
         self._grammar = grammar
 
-    def __call__(self, string, mode="recognize"):
+    def __call__(self, string: list[str] | str, mode: str = "recognize"):
+        """Parse or recognize a string.
+
+        Parameters
+        ----------
+        string : list[str] | str
+            The input to process.
+        mode : str, default "recognize"
+            Either "recognize" or "parse".
+
+        Returns
+        -------
+        set[Tree] | bool
+            Parse trees (parse mode) or boolean (recognize mode).
+        """
         if mode == "recognize":
             return self._recognize(string)
         elif mode == "parse":
-            return self._parse(string)            
+            return self._parse(string)
         else:
             msg = 'mode must be "parse" or "recognize"'
             raise ValueError(msg)
 
 class CKYParser(ContextFreeGrammarParser):
-    """
-    A CKY parser
+    """A CKY parser for grammars in Chomsky Normal Form.
 
     Parameters
     ----------
     grammar : ContextFreeGrammar
+        The grammar to parse with.
     """
-    
+
     normal_form = NormalForm.CNF
-    
+
     def _fill_chart(self, string: list[str]) -> CKYChart:
-        """
-        Fill the chart using the CKY algorithm
-        
+        """Fill the chart using the CKY algorithm.
+
         Parameters
         ----------
         string : list[str]
-            The input string to parse
-            
+            The input string to parse.
+
         Returns
         -------
         CKYChart
-            The filled chart
+            The filled chart.
         """
         # you'll implement this in your Assignment 9
         raise NotImplementedError
 
-    def _parse(self, string):
-        """
-        Parse a string to find all possible parse trees
-        
+    def _parse(self, string: list[str] | str) -> set:
+        """Parse a string to find all possible parse trees.
+
         Parameters
         ----------
-        string : list[str] or str
-            The string to parse, as a list of tokens
-            
+        string : list[str] | str
+            The string to parse.
+
         Returns
         -------
         set[Tree]
-            The set of all possible parse trees
+            The set of all possible parse trees.
         """
-        # Ensure the input is a list of tokens
         if isinstance(string, str):
             string = string.split()
-        
-        # Fill the chart
+
         chart = self._fill_chart(string)
-        
-        # Return all possible parses
+
         return chart.parses
-        
-    def _recognize(self, string):
-        """
-        Recognize whether a string is in the language
-        
+
+    def _recognize(self, string: list[str] | str) -> bool:
+        """Recognize whether a string is in the language.
+
         Parameters
         ----------
-        string : list[str] or str
-            The string to recognize, as a list of tokens
-            
+        string : list[str] | str
+            The string to recognize.
+
         Returns
         -------
         bool
-            True if the string is in the language, False otherwise
+            True if the string is in the language.
         """
-        # Ensure the input is a list of tokens
         if isinstance(string, str):
             string = string.split()
-        
-        # Fill the chart
+
         chart = self._fill_chart(string)
-        
-        # Check if the start variable appears in the top-right corner of the chart
+
         return any(entry.symbol == self._grammar.start_variable
-                  for entry in chart[0, len(string)])
+                   for entry in chart[0, len(string)])
 ```
 
 ## Detailed Example: Parsing "unhappiness"

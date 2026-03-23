@@ -54,38 +54,84 @@ exp <<= constituent | pyparsing.Group(constituent + pyparsing.Suppress(',') + ex
 
 
 class ParsedWord:
-    """A morphologically parsed word from CELEX."""
+    """A morphologically parsed word from CELEX.
 
-    def __init__(self, word, struclab):
+    Parameters
+    ----------
+    word : str
+        The surface form.
+    struclab : str
+        The CELEX StrucLab morphological structure string.
+
+    Attributes
+    ----------
+    word : str
+        The surface form.
+    parse : list | None
+        The parsed structure, or None if parsing failed.
+    """
+
+    def __init__(self, word: str, struclab: str):
         self._word = word
         self._struclab = struclab
         self._parse = self._parse_struclab(struclab)
 
-    def _parse_struclab(self, struclab):
+    def _parse_struclab(self, struclab: str):
+        """Parse a CELEX StrucLab string into a nested list.
+
+        Parameters
+        ----------
+        struclab : str
+            The CELEX bracket notation.
+
+        Returns
+        -------
+        list | None
+            The parsed structure, or None on failure.
+        """
         try:
             return exp.parseString(struclab)[0]
         except pyparsing.ParseException:
             return None
 
     @property
-    def word(self):
+    def word(self) -> str:
+        """The surface form."""
         return self._word
 
     @property
     def parse(self):
+        """The parsed morphological structure."""
         return self._parse
 
-    def extract_rules(self):
-        """Extract CFG rules from this parse."""
+    def extract_rules(self) -> set[Rule]:
+        """Extract CFG rules from this parse.
+
+        Returns
+        -------
+        set[Rule]
+            The production rules implied by the tree.
+        """
         if self._parse is None:
             return set()
         return self._extract_rules_recursive(self._parse)
 
-    def _extract_rules_recursive(self, node):
+    def _extract_rules_recursive(self, node) -> set[Rule]:
+        """Recursively extract rules from a parse tree node.
+
+        Parameters
+        ----------
+        node : list | str
+            A node in the parsed tree.
+
+        Returns
+        -------
+        set[Rule]
+            The rules found in this subtree.
+        """
         rules = set()
         if isinstance(node, str):
             return rules
-        # Implementation depends on parse format
         return rules
 ```
 

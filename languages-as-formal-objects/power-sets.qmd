@@ -47,12 +47,22 @@ So if we wanted to be able to take the power set of anything we can represent in
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 267, status: ok, timestamp: 1673979085882, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
 #| outputId: fd4e1f31-e6b9-4a6f-984c-c9e51ff60274
-from typing import Set
+def powerset(x: set) -> set[frozenset]:
+  """Compute the power set of a finite set.
 
-def powerset(x: set) -> Set[frozenset]:
+  Parameters
+  ----------
+  x : set
+      The set to take the power set of.
+
+  Returns
+  -------
+  set[frozenset]
+      All subsets of the input as frozensets.
+  """
   return {
-      frozenset(subset) 
-      for cardinality in range(len(x)+1) 
+      frozenset(subset)
+      for cardinality in range(len(x)+1)
       for subset in combinations(x, cardinality)
   }
 
@@ -65,7 +75,7 @@ Alternatively, we can use the following [`itertools` recipe](https://docs.python
 #| colab: {base_uri: 'https://localhost:8080/', height: 201}
 #| executionInfo: {elapsed: 144, status: error, timestamp: 1674064543080, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
 #| outputId: 6eef178b-8a66-443f-d540-bdbc9c552f5a
-from typing import Iterable
+from collections.abc import Iterable
 from itertools import chain
 
 def powerset(iterable: Iterable) -> chain:
@@ -96,7 +106,13 @@ from collections.abc import Generator
 from multiprocessing import Process
 
 def natural_numbers() -> int:
-    """Initialize a generator for the natural numbers"""
+    """Yield the natural numbers starting from 0.
+
+    Yields
+    ------
+    int
+        The next natural number.
+    """
     i = 0
     while True:
         yield i
@@ -113,13 +129,26 @@ If we want to be able to generate elements of the power set of an infinite set, 
 
 ```{python}
 #| executionInfo: {elapsed: 4, status: ok, timestamp: 1674495161559, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
-from typing import TypeVar, Set, Iterable
-
-T = TypeVar("T")
+from collections.abc import Iterable
 
 emptyset = frozenset()
 
-def powerset(iterable: Iterable[T]) -> Set[T]:
+def powerset[T](iterable: Iterable[T]) -> set[T]:
+    """Generate power set elements incrementally.
+
+    Works for both finite and infinite iterables by yielding
+    subsets as new elements arrive.
+
+    Parameters
+    ----------
+    iterable : Iterable[T]
+        The iterable to take the power set of.
+
+    Yields
+    ------
+    frozenset[T]
+        Subsets of elements seen so far.
+    """
     yield emptyset
 
     seen = {emptyset}

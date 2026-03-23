@@ -98,7 +98,7 @@ Next, we define the $N$-gram model. The implementation stores log-probabilities 
 #| code-fold: true
 #| code-summary: Define `NgramModel`
 
-from typing import List, Set, Iterable, Dict
+from collections.abc import Iterable
 from collections import defaultdict, Counter
 from itertools import product
 
@@ -106,15 +106,36 @@ alphabet = {phone for phones in entries.values() for phone in phones}
 
 
 class NgramModel:
-    """An N-gram language model with add-λ smoothing."""
+    """An N-gram language model with add-lambda smoothing.
 
-    def __init__(self, alphabet: Set[str], n: int = 2, lam: float = 0.):
+    Parameters
+    ----------
+    alphabet : set[str]
+        The set of symbols in the language.
+    n : int
+        The order of the model (default 2 for bigram).
+    lam : float
+        The smoothing pseudocount (default 0 for MLE).
+    """
+
+    def __init__(self, alphabet: set[str], n: int = 2, lam: float = 0.):
         self._alphabet = alphabet
         self._n = n
         self._lam = lam
 
-    def predict(self, string: List[str]) -> float:
-        """Compute the log-probability of a string."""
+    def predict(self, string: list[str]) -> float:
+        """Compute the log-probability of a string.
+
+        Parameters
+        ----------
+        string : list[str]
+            The phone sequence to score.
+
+        Returns
+        -------
+        float
+            The log-probability of the string under the model.
+        """
         padded = ['<s>'] * (self._n - 1) + list(string) + ['</s>']
 
         logprob = 0.
@@ -134,12 +155,22 @@ class NgramModel:
 
         return logprob
 
-    def fit(self, lexicon: Iterable[List[str]]) -> 'NgramModel':
-        """Fit the model to a lexicon of phone sequences."""
+    def fit(self, lexicon: Iterable[list[str]]) -> 'NgramModel':
+        """Fit the model to a lexicon of phone sequences.
+
+        Parameters
+        ----------
+        lexicon : Iterable[list[str]]
+            An iterable of phone sequences to train on.
+
+        Returns
+        -------
+        NgramModel
+            The fitted model (self).
+        """
         vocab = self._alphabet | {'</s>'}
 
-        # Initialize frequency tables
-        freq: Dict[tuple, Counter] = {}
+        freq: dict[tuple, Counter] = {}
 
         # Contexts that start with <s> padding
         for k in range(1, self._n):
@@ -225,7 +256,19 @@ acceptability = pd.read_csv('Daland_etal_2011__AverageScores.csv')
 acceptability['phono_cmu'] = acceptability.phono_cmu.str.strip('Coda').str.split()
 
 
-def map_to_ipa(phones):
+def map_to_ipa(phones: list[str]) -> list[str]:
+    """Convert ARPABET phone list to IPA symbols.
+
+    Parameters
+    ----------
+    phones : list[str]
+        ARPABET phone symbols, possibly with stress digits.
+
+    Returns
+    -------
+    list[str]
+        The corresponding IPA symbols.
+    """
     return [arpabet_to_phoneme[re.sub(r'[0-9]', '', p)] for p in phones]
 
 

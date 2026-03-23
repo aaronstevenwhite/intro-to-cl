@@ -43,21 +43,17 @@ This search path is visualized in the image below, where the line is our travers
 
 ```{python}
 #| executionInfo: {elapsed: 8, status: ok, timestamp: 1680619933969, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
-from typing import TypeVar
-
-DataType = TypeVar("DataType")
-
 class Tree:
-    """A tree
-    
+    """A tree.
+
     Parameters
     ----------
-    data
-        The data contained in this tree
-    children
-        The subtrees of this tree
+    data : str
+        The data contained in this tree.
+    children : list[Tree]
+        The subtrees of this tree.
     """
-    def __init__(self, data: DataType, children: list['Tree']=[]):
+    def __init__(self, data: str, children: list['Tree']=[]):
         self._data = data
         self._children = children
         
@@ -72,11 +68,13 @@ class Tree:
             raise TypeError(msg)
         
     @property
-    def data(self) -> DataType:
-        return self._data 
-    
+    def data(self) -> str:
+        """The data at this node."""
+        return self._data
+
     @property
     def children(self) -> list['Tree']:
+        """The subtrees of this node."""
         return self._children
 
     def __str__(self):
@@ -89,15 +87,27 @@ class Tree:
         return self.to_string(0)
      
     def to_string(self, depth: int) -> str:
+        """Render the tree as an indented string.
+
+        Parameters
+        ----------
+        depth : int
+            The current depth for indentation.
+
+        Returns
+        -------
+        str
+            An indented text representation of the tree.
+        """
         s = (depth - 1) * '  ' +\
             int(depth > 0) * '--' +\
             self._data + '\n'
         s += ''.join(c.to_string(depth+1)
                      for c in self._children)
-        
+
         return s
 
-    def __contains__(self, data: DataType) -> bool:
+    def __contains__(self, data: str) -> bool:
         # pre-order depth-first search
         if self._data == data:
             return True
@@ -156,7 +166,7 @@ at the data at the root of that subtree.
 #| executionInfo: {elapsed: 4, status: ok, timestamp: 1680619943220, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 class Tree(Tree):
 
-    def __contains__(self, data: DataType) -> bool:
+    def __contains__(self, data: str) -> bool:
         # post-order depth-first search
         if not self._children:
             return self._data == data
@@ -208,12 +218,13 @@ class Tree(Tree):
 
     @property
     def depth(self) -> int:
+        """The maximum depth of the tree."""
         if self._children:
             return 1 + max(c.depth for c in self._children)
         else:
             return 0
 
-    def __contains__(self, data: DataType) -> bool:
+    def __contains__(self, data: str) -> bool:
         # breadth-first search
         for d in range(self.depth):
             if self._iddfs(data, d):

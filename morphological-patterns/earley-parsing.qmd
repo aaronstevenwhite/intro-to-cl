@@ -79,83 +79,137 @@ Let's define the key classes for our Earley parser:
 
 ```python
 class DottedRule(Rule):
-    
+    """A rule with a dot indicating parsing progress (an Earley item).
+
+    Parameters
+    ----------
+    rule : Rule
+        The underlying grammar rule.
+    span : SpanIndices
+        The (start, end) positions in the input.
+    dot : int, default 0
+        The position of the dot in the right-hand side.
+
+    Attributes
+    ----------
+    span : SpanIndices
+        The (start, end) positions.
+    dot : int
+        The dot position.
+    is_complete : bool
+        Whether the dot is at the end.
+    left_side : str
+        The left-hand side of the underlying rule.
+    """
+
     def __init__(self, rule: Rule, span: SpanIndices, dot: int = 0):
         self._rule = rule
         self._left_side = rule.left_side
         self._right_side = rule.right_side
-        
+
         self._span = span
         self._dot = dot
-    
+
     def to_tuple(self) -> tuple[Rule, SpanIndices, int]:
+        """Return a hashable tuple representation.
+
+        Returns
+        -------
+        tuple[Rule, SpanIndices, int]
+            The rule, span, and dot position.
+        """
         return self._rule, self._span, self._dot
-    
+
     def __hash__(self) -> int:
         return hash(self.to_tuple())
-    
-    def __eq__(self, other) -> bool:
+
+    def __eq__(self, other: 'DottedRule') -> bool:
         return self.to_tuple() == other.to_tuple()
-    
+
     def __repr__(self) -> str:
-        return self._left_side + ' -> ' +\
-               ' '.join(self._right_side[:self._dot]) +\
-               ' . ' +\
-               ' '.join(self._right_side[self._dot:]) +\
-               ' [' + str(self._span[0]) + ', ' + str(self._span[1]) + ']'
-    
+        """Return a string showing the dot position and span."""
+        return (self._left_side + ' -> ' +
+                ' '.join(self._right_side[:self._dot]) +
+                ' . ' +
+                ' '.join(self._right_side[self._dot:]) +
+                ' [' + str(self._span[0]) + ', ' + str(self._span[1]) + ']')
+
     def complete(self, new_left_edge: int) -> 'DottedRule':
-        """Complete the next symbol in this rule
-        
+        """Advance the dot past the next symbol.
+
         Parameters
         ----------
         new_left_edge : int
-            The new left edge of the span
-        
+            The new right edge of the span.
+
         Returns
         -------
         DottedRule
-            A new dotted rule with the dot advanced
+            A new dotted rule with the dot advanced.
         """
         dot = self._dot + 1
         span = (self._span[0], new_left_edge)
-        
+
         return DottedRule(self._rule, span, dot)
 
     @property
     def next_symbol(self) -> str:
+        """The symbol immediately after the dot.
+
+        Raises
+        ------
+        AttributeError
+            If the dotted rule is already complete.
+        """
         if self.is_complete:
             raise AttributeError('dotted rule is already complete')
         else:
             return self._right_side[self._dot]
-        
+
     @property
     def dot(self) -> int:
+        """The dot position in the right-hand side."""
         return self._dot
-    
+
     @property
     def span(self) -> SpanIndices:
+        """The (start, end) positions in the input."""
         return self._span
-    
+
     @property
     def is_complete(self) -> bool:
+        """Whether the dot has reached the end of the right-hand side."""
         return self._dot == len(self._right_side)
-    
+
     @property
     def left_side(self) -> str:
+        """The left-hand side of the underlying rule."""
         return self._rule.left_side
 ```
 
 ```python
-EarleyBackPointer = tuple[str, int]
+type EarleyBackPointer = tuple[str, int]
 
 class EarleyChartEntry(ChartEntry):
-    """A chart entry for a Earley chart
+    """A chart entry for an Earley chart.
 
     Parameters
     ----------
-    dotted_rule
-    backpointers
+    dotted_rule : DottedRule
+        The dotted rule for this entry.
+    *backpointers : EarleyBackPointer
+        Pairs of (symbol, position) for reconstructing parses.
+
+    Attributes
+    ----------
+    dotted_rule : DottedRule
+        The dotted rule.
+    backpointers : tuple[EarleyBackPointer, ...]
+        The backpointers.
+    span : SpanIndices
+        The span of input covered.
+    is_complete : bool
+        Whether the dotted rule is complete.
     """
 
     def __init__(self, dotted_rule: DottedRule, *backpointers: EarleyBackPointer):
@@ -163,14 +217,21 @@ class EarleyChartEntry(ChartEntry):
         self._backpointers = backpointers
 
     def to_tuple(self) -> tuple[DottedRule, tuple[EarleyBackPointer, ...]]:
+        """Return a hashable tuple representation.
+
+        Returns
+        -------
+        tuple[DottedRule, tuple[EarleyBackPointer, ...]]
+            The dotted rule and backpointers.
+        """
         return self._dotted_rule, self._backpointers
-        
+
     def __hash__(self) -> int:
         return hash(self.to_tuple())
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: 'EarleyChartEntry') -> bool:
         return self.to_tuple() == other.to_tuple()
-    
+
     def __repr__(self) -> str:
         return self._dotted_rule.__repr__()
 
@@ -179,128 +240,148 @@ class EarleyChartEntry(ChartEntry):
 
     @property
     def backpointers(self) -> tuple[EarleyBackPointer, ...]:
+        """The backpointers for parse reconstruction."""
         return self._backpointers
-    
+
     @property
     def dotted_rule(self) -> DottedRule:
+        """The dotted rule for this entry."""
         return self._dotted_rule
-    
+
     @property
     def next_symbol(self) -> str:
+        """The next expected symbol after the dot."""
         return self._dotted_rule.next_symbol
-    
+
     @property
     def span(self) -> SpanIndices:
+        """The span of input covered by this entry."""
         return self._dotted_rule.span
-    
+
     @property
     def is_complete(self) -> bool:
+        """Whether the dotted rule is complete."""
         return self._dotted_rule.is_complete
-    
+
     def complete(self, entry: 'EarleyChartEntry', new_left_edge: int) -> 'EarleyChartEntry':
-        """Complete this entry with another entry
-        
+        """Advance the dot by incorporating a completed constituent.
+
         Parameters
         ----------
         entry : EarleyChartEntry
-            The entry that completes this one
+            The completed entry.
         new_left_edge : int
-            The new left edge of the span
-            
+            The new right edge of the span.
+
         Returns
         -------
         EarleyChartEntry
-            A new entry with the dot advanced
+            A new entry with the dot advanced.
         """
         new_dotted_rule = self._dotted_rule.complete(new_left_edge)
-        
+
         bp = (self._dotted_rule.next_symbol, self._dotted_rule.span[1])
         backpointers = self._backpointers + (bp,)
-        
+
         return EarleyChartEntry(new_dotted_rule, *backpointers)
-    
+
     def is_completion_of(self, other: 'EarleyChartEntry') -> bool:
-        """Check if this entry completes another entry
-        
+        """Check whether this completed entry satisfies another entry's expectation.
+
         Parameters
         ----------
         other : EarleyChartEntry
-            The entry to check
-            
+            The entry waiting for a constituent.
+
         Returns
         -------
         bool
-            True if this entry completes the other entry
+            True if this entry's left side matches the other's next symbol.
         """
         return self._dotted_rule.left_side == other.dotted_rule.next_symbol
 ```
 
 ```python
 class EarleyChart(Chart):
-    """A chart for an Earley parser
+    """A chart for an Earley parser.
 
     Parameters
     ----------
-    input_size
+    input_size : int
+        The number of tokens in the input.
+    start_variable : str, default 'S'
+        The start symbol of the grammar.
+
+    Attributes
+    ----------
+    parses : set[Tree]
+        The parse trees extracted from the chart.
+    input_size : int
+        The number of tokens in the input.
     """
+
     def __init__(self, input_size: int, start_variable: str = 'S'):
         self._start_variable = start_variable
-        
+
         self._chart: list[set[EarleyChartEntry]] = [
-            set() for _ in range(input_size+1)
+            set() for _ in range(input_size + 1)
         ]
-        
-    def __getitem__(self, index) -> set[EarleyChartEntry]:
+
+    def __getitem__(self, index: int) -> set[EarleyChartEntry]:
+        """Retrieve the chart set at the given position."""
         return self._chart[index]
 
-    def __setitem__(self, key, item) -> None:
+    def __setitem__(self, key: int, item: set[EarleyChartEntry]) -> None:
+        """Set the chart set at the given position."""
         self._chart[key] = item
 
     @property
-    def parses(self) -> set[Tree]:
+    def parses(self) -> set:
+        """The parse trees for completed derivations spanning the full input."""
         try:
             return self._parses
         except AttributeError:
             self._parses = set()
-            
+
             for entry in self._chart[-1]:
                 is_start = entry.dotted_rule.left_side == self._start_variable
                 covers_string = entry.dotted_rule.span == (0, self.input_size)
                 is_complete = entry.dotted_rule.is_complete
-                
+
                 if is_start and covers_string and is_complete:
                     self._parses.add(self._construct_parses(entry))
-            
+
             return self._parses
-    
+
     @property
     def input_size(self) -> int:
+        """The number of tokens in the input."""
         return len(self._chart) - 1
 ```
 
 ```python
 class EarleyParser(ContextFreeGrammarParser):
-    """
-    An Earley parser
+    """An Earley parser for arbitrary context-free grammars.
 
     Parameters
     ----------
     grammar : ContextFreeGrammar
+        The grammar to parse with.
     """
+
     normal_form = None
-                    
-    def _predict(self, chart: EarleyChart, entry: EarleyChartEntry, position: int):
-        """
-        Predict operation: add new dotted rules for the non-terminal
-        
+
+    def _predict(self, chart: EarleyChart, entry: EarleyChartEntry, position: int) -> None:
+        """Add new dotted rules for each expansion of the expected nonterminal.
+
         Parameters
         ----------
         chart : EarleyChart
-            The chart to update
+            The chart to update.
         entry : EarleyChartEntry
-            The entry to predict from
+            The entry whose next symbol triggers prediction.
         position : int
-            The current position in the input
+            The current position in the input.
         """
         for rule in self._grammar.rules(entry.next_symbol):
             span = (position, position)
@@ -309,18 +390,17 @@ class EarleyParser(ContextFreeGrammarParser):
             
             chart[position].add(new_entry)
      
-    def _scan(self, chart: EarleyChart, entry: EarleyChartEntry, position: int):
-        """
-        Scan operation: advance the dot by matching the next terminal
-        
+    def _scan(self, chart: EarleyChart, entry: EarleyChartEntry, position: int) -> None:
+        """Advance the dot by matching the next terminal in the input.
+
         Parameters
         ----------
         chart : EarleyChart
-            The chart to update
+            The chart to update.
         entry : EarleyChartEntry
-            The entry to scan from
+            The entry expecting a terminal.
         position : int
-            The current position in the input
+            The current position in the input.
         """
         word = self._string[position]
         expected = entry.next_symbol
@@ -339,18 +419,17 @@ class EarleyParser(ContextFreeGrammarParser):
             completed_entry = entry.complete(terminal_entry, position+1)
             chart[position+1].add(completed_entry)
         
-    def _complete(self, chart: EarleyChart, entry: EarleyChartEntry, position: int):
-        """
-        Complete operation: advance the dot for entries waiting for this one
-        
+    def _complete(self, chart: EarleyChart, entry: EarleyChartEntry, position: int) -> None:
+        """Advance the dot in entries that were waiting for this completed constituent.
+
         Parameters
         ----------
         chart : EarleyChart
-            The chart to update
+            The chart to update.
         entry : EarleyChartEntry
-            The completed entry
+            The completed entry.
         position : int
-            The current position in the input
+            The current position in the input.
         """
         start, end = entry.span
         
@@ -360,19 +439,18 @@ class EarleyParser(ContextFreeGrammarParser):
                 
                 chart[position].add(completed_entry)
         
-    def _parse(self, string: str | list[str]):
-        """
-        Parse a string to find all possible parse trees
-        
+    def _parse(self, string: str | list[str]) -> set:
+        """Parse a string to find all possible parse trees.
+
         Parameters
         ----------
         string : str | list[str]
-            The string to parse
-            
+            The string to parse.
+
         Returns
         -------
         set[Tree]
-            The set of all possible parse trees
+            The set of all possible parse trees.
         """
         # Ensure the input is a list of tokens
         if isinstance(string, str):
@@ -384,19 +462,18 @@ class EarleyParser(ContextFreeGrammarParser):
         # Return all possible parses
         return chart.parses
 
-    def _recognize(self, string: str | list[str]):
-        """
-        Recognize whether a string is in the language
-        
+    def _recognize(self, string: str | list[str]) -> bool:
+        """Recognize whether a string is in the language.
+
         Parameters
         ----------
         string : str | list[str]
-            The string to recognize
-            
+            The string to recognize.
+
         Returns
         -------
         bool
-            True if the string is in the language, False otherwise
+            True if the string is in the language.
         """
         # Ensure the input is a list of tokens
         if isinstance(string, str):

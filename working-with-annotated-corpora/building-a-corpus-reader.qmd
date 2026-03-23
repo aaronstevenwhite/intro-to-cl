@@ -9,22 +9,19 @@ execute:
 #| code-fold: true
 #| code-summary: Definition of `Tree` up to this point
 
-from typing import TypeVar
 from rdflib import Graph, URIRef
 
-DataType = TypeVar("DataType")
-
 class Tree:
-    """A tree
-    
+    """A tree.
+
     Parameters
     ----------
-    data
-        The data contained in this tree
-    children
-        The subtrees of this tree
+    data : str
+        The data contained in this tree.
+    children : list[Tree]
+        The subtrees of this tree.
     """
-    def __init__(self, data: DataType, children: list['Tree']=[]):
+    def __init__(self, data: str, children: list['Tree']=[]):
         self._data = data
         self._children = children
         
@@ -39,11 +36,13 @@ class Tree:
             raise TypeError(msg)
         
     @property
-    def data(self) -> DataType:
-        return self._data 
-    
+    def data(self) -> str:
+        """The data at this node."""
+        return self._data
+
     @property
     def children(self) -> list['Tree']:
+        """The subtrees of this node."""
         return self._children
 
     def __str__(self):
@@ -56,15 +55,27 @@ class Tree:
         return self.to_string(0)
      
     def to_string(self, depth: int) -> str:
+        """Render the tree as an indented string.
+
+        Parameters
+        ----------
+        depth : int
+            The current depth for indentation.
+
+        Returns
+        -------
+        str
+            An indented text representation of the tree.
+        """
         s = (depth - 1) * '  ' +\
             int(depth > 0) * '--' +\
             self._data + '\n'
         s += ''.join(c.to_string(depth+1)
                      for c in self._children)
-        
+
         return s
 
-    def __contains__(self, data: DataType) -> bool:
+    def __contains__(self, data: str) -> bool:
         # pre-order depth-first search
         if self._data == data:
             return True
@@ -99,7 +110,23 @@ class Tree:
                  'child': URIRef('is-a-child-of'),
                  'sister': URIRef('is-a-sister-of')}
             
-    def to_rdf(self, graph=None, nodes={}, idx=tuple()) -> Graph: 
+    def to_rdf(self, graph=None, nodes={}, idx=tuple()) -> Graph:
+        """Convert the tree to an RDF graph for SPARQL querying.
+
+        Parameters
+        ----------
+        graph : Graph, optional
+            An existing graph to add triples to.
+        nodes : dict, optional
+            A mapping from index tuples to URI nodes.
+        idx : tuple, optional
+            The index of this node in the parent tree.
+
+        Returns
+        -------
+        Graph
+            The RDF graph representing the tree.
+        """
         graph = Graph() if graph is None else graph
         
         idxstr = '_'.join(str(i) for i in idx)
@@ -144,12 +171,25 @@ class Tree:
     
     @property
     def rdf(self) -> Graph:
+        """The lazily-constructed RDF graph for this tree."""
         if not hasattr(self, "_rdf"):
             self._rdf = self.to_rdf()
 
         return self._rdf
-    
+
     def find(self, query: str) -> list[tuple[int]]:
+        """Find subtrees matching a SPARQL query.
+
+        Parameters
+        ----------
+        query : str
+            A SPARQL SELECT query.
+
+        Returns
+        -------
+        list[tuple[int]]
+            Index paths to matching nodes.
+        """
         return [tuple([int(i) 
                        for i in str(res[0]).split('_')]) 
                 for res in self.rdf.query(query)]
@@ -205,12 +245,36 @@ First, we'll define a method for building a `Tree` from this `ParseResults` obje
 class Tree(Tree):
     
     @classmethod
-    def from_string(cls, treestr):
+    def from_string(cls, treestr: str) -> 'Tree':
+        """Parse a bracketed tree string into a Tree.
+
+        Parameters
+        ----------
+        treestr : str
+            A parenthesized tree string.
+
+        Returns
+        -------
+        Tree
+            The parsed tree.
+        """
         treelist = cls.PARSER.parseString(treestr[2:-2])[0]
         return cls.from_list(treelist)
-    
+
     @classmethod
-    def from_list(cls, treelist):
+    def from_list(cls, treelist) -> 'Tree':
+        """Build a Tree from a nested list structure.
+
+        Parameters
+        ----------
+        treelist : list or str
+            A nested list (from pyparsing) or a terminal string.
+
+        Returns
+        -------
+        Tree
+            The constructed tree.
+        """
         if isinstance(treelist, str):
             return cls(treelist[0])
         elif isinstance(treelist[1], str):
@@ -229,7 +293,14 @@ import tarfile
 from collections import defaultdict
 
 class EnglishWebTreebank:
-    
+    """Lazy reader for the English Web Treebank.
+
+    Parameters
+    ----------
+    root : str
+        Path to the LDC tgz archive.
+    """
+
     def __init__(self, root='LDC2012T13.tgz'):
         
         def trees():
@@ -243,6 +314,7 @@ class EnglishWebTreebank:
         self._trees = trees()
                         
     def items(self):
+        """Yield filename-tree pairs from the treebank."""
         for fn, tlist in self._trees:
               yield fn, tlist
         

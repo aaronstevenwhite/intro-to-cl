@@ -23,7 +23,13 @@ from itertools import product
 #| code-summary: Generator for natural numbers
 
 def natural_numbers() -> int:
-    """Initialize a generator for the natural numbers"""
+    """Yield the natural numbers starting from 0.
+
+    Yields
+    ------
+    int
+        The next natural number.
+    """
     i = 0
     while True:
         yield i
@@ -34,14 +40,11 @@ def natural_numbers() -> int:
 #| code-fold: true
 #| code-summary: Generator for power set
 
-from typing import TypeVar
 from collections.abc import Iterable
-
-T = TypeVar("T")
 
 emptyset = frozenset()
 
-def powerset(iterable: Iterable[T]) -> set[T]:
+def powerset[T](iterable: Iterable[T]) -> set[T]:
     yield emptyset
 
     seen = {emptyset}
@@ -58,10 +61,36 @@ def powerset(iterable: Iterable[T]) -> set[T]:
 #| code-summary: Generator for Σ*
 
 def sigma_i(sigma: set[str], i: int) -> product:
+    """Generate all strings of length i over an alphabet.
+
+    Parameters
+    ----------
+    sigma : set[str]
+        The alphabet.
+    i : int
+        The string length.
+
+    Returns
+    -------
+    product
+        An iterator over all strings of length ``i``.
+    """
     sigma_repeated = [sigma]*i
     return product(*sigma_repeated)
 
 def sigma_star(sigma: set[str]) -> str:
+    """Generate all strings over an alphabet in length order.
+
+    Parameters
+    ----------
+    sigma : set[str]
+        The alphabet.
+
+    Yields
+    ------
+    str
+        The next string in the enumeration.
+    """
     for i in natural_numbers():
         for s in sigma_i(sigma, i):
             yield ''.join(s)

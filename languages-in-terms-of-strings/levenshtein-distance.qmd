@@ -19,21 +19,24 @@ where $c_\text{sub}$ defaults to $c_\text{del} + c_\text{ins}$.
 
 ```{python}
 from collections import defaultdict
-from typing import Optional
 
 class StringEdit1:
-    '''Distance between strings
+    """Distance between strings.
 
     Parameters
     ----------
-    insertion_cost
-    deletion_cost
-    substitution_cost
-    '''
-    
+    insertion_cost : float
+        Cost of inserting a character (default 1.0).
+    deletion_cost : float
+        Cost of deleting a character (default 1.0).
+    substitution_cost : float | None
+        Cost of substituting a character. Defaults to the sum
+        of insertion and deletion costs.
+    """
+
     def __init__(self, insertion_cost: float = 1.,
                  deletion_cost: float = 1.,
-                 substitution_cost: Optional[float] = None):
+                 substitution_cost: float | None = None):
         self._insertion_cost = insertion_cost
         self._deletion_cost = deletion_cost
 
@@ -43,9 +46,23 @@ class StringEdit1:
             self._substitution_cost = substitution_cost
          
     def __call__(self, source: str, target: str) -> float:
+        """Compute the edit distance between two strings.
+
+        Parameters
+        ----------
+        source : str
+            The source string.
+        target : str
+            The target string.
+
+        Returns
+        -------
+        float
+            The minimum edit distance.
+        """
         self._call_counter = defaultdict(int)
         return self._naive_levenshtein(source, target)
-        
+
     def _naive_levenshtein(self, source, target):
         self._call_counter[(source, target)] += 1
         
@@ -70,7 +87,8 @@ class StringEdit1:
                    self._naive_levenshtein(source[:-1], target[:-1]) + sub_cost)
     
     @property
-    def call_counter(self):
+    def call_counter(self) -> dict:
+        """The number of times each subproblem was computed."""
         return self._call_counter
 ```
 
@@ -94,15 +112,17 @@ We could try to get around this by memoizing using the `lru_cache` decorator.
 from functools import lru_cache
 
 class StringEdit2(StringEdit1):
-    '''Distance between strings
-
+    """Distance between strings with LRU cache memoization.
 
     Parameters
     ----------
-    insertion_cost
-    deletion_cost
-    substitution_cost
-    '''
+    insertion_cost : float
+        Cost of inserting a character (default 1.0).
+    deletion_cost : float
+        Cost of deleting a character (default 1.0).
+    substitution_cost : float | None
+        Cost of substituting a character.
+    """
     
     @lru_cache(256)
     def _naive_levenshtein(self, source, target):
@@ -159,20 +179,35 @@ That helps a lot. Why? Because it only every computes the distance for a substri
 import numpy as np
 
 class StringEdit3(StringEdit2):
-    '''Distance between strings
-
+    """Distance between strings using the Wagner-Fischer algorithm.
 
     Parameters
     ----------
-    insertion_cost
-    deletion_cost
-    substitution_cost
-    '''
+    insertion_cost : float
+        Cost of inserting a character (default 1.0).
+    deletion_cost : float
+        Cost of deleting a character (default 1.0).
+    substitution_cost : float | None
+        Cost of substituting a character.
+    """
 
     def __call__(self, source: str, target: str) -> float:
+        """Compute the edit distance using a dynamic programming chart.
+
+        Parameters
+        ----------
+        source : str
+            The source string.
+        target : str
+            The target string.
+
+        Returns
+        -------
+        float
+            The minimum edit distance.
+        """
         return self._wagner_fisher(source, target)
 
-    
     def _wagner_fisher(self, source: str, target: str):
         n, m = len(source), len(target)
         source, target = '#'+source, '#'+target
@@ -212,25 +247,39 @@ So why use Wagner-Fisher when we can just use memoization on the naive algorithm
 So what do we need to do add to our previous implementation of Wagner-Fisher to store backtraces? Importantly, note that you will need to return a list of backtraces because there could be multiple equally good ones. (This point will come up for all of the dynamic programming algorithms we look at and, as we'll see, is actually abstractly related to syntactic ambiguity.)
 
 ```{python}
-from typing import Tuple, List
-
 class StringEdit4(StringEdit3):
-    '''distance, alignment, and edit paths between strings
-
+    """Distance, alignment, and edit paths between strings.
 
     Parameters
     ----------
     insertion_cost : float
+        Cost of inserting a character.
     deletion_cost : float
-    substitution_cost : float | NoneType (default: None)
-    '''
+        Cost of deleting a character.
+    substitution_cost : float | None
+        Cost of substituting a character.
+    """
 
-    def __call__(self, source: str, 
-                 target: str) ->  Tuple[float, List[List[Tuple[int, int]]]]:
+    def __call__(self, source: str,
+                 target: str) -> tuple[float, list[list[tuple[int, int]]]]:
+        """Compute edit distance and all optimal alignments.
+
+        Parameters
+        ----------
+        source : str
+            The source string.
+        target : str
+            The target string.
+
+        Returns
+        -------
+        tuple[float, list[list[tuple[int, int]]]]
+            The minimum distance and all optimal alignment paths.
+        """
         return self._wagner_fisher(source, target)
-            
+
     def _wagner_fisher(self, source, target):
-        '''compute minimum edit distance and alignment'''
+        """Compute minimum edit distance and alignment."""
 
         n, m = len(source), len(target)
 
@@ -317,18 +366,20 @@ This isn't particularly interpretable, so we can postprocess the output slightly
 
 ```{python}
 class StringEdit5(StringEdit4):
-    '''distance, alignment, and edit paths between strings
-
+    """Distance, alignment, and human-readable edit paths between strings.
 
     Parameters
     ----------
     insertion_cost : float
+        Cost of inserting a character.
     deletion_cost : float
-    substitution_cost : float | NoneType (default: None)
-    '''
+        Cost of deleting a character.
+    substitution_cost : float | None
+        Cost of substituting a character.
+    """
 
-    def __call__(self, source: str, 
-                 target: str) ->  Tuple[float, List[List[Tuple[str, str]]]]:
+    def __call__(self, source: str,
+                 target: str) -> tuple[float, list[list[tuple[str, str]]]]:
         distance, alignment = self._wagner_fisher(source, target)
         
         return distance, [[(source[i[0]], 

@@ -7,21 +7,17 @@ jupyter: python3
 #| code-fold: true
 #| code-summary: Definition of `Tree` up to this point
 
-from typing import TypeVar
-
-DataType = TypeVar("DataType")
-
 class Tree:
-    """A tree
-    
+    """A tree.
+
     Parameters
     ----------
-    data
-        The data contained in this tree
-    children
-        The subtrees of this tree
+    data : str
+        The data contained in this tree.
+    children : list[Tree]
+        The subtrees of this tree.
     """
-    def __init__(self, data: DataType, children: list['Tree']=[]):
+    def __init__(self, data: str, children: list['Tree']=[]):
         self._data = data
         self._children = children
         
@@ -36,11 +32,13 @@ class Tree:
             raise TypeError(msg)
         
     @property
-    def data(self) -> DataType:
-        return self._data 
-    
+    def data(self) -> str:
+        """The data at this node."""
+        return self._data
+
     @property
     def children(self) -> list['Tree']:
+        """The subtrees of this node."""
         return self._children
 
     def __str__(self):
@@ -53,15 +51,27 @@ class Tree:
         return self.to_string(0)
      
     def to_string(self, depth: int) -> str:
+        """Render the tree as an indented string.
+
+        Parameters
+        ----------
+        depth : int
+            The current depth for indentation.
+
+        Returns
+        -------
+        str
+            An indented text representation of the tree.
+        """
         s = (depth - 1) * '  ' +\
             int(depth > 0) * '--' +\
             self._data + '\n'
         s += ''.join(c.to_string(depth+1)
                      for c in self._children)
-        
+
         return s
 
-    def __contains__(self, data: DataType) -> bool:
+    def __contains__(self, data: str) -> bool:
         # pre-order depth-first search
         if self._data == data:
             return True
@@ -96,7 +106,21 @@ We can get from indices to trees, but how would we go from data to indices? Simi
 #| executionInfo: {elapsed: 11, status: ok, timestamp: 1680619945044, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 class Tree(Tree):
      
-    def index(self, data, index_path=tuple()):
+    def index(self, data: str, index_path: tuple = tuple()) -> list[tuple]:
+        """Find all index paths where the node data matches.
+
+        Parameters
+        ----------
+        data : str
+            The data value to search for.
+        index_path : tuple
+            The current path from the root (used in recursion).
+
+        Returns
+        -------
+        list[tuple]
+            All index paths whose node data equals ``data``.
+        """
         indices = [index_path] if self._data==data else []
         root_path = [] if index_path == -1 else index_path
         
@@ -171,18 +195,22 @@ We could implement a `find()` method.
 #| executionInfo: {elapsed: 8, status: ok, timestamp: 1680619945044, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 class Tree(Tree):
     
-    def find(self, pattern: 'Tree', 
-             subtree_idx: tuple=tuple()) -> list[tuple]:
-        '''The subtrees matching the pattern
-        
+    def find(self, pattern: 'Tree',
+             subtree_idx: tuple = tuple()) -> list[tuple]:
+        """Find subtrees matching a tree pattern.
+
         Parameters
         ----------
-        pattern
-            the tree pattern to match against
-        subtree_idx
-            the index of the subtree within the tree pattern to return
-            defaults to the entire match
-        '''
+        pattern : Tree
+            The tree pattern to match against.
+        subtree_idx : tuple
+            The index within the match to return (default: entire match).
+
+        Returns
+        -------
+        list[tuple]
+            Index paths to matching subtrees.
+        """
         
         #raise NotImplementedError
         
@@ -193,6 +221,18 @@ class Tree(Tree):
         return match_indices
    
     def match(self, pattern: 'Tree') -> bool:
+        """Check whether this tree matches a pattern.
+
+        Parameters
+        ----------
+        pattern : Tree
+            The tree pattern to match against.
+
+        Returns
+        -------
+        bool
+            True if this tree matches the pattern.
+        """
         if self._data != pattern.data:
             return False
         
@@ -338,7 +378,23 @@ class Tree(Tree):
                  'child': URIRef('is-a-child-of'),
                  'sister': URIRef('is-a-sister-of')}
             
-    def to_rdf(self, graph=None, nodes={}, idx=tuple()) -> Graph: 
+    def to_rdf(self, graph=None, nodes={}, idx=tuple()) -> Graph:
+        """Convert the tree to an RDF graph for SPARQL querying.
+
+        Parameters
+        ----------
+        graph : Graph, optional
+            An existing graph to add triples to.
+        nodes : dict, optional
+            A mapping from index tuples to URI nodes.
+        idx : tuple, optional
+            The index of this node in the parent tree.
+
+        Returns
+        -------
+        Graph
+            The RDF graph representing the tree.
+        """
         graph = Graph() if graph is None else graph
         
         idxstr = '_'.join(str(i) for i in idx)
@@ -383,12 +439,25 @@ class Tree(Tree):
     
     @property
     def rdf(self) -> Graph:
+        """The lazily-constructed RDF graph for this tree."""
         if not hasattr(self, "_rdf"):
             self._rdf = self.to_rdf()
 
         return self._rdf
-    
+
     def find(self, query: str) -> list[tuple[int]]:
+        """Find subtrees matching a SPARQL query.
+
+        Parameters
+        ----------
+        query : str
+            A SPARQL SELECT query.
+
+        Returns
+        -------
+        list[tuple[int]]
+            Index paths to matching nodes.
+        """
         return [tuple([int(i) 
                        for i in str(res[0]).split('_')]) 
                 for res in self.rdf.query(query)]

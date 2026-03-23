@@ -42,8 +42,21 @@ from hmmlearn.hmm import MultinomialHMM
 # Assume celex_segmented is a list of (word, morphemes) pairs from CELEX
 # We convert each to a character sequence with BIO tags
 
-def word_to_bio(word, morphemes):
-    """Convert a word and its morphemes to BIO tags."""
+def word_to_bio(word: str, morphemes: list[str]) -> list[str]:
+    """Convert a word and its morphemes to BIO tags.
+
+    Parameters
+    ----------
+    word : str
+        The surface form (unused but kept for interface consistency).
+    morphemes : list[str]
+        The morpheme segments.
+
+    Returns
+    -------
+    list[str]
+        A BIO tag for each character.
+    """
     tags = []
     for morph in morphemes:
         tags.append('B')
@@ -51,8 +64,19 @@ def word_to_bio(word, morphemes):
     return tags
 
 
-def chars_to_features(word):
-    """Convert characters to integer features for the HMM."""
+def chars_to_features(word: str) -> list[int]:
+    """Convert characters to integer features for the HMM.
+
+    Parameters
+    ----------
+    word : str
+        The word to convert.
+
+    Returns
+    -------
+    list[int]
+        Integer feature for each alphabetic character.
+    """
     return [ord(c) - ord('a') for c in word.lower() if c.isalpha()]
 
 
@@ -88,8 +112,21 @@ These features give the model much more information than the HMM's emission prob
 #| code-fold: true
 #| code-summary: Character-level feature extraction for CRF
 
-def char_features(word, i):
-    """Extract features for position i in word."""
+def char_features(word: str, i: int) -> dict[str, str | bool]:
+    """Extract features for position i in word.
+
+    Parameters
+    ----------
+    word : str
+        The word to extract features from.
+    i : int
+        The character position.
+
+    Returns
+    -------
+    dict[str, str | bool]
+        Feature name to value mapping.
+    """
     features = {
         'char': word[i],
         'is_vowel': word[i] in 'aeiou',
@@ -134,7 +171,19 @@ Training a CRF with these features is straightforward using `sklearn-crfsuite`:
 import sklearn_crfsuite
 
 
-def word_to_features(word):
+def word_to_features(word: str) -> list[dict[str, str | bool]]:
+    """Extract character-level features for every position in a word.
+
+    Parameters
+    ----------
+    word : str
+        The word to extract features from.
+
+    Returns
+    -------
+    list[dict[str, str | bool]]
+        One feature dictionary per character position.
+    """
     return [char_features(word, i) for i in range(len(word))]
 
 

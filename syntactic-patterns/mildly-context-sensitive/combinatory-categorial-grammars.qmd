@@ -64,7 +64,6 @@ Let me implement a basic CCG chart parser. The idea is the same as [CKY](../../m
 #| code-summary: Define CCG categories
 
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass(frozen=True)
@@ -73,7 +72,18 @@ class Category:
 
     @staticmethod
     def parse(s: str) -> 'Category':
-        """Parse a category string like '(S\\NP)/NP'."""
+        """Parse a category string into a Category object.
+
+        Parameters
+        ----------
+        s : str
+            A category string like ``'(S\\NP)/NP'``.
+
+        Returns
+        -------
+        Category
+            The parsed category.
+        """
         s = s.strip()
         # Find the main connective (outermost slash not inside parens)
         depth = 0
@@ -136,30 +146,82 @@ class BackwardSlash(Category):
 #| code-fold: true
 #| code-summary: CCG combinatory rules
 
-def forward_application(left: Category, right: Category) -> Optional[Category]:
-    """X/Y + Y => X"""
+def forward_application(left: Category, right: Category) -> Category | None:
+    """Apply forward application: X/Y + Y => X.
+
+    Parameters
+    ----------
+    left : Category
+        The functor category.
+    right : Category
+        The argument category.
+
+    Returns
+    -------
+    Category | None
+        The result category, or None if the rule does not apply.
+    """
     if isinstance(left, ForwardSlash) and left.argument == right:
         return left.result
     return None
 
 
-def backward_application(left: Category, right: Category) -> Optional[Category]:
-    """Y + X\\Y => X"""
+def backward_application(left: Category, right: Category) -> Category | None:
+    """Apply backward application: Y + X\\Y => X.
+
+    Parameters
+    ----------
+    left : Category
+        The argument category.
+    right : Category
+        The functor category.
+
+    Returns
+    -------
+    Category | None
+        The result category, or None if the rule does not apply.
+    """
     if isinstance(right, BackwardSlash) and right.argument == left:
         return right.result
     return None
 
 
-def forward_composition(left: Category, right: Category) -> Optional[Category]:
-    """X/Y + Y/Z => X/Z"""
+def forward_composition(left: Category, right: Category) -> Category | None:
+    """Apply forward composition: X/Y + Y/Z => X/Z.
+
+    Parameters
+    ----------
+    left : Category
+        The left functor category.
+    right : Category
+        The right functor category.
+
+    Returns
+    -------
+    Category | None
+        The composed category, or None if the rule does not apply.
+    """
     if isinstance(left, ForwardSlash) and isinstance(right, ForwardSlash):
         if left.argument == right.result:
             return ForwardSlash(left.result, right.argument)
     return None
 
 
-def backward_composition(left: Category, right: Category) -> Optional[Category]:
-    """Y\\Z + X\\Y => X\\Z"""
+def backward_composition(left: Category, right: Category) -> Category | None:
+    """Apply backward composition: Y\\Z + X\\Y => X\\Z.
+
+    Parameters
+    ----------
+    left : Category
+        The left functor category.
+    right : Category
+        The right functor category.
+
+    Returns
+    -------
+    Category | None
+        The composed category, or None if the rule does not apply.
+    """
     if isinstance(left, BackwardSlash) and isinstance(right, BackwardSlash):
         if right.argument == left.result:
             return BackwardSlash(right.result, left.argument)
@@ -175,13 +237,32 @@ RULES = [forward_application, backward_application,
 #| code-summary: CCG chart parser
 
 class CCGParser:
-    """A CKY-style chart parser for CCG."""
+    """A CKY-style chart parser for CCG.
+
+    Parameters
+    ----------
+    lexicon : dict[str, list[Category]]
+        A mapping from words to their possible categories.
+    """
 
     def __init__(self, lexicon: dict[str, list[Category]]):
         self._lexicon = lexicon
 
     def parse(self, words: list[str], goal: Category = None) -> list:
-        """Parse a list of words. Returns all categories spanning the input."""
+        """Parse a list of words and return spanning categories.
+
+        Parameters
+        ----------
+        words : list[str]
+            The input words to parse.
+        goal : Category, optional
+            The target category (default ``AtomicCategory('S')``).
+
+        Returns
+        -------
+        list
+            A pair of matching categories and the chart.
+        """
         if goal is None:
             goal = AtomicCategory('S')
 

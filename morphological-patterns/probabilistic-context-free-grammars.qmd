@@ -33,40 +33,45 @@ Let's extend our existing `Rule` class to incorporate probabilities. For computa
 
 ```python
 class ProbabilisticRule(Rule):
-    """A probabilistic context-free grammar rule
+    """A probabilistic context-free grammar rule.
 
     Parameters
     ----------
     left_side : str
-        The left-hand side variable
-    right_side : *str
-        The right-hand side sequence of variables and terminals
-    logprob : float, optional
-        The log probability of the rule, by default None
+        The left-hand side variable.
+    *right_side : str
+        The right-hand side sequence of variables and terminals.
+    logprob : float | None, default None
+        The log probability of the rule.
 
     Attributes
     ----------
     left_side : str
-    right_side : tuple(str)
-    logprob : float
+        The left-hand side variable.
+    right_side : tuple[str, ...]
+        The right-hand side symbols.
+    logprob : float | None
+        The log probability of the rule.
     """
 
-    def __init__(self, left_side, *right_side, logprob=None):
+    def __init__(self, left_side: str, *right_side: str, logprob: float | None = None):
         super().__init__(left_side, *right_side)
         self._logprob = logprob
 
     def __repr__(self) -> str:
+        """Return a string representation including the log probability."""
         rule = self._left_side + ' -> ' + ' '.join(self._right_side)
-        
+
         if self._logprob is None:
             return rule
         else:
             return rule + ' [' + f"{self._logprob:.4f}" + ']'
-    
+
     @property
-    def logprob(self) -> float:
+    def logprob(self) -> float | None:
+        """The log probability of the rule."""
         return self._logprob
-    
+
     @logprob.setter
     def logprob(self, value: float) -> None:
         self._logprob = value
@@ -78,100 +83,121 @@ Now, let's define our `ProbabilisticContextFreeGrammar` class, extending the bas
 
 ```python
 import numpy as np
-from typing import Dict, List, Set, Tuple, Optional, Union
 from scipy.special import logsumexp
 
 class ProbabilisticContextFreeGrammar:
-    """
-    A probabilistic context-free grammar in Chomsky Normal Form
+    """A probabilistic context-free grammar in Chomsky Normal Form.
 
     Parameters
     ----------
-    alphabet : set(str)
-        The set of terminal symbols
-    variables : set(str)
-        The set of non-terminal symbols
-    rules : set(ProbabilisticRule)
-        The set of production rules with associated probabilities
+    alphabet : set[str]
+        The set of terminal symbols.
+    variables : set[str]
+        The set of non-terminal symbols.
+    rules : set[ProbabilisticRule]
+        The set of production rules with associated probabilities.
     start_variable : str
-        The start symbol of the grammar
+        The start symbol of the grammar.
 
     Attributes
     ----------
-    alphabet : set(str)
-    variables : set(str)
-    rules : set(ProbabilisticRule)
+    alphabet : set[str]
+        The set of terminal symbols.
+    variables : set[str]
+        The set of non-terminal symbols.
+    rules : set[ProbabilisticRule]
+        The production rules.
     start_variable : str
+        The start symbol.
     """
-    
-    def __init__(self, alphabet, variables, rules, start_variable):
+
+    def __init__(self, alphabet: set[str], variables: set[str],
+                 rules: set[ProbabilisticRule], start_variable: str):
         self._alphabet = alphabet
         self._variables = variables
         self._rules = rules
         self._start_variable = start_variable
-        
+
         self._validate_variables()
         self._validate_rules()
 
         self._parser = CKYParser(self)
 
-    def __call__(self, string, mode="recognize"):
+    def __call__(self, string: list[str] | str, mode: str = "recognize"):
+        """Parse or recognize a string.
+
+        Parameters
+        ----------
+        string : list[str] | str
+            The input to process.
+        mode : str, default "recognize"
+            Either "recognize" or "parse".
+
+        Returns
+        -------
+        float | list[tuple]
+            Log probability (recognize) or list of parse trees (parse).
+        """
         return self._parser(string, mode)
-        
-    def _validate_variables(self):
+
+    def _validate_variables(self) -> None:
+        """Check that alphabet and variables are disjoint and start variable is valid."""
         if self._alphabet & self._variables:
             raise ValueError('alphabet and variables must not share elements')
 
         if self._start_variable not in self._variables:
             raise ValueError('start variable must be in set of variables')
 
-    def _validate_rules(self):
-        # Validate that rules are well-formed
+    def _validate_rules(self) -> None:
+        """Validate rule well-formedness and probability distributions."""
         for r in self._rules:
             r.validate(self._alphabet, self._variables)
-        
-        # Check that the probabilities form valid distributions
-        log_probs = {}
+
+        # Group log probabilities by left-hand side
+        log_probs: dict[str, list[float]] = {}
         for r in self._rules:
             if r.left_side not in log_probs:
                 log_probs[r.left_side] = []
             log_probs[r.left_side].append(r.logprob)
-        
-        # For each non-terminal, check that its rules sum to 1 (or close to 1 for numerical stability)
+
+        # Each nonterminal's rule probabilities must sum to 1
         for nt, lps in log_probs.items():
             sum_prob = np.exp(logsumexp(lps))
             if not np.isclose(sum_prob, 1.0, rtol=1e-5):
                 raise ValueError(f'Rules for {nt} sum to {sum_prob}, not 1.0')
 
-    @property            
-    def alphabet(self) -> Set[str]:
+    @property
+    def alphabet(self) -> set[str]:
+        """The set of terminal symbols."""
         return self._alphabet
 
-    @property    
-    def variables(self) -> Set[str]:
+    @property
+    def variables(self) -> set[str]:
+        """The set of non-terminal symbols."""
         return self._variables
 
-    @property    
-    def rules(self) -> Set[ProbabilisticRule]:
+    @property
+    def rules(self) -> set[ProbabilisticRule]:
+        """The production rules."""
         return self._rules
 
     @property
     def start_variable(self) -> str:
+        """The start symbol."""
         return self._start_variable
-        
-    def reduce(self, *right_side) -> Set[Tuple[str, float]]:
-        """
-        Find all non-terminals that can be rewritten as right_side, with their log probabilities
+
+    def reduce(self, *right_side: str) -> set[tuple[str, float]]:
+        """Find nonterminals that rewrite as the given right side, with log probabilities.
 
         Parameters
         ----------
-        right_side : tuple(str)
-            The right-hand side of a rule
+        *right_side : str
+            The right-hand side symbols to match.
 
         Returns
         -------
-        set(tuple(str, float))
-            Set of (non-terminal, log probability) pairs
+        set[tuple[str, float]]
+            Pairs of (nonterminal, log probability).
         """
         return {(r.left_side, r.logprob) for r in self._rules
                 if r.right_side == tuple(right_side)}
@@ -200,33 +226,35 @@ Let's implement the Inside algorithm as part of our CKY parser:
 
 ```python
 class CKYChart:
-    """
-    A chart for a CKY parser
+    """A chart for a CKY parser.
 
     Parameters
     ----------
     input_size : int
-        The length of the input string
+        The length of the input string.
     """
 
-    def __init__(self, input_size):
+    def __init__(self, input_size: int):
         self._input_size = input_size
-        
-        # Initialize the chart
-        self._chart = [[set()
-                        for _ in range(input_size+1)]
-                       for _ in range(input_size+1)]
-        
-    def __getitem__(self, index):
+
+        self._chart: list[list[set]] = [
+            [set() for _ in range(input_size + 1)]
+            for _ in range(input_size + 1)
+        ]
+
+    def __getitem__(self, index: tuple[int, int]) -> set:
+        """Retrieve the chart cell at the given span."""
         i, j = index
         self._validate_index(i, j)
         return self._chart[i][j]
 
-    def __setitem__(self, key, item):
+    def __setitem__(self, key: tuple[int, int], item: set) -> None:
+        """Set the chart cell at the given span."""
         i, j = key
         self._chart[i][j] = item
-        
-    def _validate_index(self, i, j):
+
+    def _validate_index(self, i: int, j: int) -> None:
+        """Raise ValueError if the index is out of bounds or in the lower triangle."""
         if i >= j:
             raise ValueError("cannot index into the lower triangle of the chart")
 
@@ -242,23 +270,23 @@ class CKYChart:
 
     @property
     def input_size(self) -> int:
+        """The length of the input string."""
         return self._input_size
 
 class CKYChartEntry:
-    """
-    A chart entry for a CKY chart
+    """A chart entry for a CKY chart.
 
     Parameters
     ----------
     symbol : str
-        The non-terminal symbol
+        The non-terminal symbol.
     logprob : float
-        The log probability
-    backpointers : tuple(CKYChartEntry), optional
-        Pointers to child entries (for parsing)
+        The log probability.
+    *backpointers : CKYChartEntry
+        Pointers to child entries (for parsing).
     """
 
-    def __init__(self, symbol, logprob, *backpointers):
+    def __init__(self, symbol: str, logprob: float, *backpointers: 'CKYChartEntry'):
         self._symbol = symbol
         self._logprob = logprob
         self._backpointers = backpointers
@@ -266,11 +294,12 @@ class CKYChartEntry:
     def __hash__(self) -> int:
         return hash((self._symbol, self._backpointers))
 
-    def __eq__(self, other) -> bool:
-        return (self._symbol == other._symbol and 
+    def __eq__(self, other: 'CKYChartEntry') -> bool:
+        return (self._symbol == other._symbol and
                 self._backpointers == other._backpointers)
 
     def __repr__(self) -> str:
+        """Return a string representation with symbol, probability, and children."""
         if self._backpointers:
             return f"{self._symbol}[{self._logprob:.4f}] -> {' '.join(bp.symbol for bp in self._backpointers)}"
         else:
@@ -278,52 +307,67 @@ class CKYChartEntry:
 
     @property
     def symbol(self) -> str:
+        """The non-terminal symbol."""
         return self._symbol
 
     @property
     def logprob(self) -> float:
+        """The log probability."""
         return self._logprob
 
     @property
-    def backpointers(self) -> Tuple["CKYChartEntry", ...]:
+    def backpointers(self) -> tuple['CKYChartEntry', ...]:
+        """Pointers to child entries."""
         return self._backpointers
 
 class CKYParser:
-    """
-    A CKY parser for probabilistic context-free grammars
+    """A CKY parser for probabilistic context-free grammars.
 
     Parameters
     ----------
     grammar : ProbabilisticContextFreeGrammar
-        The grammar to parse with
+        The grammar to parse with.
     """
-    
-    def __init__(self, grammar):
+
+    def __init__(self, grammar: ProbabilisticContextFreeGrammar):
         self._grammar = grammar
-    
-    def __call__(self, string, mode="recognize"):
+
+    def __call__(self, string: list[str] | str, mode: str = "recognize"):
+        """Parse or recognize a string.
+
+        Parameters
+        ----------
+        string : list[str] | str
+            The input to process.
+        mode : str, default "recognize"
+            Either "recognize" or "parse".
+
+        Returns
+        -------
+        float | list[tuple]
+            Log probability (recognize) or list of parse trees (parse).
+        """
         if mode == "recognize":
             return self._recognize(string)
         elif mode == "parse":
-            return self._parse(string)            
+            return self._parse(string)
         else:
             raise ValueError('mode must be "parse" or "recognize"')
-    
-    def _fill_chart(self, string, keep_backtraces=True):
-        """
-        Fill the CKY chart using the inside algorithm
-        
+
+    def _fill_chart(self, string: list[str], keep_backtraces: bool = True) -> CKYChart:
+        """Fill the CKY chart using the inside algorithm.
+
         Parameters
         ----------
-        string : list(str)
-            The input string
-        keep_backtraces : bool, optional
-            Whether to keep backtraces for parsing, by default True
-            
+        string : list[str]
+            The input string.
+        keep_backtraces : bool, default True
+            Whether to keep backtraces for parsing.
+
         Returns
         -------
         CKYChart
-            The filled chart
+            The filled chart.
         """
         input_size = len(string)
         chart = CKYChart(input_size)
@@ -368,70 +412,63 @@ class CKYParser:
 
         return chart
 
-    def _parse(self, string):
-        """
-        Parse a string to find all possible parse trees
-        
+    def _parse(self, string: list[str] | str) -> list[tuple]:
+        """Parse a string to find all possible parse trees.
+
         Parameters
         ----------
-        string : list(str) or str
-            The string to parse
-            
+        string : list[str] | str
+            The string to parse.
+
         Returns
         -------
-        list(tuple(Tree, float))
-            List of parse trees with their log probabilities
+        list[tuple[Tree, float]]
+            Parse trees paired with their log probabilities.
         """
-        # Ensure input is a list of tokens
         if isinstance(string, str):
             string = string.split()
-        
+
         chart = self._fill_chart(string)
-        
-        # Construct parse trees from the chart
+
         parses = []
         for entry in chart[0, len(string)]:
             if entry.symbol == self._grammar.start_variable:
                 parse_tree = self._build_tree(entry)
                 parses.append((parse_tree, entry.logprob))
-        
+
         return parses
-    
-    def _build_tree(self, entry):
-        """
-        Build a parse tree from a chart entry
-        
+
+    def _build_tree(self, entry: CKYChartEntry):
+        """Build a parse tree from a chart entry.
+
         Parameters
         ----------
         entry : CKYChartEntry
-            The chart entry
-            
+            The chart entry to convert.
+
         Returns
         -------
         Tree
-            The parse tree
+            The parse tree rooted at this entry.
         """
         if not entry.backpointers:
-            # This is a terminal node
             return Tree(entry.symbol, [])
         else:
-            # This is a non-terminal node
             children = [self._build_tree(bp) for bp in entry.backpointers]
             return Tree(entry.symbol, children)
-        
-    def _recognize(self, string):
-        """
-        Compute the log probability of a string under the grammar
-        
+
+    def _recognize(self, string: list[str] | str) -> float:
+        """Compute the log probability of a string under the grammar.
+
         Parameters
         ----------
-        string : list(str) or str
-            The string to recognize
-            
+        string : list[str] | str
+            The string to recognize.
+
         Returns
         -------
         float
-            The log probability of the string, or -inf if the string is not in the language
+            The log probability, or -inf if the string is not in the language.
         """
         # Ensure input is a list of tokens
         if isinstance(string, str):
@@ -476,54 +513,104 @@ tree = pyparsing.Group(LPAR + pyparsing.delimitedList(exp) + RPAR + LBRAC + tag 
 exp <<= morpheme | tree
 
 class ParsedWord:
-    """A morphological parse
-    
+    """A morphological parse tree node.
+
     Parameters
     ----------
     data : str
-        The root of the tree (always a category)
-    word : str, optional
-        The word (only exists at the root of the parse)
-    children : list(ParsedWord), optional
-        The child parses
+        The category label at this node.
+    word : str | None, default None
+        The surface word (only present at the root).
+    children : list[ParsedWord] | None, default None
+        The child nodes.
+
+    Attributes
+    ----------
+    data : str
+        The category label.
+    word : str | None
+        The surface word.
+    children : list[ParsedWord]
+        The child nodes.
     """
-    
+
     PARSER = exp
 
-    def __init__(self, data, word=None, children=None):
+    def __init__(self, data: str, word: str | None = None,
+                 children: list['ParsedWord'] | None = None):
         self.word = word
         self.data = data
         self.children = children or []
-    
+
     @classmethod
-    def from_string(cls, word, tree):
+    def from_string(cls, word: str, tree: str) -> 'ParsedWord':
+        """Parse a CELEX tree string into a ParsedWord.
+
+        Parameters
+        ----------
+        word : str
+            The surface form.
+        tree : str
+            The CELEX bracket notation.
+
+        Returns
+        -------
+        ParsedWord
+            The parsed tree.
+        """
         treelist = cls.PARSER.parseString(tree)[0]
         return cls.from_list(treelist, word)
-    
+
     @classmethod
-    def from_list(cls, treelist, word=None):
+    def from_list(cls, treelist, word: str | None = None) -> 'ParsedWord':
+        """Build a ParsedWord from a nested list representation.
+
+        Parameters
+        ----------
+        treelist : list
+            The nested list from the parser.
+        word : str | None, default None
+            The surface form (only at the root).
+
+        Returns
+        -------
+        ParsedWord
+            The parsed tree.
+        """
         if all(isinstance(x, str) for x in treelist):
             return cls(treelist[1], word, [cls(treelist[0])])
         else:
             return cls(treelist[-1], word,
                        [cls.from_list(l) for l in treelist[:-1]])
 
-    def flatten(self):
-        """The flattened version of the parse"""
+    def flatten(self) -> list[tuple[str, str]]:
+        """Return a flat list of (category, morpheme) pairs.
+
+        Returns
+        -------
+        list[tuple[str, str]]
+            The morphemes with their categories.
+        """
         if len(self.children) > 1:
             return [morph for child in self.children for morph in child.flatten()]
         else:
             return [(self.data, self.children[0].data)]
-            
+
     @property
-    def rules(self):
-        """Extract CFG rules from this parsed word"""
+    def rules(self) -> list:
+        """Extract CFG rules from this parsed word.
+
+        Returns
+        -------
+        list[Rule]
+            The production rules implied by the tree.
+        """
         if self.children:
             rule = Rule(self.data, *[c.data for c in self.children], logprob=None)
             child_rules = [r for c in self.children for r in c.rules]
-            
+
             return [rule] + child_rules
-                   
+
         else:
             return []
 

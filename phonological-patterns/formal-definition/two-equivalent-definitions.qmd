@@ -29,101 +29,146 @@ What makes NFAs nondeterministic is that the transition function $\delta$ can ma
 
 ```{python}
 from copy import copy, deepcopy
-from typing import Union, Optional, Dict, List
 from functools import lru_cache
 
 class TransitionFunction:
-    """A finite state machine transition function
+    """A finite state machine transition function.
 
     Parameters
     ----------
-    transition_graph
+    transition_graph : dict[tuple[str, str], set[str]]
+        Mapping from (state, symbol) pairs to sets of target states.
 
     Attributes
     ----------
-    isdeterministic
-    istotalfunction
-    transition_graph
-
-    Methods
-    -------
-    validate(alphabet, states)
-    relable_states(state_map)
-    totalize()
+    transition_graph : dict[tuple[str, str], set[str]]
+        The underlying transition graph.
     """
 
     def __init__(self, transition_graph: dict[tuple[str, str], set[str]]):
         self._transition_graph = transition_graph
 
     def __call__(self, state: str, symbol: str) -> set[str]:
+        """Return the set of states reachable from state on symbol.
+
+        Parameters
+        ----------
+        state : str
+            The source state.
+        symbol : str
+            The input symbol.
+
+        Returns
+        -------
+        set[str]
+            The set of target states, or an empty set if undefined.
+        """
         try:
             return self._transition_graph[(state, symbol)]
         except KeyError:
-            return set({})
+            return set()
 
-    def __or__(self, other):
-        return TransitionFunction(dict(self._transition_graph, 
+    def __or__(self, other: 'TransitionFunction') -> 'TransitionFunction':
+        """Merge two transition functions.
+
+        Parameters
+        ----------
+        other : TransitionFunction
+            The transition function to merge with.
+
+        Returns
+        -------
+        TransitionFunction
+            A new transition function combining both graphs.
+        """
+        return TransitionFunction(dict(self._transition_graph,
                                        **other._transition_graph))
-        
-    def add_transitions(self, transition_graph):
+
+    def add_transitions(self, transition_graph: dict[tuple[str, str], set[str]]) -> None:
+        """Add new transitions to the graph.
+
+        Parameters
+        ----------
+        transition_graph : dict[tuple[str, str], set[str]]
+            Transitions to add.
+        """
         self._transition_graph.update(transition_graph)
 
-    def validate(self, alphabet, states):
+    def validate(self, alphabet: set[str], states: set[str]) -> None:
+        """Validate the transition function against an alphabet and state set.
+
+        Parameters
+        ----------
+        alphabet : set[str]
+            The valid alphabet symbols.
+        states : set[str]
+            The valid states.
+        """
         self._validate_input_values(alphabet, states)
         self._validate_output_types()
         self._homogenize_output_types()
         self._validate_output_values(states)
 
     def _validate_input_values(self, alphabet, states):
+        """Check that all input symbols and states are valid."""
         for state, symbol in self._transition_graph.keys():
             if symbol not in alphabet:
-                msg = 'all input symbols in transition function ' +\
-                      'must be in alphabet'
+                msg = ('all input symbols in transition function '
+                       'must be in alphabet')
                 raise ValueError(msg)
 
             if state not in states:
-                msg = 'all input states in transition function ' +\
-                      'must be in set of states'
+                msg = ('all input states in transition function '
+                       'must be in set of states')
                 raise ValueError(msg)
 
     def _validate_output_types(self):
+        """Check that all output values are str or set."""
         for states in self._transition_graph.values():
             t = type(states)
             if t is not str and t is not set:
-                msg = 'all outputs in transition function ' +\
-                      'must be specified via str or set'
+                msg = ('all outputs in transition function '
+                       'must be specified via str or set')
                 raise ValueError(msg)
 
     def _homogenize_output_types(self):
+        """Wrap any bare str outputs as singleton sets."""
         for inp, out in self._transition_graph.items():
             if type(out) is str:
                 self._transition_graph[inp] = {out}
 
     def _validate_output_values(self, states):
+        """Check that all output states are in the state set."""
         for out in self._transition_graph.values():
             if not all(state in states for state in out):
-                msg = 'all output symbols in transition function ' +\
-                      'must be in states'
+                msg = ('all output symbols in transition function '
+                       'must be in states')
                 raise ValueError(msg)
 
     @property
-    def transition_graph(self):
+    def transition_graph(self) -> dict[tuple[str, str], set[str]]:
+        """The underlying transition graph."""
         return self._transition_graph
 
 class FiniteStateAutomaton:
-    """A finite state automaton
+    """A finite state automaton.
 
     Parameters
     ----------
-    alphabet
-    states
-    initial_state
-    final states
-    transition_graph
+    alphabet : set[str]
+        The input alphabet.
+    states : set[str]
+        The set of states.
+    initial_state : str
+        The start state.
+    final_states : set[str]
+        The set of accepting states.
+    transition_graph : TransitionFunction
+        The transition function mapping (state, symbol) to states.
     """
 
-    def __init__(self, alphabet: set[str], states: set[str], 
-                 initial_state: str, final_states: set[str], 
+    def __init__(self, alphabet: set[str], states: set[str],
+                 initial_state: str, final_states: set[str],
                  transition_graph: 'TransitionFunction'):
         self._alphabet = {''} | alphabet
         self._states = states
@@ -144,8 +189,9 @@ class FiniteStateAutomaton:
         return next(self._generator)
 
     def _build_generator(self):
+        """Breadth-first enumerate strings accepted by the automaton."""
         string_buffer = [(self._initial_state, '')]
-        
+
         if self._initial_state in self._final_states:
             stack = ['']
         else:
@@ -156,11 +202,9 @@ class FiniteStateAutomaton:
                 yield stack.pop()
 
             else:
-                # this is very inefficient when we have total
-                # transition functions with many transitions to the
-                # sink state; could be optimized by removing a string
-                # if it's looping in a sink state, but we don't know
-                # in general what the sink state is
+                # Inefficient with total transition functions that
+                # have many transitions to the sink state; could be
+                # optimized but we don't know the sink state in general
                 new_buffer = []
                 for symb in self._alphabet:
                     for old_state, string in string_buffer:
@@ -181,31 +225,46 @@ We often define (and draw) FSAs s.t. their transition functions are partial. We 
 
 ```{python}
 class TransitionFunction(TransitionFunction):
-    """A finite state machine transition function
+    """A finite state machine transition function with totalization.
+
+    Extends the base transition function with methods to check
+    totality and to totalize via a sink state.
 
     Parameters
     ----------
-    transition_graph
-
-    Attributes
-    ----------
-    isdeterministic
-    istotalfunction
-    transition_graph
-
-    Methods
-    -------
-    validate(alphabet, states)
-    relable_states(state_map)
-    totalize()
+    transition_graph : dict[tuple[str, str], set[str]]
+        Mapping from (state, symbol) pairs to sets of target states.
     """
 
-    def istotalfunction(self, states, alphabet):
+    def istotalfunction(self, states: set[str], alphabet: set[str]) -> bool:
+        """Check whether the transition function is total.
+
+        Parameters
+        ----------
+        states : set[str]
+            The set of states.
+        alphabet : set[str]
+            The input alphabet.
+
+        Returns
+        -------
+        bool
+            True if every (state, symbol) pair is defined.
+        """
         return all((s, a) in self._transition_graph
                     for s in states
                     for a in alphabet)
 
-    def totalize(self, states, alphabet):
+    def totalize(self, states: set[str], alphabet: set[str]) -> None:
+        """Make the transition function total by adding a sink state.
+
+        Parameters
+        ----------
+        states : set[str]
+            The set of states.
+        alphabet : set[str]
+            The input alphabet.
+        """
         if not self.istotalfunction(states, alphabet):
             domain = {(s, a) for s in states for a in alphabet}
 
@@ -227,45 +286,57 @@ Every DFA can be converted to a weakly equivalent NFA. A DFA $G = \langle Q, \Si
 
 ```{python}
 class TransitionFunction(TransitionFunction):
-    """A finite state machine transition function
+    """A finite state machine transition function with determinism check.
+
+    Extends the transition function with a property to test whether
+    the automaton is deterministic.
 
     Parameters
     ----------
-    transition_graph
-
-    Attributes
-    ----------
-    isdeterministic
-    istotalfunction
-    transition_graph
-
-    Methods
-    -------
-    validate(alphabet, states)
-    relable_states(state_map)
-    totalize()
+    transition_graph : dict[tuple[str, str], set[str]]
+        Mapping from (state, symbol) pairs to sets of target states.
     """
 
     @property
-    def isdeterministic(self):
+    def isdeterministic(self) -> bool:
+        """Whether the transition function is deterministic.
+
+        Returns
+        -------
+        bool
+            True if no epsilon transitions exist and every input maps
+            to at most one state.
+        """
         has_epsilon = any(symb == '' for _, symb in self._transition_graph.keys())
         all_singleton = all(len(v) < 2 for v in self._transition_graph.values())
         return all_singleton and not has_epsilon
 
 class FiniteStateAutomaton(FiniteStateAutomaton):
-    """A finite state automaton
+    """A finite state automaton with determinism check.
 
     Parameters
     ----------
-    alphabet
-    states
-    initial_state
-    final states
-    transition_graph
+    alphabet : set[str]
+        The input alphabet.
+    states : set[str]
+        The set of states.
+    initial_state : str
+        The start state.
+    final_states : set[str]
+        The set of accepting states.
+    transition_graph : TransitionFunction
+        The transition function.
     """
 
     @property
     def isdeterministic(self) -> bool:
+        """Whether the automaton is deterministic.
+
+        Returns
+        -------
+        bool
+            True if the underlying transition function is deterministic.
+        """
         return self._transition_function.isdeterministic
 ```
 
@@ -294,22 +365,36 @@ from functools import reduce
 from itertools import chain, combinations
 
 def powerset(iterable):
-    """https://docs.python.org/3/library/itertools.html#recipes"""
-    s = list(iterable)
-    return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
+    """Generate all subsets of an iterable.
 
-def transitive_closure(edges: set[tuple[str]]) -> set[tuple[str]]:
-    """
-    the transitive closure of a graph
+    From the itertools recipes:
+    https://docs.python.org/3/library/itertools.html#recipes
 
     Parameters
     ----------
-    edges
-        the graph to compute the closure of
+    iterable
+        The collection to compute subsets of.
 
     Returns
+    -------
+    itertools.chain
+        All subsets, from empty to full.
+    """
+    s = list(iterable)
+    return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
+
+def transitive_closure(edges: set[tuple[str, str]]) -> set[tuple[str, str]]:
+    """Compute the transitive closure of a directed graph.
+
+    Parameters
     ----------
-    set(tuple)
+    edges : set[tuple[str, str]]
+        The edge set of the graph.
+
+    Returns
+    -------
+    set[tuple[str, str]]
+        The transitive closure of the edge set.
     """
     while True:
         new_edges = {(x, w)
@@ -325,26 +410,27 @@ def transitive_closure(edges: set[tuple[str]]) -> set[tuple[str]]:
         edges = all_edges
 
 class TransitionFunction(TransitionFunction):
-    """A finite state machine transition function
+    """A finite state machine transition function with epsilon closure.
+
+    Extends the transition function with epsilon-closure computation
+    and NFA-to-DFA determinization.
 
     Parameters
     ----------
-    transition_graph
-
-    Attributes
-    ----------
-    isdeterministic
-    istotalfunction
-    transition_graph
-
-    Methods
-    -------
-    validate(alphabet, states)
-    relable_states(state_map)
-    totalize()
+    transition_graph : dict[tuple[str, str], set[str]]
+        Mapping from (state, symbol) pairs to sets of target states.
     """
 
-    def validate(self, alphabet, states):
+    def validate(self, alphabet: set[str], states: set[str]) -> None:
+        """Validate and compute the epsilon transitive closure.
+
+        Parameters
+        ----------
+        alphabet : set[str]
+            The valid alphabet symbols.
+        states : set[str]
+            The valid states.
+        """
         self._validate_input_values(alphabet, states)
         self._validate_output_types()
         self._homogenize_output_types()
@@ -353,12 +439,13 @@ class TransitionFunction(TransitionFunction):
         self._add_epsilon_transitive_closure()
 
     def _add_epsilon_transitive_closure(self):
-        # get the state graph of all epsilon transitions
+        """Expand the transition graph with all epsilon-reachable states."""
+        # Collect the state graph of all epsilon transitions
         transitions = {(instate, outstate)
                        for (instate, insymb), outs in self._transition_graph.items()
                        for outstate in outs if not insymb}
 
-        # compute the transitive closure of the epsilon transition
+        # Compute the transitive closure of the epsilon transition
         # state graph; requires homogenization beforehand
         for instate, outstate in transitive_closure(transitions):
             self._transition_graph[(instate, '')] |= {outstate}
@@ -367,64 +454,80 @@ class TransitionFunction(TransitionFunction):
 
         for (instate1, insymb1), outs1 in self._transition_graph.items():
             for (instate2, insymb2), outs2 in self._transition_graph.items():
-                # Case 1: epsilon-after-symbol
-                # if (s1, a) -> s2 and (s2, epsilon) -> s3,
-                # then add s3 to (s1, a)
+                # Epsilon-after-symbol: if (s1, a) -> s2 and
+                # (s2, epsilon) -> s3, then add s3 to (s1, a)
                 if instate2 in outs1 and not insymb2:
                     try:
-                        new_graph[(instate1,insymb1)] |= outs2
+                        new_graph[(instate1, insymb1)] |= outs2
                     except KeyError:
-                        new_graph[(instate1,insymb1)] = set(outs2)
+                        new_graph[(instate1, insymb1)] = set(outs2)
 
-                # Case 2: symbol-after-epsilon
-                # if (s1, epsilon) -> s2 and (s2, a) -> s3,
-                # then add s3 to (s1, a)
+                # Symbol-after-epsilon: if (s1, epsilon) -> s2 and
+                # (s2, a) -> s3, then add s3 to (s1, a)
                 if instate2 in outs1 and not insymb1 and insymb2:
                     try:
-                        new_graph[(instate1,insymb2)] |= outs2
+                        new_graph[(instate1, insymb2)] |= outs2
                     except KeyError:
-                        new_graph[(instate1,insymb2)] = set(outs2)
+                        new_graph[(instate1, insymb2)] = set(outs2)
 
         self._transition_graph = new_graph
 
-    def determinize(self, initial_state):
+    def determinize(self, initial_state: str) -> tuple[set[str], 'TransitionFunction']:
+        """Prepare the transition function for subset construction.
+
+        Computes the new initial state (with epsilon closure) and
+        strips epsilon transitions from the graph.
+
+        Parameters
+        ----------
+        initial_state : str
+            The NFA's initial state.
+
+        Returns
+        -------
+        tuple[set[str], TransitionFunction]
+            The new initial state set and epsilon-free transition function.
+        """
         new_initial_state = {initial_state} | self(initial_state, "")
         new_transition_graph = {(instate, insymb): outstates
-                                for (instate, insymb), outstates 
+                                for (instate, insymb), outstates
                                 in self._transition_graph.items()
                                 if insymb}
-        
+
         return new_initial_state, TransitionFunction(new_transition_graph)
 
 
 class FiniteStateAutomaton(FiniteStateAutomaton):
-    """A finite state automaton
+    """A finite state automaton with subset-construction determinization.
 
     Parameters
     ----------
-    alphabet
-    states
-    initial_state
-    final states
-    transition_graph
+    alphabet : set[str]
+        The input alphabet.
+    states : set[str]
+        The set of states.
+    initial_state : str
+        The start state.
+    final_states : set[str]
+        The set of accepting states.
+    transition_graph : TransitionFunction
+        The transition function.
     """
-        
+
     def determinize(self) -> 'FiniteStateAutomaton':
-        """
-        if nondeterministic, determinize the FSA using the
-        standard subset construction
+        """Determinize the FSA using the standard subset construction.
 
         Returns
         -------
         FiniteStateAutomaton
+            A weakly equivalent deterministic FSA.
         """
         new_init, new_trans = self._transition_function.determinize(self._initial_state)
 
-        # The alphabet without epsilon
         alphabet = self._alphabet - {''}
 
-        # Build the DFA by exploring reachable states from the
-        # initial state; each DFA state is a frozenset of NFA states
+        # Each DFA state is a frozenset of NFA states; explore
+        # reachable states breadth-first from the initial state
         new_init_frozen = frozenset(new_init)
         worklist = [new_init_frozen]
         visited = set()
@@ -437,9 +540,7 @@ class FiniteStateAutomaton(FiniteStateAutomaton):
             visited.add(current)
 
             for a in alphabet:
-                # Compute the set of NFA states reachable from
-                # current on symbol a (epsilon closure is already
-                # baked into new_trans by _add_epsilon_transitive_closure)
+                # Epsilon closure is already baked into new_trans
                 target = set()
                 for q in current:
                     target |= new_trans(q, a)
@@ -463,6 +564,13 @@ class FiniteStateAutomaton(FiniteStateAutomaton):
 
     @property
     def isdeterministic(self) -> bool:
+        """Whether the automaton is deterministic.
+
+        Returns
+        -------
+        bool
+            True if the underlying transition function is deterministic.
+        """
         return self._transition_function.isdeterministic
 ```
 

@@ -47,15 +47,18 @@ class NormalForm(Enum):
     GNF = 2
 
 class Rule(Rule):
-    def validate(self, alphabet: set[str], variables: set[str], normal_form: NormalForm = None):
-        """validate the rule
+    def validate(self, alphabet: set[str], variables: set[str],
+                 normal_form: NormalForm | None = None) -> None:
+        """Validate the rule against the grammar's alphabet and variables.
 
         Parameters
         ----------
-        alphabet : set(str)
-        variables : set(str)
-        normal_form : NormalForm, optional
-            The normal form to validate against, by default None
+        alphabet : set[str]
+            The terminal symbols.
+        variables : set[str]
+            The nonterminal symbols.
+        normal_form : NormalForm | None, default None
+            The normal form to validate against.
         """
         if self._left_side not in variables:
             msg = "left side of rule must be a variable"
@@ -79,15 +82,14 @@ class Rule(Rule):
                 raise ValueError(f"{self} is not in CNF")
 
 class ContextFreeGrammar(ContextFreeGrammar):
-    
+
     def to_cnf(self) -> 'ContextFreeGrammar':
-        """
-        Convert the grammar to Chomsky Normal Form
-        
+        """Convert the grammar to Chomsky Normal Form.
+
         Returns
         -------
         ContextFreeGrammar
-            A new grammar in Chomsky Normal Form that generates the same language
+            A new grammar in CNF that generates the same language.
         """
         # Create deep copies to avoid modifying the original grammar
         alphabet = self.alphabet.copy()
@@ -126,18 +128,17 @@ class ContextFreeGrammar(ContextFreeGrammar):
         return ContextFreeGrammar(alphabet, variables, rules, start_variable)
     
     def _find_nullable_variables(self, rules: set[Rule]) -> set[str]:
-        """
-        Find all variables that can derive the empty string
-        
+        """Find all variables that can derive the empty string.
+
         Parameters
         ----------
-        rules : set(Rule)
-            The grammar rules
-            
+        rules : set[Rule]
+            The grammar rules.
+
         Returns
         -------
-        set(str)
-            The set of nullable variables
+        set[str]
+            The nullable variables.
         """
         nullable = set()
         
@@ -162,24 +163,23 @@ class ContextFreeGrammar(ContextFreeGrammar):
         
         return nullable
     
-    def _eliminate_epsilon_rules(self, rules: set[Rule], nullable: set[str], 
+    def _eliminate_epsilon_rules(self, rules: set[Rule], nullable: set[str],
                                  variables: set[str]) -> set[Rule]:
-        """
-        Eliminate ε-rules by adding new rules that account for nullable variables
-        
+        """Eliminate epsilon-rules by adding new rules for nullable variables.
+
         Parameters
         ----------
-        rules : set(Rule)
-            The grammar rules
-        nullable : set(str)
-            The set of nullable variables
-        variables : set(str)
-            The set of variables
-            
+        rules : set[Rule]
+            The grammar rules.
+        nullable : set[str]
+            The nullable variables.
+        variables : set[str]
+            The set of variables.
+
         Returns
         -------
-        set(Rule)
-            The new set of rules without ε-rules
+        set[Rule]
+            The new rules without epsilon-rules.
         """
         new_rules = set()
         
@@ -208,20 +208,19 @@ class ContextFreeGrammar(ContextFreeGrammar):
         return new_rules
     
     def _eliminate_unit_rules(self, rules: set[Rule], variables: set[str]) -> set[Rule]:
-        """
-        Eliminate unit rules of the form A -> B
-        
+        """Eliminate unit rules of the form A -> B.
+
         Parameters
         ----------
-        rules : set(Rule)
-            The grammar rules
-        variables : set(str)
-            The set of variables
-            
+        rules : set[Rule]
+            The grammar rules.
+        variables : set[str]
+            The set of variables.
+
         Returns
         -------
-        set(Rule)
-            The new set of rules without unit rules
+        set[Rule]
+            The new rules without unit rules.
         """
         # Compute unit pairs (A, B) such that A ->* B
         unit_pairs = {(var, var) for var in variables}  # Reflexive closure
@@ -260,24 +259,23 @@ class ContextFreeGrammar(ContextFreeGrammar):
         
         return new_rules
     
-    def _convert_terminal_rules(self, rules: set[Rule], variables: set[str], 
+    def _convert_terminal_rules(self, rules: set[Rule], variables: set[str],
                                alphabet: set[str]) -> tuple[set[Rule], set[str]]:
-        """
-        Convert rules with terminals in the right-hand side to CNF
-        
+        """Replace terminals in mixed rules with dedicated nonterminals.
+
         Parameters
         ----------
-        rules : set(Rule)
-            The grammar rules
-        variables : set(str)
-            The set of variables
-        alphabet : set(str)
-            The terminal alphabet
-            
+        rules : set[Rule]
+            The grammar rules.
+        variables : set[str]
+            The set of variables.
+        alphabet : set[str]
+            The terminal alphabet.
+
         Returns
         -------
-        tuple
-            (new_rules, new_variables)
+        tuple[set[Rule], set[str]]
+            The updated rules and variables.
         """
         new_rules = set()
         new_variables = variables.copy()
@@ -313,20 +311,19 @@ class ContextFreeGrammar(ContextFreeGrammar):
         return new_rules, new_variables
     
     def _break_long_rules(self, rules: set[Rule], variables: set[str]) -> tuple[set[Rule], set[str]]:
-        """
-        Break rules with more than 2 symbols on the right-hand side
-        
+        """Break rules with more than 2 right-hand side symbols into binary rules.
+
         Parameters
         ----------
-        rules : set(Rule)
-            The grammar rules
-        variables : set(str)
-            The set of variables
-            
+        rules : set[Rule]
+            The grammar rules.
+        variables : set[str]
+            The set of variables.
+
         Returns
         -------
-        tuple
-            (new_rules, new_variables)
+        tuple[set[Rule], set[str]]
+            The updated rules and variables.
         """
         new_rules = set()
         new_variables = variables.copy()
@@ -486,22 +483,21 @@ To ensure that a grammar is in CNF, we need to validate that each rule conforms 
 
 ```python
 def _validate_cnf(self, rules: set[Rule], variables: set[str], alphabet: set[str]) -> bool:
-    """
-    Validate that a grammar is in Chomsky Normal Form
-    
+    """Validate that a grammar is in Chomsky Normal Form.
+
     Parameters
     ----------
-    rules : set(Rule)
-        The grammar rules
-    variables : set(str)
-        The set of variables
-    alphabet : set(str)
-        The terminal alphabet
-        
+    rules : set[Rule]
+        The grammar rules.
+    variables : set[str]
+        The set of variables.
+    alphabet : set[str]
+        The terminal alphabet.
+
     Returns
     -------
     bool
-        True if the grammar is in CNF, False otherwise
+        True if the grammar is in CNF.
     """
     for rule in rules:
         # Check that the left side is a variable

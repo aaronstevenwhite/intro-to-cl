@@ -19,7 +19,19 @@ We can construct $G = (V, \Sigma, R, S)$ as follows:
 (We assume throughout this section that $V_1$ and $V_2$ are disjoint—i.e. that the two grammars share no variable names. If they do, we would need to relabel one grammar's variables before combining the rule sets, since otherwise a rule from $G_1$ could interact with a variable from $G_2$ in unintended ways.)
 
 ```python
-def union(self, other):
+def union(self, other: 'ContextFreeGrammar') -> 'ContextFreeGrammar':
+    """Construct the union of this grammar with another.
+
+    Parameters
+    ----------
+    other : ContextFreeGrammar
+        The other grammar (must have disjoint variables).
+
+    Returns
+    -------
+    ContextFreeGrammar
+        A grammar generating L(self) | L(other).
+    """
     new_start = "S_union"
 
     while new_start in self.variables or new_start in other.variables:
@@ -54,7 +66,19 @@ We can construct $G = (V, \Sigma, R, S)$ as follows:
 As with union, we assume $V_1$ and $V_2$ are disjoint.
 
 ```python
-def concatenate(self, other):
+def concatenate(self, other: 'ContextFreeGrammar') -> 'ContextFreeGrammar':
+    """Construct the concatenation of this grammar with another.
+
+    Parameters
+    ----------
+    other : ContextFreeGrammar
+        The other grammar (must have disjoint variables).
+
+    Returns
+    -------
+    ContextFreeGrammar
+        A grammar generating L(self) . L(other).
+    """
     new_start = "S_concat"
 
     while new_start in self.variables or new_start in other.variables:
@@ -83,7 +107,14 @@ We can construct $G^* = (V', \Sigma, R', S')$ as follows:
 3. Set $R' = R \cup \{S' \rightarrow \epsilon, S' \rightarrow S S'\}$
 
 ```python
-def kleene_star(self):
+def kleene_star(self) -> 'ContextFreeGrammar':
+    """Construct the Kleene closure of this grammar.
+
+    Returns
+    -------
+    ContextFreeGrammar
+        A grammar generating L(self)*.
+    """
     new_start = "S_star"
 
     while new_start in self.variables:
@@ -95,7 +126,7 @@ def kleene_star(self):
     rules = self.rules()
 
     rules.add(Rule(new_start, self.start_variable, new_start))  # S' -> S S' (right-recursive)
-    rules.add(Rule(new_start))  # S' -> ε
+    rules.add(Rule(new_start))  # S' -> epsilon
 
     return ContextFreeGrammar(alphabet, variables, rules, new_start)
 ```
@@ -155,14 +186,29 @@ We can add these operations as methods (along with operator overloads for conven
 
 ```python
 class ContextFreeGrammar(ContextFreeGrammar):
+    """Extended grammar with closure operations."""
 
-    def __or__(self, other):
+    def __or__(self, other: 'ContextFreeGrammar') -> 'ContextFreeGrammar':
+        """Union via the | operator."""
         return self.union(other)
 
-    def __add__(self, other):
+    def __add__(self, other: 'ContextFreeGrammar') -> 'ContextFreeGrammar':
+        """Concatenation via the + operator."""
         return self.concatenate(other)
 
-    def union(self, other):
+    def union(self, other: 'ContextFreeGrammar') -> 'ContextFreeGrammar':
+        """Construct the union of this grammar with another.
+
+        Parameters
+        ----------
+        other : ContextFreeGrammar
+            The other grammar (must have disjoint variables).
+
+        Returns
+        -------
+        ContextFreeGrammar
+            A grammar generating L(self) | L(other).
+        """
         new_start = "S_union"
 
         while new_start in self.variables or new_start in other.variables:
@@ -180,7 +226,19 @@ class ContextFreeGrammar(ContextFreeGrammar):
 
         return ContextFreeGrammar(alphabet, variables, rules, new_start)
 
-    def concatenate(self, other):
+    def concatenate(self, other: 'ContextFreeGrammar') -> 'ContextFreeGrammar':
+        """Construct the concatenation of this grammar with another.
+
+        Parameters
+        ----------
+        other : ContextFreeGrammar
+            The other grammar (must have disjoint variables).
+
+        Returns
+        -------
+        ContextFreeGrammar
+            A grammar generating L(self) . L(other).
+        """
         new_start = "S_concat"
 
         while new_start in self.variables or new_start in other.variables:
@@ -195,7 +253,14 @@ class ContextFreeGrammar(ContextFreeGrammar):
 
         return ContextFreeGrammar(alphabet, variables, rules, new_start)
 
-    def kleene_star(self):
+    def kleene_star(self) -> 'ContextFreeGrammar':
+        """Construct the Kleene closure of this grammar.
+
+        Returns
+        -------
+        ContextFreeGrammar
+            A grammar generating L(self)*.
+        """
         new_start = "S_star"
 
         while new_start in self.variables:
@@ -207,7 +272,7 @@ class ContextFreeGrammar(ContextFreeGrammar):
         rules = self.rules()
 
         rules.add(Rule(new_start, self.start_variable, new_start))  # S' -> S S' (right-recursive)
-        rules.add(Rule(new_start))  # S' -> ε
+        rules.add(Rule(new_start))  # S' -> epsilon
 
         return ContextFreeGrammar(alphabet, variables, rules, new_start)
 ```
@@ -217,7 +282,19 @@ class ContextFreeGrammar(ContextFreeGrammar):
 The CELEX database provides morphological analyses of words in English, German, and Dutch. We can extract CFG rules directly from these analyses—treating each morphological parse as a derivation tree—and then use the operations above to compose grammars for particular affixation patterns. For instance, we might extract all rules involving the prefix "un-" into one grammar and all rules involving the suffix "-ness" into another, then take their union to get a grammar that generates both types of derived forms.
 
 ```python
-def extract_rules_from_celex(parsed_words):
+def extract_rules_from_celex(parsed_words) -> tuple[set[str], set[str], set[Rule]]:
+    """Extract a CFG from a collection of CELEX parsed words.
+
+    Parameters
+    ----------
+    parsed_words : Iterable[ParsedWord]
+        The parsed word objects.
+
+    Returns
+    -------
+    tuple[set[str], set[str], set[Rule]]
+        The alphabet, variables, and rules.
+    """
     alphabet = set()
     variables = set()
     rules = set()

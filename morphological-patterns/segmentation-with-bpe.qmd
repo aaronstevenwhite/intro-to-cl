@@ -29,8 +29,21 @@ When applied to a morphological lexicon, the merges tend to recover morpheme-lik
 import re
 from collections import Counter
 
-def learn_bpe(words, num_merges=1000):
-    """Learn BPE merges from a word list."""
+def learn_bpe(words: list[str], num_merges: int = 1000) -> list[tuple[str, str]]:
+    """Learn BPE merge operations from a word list.
+
+    Parameters
+    ----------
+    words : list[str]
+        The training vocabulary.
+    num_merges : int, default 1000
+        The number of merge operations to learn.
+
+    Returns
+    -------
+    list[tuple[str, str]]
+        The learned merge pairs in order of application.
+    """
     # Initialize vocabulary as character sequences
     vocab = {}
     for word in words:
@@ -68,8 +81,21 @@ def learn_bpe(words, num_merges=1000):
     return merges
 
 
-def apply_bpe(word, merges):
-    """Segment a word using learned BPE merges."""
+def apply_bpe(word: str, merges: list[tuple[str, str]]) -> list[str]:
+    """Segment a word using learned BPE merges.
+
+    Parameters
+    ----------
+    word : str
+        The word to segment.
+    merges : list[tuple[str, str]]
+        The merge pairs to apply.
+
+    Returns
+    -------
+    list[str]
+        The subword segments.
+    """
     symbols = list(word) + ['</w>']
 
     for a, b in merges:
@@ -120,8 +146,21 @@ for w in test_words:
 To evaluate segmentation quality, we can compare the BPE output against the gold-standard morpheme boundaries in CELEX using the Jaccard similarity between the predicted and gold boundary sets.
 
 ```{python}
-def boundary_jaccard(predicted, gold):
-    """Jaccard similarity between two sets of boundary positions."""
+def boundary_jaccard(predicted: set[int], gold: set[int]) -> float:
+    """Compute Jaccard similarity between two sets of boundary positions.
+
+    Parameters
+    ----------
+    predicted : set[int]
+        The predicted boundary positions.
+    gold : set[int]
+        The gold-standard boundary positions.
+
+    Returns
+    -------
+    float
+        The Jaccard similarity (1.0 if both sets are empty).
+    """
     pred_set = set(predicted)
     gold_set = set(gold)
     if not pred_set and not gold_set:

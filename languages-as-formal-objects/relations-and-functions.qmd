@@ -89,11 +89,21 @@ The **image** of $W \subseteq X$ under $f$ is $f(W) = \{f(x) \;|\; x \in W\}$.
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 217, status: ok, timestamp: 1643047802023, user: {displayName: Aaron Steven White, photoUrl: 'https://lh3.googleusercontent.com/a-/AOh14GjIthWcbbAkpz4qrGfqtOGZvudhRK2mQl0LCAJjbw=s64', userId: 06256629009318567325}, user_tz: 300}
 #| outputId: b0a28e6d-ef94-4f99-8547-0d76955e96af
-from typing import TypeVar
+def image[T](w: set[T], f: set[tuple[T, T]]) -> set[T]:
+    """Compute the image of a set under a function.
 
-T = TypeVar("T")
+    Parameters
+    ----------
+    w : set[T]
+        The subset of the domain to map.
+    f : set[tuple[T, T]]
+        The graph of the function as a set of pairs.
 
-def image(w: set[T], f: set[tuple[T, T]]) -> set[T]:
+    Returns
+    -------
+    set[T]
+        The image of ``w`` under ``f``.
+    """
     return {y for x, y in f if x in w}
 
 image({'i'}, has_height)
@@ -114,7 +124,21 @@ The **preimage** of $Z \subseteq Y$ under $f$ is $f^{-1}(Z) = \{x \;|\;  f(x) \i
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 213, status: ok, timestamp: 1643047943947, user: {displayName: Aaron Steven White, photoUrl: 'https://lh3.googleusercontent.com/a-/AOh14GjIthWcbbAkpz4qrGfqtOGZvudhRK2mQl0LCAJjbw=s64', userId: 06256629009318567325}, user_tz: 300}
 #| outputId: 0957c36f-bb55-4bd9-eea3-a48824e27645
-def preimage(z: set[T], f: set[tuple[T, T]]) -> set[T]:
+def preimage[T](z: set[T], f: set[tuple[T, T]]) -> set[T]:
+    """Compute the preimage of a set under a function.
+
+    Parameters
+    ----------
+    z : set[T]
+        The subset of the codomain to invert.
+    f : set[tuple[T, T]]
+        The graph of the function as a set of pairs.
+
+    Returns
+    -------
+    set[T]
+        The preimage of ``z`` under ``f``.
+    """
     return {x for x, y in f if y in z}
 
 preimage({'high'}, has_height)
