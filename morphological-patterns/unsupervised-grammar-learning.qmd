@@ -258,32 +258,184 @@ class UnsupervisedPCFG:
 
 ## Training and evaluation
 
-We can train this model on segmented words (using the BPE segmentations from the [previous section](segmentation-with-bpe.qmd)) and compare the resulting grammar's scores against the supervised PCFG trained on CELEX.
+To train the model, we need segmented words. We'll use BPE (from the [previous section](segmentation-with-bpe.qmd)) to segment a word list into subword units, then feed those segmented forms to the unsupervised PCFG. The grammar structure we use is deliberately simple: a start symbol `Word` that expands into either a single morpheme or a binary split into a `Left` half and a `Right` half, where each half can itself be a morpheme or can split further. This is the minimal binary-branching grammar that lets EM discover hierarchical structure without any linguistic supervision.
 
 ```{python}
-# Define a simple grammar structure
+import re
+import pandas as pd
+import matplotlib.pyplot as plt
+from collections import Counter
+
+# --- BPE (from the previous section) ---
+
+def learn_bpe(words, num_merges=1000):
+    vocab = {}
+    for word in words:
+        chars = ' '.join(list(word)) + ' </w>'
+        vocab[chars] = vocab.get(chars, 0) + 1
+    merges = []
+    for _ in range(num_merges):
+        pairs = Counter()
+        for word, freq in vocab.items():
+            symbols = word.split()
+            for j in range(len(symbols) - 1):
+                pairs[(symbols[j], symbols[j+1])] += freq
+        if not pairs:
+            break
+        best = max(pairs, key=pairs.get)
+        merges.append(best)
+        new_vocab = {}
+        pattern = re.escape(' '.join(best))
+        replacement = ''.join(best)
+        for word, freq in vocab.items():
+            new_vocab[re.sub(pattern, replacement, word)] = freq
+        vocab = new_vocab
+    return merges
+
+def apply_bpe(word, merges):
+    symbols = list(word) + ['</w>']
+    for a, b in merges:
+        i = 0
+        while i < len(symbols) - 1:
+            if symbols[i] == a and symbols[i+1] == b:
+                symbols[i:i+2] = [a + b]
+            else:
+                i += 1
+    if symbols[-1] == '</w>':
+        symbols = symbols[:-1]
+    elif symbols[-1].endswith('</w>'):
+        symbols[-1] = symbols[-1][:-4]
+    return symbols
+
+# --- Load word list and learn BPE ---
+
+# We train BPE on a general English word list; in principle this
+# would be the CELEX lexicon, but any large word list works.  Here
+# we use the words from /usr/share/dict/words as a fallback.
+import os
+
+if os.path.exists('celex/eml/eml.cd'):
+    celex = pd.read_csv(
+        'celex/eml/eml.cd', sep='\\', header=None,
+        names=['IdNum', 'Head', 'MorphStatus', 'MorphCnt', 'StrucLab',
+               'MorphOp', 'StrucAllo', 'StrucLabAdj'],
+        encoding='latin-1'
+    )
+    word_list = celex.Head.dropna().unique().tolist()
+else:
+    with open('/usr/share/dict/words') as f:
+        word_list = [w.strip().lower() for w in f if w.strip().isalpha()]
+
+merges = learn_bpe(word_list, num_merges=5000)
+
+# --- Segment the trial words ---
+
+trials = pd.read_csv('data/trials.csv')
+trial_words = trials.word.unique().tolist()
+
+segmented = {w: apply_bpe(w, merges) for w in trial_words}
+
+# Show a few segmentations
+for w in list(segmented)[:8]:
+    print(f"{w:25s} → {' + '.join(segmented[w])}")
+```
+
+Now we set up the grammar.  The alphabet is the set of all subword units that BPE produced; the variables are `Word`, `Left`, `Right`, and `Morph`; and the rules allow binary branching at every level plus a unary rule for each terminal.
+
+```{python}
+# Collect the alphabet from the segmented data
+alphabet = {seg for segs in segmented.values() for seg in segs}
+
 variables = {'Word', 'Left', 'Right', 'Morph'}
-alphabet = set()  # populated from training data
 
-# Rules would be defined based on the desired grammar structure
-# For binary branching: Word -> Left Right, Left -> Morph Left, etc.
+rules = [
+    # Binary branching
+    Rule('Word', 'Left', 'Right'),
+    Rule('Left', 'Morph', 'Left'),
+    Rule('Right', 'Morph', 'Right'),
+    Rule('Left', 'Morph', 'Morph'),
+    Rule('Right', 'Morph', 'Morph'),
+]
 
-# unsupervised = UnsupervisedPCFG(variables, alphabet, rules, 'Word')
-# log_likelihoods = unsupervised.fit(segmented_words)
+# Unary rules: each terminal can be a Morph, and a single
+# morpheme can be a whole Word
+for t in alphabet:
+    rules.append(Rule('Morph', t))
+    rules.append(Rule('Word', t))
+
+print(f"Alphabet size: {len(alphabet)}")
+print(f"Number of rules: {len(rules)}")
+print(f"Number of words to train on: {len(segmented)}")
 ```
 
 ```{python}
-# Convergence plot
-# import matplotlib.pyplot as plt
-# plt.plot(log_likelihoods)
-# plt.xlabel('EM iteration')
-# plt.ylabel('Log-likelihood')
-# plt.show()
+# Train the unsupervised PCFG
+unsupervised = UnsupervisedPCFG(variables, alphabet, rules, 'Word',
+                                max_iter=20, tol=1e-6)
+log_likelihoods = unsupervised.fit(list(segmented.values()))
+
+print(f"Converged after {len(log_likelihoods)} iterations")
+print(f"Final log-likelihood: {log_likelihoods[-1]:.2f}")
 ```
 
-The log-likelihood should increase monotonically with each iteration—this is a guaranteed property of EM. When it converges, the resulting grammar assigns probabilities to morphological structures that, ideally, correlate with the acceptability judgments we explored in the [morphological well-formedness section](morphological-wellformedness.qmd).
+The log-likelihood should increase monotonically—this is a guaranteed property of EM.  Let's verify.
 
-In practice, the unsupervised grammar tends to find some meaningful structure—frequent affixes get high-probability rules, and the grammar assigns higher probabilities to well-formed morphological combinations—but it rarely matches the supervised grammar's performance. The gap between the two tells us something about how much morphological knowledge is available from distributional patterns alone versus how much requires additional supervision or inductive bias.
+```{python}
+fig, ax = plt.subplots(figsize=(8, 4))
+ax.plot(range(1, len(log_likelihoods) + 1), log_likelihoods, marker='o', markersize=4)
+ax.set_xlabel('EM iteration')
+ax.set_ylabel('Log-likelihood')
+fig.tight_layout()
+plt.show()
+```
+
+## Comparison with human judgments
+
+The question we set out to answer in the [morphological well-formedness section](morphological-wellformedness.qmd) was whether a model's scores can predict speakers' gradient acceptability judgments for morphologically complex nonwords.  Now that we have a trained grammar, we can score each trial word by computing its inside probability under the grammar—that is, $\alpha_{\text{Word}}(0, n-1)$, the probability that `Word` generates the full segmented form—and then see whether those scores correlate with the mean human judgments.
+
+```{python}
+# Score each trial word under the learned grammar
+word_scores = {}
+
+for w in trial_words:
+    segs = segmented[w]
+    alpha = unsupervised._inside(segs)
+    n = len(segs)
+    prob = alpha.get(('Word', 0, n - 1), 0)
+    word_scores[w] = np.log(prob) if prob > 0 else float('-inf')
+
+# Merge with human judgments
+word_means = trials.groupby('word').judgment_z.mean()
+score_df = pd.DataFrame({
+    'word': list(word_scores.keys()),
+    'model_logprob': list(word_scores.values()),
+})
+score_df = score_df.merge(
+    word_means.reset_index().rename(columns={'judgment_z': 'human_mean'}),
+    on='word'
+)
+
+# Drop words the grammar couldn't parse at all
+score_df = score_df[score_df.model_logprob > float('-inf')]
+
+print(f"Words scored: {len(score_df)} / {len(trial_words)}")
+```
+
+```{python}
+from scipy.stats import spearmanr
+
+rho, p = spearmanr(score_df.model_logprob, score_df.human_mean)
+
+fig, ax = plt.subplots(figsize=(6, 5))
+ax.scatter(score_df.model_logprob, score_df.human_mean, alpha=0.4, s=15)
+ax.set_xlabel('Model log-probability')
+ax.set_ylabel('Mean z-scored human judgment')
+ax.set_title(f'Spearman ρ = {rho:.3f} (p = {p:.2e})')
+fig.tight_layout()
+plt.show()
+```
+
+The correlation is likely modest—unsupervised learning from BPE segmentations, with no labeled morphological structure and no phonological information, is a hard setting. But even a weak positive correlation tells us that the grammar has picked up on some of the distributional regularities that make certain morpheme combinations more natural than others. The gap between this model and a supervised PCFG trained on CELEX parses (or a model with access to phonological features) gives a rough measure of how much morphological knowledge is available from raw distributional statistics alone versus how much depends on richer supervision or inductive bias.
 
 ## Looking ahead
 
