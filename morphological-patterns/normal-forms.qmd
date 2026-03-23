@@ -69,14 +69,13 @@ class Rule(Rule):
             raise ValueError(msg)
 
         if normal_form == NormalForm.CNF:
-            try:
-                if len(self.right_side) == 1:
-                    assert self.right_side[0] in alphabet
-                elif len(self.right_side) == 2:
-                    assert all([s in variables for s in self.right_side])
-                else:
-                    raise AssertionError
-            except AssertionError:
+            if len(self.right_side) == 1:
+                if self.right_side[0] not in alphabet:
+                    raise ValueError(f"{self} is not in CNF")
+            elif len(self.right_side) == 2:
+                if not all(s in variables for s in self.right_side):
+                    raise ValueError(f"{self} is not in CNF")
+            else:
                 raise ValueError(f"{self} is not in CNF")
 
 class ContextFreeGrammar(ContextFreeGrammar):
@@ -108,6 +107,12 @@ class ContextFreeGrammar(ContextFreeGrammar):
         # Step 2: Eliminate ε-rules
         nullable_vars = self._find_nullable_variables(rules)
         rules = self._eliminate_epsilon_rules(rules, nullable_vars, variables)
+
+        # If the original start variable was nullable, the language contains ε,
+        # and we need to preserve that by adding S' → ε to the new grammar
+        # (since _eliminate_epsilon_rules strips all ε-rules indiscriminately).
+        if self.start_variable in nullable_vars:
+            rules.add(Rule(start_variable))
         
         # Step 3: Eliminate unit rules
         rules = self._eliminate_unit_rules(rules, variables)

@@ -163,9 +163,7 @@ class CKYChart(Chart):
         self._chart[i][j] = item
         
     def _validate_index(self, i, j):
-        try:
-            assert i < j
-        except AssertionError:
+        if i >= j:
             msg = "cannot index into the lower " +\
                   "triangle of the chart"
             raise ValueError(msg)
@@ -209,18 +207,16 @@ class CKYChart(Chart):
         for left_bp, right_bp in zip(entry.backpointers[0::2], entry.backpointers[1::2]):
             left_symbol, left_span = left_bp
             right_symbol, right_span = right_bp
-            
-            left_parses = self._construct_parses(
-                next(e for e in self[left_span] if e.symbol == left_symbol)
-            )
-            
-            right_parses = self._construct_parses(
-                next(e for e in self[right_span] if e.symbol == right_symbol)
-            )
-            
-            for left_parse in left_parses:
-                for right_parse in right_parses:
-                    parses.add(Tree(entry.symbol, [left_parse, right_parse]))
+
+            for left_entry in (e for e in self[left_span] if e.symbol == left_symbol):
+                left_parses = self._construct_parses(left_entry)
+
+                for right_entry in (e for e in self[right_span] if e.symbol == right_symbol):
+                    right_parses = self._construct_parses(right_entry)
+
+                    for left_parse in left_parses:
+                        for right_parse in right_parses:
+                            parses.add(Tree(entry.symbol, [left_parse, right_parse]))
         
         return parses
 ```
