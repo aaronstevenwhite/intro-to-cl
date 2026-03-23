@@ -41,7 +41,11 @@ A tree is something that is...
 
 ```{python}
 #| executionInfo: {elapsed: 11, status: ok, timestamp: 1680619933967, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
-class Tree[DataType]:
+from typing import TypeVar
+
+DataType = TypeVar("DataType")
+
+class Tree:
     """A tree.
 
     Parameters
