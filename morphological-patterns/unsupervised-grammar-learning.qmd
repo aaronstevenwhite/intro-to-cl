@@ -286,21 +286,42 @@ def char_features(word, i):
         'is_vowel': word[i] in 'aeiou',
         'is_first': i == 0,
         'is_last': i == len(word) - 1,
+        'position': i / len(word),
     }
+
+    # Character context window of ±3
+    for offset in range(-3, 4):
+        j = i + offset
+        if 0 <= j < len(word):
+            features[f'char[{offset}]'] = word[j]
+        else:
+            features[f'char[{offset}]'] = '<PAD>'
+
+    # Bigrams and trigrams centered on this position
     if i > 0:
-        features['prev_char'] = word[i-1]
-        features['bigram_left'] = word[i-1] + word[i]
-    else:
-        features['prev_char'] = '<START>'
+        features['bigram[-1,0]'] = word[i-1:i+1]
     if i < len(word) - 1:
-        features['next_char'] = word[i+1]
-        features['bigram_right'] = word[i] + word[i+1]
-    else:
-        features['next_char'] = '<END>'
+        features['bigram[0,+1]'] = word[i:i+2]
+    if i > 0 and i < len(word) - 1:
+        features['trigram'] = word[i-1:i+2]
     if i > 1:
         features['trigram_left'] = word[i-2:i+1]
     if i < len(word) - 2:
         features['trigram_right'] = word[i:i+3]
+
+    # Suffix of remaining string and prefix of consumed string,
+    # at multiple lengths—these help the CRF learn that common
+    # suffixes like -tion, -ness, -able start at boundaries
+    remaining = word[i:]
+    for k in [2, 3, 4, 5]:
+        if len(remaining) >= k:
+            features[f'suffix_{k}'] = remaining[:k]
+
+    consumed = word[:i]
+    for k in [2, 3, 4]:
+        if len(consumed) >= k:
+            features[f'prefix_{k}'] = consumed[-k:]
+
     return features
 
 def word_to_features(word):
@@ -445,7 +466,8 @@ print(f"CRF training examples: {len(X_train)}")
 
 ```{python}
 # Train the CRF
-crf = sklearn_crfsuite.CRF(algorithm='lbfgs', max_iterations=100)
+crf = sklearn_crfsuite.CRF(algorithm='lbfgs', max_iterations=200,
+                           c1=0.01, c2=0.01)
 crf.fit(X_train, y_train)
 
 # --- Segment the trial words ---
