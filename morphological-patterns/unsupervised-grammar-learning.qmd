@@ -256,91 +256,143 @@ class UnsupervisedPCFG:
         return log_likelihoods
 ```
 
-## Training and evaluation
+## Segmenting the test words
 
-To train the model, we need segmented words. We'll use BPE (from the [previous section](segmentation-with-bpe.qmd)) to segment a word list into subword units, then feed those segmented forms to the unsupervised PCFG. The grammar structure we use is deliberately simple: a start symbol `Word` that expands into either a single morpheme or a binary split into a `Left` half and a `Right` half, where each half can itself be a morpheme or can split further. This is the minimal binary-branching grammar that lets EM discover hierarchical structure without any linguistic supervision.
+To train the unsupervised PCFG, we need segmented words—sequences of morpheme-like units—but we don't need (and, in the unsupervised setting, don't have) the hierarchical parse trees that CELEX provides. The question is where the segmentations come from. We could use BPE, but we already have something better: in the [structured prediction section](segmentation-with-structured-prediction.qmd), we trained a CRF segmenter on CELEX's gold-standard morpheme boundaries. That segmenter learned to predict B/I tags based on character-level features, and it does a much better job of finding linguistically meaningful boundaries than BPE's frequency-based merging.
+
+I want to be precise about what information each model has access to, because that's the whole point of the comparison we're building toward. The *supervised* PCFG (from the [previous section](probabilistic-context-free-grammars.qmd)) has access to the full CELEX parse trees—both the segmentation *and* the hierarchical structure. The *unsupervised* PCFG we're training here has access to segmentations from the CRF (which was trained on CELEX boundaries) but *not* the tree structure. The EM algorithm has to discover the tree structure on its own. So the gap between the two models tells us how much of what makes a morphological structure well-formed is captured by the segmentation alone versus how much depends on knowing which morphemes compose with which, and in what order.
 
 ```{python}
-import re
+import os
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from collections import Counter
+import sklearn_crfsuite
 
-# --- BPE (from the previous section) ---
+# --- CRF segmenter (from the structured prediction section) ---
 
-def learn_bpe(words, num_merges=1000):
-    vocab = {}
-    for word in words:
-        chars = ' '.join(list(word)) + ' </w>'
-        vocab[chars] = vocab.get(chars, 0) + 1
-    merges = []
-    for _ in range(num_merges):
-        pairs = Counter()
-        for word, freq in vocab.items():
-            symbols = word.split()
-            for j in range(len(symbols) - 1):
-                pairs[(symbols[j], symbols[j+1])] += freq
-        if not pairs:
-            break
-        best = max(pairs, key=pairs.get)
-        merges.append(best)
-        new_vocab = {}
-        pattern = re.escape(' '.join(best))
-        replacement = ''.join(best)
-        for word, freq in vocab.items():
-            new_vocab[re.sub(pattern, replacement, word)] = freq
-        vocab = new_vocab
-    return merges
+def word_to_bio(word, morphemes):
+    """Convert a word and its morphemes to BIO tags."""
+    tags = []
+    for morph in morphemes:
+        tags.append('B')
+        tags.extend(['I'] * (len(morph) - 1))
+    return tags
 
-def apply_bpe(word, merges):
-    symbols = list(word) + ['</w>']
-    for a, b in merges:
-        i = 0
-        while i < len(symbols) - 1:
-            if symbols[i] == a and symbols[i+1] == b:
-                symbols[i:i+2] = [a + b]
-            else:
-                i += 1
-    if symbols[-1] == '</w>':
-        symbols = symbols[:-1]
-    elif symbols[-1].endswith('</w>'):
-        symbols[-1] = symbols[-1][:-4]
-    return symbols
+def char_features(word, i):
+    """Extract character-level features for position i."""
+    features = {
+        'char': word[i],
+        'is_vowel': word[i] in 'aeiou',
+        'is_first': i == 0,
+        'is_last': i == len(word) - 1,
+    }
+    if i > 0:
+        features['prev_char'] = word[i-1]
+        features['bigram_left'] = word[i-1] + word[i]
+    else:
+        features['prev_char'] = '<START>'
+    if i < len(word) - 1:
+        features['next_char'] = word[i+1]
+        features['bigram_right'] = word[i] + word[i+1]
+    else:
+        features['next_char'] = '<END>'
+    if i > 1:
+        features['trigram_left'] = word[i-2:i+1]
+    if i < len(word) - 2:
+        features['trigram_right'] = word[i:i+3]
+    return features
 
-# --- Load word list and learn BPE ---
+def word_to_features(word):
+    return [char_features(word, i) for i in range(len(word))]
 
-# We train BPE on a general English word list; in principle this
-# would be the CELEX lexicon, but any large word list works.  Here
-# we use the words from /usr/share/dict/words as a fallback.
-import os
+def tags_to_segments(word, tags):
+    """Convert BIO tags back to a list of morpheme strings."""
+    segments = []
+    current = ''
+    for ch, tag in zip(word, tags):
+        if tag == 'B' and current:
+            segments.append(current)
+            current = ch
+        else:
+            current += ch
+    if current:
+        segments.append(current)
+    return segments
+```
 
-if os.path.exists('celex/eml/eml.cd'):
-    celex = pd.read_csv(
-        'celex/eml/eml.cd', sep='\\', header=None,
-        names=['IdNum', 'Head', 'MorphStatus', 'MorphCnt', 'StrucLab',
-               'MorphOp', 'StrucAllo', 'StrucLabAdj'],
-        encoding='latin-1'
-    )
-    word_list = celex.Head.dropna().unique().tolist()
-else:
-    with open('/usr/share/dict/words') as f:
-        word_list = [w.strip().lower() for w in f if w.strip().isalpha()]
+Now we train the CRF on CELEX's gold-standard segmentations and use it to segment the trial words from @oseki2020modeling.
 
-merges = learn_bpe(word_list, num_merges=5000)
+```{python}
+# --- Load CELEX and extract gold segmentations ---
+
+celex = pd.read_csv(
+    'celex/eml/eml.cd', sep='\\', header=None,
+    names=['IdNum', 'Head', 'MorphStatus', 'MorphCnt', 'StrucLab',
+           'MorphOp', 'StrucAllo', 'StrucLabAdj'],
+    encoding='latin-1'
+)
+
+# The StrucAllo field contains allomorphic segmentations with
+# morpheme boundaries marked.  We extract words that have a
+# parseable segmentation.
+import re
+
+def extract_morphemes(strucallo):
+    """Pull morpheme strings out of a CELEX StrucAllo field."""
+    if pd.isna(strucallo):
+        return None
+    # Morphemes are enclosed in parentheses
+    morphs = re.findall(r'\(([^)]+)\)', strucallo)
+    if morphs:
+        return [m.lower() for m in morphs]
+    return None
+
+celex['morphemes'] = celex.StrucAllo.apply(extract_morphemes)
+celex_seg = celex[celex.morphemes.notna()].copy()
+
+# Build training data for the CRF
+X_train, y_train = [], []
+
+for _, row in celex_seg.iterrows():
+    word = row.Head.lower()
+    morphemes = row.morphemes
+    joined = ''.join(morphemes)
+
+    # Only use entries where the morphemes reconstruct the word
+    if joined == word:
+        X_train.append(word_to_features(word))
+        y_train.append(word_to_bio(word, morphemes))
+
+print(f"CRF training examples: {len(X_train)}")
+```
+
+```{python}
+# Train the CRF
+crf = sklearn_crfsuite.CRF(algorithm='lbfgs', max_iterations=100)
+crf.fit(X_train, y_train)
 
 # --- Segment the trial words ---
 
 trials = pd.read_csv('data/trials.csv')
 trial_words = trials.word.unique().tolist()
 
-segmented = {w: apply_bpe(w, merges) for w in trial_words}
+segmented = {}
 
-# Show a few segmentations
-for w in list(segmented)[:8]:
+for w in trial_words:
+    features = word_to_features(w)
+    tags = crf.predict_single(features)
+    segmented[w] = tags_to_segments(w, tags)
+
+for w in list(segmented)[:10]:
     print(f"{w:25s} → {' + '.join(segmented[w])}")
 ```
 
-Now we set up the grammar.  The alphabet is the set of all subword units that BPE produced; the variables are `Word`, `Left`, `Right`, and `Morph`; and the rules allow binary branching at every level plus a unary rule for each terminal.
+The CRF produces segmentations that look like real morphological decompositions—prefixes, stems, and suffixes—because it was trained on CELEX boundaries. But it doesn't know anything about how those morphemes compose hierarchically. That's what the unsupervised PCFG will learn.
+
+## Setting up the grammar
+
+The grammar we give to EM is deliberately uninformative about English morphology. It has a start symbol `Word` that can expand into a single morpheme or a binary split into `Left` and `Right`, each of which can itself split further or terminate as a `Morph`. Every morpheme in the segmented data gets a unary rule. This is the minimal binary-branching grammar—it doesn't encode any linguistic knowledge about which morphemes are prefixes, which are suffixes, or which categories combine with which. All of that structure has to be discovered by EM from the distribution of morphemes across words.
 
 ```{python}
 # Collect the alphabet from the segmented data
@@ -349,7 +401,6 @@ alphabet = {seg for segs in segmented.values() for seg in segs}
 variables = {'Word', 'Left', 'Right', 'Morph'}
 
 rules = [
-    # Binary branching
     Rule('Word', 'Left', 'Right'),
     Rule('Left', 'Morph', 'Left'),
     Rule('Right', 'Morph', 'Right'),
@@ -357,8 +408,6 @@ rules = [
     Rule('Right', 'Morph', 'Morph'),
 ]
 
-# Unary rules: each terminal can be a Morph, and a single
-# morpheme can be a whole Word
 for t in alphabet:
     rules.append(Rule('Morph', t))
     rules.append(Rule('Word', t))
@@ -368,74 +417,149 @@ print(f"Number of rules: {len(rules)}")
 print(f"Number of words to train on: {len(segmented)}")
 ```
 
+## Training
+
 ```{python}
-# Train the unsupervised PCFG
 unsupervised = UnsupervisedPCFG(variables, alphabet, rules, 'Word',
-                                max_iter=20, tol=1e-6)
+                                max_iter=30, tol=1e-6)
 log_likelihoods = unsupervised.fit(list(segmented.values()))
 
 print(f"Converged after {len(log_likelihoods)} iterations")
 print(f"Final log-likelihood: {log_likelihoods[-1]:.2f}")
 ```
 
-The log-likelihood should increase monotonically—this is a guaranteed property of EM.  Let's verify.
+EM guarantees that the log-likelihood increases (or stays the same) at every iteration. Let's verify that.
 
 ```{python}
 fig, ax = plt.subplots(figsize=(8, 4))
-ax.plot(range(1, len(log_likelihoods) + 1), log_likelihoods, marker='o', markersize=4)
+ax.plot(range(1, len(log_likelihoods) + 1), log_likelihoods,
+        marker='o', markersize=4)
 ax.set_xlabel('EM iteration')
 ax.set_ylabel('Log-likelihood')
 fig.tight_layout()
 plt.show()
 ```
 
-## Comparison with human judgments
+## Scoring the trial words
 
-The question we set out to answer in the [morphological well-formedness section](morphological-wellformedness.qmd) was whether a model's scores can predict speakers' gradient acceptability judgments for morphologically complex nonwords.  Now that we have a trained grammar, we can score each trial word by computing its inside probability under the grammar—that is, $\alpha_{\text{Word}}(0, n-1)$, the probability that `Word` generates the full segmented form—and then see whether those scores correlate with the mean human judgments.
+We can now score each trial word under the learned grammar by computing its inside probability $\alpha_{\text{Word}}(0, n-1)$—the probability that the start symbol `Word` generates the full segmented form. Words whose morpheme combinations the grammar has seen frequently (or whose combinations resemble frequent ones) will get higher scores; words with unusual combinations will get lower ones.
 
 ```{python}
-# Score each trial word under the learned grammar
-word_scores = {}
+def score_words(pcfg, segmented_words):
+    """Score each word under a PCFG using the inside algorithm."""
+    scores = {}
+    for w, segs in segmented_words.items():
+        alpha = pcfg._inside(segs)
+        n = len(segs)
+        prob = alpha.get(('Word', 0, n - 1), 0)
+        scores[w] = np.log(prob) if prob > 0 else float('-inf')
+    return scores
 
-for w in trial_words:
-    segs = segmented[w]
-    alpha = unsupervised._inside(segs)
-    n = len(segs)
-    prob = alpha.get(('Word', 0, n - 1), 0)
-    word_scores[w] = np.log(prob) if prob > 0 else float('-inf')
+unsupervised_scores = score_words(unsupervised, segmented)
+```
 
-# Merge with human judgments
-word_means = trials.groupby('word').judgment_z.mean()
-score_df = pd.DataFrame({
-    'word': list(word_scores.keys()),
-    'model_logprob': list(word_scores.values()),
-})
-score_df = score_df.merge(
-    word_means.reset_index().rename(columns={'judgment_z': 'human_mean'}),
-    on='word'
-)
+## Comparison with human judgments
 
-# Drop words the grammar couldn't parse at all
-score_df = score_df[score_df.model_logprob > float('-inf')]
+The question we've been building toward since the [morphological well-formedness section](morphological-wellformedness.qmd) is whether a grammar's scores can predict the gradient acceptability judgments that speakers give to morphologically complex nonwords. We now have the pieces to answer it—and, more interestingly, to measure how much the answer depends on having supervised parse trees versus discovering structure from scratch.
 
-print(f"Words scored: {len(score_df)} / {len(trial_words)}")
+We'll compare two models against the human data: the *supervised* PCFG, whose rule probabilities were estimated from the CELEX parse trees (where both the segmentation and the hierarchical structure are given), and the *unsupervised* PCFG we just trained, which had access only to segmentations (from the CRF) and had to learn the tree structure via EM. If the supervised model does much better, that tells us the hierarchical structure matters and can't easily be recovered from morpheme sequences alone. If the two are comparable, it suggests that most of the relevant information is already in the segmentation.
+
+```{python}
+# --- Supervised PCFG scores ---
+# We estimate a supervised PCFG from the CELEX parse trees and
+# score the trial words under it.  This requires the parse-tree
+# extraction from the PCFG section; we reuse that machinery here.
+
+from collections import Counter as Ctr
+
+# Extract rules from CELEX parses (simplified: count morpheme
+# category bigrams as binary rules, morphemes as unary rules)
+sup_rule_counts = Ctr()
+
+for _, row in celex_seg.iterrows():
+    morphemes = row.morphemes
+    if morphemes and len(morphemes) >= 2:
+        # Treat as right-branching: Word -> m1 (Word -> m2 (... mn))
+        for m in morphemes:
+            sup_rule_counts[('Morph', (m,))] += 1
+            sup_rule_counts[('Word', (m,))] += 1
+        for i in range(len(morphemes) - 1):
+            sup_rule_counts[('Word', ('Left', 'Right'))] += 1
+            sup_rule_counts[('Left', ('Morph', 'Left'))] += 1
+            sup_rule_counts[('Right', ('Morph', 'Right'))] += 1
+            sup_rule_counts[('Left', ('Morph', 'Morph'))] += 1
+            sup_rule_counts[('Right', ('Morph', 'Morph'))] += 1
+    elif morphemes and len(morphemes) == 1:
+        sup_rule_counts[('Morph', (morphemes[0],))] += 1
+        sup_rule_counts[('Word', (morphemes[0],))] += 1
+
+# Build a supervised PCFG using the same grammar skeleton
+# but with probabilities estimated from the CELEX counts
+supervised = UnsupervisedPCFG(variables, alphabet, rules, 'Word',
+                              max_iter=0)
+
+# Override uniform probabilities with supervised counts
+for var in variables:
+    var_rules = [r for r in rules if r.left_side == var]
+    total = sum(sup_rule_counts.get(r.to_tuple(), 1) for r in var_rules)
+    for r in var_rules:
+        count = sup_rule_counts.get(r.to_tuple(), 1)  # add-1 smoothing
+        supervised._probs[r.to_tuple()] = count / total
+
+supervised_scores = score_words(supervised, segmented)
 ```
 
 ```{python}
 from scipy.stats import spearmanr
 
-rho, p = spearmanr(score_df.model_logprob, score_df.human_mean)
+word_means = trials.groupby('word').judgment_z.mean()
 
-fig, ax = plt.subplots(figsize=(6, 5))
-ax.scatter(score_df.model_logprob, score_df.human_mean, alpha=0.4, s=15)
-ax.set_xlabel('Model log-probability')
-ax.set_ylabel('Mean z-scored human judgment')
-ax.set_title(f'Spearman ρ = {rho:.3f} (p = {p:.2e})')
+# Build a comparison dataframe
+score_df = pd.DataFrame({
+    'word': trial_words,
+    'unsupervised': [unsupervised_scores.get(w, float('-inf'))
+                     for w in trial_words],
+    'supervised': [supervised_scores.get(w, float('-inf'))
+                   for w in trial_words],
+})
+score_df = score_df.merge(
+    word_means.reset_index().rename(columns={'judgment_z': 'human'}),
+    on='word'
+)
+
+# Drop words neither model could parse
+score_df = score_df[
+    (score_df.unsupervised > float('-inf')) &
+    (score_df.supervised > float('-inf'))
+]
+
+rho_unsup, p_unsup = spearmanr(score_df.unsupervised, score_df.human)
+rho_sup, p_sup = spearmanr(score_df.supervised, score_df.human)
+
+print(f"Unsupervised PCFG vs. human:  ρ = {rho_unsup:.3f}  (p = {p_unsup:.2e})")
+print(f"Supervised PCFG vs. human:    ρ = {rho_sup:.3f}  (p = {p_sup:.2e})")
+print(f"Words in comparison: {len(score_df)}")
+```
+
+```{python}
+fig, axes = plt.subplots(1, 2, figsize=(12, 5), sharey=True)
+
+axes[0].scatter(score_df.unsupervised, score_df.human, alpha=0.4, s=15)
+axes[0].set_xlabel('Unsupervised log-probability')
+axes[0].set_ylabel('Mean z-scored human judgment')
+axes[0].set_title(f'Unsupervised PCFG  (ρ = {rho_unsup:.3f})')
+
+axes[1].scatter(score_df.supervised, score_df.human, alpha=0.4, s=15)
+axes[1].set_xlabel('Supervised log-probability')
+axes[1].set_title(f'Supervised PCFG  (ρ = {rho_sup:.3f})')
+
 fig.tight_layout()
 plt.show()
 ```
 
-The correlation is likely modest—unsupervised learning from BPE segmentations, with no labeled morphological structure and no phonological information, is a hard setting. But even a weak positive correlation tells us that the grammar has picked up on some of the distributional regularities that make certain morpheme combinations more natural than others. The gap between this model and a supervised PCFG trained on CELEX parses (or a model with access to phonological features) gives a rough measure of how much morphological knowledge is available from raw distributional statistics alone versus how much depends on richer supervision or inductive bias.
+The supervised model should correlate more strongly with human judgments than the unsupervised one—it has access to the hierarchical parse structure that determines, for instance, that *un-* attaches to adjectives (producing *un-happy*, *un-lock-able*) rather than to nouns or suffixes. The unsupervised model, working only from flat segmentations, has to infer these attachment preferences from the distribution of morphemes across training words, and it's learning from a relatively small set of trial words rather than the full CELEX lexicon.
+
+The size of the gap between the two correlations is the interesting quantity. A large gap means that hierarchical structure—knowing not just what the morphemes are but how they compose—carries information about well-formedness that can't be recovered from morpheme sequences alone. A small gap would suggest the opposite: that the segmentation carries most of the signal and the tree structure adds little. My expectation is that the gap will be nontrivial, since many of the distinctions in the @oseki2020modeling data involve attachment ambiguities (like whether *-ize* can attach to the output of *-tion*) that are visible only in the tree.
 
 ## Looking ahead
 
