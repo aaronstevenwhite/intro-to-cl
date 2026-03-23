@@ -142,7 +142,7 @@ import pandas as pd
 
 # Load the English morphological lemma file
 celex = pd.read_csv(
-    'celex/eml/eml.cd',
+    'celex/english/eml/eml.cd',
     sep='\\',
     header=None,
     names=['IdNum', 'Head', 'MorphStatus', 'MorphCnt', 'StrucLab',

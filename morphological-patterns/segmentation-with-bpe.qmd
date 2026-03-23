@@ -124,7 +124,7 @@ import pandas as pd
 
 # Load CELEX word list (or use a fallback)
 celex = pd.read_csv(
-    'celex/eml/eml.cd', sep='\\', header=None,
+    'celex/english/eml/eml.cd', sep='\\', header=None,
     names=['IdNum', 'Head', 'MorphStatus', 'MorphCnt', 'StrucLab',
            'MorphOp', 'StrucAllo', 'StrucLabAdj'],
     encoding='latin-1'

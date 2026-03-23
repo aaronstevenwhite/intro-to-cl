@@ -325,30 +325,48 @@ Now we train the CRF on CELEX's gold-standard segmentations and use it to segmen
 
 ```{python}
 # --- Load CELEX and extract gold segmentations ---
+#
+# The CELEX eml.cd file has 25 backslash-separated fields per line,
+# but some entries contain extra backslashes in the data itself.  We
+# read it robustly by splitting each line ourselves and extracting
+# the fields we need: field 1 (word) and field 21 (StrucLab).
 
-celex = pd.read_csv(
-    'celex/eml/eml.cd', sep='\\', header=None,
-    names=['IdNum', 'Head', 'MorphStatus', 'MorphCnt', 'StrucLab',
-           'MorphOp', 'StrucAllo', 'StrucLabAdj'],
-    encoding='latin-1'
-)
-
-# The StrucAllo field contains allomorphic segmentations with
-# morpheme boundaries marked.  We extract words that have a
-# parseable segmentation.
 import re
 
-def extract_morphemes(strucallo):
-    """Pull morpheme strings out of a CELEX StrucAllo field."""
-    if pd.isna(strucallo):
+celex_words = []
+celex_struclabs = []
+
+with open('celex/english/eml/eml.cd', encoding='latin-1') as f:
+    for line in f:
+        fields = line.strip().split('\\')
+        if len(fields) >= 22:
+            celex_words.append(fields[1])
+            celex_struclabs.append(fields[21])
+
+celex = pd.DataFrame({'Head': celex_words, 'StrucLab': celex_struclabs})
+print(f"Loaded {len(celex)} CELEX entries")
+
+# The StrucLab field encodes morphological structure with morphemes
+# in parentheses.  We extract the morpheme strings directly.
+
+def extract_morphemes(struclab):
+    """Pull leaf morpheme strings out of a CELEX StrucLab field.
+
+    The StrucLab notation nests constituents in parentheses with
+    category labels in brackets: ((un)[A],(happy)[A])[A].  The
+    leaf morphemes are the innermost (morpheme)[Category] pairs
+    where the morpheme itself contains no parentheses.
+    """
+    if not struclab or struclab == 'N':
         return None
-    # Morphemes are enclosed in parentheses
-    morphs = re.findall(r'\(([^)]+)\)', strucallo)
+    # Match only leaves: (morpheme)[Category] where morpheme
+    # contains no parens or brackets
+    morphs = re.findall(r'\(([a-zA-Z]+)\)\[[^\]]+\]', struclab)
     if morphs:
         return [m.lower() for m in morphs]
     return None
 
-celex['morphemes'] = celex.StrucAllo.apply(extract_morphemes)
+celex['morphemes'] = celex.StrucLab.apply(extract_morphemes)
 celex_seg = celex[celex.morphemes.notna()].copy()
 
 # Build training data for the CRF
