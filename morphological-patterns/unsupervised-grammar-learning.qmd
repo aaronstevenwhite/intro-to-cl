@@ -319,19 +319,74 @@ def tags_to_segments(word, tags):
     if current:
         segments.append(current)
     return segments
+
+def align_morphemes_to_surface(word, morphemes):
+    """Find morpheme boundary positions in the surface word.
+
+    The underlying morphemes (from StrucLab) may not concatenate
+    to the surface form due to allomorphic alternations—e.g.
+    'happy' surfaces as 'happi' before '-ness'.  We use edit
+    distance alignment to map each morpheme's start position in
+    the underlying string to a position in the surface string.
+
+    Parameters
+    ----------
+    word : str
+        The surface form.
+    morphemes : list[str]
+        The underlying morpheme strings.
+
+    Returns
+    -------
+    list[int] | None
+        Boundary character indices (0-indexed), or None on failure.
+    """
+    underlying = ''.join(morphemes)
+
+    if underlying == word:
+        boundaries, pos = [], 0
+        for m in morphemes:
+            boundaries.append(pos)
+            pos += len(m)
+        return boundaries
+
+    result = edlib.align(underlying, word, mode='NW', task='path')
+    cigar = result['cigar']
+
+    # Map underlying positions to surface positions via CIGAR
+    u_pos, s_pos = 0, 0
+    u_to_s = {}
+
+    for length, op in re.findall(r'(\d+)([=XDIS])', cigar):
+        for _ in range(int(length)):
+            if op in ('=', 'X'):
+                u_to_s[u_pos] = s_pos
+                u_pos += 1
+                s_pos += 1
+            elif op == 'D':
+                u_pos += 1
+            elif op == 'I':
+                s_pos += 1
+
+    boundaries, u_boundary = [], 0
+    for m in morphemes:
+        if u_boundary in u_to_s:
+            boundaries.append(u_to_s[u_boundary])
+        u_boundary += len(m)
+
+    return boundaries if len(boundaries) == len(morphemes) else None
 ```
 
-Now we train the CRF on CELEX's gold-standard segmentations and use it to segment the trial words from @oseki2020modeling.
+Now we train the CRF on CELEX's gold-standard segmentations and use it to segment the trial words from @oseki2020modeling. The StrucLab field gives underlying morpheme forms (`happy`, `beauty`), which don't always match the surface spelling (`happi-ness`, `beauti-ful`). We use edit-distance alignment to find where each morpheme's boundary falls in the actual word, which gives us correct B/I tags even in the presence of allomorphic alternations.
 
 ```{python}
+import re
+import edlib
+
 # --- Load CELEX and extract gold segmentations ---
 #
-# The CELEX eml.cd file has 25 backslash-separated fields per line,
-# but some entries contain extra backslashes in the data itself.  We
-# read it robustly by splitting each line ourselves and extracting
-# the fields we need: field 1 (word) and field 21 (StrucLab).
-
-import re
+# The eml.cd file has 25 backslash-separated fields per line.
+# Field 1 is the word; field 21 is StrucLab.
 
 celex_words = []
 celex_struclabs = []
@@ -346,21 +401,16 @@ with open('celex/english/eml/eml.cd', encoding='latin-1') as f:
 celex = pd.DataFrame({'Head': celex_words, 'StrucLab': celex_struclabs})
 print(f"Loaded {len(celex)} CELEX entries")
 
-# The StrucLab field encodes morphological structure with morphemes
-# in parentheses.  We extract the morpheme strings directly.
-
 def extract_morphemes(struclab):
     """Pull leaf morpheme strings out of a CELEX StrucLab field.
 
     The StrucLab notation nests constituents in parentheses with
-    category labels in brackets: ((un)[A],(happy)[A])[A].  The
-    leaf morphemes are the innermost (morpheme)[Category] pairs
-    where the morpheme itself contains no parentheses.
+    category labels in brackets: ((un)[A],(happy)[A])[A].  We
+    extract only the leaves—the innermost (morpheme)[Category]
+    pairs—where the morpheme contains only alphabetic characters.
     """
     if not struclab or struclab == 'N':
         return None
-    # Match only leaves: (morpheme)[Category] where morpheme
-    # contains no parens or brackets
     morphs = re.findall(r'\(([a-zA-Z]+)\)\[[^\]]+\]', struclab)
     if morphs:
         return [m.lower() for m in morphs]
@@ -369,18 +419,26 @@ def extract_morphemes(struclab):
 celex['morphemes'] = celex.StrucLab.apply(extract_morphemes)
 celex_seg = celex[celex.morphemes.notna()].copy()
 
-# Build training data for the CRF
+# Build training data for the CRF by aligning underlying
+# morphemes to surface forms
 X_train, y_train = [], []
 
 for _, row in celex_seg.iterrows():
     word = row.Head.lower()
     morphemes = row.morphemes
-    joined = ''.join(morphemes)
+    boundaries = align_morphemes_to_surface(word, morphemes)
 
-    # Only use entries where the morphemes reconstruct the word
-    if joined == word:
-        X_train.append(word_to_features(word))
-        y_train.append(word_to_bio(word, morphemes))
+    if boundaries is None:
+        continue
+
+    # Convert boundary positions to BIO tags
+    tags = ['I'] * len(word)
+    for b in boundaries:
+        if b < len(word):
+            tags[b] = 'B'
+
+    X_train.append(word_to_features(word))
+    y_train.append(tags)
 
 print(f"CRF training examples: {len(X_train)}")
 ```
