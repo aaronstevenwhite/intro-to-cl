@@ -165,8 +165,10 @@ class FiniteStateAutomaton(FiniteStateAutomaton):
 
 Given an NFA $M = \langle Q, \Sigma, \delta, q_0, F \rangle$ recognizing $A = \mathbb{L}(M)$, the NFA $N = \text{kleene}(M) = \langle Q \cup \{q'_0\}, \Sigma, \delta', q'_0\not\in Q, F' \rangle$ recognizing $A^* = \mathbb{L}(N) = \mathbb{L}(\text{kleene}(M))$:
 
-1. Define $$\delta'(q, \sigma) = \begin{cases}
-q_0 & \text{if } (q = q'_0 \lor q \in F) \land \sigma = \epsilon \\
+1. Define $F' = \{q'_0\}$ (so that $\epsilon \in A^*$)
+2. Define $$\delta'(q, \sigma) = \begin{cases}
+\{q_0\} & \text{if } q = q'_0 \land \sigma = \epsilon \\
+\delta(q, \sigma) \cup \{q_0\} & \text{if } q \in F \land \sigma = \epsilon \\
 \delta(q, \sigma) & \text{otherwise} \\
 \end{cases}$$
 
@@ -193,12 +195,33 @@ class FiniteStateAutomaton:
         FiniteStateAutomaton
         """
         fsa = self._deepcopy()
-        
-        new_transition = fsa._transition_function
-        new_transition.add_transitions({(s, ''): fsa._initial_state
-                                        for s in fsa._final_states})
 
-        return FiniteStateAutomaton(fsa._alphabet, fsa._states,
-                                    fsa._initial_state, fsa._final_states,
-                                    new_transition.transition_graph)
+        # Create a new start state that is also a final state
+        new_start = 'q0_kleene'
+        while new_start in fsa._states:
+            new_start += '_'
+
+        new_states = fsa._states | {new_start}
+        new_final_states = {new_start}
+
+        # Build new transitions: merge epsilon transitions from final
+        # states back to the original start state, preserving any
+        # existing epsilon transitions
+        new_graph = dict(fsa._transition_function.transition_graph)
+
+        # New start state epsilon-transitions to the original start
+        new_graph[(new_start, '')] = {fsa._initial_state}
+
+        # Each original final state gets an epsilon-transition back
+        # to the original start, merged with any existing ones
+        for s in fsa._final_states:
+            key = (s, '')
+            if key in new_graph:
+                new_graph[key] = new_graph[key] | {fsa._initial_state}
+            else:
+                new_graph[key] = {fsa._initial_state}
+
+        return FiniteStateAutomaton(fsa._alphabet - {''}, new_states,
+                                    new_start, new_final_states,
+                                    new_graph)
 ```

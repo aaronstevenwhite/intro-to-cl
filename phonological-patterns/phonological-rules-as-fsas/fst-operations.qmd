@@ -82,13 +82,14 @@ This construction effectively runs the two transducers in series, feeding the ou
 
 ### Handling Epsilon Transitions
 
-The handling of epsilon transitions in composition requires special care. There are three cases to consider:
+The handling of epsilon transitions in composition requires special care. There are four cases to consider:
 
-1. Input symbol $\sigma \neq \epsilon$, intermediate symbol $\tau \neq \epsilon$
-2. Input symbol $\sigma \neq \epsilon$, intermediate symbol $\tau = \epsilon$
-3. Input symbol $\sigma = \epsilon$, intermediate symbol $\tau \neq \epsilon$
+1. Input symbol $\sigma \neq \epsilon$, intermediate symbol $\tau \neq \epsilon$: $T_1$ reads $\sigma$ and outputs $\tau$; $T_2$ reads $\tau$ and outputs $\gamma$.
+2. Input symbol $\sigma \neq \epsilon$, intermediate symbol $\tau = \epsilon$: $T_1$ reads $\sigma$ and outputs $\epsilon$; $T_2$ does not advance.
+3. Input symbol $\sigma = \epsilon$, intermediate symbol $\tau \neq \epsilon$: $T_1$ outputs $\tau$ without reading input; $T_2$ reads $\tau$.
+4. Input symbol $\sigma = \epsilon$, intermediate symbol $\tau = \epsilon$: both $T_1$ and $T_2$ take epsilon transitions. This case requires an *epsilon filter* [@mohri2009weighted] to prevent infinite loops—without it, both transducers could cycle through epsilon transitions indefinitely. The standard approach introduces a three-valued filter state that tracks which transducer is "allowed" to take an epsilon transition, ensuring that the two transducers alternate their epsilon moves.
 
-The composition algorithm must account for all these cases to ensure that the resulting transducer correctly implements the composed relation.
+The composition algorithm must account for all four cases to ensure that the resulting transducer correctly implements the composed relation.
 
 ### Example: Composing Phonological Rules
 

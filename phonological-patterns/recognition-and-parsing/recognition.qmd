@@ -77,4 +77,4 @@ q & \text{if } \boldsymbol\sigma = \epsilon \\
 \end{cases}
 $$
 
-This algorithm has a time complexity of $O(n)$ for DFAs and $O(n \cdot |Q|)$ for NFAs, where $n$ is the length of the input string and $|Q|$ is the number of states in the automaton.
+This algorithm has a time complexity of $O(n)$ for DFAs and $O(n \cdot (|Q| + |E|))$ for NFAs, where $n$ is the length of the input string, $|Q|$ is the number of states, and $|E|$ is the number of transitions in the automaton. The per-symbol cost for the NFA comes from computing $\delta$ for each state in $S$ (up to $|Q|$ states) and then taking the epsilon-reachable closure of the result.

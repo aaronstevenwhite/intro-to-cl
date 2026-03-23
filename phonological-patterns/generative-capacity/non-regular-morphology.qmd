@@ -53,17 +53,17 @@ This can be formalized as a language $L = \{xyzxz \mid x,y,z \in \Sigma^+, |y| =
 We can prove this is non-regular using the pumping lemma:
 
 1. Assume $L$ is regular with pumping length $p$
-2. Consider the string $w = a^p b c a^p c \in L$ (where $x = a^p$, $y = b$, $z = c$)
-3. By the pumping lemma, $w$ can be written as $w = uvz$ where:
-   - $|v| > 0$
-   - $|uv| \leq p$
-   - For all $i \geq 0$, $uv^iz \in L$
+2. Consider the string $s = a^p b c a^p c \in L$ (where $x = a^p$, $y = b$, $z = c$ in the language definition)
+3. By the pumping lemma, $s$ can be written as $s = \alpha\beta\gamma$ where:
+   - $|\beta| > 0$
+   - $|\alpha\beta| \leq p$
+   - For all $i \geq 0$, $\alpha\beta^i\gamma \in L$
 
-4. Since $|uv| \leq p$, both $u$ and $v$ consist only of $a$'s
-5. Let's say $v = a^k$ for some $k > 0$
-6. Consider $uv^2z$ (pumping $v$ once more)
+4. Since $|\alpha\beta| \leq p$, both $\alpha$ and $\beta$ consist only of $a$'s
+5. Let's say $\beta = a^k$ for some $k > 0$
+6. Consider $\alpha\beta^2\gamma$ (pumping $\beta$ once more)
 7. This gives us $a^{p+k} b c a^p c$, which is not of the form $xyzxz$ because the first occurrence of $a$'s is longer than the second
-8. Therefore, $uv^2z \not\in L$, contradicting the pumping lemma
+8. Therefore, $\alpha\beta^2\gamma \not\in L$, contradicting the pumping lemma
 9. Thus, $L$ is not regular
 
 ## Implications for Phonology and Morphology

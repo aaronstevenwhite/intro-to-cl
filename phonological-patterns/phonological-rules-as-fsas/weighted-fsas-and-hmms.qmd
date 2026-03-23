@@ -12,11 +12,11 @@ To see why this matters, consider the phonotactic constraint we've been using as
 A *weighted finite state automaton* (WFSA) is an FSA in which every transition carries a weight, and the weight of a path through the automaton is obtained by combining the weights of its transitions. Formally, a WFSA is a tuple $\langle Q, \Sigma, \delta, q_0, F, \lambda, \rho \rangle$, where:
 
 - $Q$, $\Sigma$, $q_0$, and $F$ are as before (states, alphabet, initial state, final states)
-- $\delta: Q \times \Sigma \rightarrow Q$ is the transition function (which may be partial)
-- $\lambda: Q \times \Sigma \times Q \rightarrow \mathbb{R}$ assigns a weight to each transition
+- $\delta: Q \times \Sigma \rightarrow \mathcal{P}(Q)$ is the transition function (which may be partial), now returning sets of states to allow nondeterminism
+- $\lambda: Q \times \Sigma \times Q \rightarrow \mathbb{R}$ assigns a weight to each transition (implicitly zero for non-transitions)
 - $\rho: F \rightarrow \mathbb{R}$ assigns a weight to each final state
 
-The weight of a path is the product (or sum, depending on the semiring) of the transition weights along the path, multiplied by the final-state weight. The weight of a string is the weight of the path (or the sum of the weights of all paths, in the nondeterministic case) that accepts it.
+The weight of a path is the product (or sum, depending on the semiring) of the transition weights along the path, multiplied by the final-state weight. When the automaton is nondeterministic, the same string may be accepted by multiple paths; the weight of a string is then the sum (in the semiring) of the weights of all accepting paths for that string.
 
 When the weights are probabilities—and specifically, when the weights leaving each state sum to 1 (including the probability of stopping at a final state)—we get a *probabilistic finite state automaton* (PFSA). A PFSA defines a probability distribution over $\Sigma^*$: the probability of a string is the weight of the accepting path.
 

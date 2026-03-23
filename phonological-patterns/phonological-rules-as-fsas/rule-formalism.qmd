@@ -143,13 +143,13 @@ where:
 - $\Sigma$ is the alphabet of the language
 - $T$ is the resulting finite state transducer
 
-The CDRewrite function constructs $T$ as follows:
+The CDRewrite function constructs $T$ using the improved marker transducer $T_{\text{Mark}}'$ (which includes the filters from above):
 
-$$\text{CDRewrite}(A, B, C, D, \Sigma) = T_{\text{Mark}} \circ T_{\text{Replace}} \circ T_{\text{Unmark}}$$
+$$\text{CDRewrite}(A, B, C, D, \Sigma) = T_{\text{Mark}}' \circ T_{\text{Replace}} \circ T_{\text{Unmark}}$$
 
 where:
 
-$$T_{\text{Mark}} = \text{Id}(\Sigma^*) \circ T_{\sigma} \circ \text{Id}(\Sigma^*) \circ T_{\tau} \circ \text{Id}(\Sigma^*) \circ T_{\rho} \circ \text{Id}(\Sigma^*) \circ T_{\eta} \circ \text{Id}(\Sigma^*) \circ T_{\text{LTR}} \circ T_{\text{Contain}}$$
+$$T_{\text{Mark}}' = \text{Id}(\Sigma^*) \circ T_{\sigma} \circ \text{Id}(\Sigma^*) \circ T_{\tau} \circ \text{Id}(\Sigma^*) \circ T_{\rho} \circ \text{Id}(\Sigma^*) \circ T_{\eta} \circ \text{Id}(\Sigma^*) \circ T_{\text{LTR}} \circ T_{\text{Contain}}$$
 
 $$T_{\text{Replace}} = \text{Id}((\Sigma \cup M)^* \sigma (\Sigma \cup M)^* \tau) \circ T_{A \rightarrow B} \circ \text{Id}(\rho (\Sigma \cup M)^* \eta (\Sigma \cup M)^*)$$
 

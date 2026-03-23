@@ -8,6 +8,7 @@
 __MACOSX
 *.zip
 .dockerignore
+cmudict-*
 
 formal-and-practical-preliminaries/regular-expressions/cmudict-0.7b
 formal-and-practical-preliminaries/regular-expressions/cmudict-ipa

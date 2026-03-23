@@ -176,54 +176,49 @@ class FiniteStateAutomaton:
         # Initial state is the pair of initial states
         new_initial_state = (fsa1._initial_state, fsa2._initial_state)
         
-        # Construct the product automaton
+        # Construct the product automaton via reachability
         stack = [new_initial_state]
         visited = set()
-        
+
         while stack:
             current_state = stack.pop()
             if current_state in visited:
                 continue
-                
+
             visited.add(current_state)
             new_states.add(current_state)
-            
+
             # Check if this is a final state in the product
             if (current_state[0] in fsa1._final_states and
                 current_state[1] in fsa2._final_states):
                 new_final_states.add(current_state)
-            
+
             # Compute transitions for each symbol
             for symbol in new_alphabet:
-                next_states1 = fsa1._transition_function.get_transitions(current_state[0], symbol)
-                next_states2 = fsa2._transition_function.get_transitions(current_state[1], symbol)
-                
+                next_states1 = fsa1._transition_function(current_state[0], symbol)
+                next_states2 = fsa2._transition_function(current_state[1], symbol)
+
                 # For each pair of next states
                 for q1 in next_states1:
                     for q2 in next_states2:
                         next_state = (q1, q2)
-                        
-                        # Add the transition
-                        if current_state not in new_transition_graph:
-                            new_transition_graph[current_state] = {}
-                        if symbol not in new_transition_graph[current_state]:
-                            new_transition_graph[current_state][symbol] = set()
-                            
-                        new_transition_graph[current_state][symbol].add(next_state)
-                        
+
+                        key = (current_state, symbol)
+                        if key in new_transition_graph:
+                            new_transition_graph[key].add(next_state)
+                        else:
+                            new_transition_graph[key] = {next_state}
+
                         # Add to stack if not visited
                         if next_state not in visited:
                             stack.append(next_state)
-        
-        # Create the new transition function
-        new_transition_function = TransitionFunction(new_transition_graph)
-        
+
         return FiniteStateAutomaton(
             new_alphabet,
             new_states,
             new_initial_state,
             new_final_states,
-            new_transition_function
+            new_transition_graph
         )
 ```
 

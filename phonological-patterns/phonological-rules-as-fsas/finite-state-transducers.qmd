@@ -24,7 +24,7 @@ Alternatively, a Finite State Transducer (FST) is a grammar with 7 components:
 2. An input alphabet $\Sigma$
 3. An output alphabet $\Gamma$
 4. A transition function $\delta : Q \times (\Sigma \cup \{\epsilon\}) \rightarrow \mathcal{P}(Q)$
-5. An output function $\omega : Q \times (\Sigma \cup \{\epsilon\}) \times Q \rightarrow \Gamma$
+5. An output function $\omega : Q \times (\Sigma \cup \{\epsilon\}) \times Q \rightarrow \Gamma \cup \{\epsilon\}$
 6. An initial state $q_0 \in Q$
 7. A set of final states $F \subseteq Q$
 

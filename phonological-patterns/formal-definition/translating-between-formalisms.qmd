@@ -116,9 +116,10 @@ Where $R_{i,j}^{S}$ represents the regular expression for paths from state $i$ t
 
 $$
 R_{i,j}^{\emptyset} = \begin{cases}
-a_1 \cup a_2 \cup \ldots \cup a_n & \text{if there are direct transitions labeled } a_1, a_2, \ldots, a_n \text{ from } i \text{ to } j \\
+\epsilon \cup a_1 \cup a_2 \cup \ldots \cup a_n & \text{if } i = j \text{ and there are direct transitions labeled } a_1, a_2, \ldots, a_n \text{ from } i \text{ to } j \\
 \epsilon & \text{if } i = j \text{ and there are no direct transitions from } i \text{ to } j \\
-\emptyset & \text{if there are no direct transitions from } i \text{ to } j \text{ and } i \neq j
+a_1 \cup a_2 \cup \ldots \cup a_n & \text{if } i \neq j \text{ and there are direct transitions labeled } a_1, a_2, \ldots, a_n \text{ from } i \text{ to } j \\
+\emptyset & \text{if } i \neq j \text{ and there are no direct transitions from } i \text{ to } j
 \end{cases}
 $$
 
