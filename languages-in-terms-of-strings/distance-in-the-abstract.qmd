@@ -16,7 +16,7 @@ Or we could compute the absolute difference.
 
 $$d_\text{abs}(a, b) = |a - b|$$
 
-More generally, we could define a distance on elements of a set $E$ to be any function $d: E \times E \rightarrow \mathbb{R}_+$ that satisfies a few constraints:
+More generally, we could define a distance on elements of a set $E$ to be any function $d: E \times E \rightarrow \mathbb{R}_+$ that satisfies a few constraints. A set equipped with such a function is called a [metric space](https://en.wikipedia.org/wiki/Metric_space):
 
 1. The distance between an object and itself is $0$: $d(x, x) = 0$
 2. The distance between an object and any other object is not $0$: $d(x, y) > 0$ if $x \neq y$

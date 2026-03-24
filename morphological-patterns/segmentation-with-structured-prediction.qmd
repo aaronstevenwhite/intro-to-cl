@@ -28,7 +28,7 @@ The idea is to model the joint distribution of the character sequence $\mathbf{x
 
 $$p(\mathbf{x}, \mathbf{y}) = \prod_{i=1}^n p(x_i \mid y_i) \cdot p(y_i \mid y_{i-1})$$
 
-where $p(x_i \mid y_i)$ is the *emission probability* (how likely is character $x_i$ given tag $y_i$?) and $p(y_i \mid y_{i-1})$ is the *transition probability* (how likely is tag $y_i$ given the previous tag $y_{i-1}$?). Given an observed character sequence $\mathbf{x}$, we want to find the tag sequence $\mathbf{y}^*$ that maximizes $p(\mathbf{y} \mid \mathbf{x})$. This is done using the Viterbi algorithm, which finds the most probable tag sequence in $O(n \cdot |Y|^2)$ time, where $|Y|$ is the number of possible tags (here, 2 or 3).
+where $p(x_i \mid y_i)$ is the *emission probability* (how likely is character $x_i$ given tag $y_i$?) and $p(y_i \mid y_{i-1})$ is the *transition probability* (how likely is tag $y_i$ given the previous tag $y_{i-1}$?). Given an observed character sequence $\mathbf{x}$, we want to find the tag sequence $\mathbf{y}^*$ that maximizes $p(\mathbf{y} \mid \mathbf{x})$. This is done using the [Viterbi algorithm](https://en.wikipedia.org/wiki/Viterbi_algorithm) [@viterbi_error_1967], which finds the most probable tag sequence in $O(n \cdot |Y|^2)$ time, where $|Y|$ is the number of possible tags (here, 2 or 3).
 
 We can train this model on the CELEX data, where we know the gold-standard morpheme boundaries and can therefore derive the correct BIO tags for each character.
 
@@ -90,7 +90,7 @@ The HMM is simple and fast, but it has a limitation that follows directly from i
 
 ## Conditional Random Fields
 
-Conditional random fields (CRFs) address this limitation. Rather than modeling the joint distribution $p(\mathbf{x}, \mathbf{y})$, a CRF directly models the conditional distribution $p(\mathbf{y} \mid \mathbf{x})$—the probability of a tag sequence given the entire observed character sequence. This means the model can condition on arbitrary features of the input at every position.
+[Conditional random fields](https://en.wikipedia.org/wiki/Conditional_random_field) (CRFs) address this limitation [@lafferty_conditional_2001]. Rather than modeling the joint distribution $p(\mathbf{x}, \mathbf{y})$, a CRF directly models the conditional distribution $p(\mathbf{y} \mid \mathbf{x})$—the probability of a tag sequence given the entire observed character sequence. This means the model can condition on arbitrary features of the input at every position.
 
 The conditional distribution takes the form:
 

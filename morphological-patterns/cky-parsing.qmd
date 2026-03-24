@@ -5,7 +5,7 @@ bibliography: ../references.bib
 
 In the previous sections, we introduced context-free grammars, operations on grammars, and normal forms. Now, we'll explore how to use these grammars for parsing.
 
-We'll focus on the Cocke-Kasami-Younger (CKY) algorithm, which is a bottom-up parsing algorithm for context-free grammars in Chomsky Normal Form. CKY is particularly well-suited for morphological analysis because of its efficiency and its ability to handle ambiguity.
+We'll focus on the [Cocke-Kasami-Younger](https://en.wikipedia.org/wiki/CYK_algorithm) (CKY) algorithm, which is a bottom-up parsing algorithm for context-free grammars in Chomsky Normal Form [@kasami_efficient_1965; @younger_recognition_1967]. CKY is particularly well-suited for morphological analysis because of its efficiency and its ability to handle ambiguity.
 
 ## Parsing for Morphological Analysis
 
@@ -18,7 +18,7 @@ For instance, when parsing "unhappiness", we want to not only verify that it's a
 
 ## The CKY Algorithm
 
-The CKY algorithm is a dynamic programming algorithm that fills a parse table bottom-up. It's particularly efficient because it avoids redundant computations by storing and reusing intermediate results.
+The CKY algorithm is a [dynamic programming](https://en.wikipedia.org/wiki/Dynamic_programming) algorithm that fills a parse table bottom-up. It's particularly efficient because it avoids redundant computations by storing and reusing intermediate results. See @jurafsky_speech_2023[Ch. 18] and @hopcroft_introduction_1979 for textbook treatments.
 
 Here's the core idea of the algorithm:
 

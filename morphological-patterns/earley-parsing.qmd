@@ -3,7 +3,7 @@ title: Top-down parsing with Earley
 bibliography: ../references.bib
 ---
 
-In the previous section, we explored the CKY algorithm, a bottom-up parsing approach for context-free grammars. Now, we'll examine the Earley algorithm, which is a top-down parsing method that combines the advantages of both top-down and bottom-up approaches.
+In the previous section, we explored the CKY algorithm, a bottom-up parsing approach for context-free grammars. Now, we'll examine the [Earley algorithm](https://en.wikipedia.org/wiki/Earley_parser) [@earley_efficient_1970], which is a top-down parsing method that combines the advantages of both top-down and bottom-up approaches.
 
 Unlike CKY, which requires the grammar to be in Chomsky Normal Form, the Earley algorithm can work with any context-free grammar. This flexibility makes it particularly useful for morphological analysis, where the natural expression of morphological rules might not conform to CNF.
 

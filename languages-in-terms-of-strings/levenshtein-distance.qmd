@@ -1,12 +1,13 @@
 ---
 title: Levenshtein distance
 highlight-style: oblivion
+bibliography: ../references.bib
 format:
     html:
         code-tools: true
 ---
 
-Okay, so how do we compute edit (or *Levenshtein*) distance? The basic idea is to define it recursively, deciding at each point in the string whether we want to insert/delete an element (each at some cost $c$) or whether we want to try matching the string.
+Okay, so how do we compute edit (or [*Levenshtein*](https://en.wikipedia.org/wiki/Levenshtein_distance)) distance [@levenshtein_binary_1966]? The basic idea is to define it recursively, deciding at each point in the string whether we want to insert/delete an element (each at some cost $c$) or whether we want to try matching the string.
 
 $$d_\text{lev}(\mathbf{a}, \mathbf{b}) = \begin{cases}
 c_\text{ins} \times |\mathbf{b}| & \text{if } |\mathbf{a}| = 0 \\
@@ -173,7 +174,7 @@ editdist('æbstɹækʃən', 'æbstɹækt')
 editdist.call_counter
 ```
 
-That helps a lot. Why? Because it only every computes the distance for a substring once. This is effectively what the *Wagner–Fischer algorithm* that you read about is doing. This is our first instance of a [*dynamic programming algorithm*](https://en.wikipedia.org/wiki/Dynamic_programming). The basic idea for Wagner-Fisher (and other algorithms we'll use later in the class) is to cache the memoized values for a function within a chart whose rows correspond to positions in the source string and whose columns correspond to positions in the target string.
+That helps a lot. Why? Because it only every computes the distance for a substring once. This is effectively what the [*Wagner–Fischer algorithm*](https://en.wikipedia.org/wiki/Wagner%E2%80%93Fischer_algorithm) [@wagner_string--string_1974] that you read about is doing. This is our first instance of a [*dynamic programming algorithm*](https://en.wikipedia.org/wiki/Dynamic_programming). The basic idea for Wagner-Fisher (and other algorithms we'll use later in the class) is to cache the memoized values for a function within a chart whose rows correspond to positions in the source string and whose columns correspond to positions in the target string.
 
 ```{python}
 import numpy as np

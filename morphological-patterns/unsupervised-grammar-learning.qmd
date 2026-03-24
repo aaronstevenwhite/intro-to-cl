@@ -8,11 +8,11 @@ execute:
 
 In the previous section on [probabilistic context-free grammars](probabilistic-context-free-grammars.qmd), we estimated rule probabilities from the CELEX database—a supervised approach that requires gold-standard morphological parses. But gold-standard parses are expensive to produce and are not available for most languages. This raises a natural question: can we learn a morphological grammar from raw data, without labeled parses?
 
-It can be done, at least in principle, using the *expectation-maximization* (EM) algorithm applied to probabilistic context-free grammars. The idea is to alternate between two steps: (i) use the current grammar to compute the expected counts of each rule across all possible parses of the training data (the E step); and (ii) use those expected counts to re-estimate the rule probabilities (the M step). This is the same basic strategy as EM for Gaussian mixture models or HMMs, but applied to the more complex structure of context-free grammars.
+It can be done, at least in principle, using the [*expectation-maximization*](https://en.wikipedia.org/wiki/Expectation%E2%80%93maximization_algorithm) (EM) algorithm [@dempster_maximum_1977] applied to probabilistic context-free grammars. The idea is to alternate between two steps: (i) use the current grammar to compute the expected counts of each rule across all possible parses of the training data (the E step); and (ii) use those expected counts to re-estimate the rule probabilities (the M step). This is the same basic strategy as EM for Gaussian mixture models or HMMs, but applied to the more complex structure of context-free grammars.
 
 ## The inside-outside algorithm
 
-To perform the E step, we need to compute, for each rule $A \rightarrow B\; C$ and each span $(i, j)$ in a training string, the *expected number of times* that rule is used to derive the substring from position $i$ to position $j$. This requires two quantities:
+The [inside-outside algorithm](https://en.wikipedia.org/wiki/Inside%E2%80%93outside_algorithm) [@baker_trainable_1979; @lari_estimation_1990] provides the machinery for the E step. To perform it, we need to compute, for each rule $A \rightarrow B\; C$ and each span $(i, j)$ in a training string, the *expected number of times* that rule is used to derive the substring from position $i$ to position $j$. This requires two quantities:
 
 - The *inside probability* $\alpha_A(i, j)$: the probability that nonterminal $A$ generates the substring $w_i \ldots w_j$ under the current grammar. We already computed this in the previous section—it's the quantity filled in by the probabilistic CKY algorithm.
 

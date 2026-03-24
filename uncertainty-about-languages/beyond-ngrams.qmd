@@ -11,7 +11,7 @@ The various language models developed over the last few decades differ primarily
 
 ## Hidden Markov Models
 
-A hidden Markov model (HMM) replaces the literal context $w_1 \ldots w_{i-1}$ with a distribution over a set of *hidden symbols* $Q$. At a high level, the model involves two components:
+A [hidden Markov model](https://en.wikipedia.org/wiki/Hidden_Markov_model) (HMM) replaces the literal context $w_1 \ldots w_{i-1}$ with a distribution over a set of *hidden symbols* $Q$ [@rabiner_tutorial_1989]. At a high level, the model involves two components:
 
 - A function that maps the prefix to a distribution over hidden symbols: $w_1 \ldots w_{i-1} \mapsto \mathbb{P}(Q_i = q \mid w_1 \ldots w_{i-1})$
 - A function that maps each hidden symbol to a distribution over $\Sigma$: $q \mapsto \mathbb{P}(W_i = w \mid Q_i = q)$
@@ -31,11 +31,11 @@ A continuous vector can, in principle, encode a richer range of distinctions tha
 
 Different neural architectures differ in how they compute $\mathbf{h}$ from the prefix:
 
-- **Recurrent neural networks (RNNs)** process the prefix one symbol at a time, updating $\mathbf{h}$ as each new symbol comes in. The vector at position $i$ is a function of the vector at position $i - 1$ and the new symbol $w_{i-1}$. This means information about early parts of the prefix can only reach position $i$ by passing through every intermediate update, which in practice makes it difficult for the model to retain information over long distances. **Long short-term memory networks (LSTMs)** and **gated recurrent units (GRUs)** are variants that address this difficulty by introducing mechanisms for selectively retaining and discarding information at each step.
+- **[Recurrent neural networks](https://en.wikipedia.org/wiki/Recurrent_neural_network) (RNNs)** process the prefix one symbol at a time, updating $\mathbf{h}$ as each new symbol comes in [@elman_finding_1990]. The vector at position $i$ is a function of the vector at position $i - 1$ and the new symbol $w_{i-1}$. This means information about early parts of the prefix can only reach position $i$ by passing through every intermediate update, which in practice makes it difficult for the model to retain information over long distances. **[Long short-term memory networks](https://en.wikipedia.org/wiki/Long_short-term_memory) (LSTMs)** [@hochreiter_long_1997] and **[gated recurrent units](https://en.wikipedia.org/wiki/Gated_recurrent_unit) (GRUs)** [@cho_learning_2014] are variants that address this difficulty by introducing mechanisms for selectively retaining and discarding information at each step.
 
-- **Transformers** take a different approach. Rather than processing the prefix sequentially, they compute $\mathbf{h}$ by attending to all positions in the prefix simultaneously, assigning a weight to each position based on how relevant it is to predicting the next symbol. This is the architecture underlying the large language models (such as GPT and similar systems) that have received considerable attention in recent years.
+- **[Transformers](https://en.wikipedia.org/wiki/Transformer_(deep_learning_architecture))** take a different approach [@vaswani_attention_2017]. Rather than processing the prefix sequentially, they compute $\mathbf{h}$ by attending to all positions in the prefix simultaneously, assigning a weight to each position based on how relevant it is to predicting the next symbol. This is the architecture underlying the large language models (such as GPT and similar systems) that have received considerable attention in recent years.
 
-There are other approaches as well—state space models, convolutional architectures—but RNNs (and their variants) and transformers are the two most widely used families.
+There are other approaches as well—state space models, convolutional architectures—but RNNs (and their variants) and transformers are the two most widely used families. @jurafsky_speech_2023[Ch. 7--10] provides a more detailed introduction to neural language models.
 
 The tradeoff relative to both $N$-gram models and HMMs is interpretability. With an $N$-gram model, we can directly inspect which contexts the model has learned distributions over. With an HMM, we can sometimes interpret the hidden states in terms of linguistic categories. With a neural model, the vector $\mathbf{h}$ is a point in a high-dimensional space, and understanding what it encodes requires additional analysis.
 

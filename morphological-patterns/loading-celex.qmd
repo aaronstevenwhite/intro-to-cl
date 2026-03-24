@@ -6,7 +6,7 @@ execute:
   eval: false
 ---
 
-To train and evaluate the morphological grammars we've been building, we need a dataset that provides gold-standard morphological parses—not just a list of morpheme boundaries but full hierarchical structure showing how morphemes compose. The [CELEX](https://catalog.ldc.upenn.edu/LDC96L14) lexical database provides exactly this. It's one of the most widely used resources in computational morphology, and we'll use it throughout the rest of this module as both a training set (for estimating grammar parameters) and an evaluation set (for checking our models against known parses).
+To train and evaluate the morphological grammars we've been building, we need a dataset that provides gold-standard morphological parses—not just a list of morpheme boundaries but full hierarchical structure showing how morphemes compose. The [CELEX](https://catalog.ldc.upenn.edu/LDC96L14) lexical database [@baayen_celex_1995] provides exactly this. It's one of the most widely used resources in computational morphology, and we'll use it throughout the rest of this module as both a training set (for estimating grammar parameters) and an evaluation set (for checking our models against known parses).
 
 ::: {.callout-warning}
 ## Data availability
@@ -16,7 +16,7 @@ CELEX (LDC96L14) is distributed by the [Linguistic Data Consortium](https://www.
 
 ## What is CELEX?
 
-CELEX is a lexical database for English, Dutch, and German that includes phonological, morphological, syntactic, and frequency information for a large number of word forms. It was compiled in the early 1990s at the Centre for Lexical Information in Nijmegen, and it remains one of the standard resources in psycholinguistics and computational linguistics despite its age.
+CELEX is a lexical database for English, Dutch, and German that includes phonological, morphological, syntactic, and frequency information for a large number of word forms [@baayen_celex_1995]. It was compiled in the early 1990s at the Centre for Lexical Information in Nijmegen, and it remains one of the standard resources in psycholinguistics and computational linguistics despite its age.
 
 For our purposes, the relevant field is `StrucLab`—the morphological structure label—which provides a serialized parse tree for each entry. The notation looks a bit cryptic at first, but it encodes exactly the kind of hierarchical structure that our context-free grammars generate.
 

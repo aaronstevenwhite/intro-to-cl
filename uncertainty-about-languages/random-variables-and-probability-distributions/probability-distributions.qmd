@@ -196,7 +196,7 @@ with urlopen(cmudict_url) as cmudict:
 _ = plt.hist([len(w) for w in words], bins=32)
 ```
 
-One such distribution that give us more flexibility in this respect is the [negative binomial distribution](https://en.wikipedia.org/wiki/Negative_binomial_distribution), which is a very useful for [modeling token frequency in text](https://doi.org/10.1017/S1351324900000139). This distribution effectively generalizes the geometric by allowing us to control the exponent on $\pi$ with a new parameter $r$.
+One such distribution that give us more flexibility in this respect is the [negative binomial distribution](https://en.wikipedia.org/wiki/Negative_binomial_distribution), which is a very useful for [modeling token frequency in text](https://doi.org/10.1017/S1351324900000139) [@church_poisson_1995]. This distribution effectively generalizes the geometric by allowing us to control the exponent on $\pi$ with a new parameter $r$.
 
 $$\text{NegBin}(k; \pi, r) = {k+r-1 \choose r-1}(1-\pi)^{k}\pi^{r}$$
 
