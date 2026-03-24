@@ -103,7 +103,7 @@ print(f"Min distance: {distances.min()}, Max distance: {distances.max()}")
 
 The Generalized Neighborhood Model has several hyperparameters: the bandwidth $\gamma$ of the Gaussian kernel and the parameters of the frequency weighting function $f_{\boldsymbol\theta}$. Since we don't have word frequencies from the CMU dictionary, we'll use a simplified version that treats all lexical items equally (i.e. $f_{\boldsymbol\theta}(\text{freq}) = 1$) and varies only $\gamma$.
 
-For each value of $\gamma$, we compute the neighborhood density score for each nonword and ask how well it predicts the acceptability rating, using the same cross-validated linear regression approach we used for the [$N$-gram models](../uncertainty-about-languages/ngram-models.qmd).
+For each value of $\gamma$, we compute the neighborhood density score for each nonword and ask how well it predicts the acceptability rating, using the same [cross-validated linear regression](../uncertainty-about-languages/ngram-models.qmd#evaluating-a-predictor) approach we used for the [$N$-gram models](../uncertainty-about-languages/ngram-models.qmd). Recall that this means fitting a linear regression on $K - 1$ folds and evaluating $R^2$ on the held-out fold, cycling through all folds and reporting the average. The bootstrap confidence intervals quantify our uncertainty about that average.
 
 ```{python}
 #| code-fold: true
@@ -158,6 +158,16 @@ cv_results
 We can now put the two perspectives side by side. In the [uncertainty-about-languages module](../uncertainty-about-languages/ngram-models.qmd), we found that bigram and trigram models predict a substantial amount of variance in acceptability judgments. Here, we've found that neighborhood density—a measure based entirely on edit distance to the lexicon, with no probabilistic model at all—also predicts acceptability.
 
 The question that @bailey2001determinants and @vitevitch1999probabilistic investigated is whether these two sources of information are independent or redundant. If phonotactic probability (as captured by $N$-gram models) and neighborhood density (as captured by the Generalized Neighborhood Model) make independent contributions to acceptability, then a model that uses both should outperform either alone. If they are largely redundant—if the strings that are probable under an $N$-gram model are also the strings that are close to many lexical items—then combining them will not help much.
+
+#### Multiple regression
+
+To test this, we extend the single-predictor [linear regression](../uncertainty-about-languages/ngram-models.qmd#evaluating-a-predictor) to [multiple regression](https://en.wikipedia.org/wiki/Multiple_regression)—a model with two predictors instead of one:
+
+$$a_\mathbf{w} \sim \mathcal{N}(m_1 x_1 + m_2 x_2 + b, \sigma^2)$$
+
+where $x_1$ is the log-probability from the $N$-gram model and $x_2$ is the neighborhood density score. The fitting procedure is the same as before—minimize the sum of squared residuals—but now there are two slopes to estimate. The key interpretive point is that $m_1$ captures the effect of log-probability *holding neighborhood density constant*, and $m_2$ captures the effect of neighborhood density *holding log-probability constant*. This is what it means for the two predictors to make "independent contributions": each coefficient reflects the unique predictive information carried by its predictor after accounting for the other [@hastie_elements_2009, Ch. 3].^[In the two-predictor case, if the predictors are themselves highly correlated, the individual coefficients become unstable even though the combined prediction may be fine. This phenomenon—[multicollinearity](https://en.wikipedia.org/wiki/Multicollinearity)—is not a problem for our purpose of comparing $R^2$ values, but it does mean that interpreting individual slopes requires care.]
+
+We evaluate the combined model the same way as the individual models: cross-validated $R^2$ with bootstrap confidence intervals. If the combined $R^2$ substantially exceeds both individual values, the two predictors carry partly non-overlapping information about acceptability. If it barely exceeds the better individual model, they are largely redundant—they're capturing the same structure in the data from different angles.^[Alternatively, the increase in $R^2$ from adding a predictor can be tested with a partial $F$-test. With cross-validation, the comparison is more direct: if cross-validated $R^2$ improves when we add the second predictor, the improvement reflects out-of-sample predictive gain, not just in-sample fit.]
 
 ```{python}
 #| code-fold: true

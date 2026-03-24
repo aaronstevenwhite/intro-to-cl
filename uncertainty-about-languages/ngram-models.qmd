@@ -42,15 +42,26 @@ where $c_{i_1 i_2 \ldots i_N}$ is the number of times the sequence $w_{i_1} \ldo
 
 One issue with the MLE is that any $N$-gram that never occurs in the training data will be assigned probability zero. This is a problem because when we compute the probability of a string, we multiply conditionals together—and a single zero sends the entire product to zero. In log space, this looks like a single $-\infty$ sending the sum to $-\infty$.
 
-A simple fix is *add-$\lambda$ smoothing*: we add a pseudocount $\lambda$ to every $N$-gram count before normalizing.
+To see why this matters concretely, consider a bigram model trained on a typical English lexicon. The sequence $\text{ŋk}$ probably appears many times (as in *think*, *bank*), so the model learns a reasonable estimate of $p(\text{k} \mid \text{ŋ})$. But the sequence $\text{ŋm}$ may never appear in the training data at all, so the MLE assigns $p(\text{m} \mid \text{ŋ}) = 0$. Now suppose we want to evaluate a nonword that happens to contain $\text{ŋm}$. Under the MLE, the entire string gets probability zero—not because it's maximally bad, but because the model has never seen that one transition. A single gap in the training data wipes out all the information from the other transitions in the string.
+
+### Add-$\lambda$ smoothing
+
+The fix is to ensure that no $N$-gram probability is ever exactly zero. [Add-$\lambda$ smoothing](https://en.wikipedia.org/wiki/Additive_smoothing) (also called Laplace smoothing when $\lambda = 1$) does this by adding a pseudocount $\lambda > 0$ to every $N$-gram count before normalizing:
 
 $$\hat{\theta}_{w_{i_1} \ldots w_{i_N}} = \frac{c_{i_1 i_2 \ldots i_N} + \lambda}{\sum_j \left[c_{i_1 i_2 \ldots j} + \lambda\right]}$$
 
-This ensures that no probability is ever exactly zero. When $\lambda = 0$, we recover the MLE. As $\lambda$ grows, the distribution becomes more uniform—the model relies less on the data and more on the assumption that all phones are roughly equally likely in any context. The value of $\lambda$ is a hyperparameter that we can tune.
+The pseudocount works as if we had observed each possible $N$-gram $\lambda$ additional times on top of whatever the data actually contains. This has two effects. First, no probability is ever zero: even an $N$-gram that never occurred in the training data gets a small positive probability proportional to $\lambda$. Second, the probabilities of frequently observed $N$-grams are slightly reduced to make room, since the denominator grows by $|\Sigma| \cdot \lambda$ (the total pseudocounts across all phones that could follow the context).
 
-(For those interested: add-$\lambda$ smoothing corresponds to placing a symmetric Dirichlet prior $\text{Dir}(\mathbf{1} + \lambda)$ on each conditional distribution and computing a maximum a posteriori (MAP) estimate rather than an MLE. When $\lambda = 0$—i.e. a uniform Dirichlet $\text{Dir}(\mathbf{1})$—the MAP estimate reduces to the MLE.)
+The parameter $\lambda$ controls the strength of this effect, and it is worth understanding its two extremes:
 
-We can thus view an $N$-gram model as having two hyperparameters: the order $N$ and the smoothing parameter $\lambda$.
+- When $\lambda = 0$, we recover the MLE exactly. The model trusts the data completely: observed counts determine probabilities, and unseen $N$-grams get probability zero.
+- As $\lambda \to \infty$, the pseudocounts overwhelm the observed counts and every conditional distribution converges to uniform: $\hat{\theta} \to 1/|\Sigma|$ for all contexts. The model ignores the data entirely and assigns equal probability to all phones in all positions.
+
+Between these extremes, $\lambda$ interpolates between fitting the data closely and hedging toward a uniform distribution. A small $\lambda$ stays close to the observed frequencies while giving unseen $N$-grams just enough probability to avoid zeros. A large $\lambda$ washes out the distinctions the model learned from the data. The right value of $\lambda$ depends on how much data we have and how much we trust the model's specific estimates—which is exactly the kind of question that [cross-validation](#evaluating-a-predictor) can answer.^[For those interested: add-$\lambda$ smoothing corresponds to placing a symmetric [Dirichlet prior](https://en.wikipedia.org/wiki/Dirichlet_distribution) $\text{Dir}(\boldsymbol{1} + \lambda)$ on each conditional distribution and computing a [maximum a posteriori](https://en.wikipedia.org/wiki/Maximum_a_posteriori_estimation) (MAP) estimate rather than an MLE. The pseudocounts are the prior's way of encoding a belief about what the distribution looks like before seeing any data. When $\lambda = 0$—a uniform Dirichlet $\text{Dir}(\boldsymbol{1})$—the MAP estimate reduces to the MLE. See @hastie_elements_2009[Ch. 8] for a broader discussion of regularization, of which smoothing is a special case.]
+
+Add-$\lambda$ smoothing is the simplest member of a large family of smoothing techniques for $N$-gram models, all of which address the same core problem—redistributing probability mass from observed $N$-grams to unobserved ones—but differ in how they decide how much mass to redistribute and where to put it. [Good-Turing smoothing](https://en.wikipedia.org/wiki/Good%E2%80%93Turing_frequency_estimation) [@good_population_1953] estimates the total probability of unseen events from the number of events seen exactly once. [Jelinek-Mercer smoothing](https://en.wikipedia.org/wiki/Jelinek%E2%80%93Mercer_smoothing) [@jelinek_interpolated_1980] interpolates between higher-order and lower-order $N$-gram estimates, so that a trigram model can fall back to a bigram estimate when the trigram count is sparse. [Katz backoff](https://en.wikipedia.org/wiki/Katz%27s_back-off_model) [@katz_estimation_1987] takes a similar approach but uses the lower-order model only when the higher-order count falls below a threshold. [Kneser-Ney smoothing](https://en.wikipedia.org/wiki/Kneser%E2%80%93Ney_smoothing) [@kneser_improved_1995] refines this further by basing the lower-order distribution not on raw counts but on the number of distinct contexts in which a word appears, which gives better estimates for words that are common only in a few fixed phrases. @chen_empirical_1996 provide a thorough empirical comparison of these methods. We use add-$\lambda$ smoothing here because it is easy to implement and sufficient for our purposes, but the more sophisticated methods are standard in large-scale language modeling.
+
+We can thus view an $N$-gram model as having two hyperparameters: the order $N$, which determines how much context the model conditions on, and the smoothing parameter $\lambda$, which determines how much it trusts the observed counts versus a uniform fallback.
 
 ## Fitting $N$-gram models to a lexicon
 
@@ -281,7 +292,43 @@ $$a_\mathbf{w} \sim \mathcal{N}(m \log p(\mathbf{w} \mid \boldsymbol\Theta) + b,
 
 Because all the nonwords in the dataset happen to be the same length, we don't need to worry about length normalization here—though in general, we would need to, since longer strings tend to have lower log-probabilities simply because more terms are being multiplied together.
 
-We evaluate each model using 5-fold cross-validation, fitting a linear regression from log-probability to Likert rating.
+### Evaluating a predictor
+
+Before we run the evaluation, it's worth spelling out the machinery we'll use, since the same ideas will recur throughout these notes.
+
+#### Linear regression
+
+The model above says that a nonword's acceptability rating is, in expectation, a linear function of its log-probability. We defined [conditional expectation](some-more-useful-definitions.qmd#conditional-expectation) earlier as $\mathbb{E}[X \mid Y = y] = \sum_x x \cdot p(x \mid y)$; the claim here is that $\mathbb{E}[a_\mathbf{w} \mid \log p(\mathbf{w} \mid \boldsymbol\Theta) = x] = mx + b$ for some slope $m$ and intercept $b$. The Gaussian noise term $\sigma^2$ captures everything about the rating that the log-probability doesn't predict.
+
+To *fit* this model—to find $m$ and $b$—we use [ordinary least squares](https://en.wikipedia.org/wiki/Ordinary_least_squares): choose the values of $m$ and $b$ that minimize the sum of squared residuals across the observed data:
+
+$$\hat{m}, \hat{b} = \underset{m, b}{\text{argmin}} \sum_{i=1}^{n} \left(a_i - (m x_i + b)\right)^2$$
+
+where $a_i$ is the observed rating for nonword $i$ and $x_i$ is its log-probability. This has a closed-form solution (the [normal equations](https://en.wikipedia.org/wiki/Ordinary_least_squares#Derivation_of_simple_linear_regression_estimators)), but the conceptual point is more important than the algebra: we are choosing the line through our data that makes the observed ratings least surprising under the Gaussian noise model stated above. See @hastie_elements_2009[Ch. 3] for a thorough treatment of [linear regression](https://en.wikipedia.org/wiki/Linear_regression) and its extensions.
+
+#### Coefficient of determination
+
+Once we've fitted the line, we need a way to measure how well it predicts. The [coefficient of determination](https://en.wikipedia.org/wiki/Coefficient_of_determination) $R^2$ does this by comparing the model's errors to the simplest possible baseline—predicting the mean rating $\bar{a}$ for every nonword:
+
+$$R^2 = 1 - \frac{\sum_{i=1}^{n} (a_i - \hat{a}_i)^2}{\sum_{i=1}^{n} (a_i - \bar{a})^2}$$
+
+The denominator is the total variance in the ratings. The numerator is the variance the model leaves unexplained. So $R^2$ is the fraction of variance *explained* by the predictor. If $R^2 = 1$, every prediction is exact; if $R^2 = 0$, the model does no better than predicting the mean.^[An $R^2$ of, say, 0.3 does not mean the model is "bad"—it means 30% of the variance in the response is predictable from the predictor. Whether that is a lot or a little depends on the domain. In psycholinguistics, where individual responses are noisy, $R^2$ values in the 0.1–0.4 range for item-level predictions are common.]
+
+For simple linear regression with a single predictor, $R^2$ is exactly the square of the [Pearson correlation](some-more-useful-definitions.qmd#covariance-and-correlation) between the predictor and the response: $R^2 = \text{corr}(X, Y)^2$. This connection to the correlation we defined earlier is useful, but it breaks down when we evaluate on new data—where, as we'll see, $R^2$ can actually go negative.
+
+#### Cross-validation
+
+If we compute $R^2$ on the same data we used to fit $m$ and $b$, we get an optimistic estimate of how well the model generalizes. The regression is free to latch onto idiosyncratic properties of the training data, inflating its apparent performance relative to performance we would observe on new data. A model with more flexibility (say, a 4-gram with very little smoothing) can fit training data better than a simpler model without actually predicting new data better. This is [overfitting](https://en.wikipedia.org/wiki/Overfitting)—and it is exactly the problem that the smoothing parameter $\lambda$ was introduced to control. Recall that as $\lambda$ grows, the $N$-gram model relies less on observed counts and more on the uniform prior, trading the ability to memorize training patterns for the ability to generalize. Cross-validation lets us measure this tradeoff directly: if a particular combination of $N$ and $\lambda$ has overfit, its in-sample $R^2$ will look good, but its held-out $R^2$ will not.
+
+[Cross-validation](https://en.wikipedia.org/wiki/Cross-validation_(statistics)) guards against this [@stone_cross-validatory_1974]. The idea is simple: partition the data into $K$ non-overlapping subsets called *folds*. For each fold, fit the model on the other $K - 1$ folds (the *training set*) and evaluate $R^2$ on the held-out fold (the *test set*). Rotate through all $K$ folds and report the average $R^2$ across them.^[The choice of $K = 5$ is a common default that balances bias and variance in the estimate. Smaller $K$ means more training data per fold but fewer evaluation points; larger $K$ (up to leave-one-out, where $K = n$) reduces bias but increases variance and computation. See @hastie_elements_2009[Sec. 7.10] for analysis of this tradeoff.]
+
+Because the model is always evaluated on data it hasn't seen, the cross-validated $R^2$ is a more honest estimate of predictive performance. It can go negative: that means the model's predictions on held-out data are worse than just predicting the mean—a useful signal that the model is not capturing anything real. See @hastie_elements_2009[Ch. 7] for an extended discussion of cross-validation and related model-selection methods.
+
+#### Bootstrap confidence intervals
+
+Cross-validation gives us $K$ scores (one per fold), and we report their mean. But how uncertain are we about that mean? The [bootstrap](https://en.wikipedia.org/wiki/Bootstrapping_(statistics)) provides a simple, [nonparametric](https://en.wikipedia.org/wiki/Nonparametric_statistics) answer [@efron_introduction_1993]: resample $K$ values *with replacement* from the $K$ observed scores, compute the mean of the resample, and repeat this many times. The 2.5th and 97.5th percentiles of the resampled means give a 95% confidence interval.^[The bootstrap was introduced by @efron_introduction_1993 as a general-purpose method for estimating the sampling distribution of almost any statistic. The idea is deceptively simple: if we don't know the population distribution, we treat the sample itself as a stand-in and resample from it.] This makes no assumption about the distribution of the per-fold scores—it lets the data speak for itself.
+
+With these tools in hand, we evaluate each model.
 
 ```{python}
 #| code-fold: true
