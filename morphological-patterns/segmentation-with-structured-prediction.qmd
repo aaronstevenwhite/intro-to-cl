@@ -90,13 +90,25 @@ The HMM is simple and fast, but it has a limitation that follows directly from i
 
 ## Conditional Random Fields
 
-[Conditional random fields](https://en.wikipedia.org/wiki/Conditional_random_field) (CRFs) address this limitation [@lafferty_conditional_2001]. Rather than modeling the joint distribution $p(\mathbf{x}, \mathbf{y})$, a CRF directly models the conditional distribution $p(\mathbf{y} \mid \mathbf{x})$—the probability of a tag sequence given the entire observed character sequence. This means the model can condition on arbitrary features of the input at every position.
+### Generative vs. discriminative models
 
-The conditional distribution takes the form:
+The HMM is a [*generative*](https://en.wikipedia.org/wiki/Generative_model) model: it specifies a full joint distribution $p(\mathbf{x}, \mathbf{y})$ over both the observations (characters) and the labels (tags). To make predictions, we use Bayes' theorem to compute $p(\mathbf{y} \mid \mathbf{x}) \propto p(\mathbf{x}, \mathbf{y})$. This means the model must explain how the observations are generated—via the emission probabilities $p(x_i \mid y_i)$—even though our actual goal is just to predict the tags given the observations.
+
+A [*discriminative*](https://en.wikipedia.org/wiki/Discriminative_model) model takes a more direct approach: it models the conditional distribution $p(\mathbf{y} \mid \mathbf{x})$ directly, without ever specifying how the observations themselves are distributed. This has a concrete advantage. Because the model doesn't need to "explain" the observations, it can condition on arbitrary features of the input—including features that would be difficult or impossible to model generatively. The tradeoff is that a discriminative model cannot generate new data (it has no model of $p(\mathbf{x})$), but for prediction tasks like segmentation, that's not a loss.^[The distinction between generative and discriminative models runs through much of machine learning. @rabiner_tutorial_1989 is the classic treatment of generative sequence models (HMMs); @lafferty_conditional_2001 introduced CRFs as their discriminative counterpart. See @jurafsky_speech_2023[Ch. 8] for a textbook discussion of the distinction in the context of sequence labeling.]
+
+### The CRF model
+
+[Conditional random fields](https://en.wikipedia.org/wiki/Conditional_random_field) (CRFs) are the discriminative counterpart of HMMs for sequence labeling [@lafferty_conditional_2001]. Rather than modeling the joint distribution $p(\mathbf{x}, \mathbf{y})$, a CRF directly models the conditional distribution $p(\mathbf{y} \mid \mathbf{x})$—the probability of a tag sequence given the entire observed character sequence.
+
+The model uses a [log-linear](https://en.wikipedia.org/wiki/Log-linear_model) (or *exponential*) parameterization. The idea is to define a set of features that measure properties of a candidate tag sequence in context, assign each feature a learned weight, and convert the weighted sum into a probability via the exponential function. Formally:
 
 $$p(\mathbf{y} \mid \mathbf{x}) = \frac{1}{Z(\mathbf{x})} \exp\left(\sum_{i=1}^n \sum_k \lambda_k f_k(y_{i-1}, y_i, \mathbf{x}, i)\right)$$
 
-where $f_k$ are *feature functions* that can look at the current tag $y_i$, the previous tag $y_{i-1}$, and *any* property of the entire input sequence $\mathbf{x}$ at position $i$. The normalizing constant $Z(\mathbf{x})$ ensures the distribution sums to 1 over all possible tag sequences.
+where $f_k$ are *feature functions* that can look at the current tag $y_i$, the previous tag $y_{i-1}$, and *any* property of the entire input sequence $\mathbf{x}$ at position $i$. Each $\lambda_k$ is a learned weight: positive weights encourage tag sequences where the corresponding feature fires, and negative weights discourage them. The normalizing constant $Z(\mathbf{x}) = \sum_{\mathbf{y}'} \exp\left(\sum_{i=1}^n \sum_k \lambda_k f_k(y'_{i-1}, y'_i, \mathbf{x}, i)\right)$ ensures the distribution sums to 1 over all possible tag sequences.^[The exponential function maps any real-valued score to a positive number, and then $Z(\mathbf{x})$ normalizes these positive numbers to a probability distribution. This is the same idea as the [softmax function](https://en.wikipedia.org/wiki/Softmax_function) used in neural networks, extended to sequences.]
+
+Compare this to the HMM. In the HMM, the emission probability $p(x_i \mid y_i)$ depends only on the tag at position $i$ and the single character at that position. In the CRF, the feature function $f_k(y_{i-1}, y_i, \mathbf{x}, i)$ can look at the *entire* input sequence. This is the key payoff of the discriminative approach: features can capture context that the HMM's generative structure rules out.
+
+### Feature functions
 
 The power of CRFs comes from the feature functions. For morphological segmentation, we might define features like:
 

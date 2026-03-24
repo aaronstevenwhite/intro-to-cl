@@ -11,196 +11,148 @@ diagram:
         - '\usetikzlibrary{automata, positioning, arrows, decorations.pathreplacing, fit, backgrounds, calc, shapes.multipart}'
 ---
 
-We'll start with an application of FSAs to modeling licit English syllables. To get a sense for what FSAs look like, let's consider the following example, which aims to model possible English syllables:
+We'll start with an application of FSAs to modeling licit English syllables. English syllable structure follows the template (C)(C)(C)V(C)(C)(C)(C), where the consonant clusters are heavily constrained—not any sequence of consonants can appear in the onset or coda. An FSA can encode exactly which clusters are allowed.
+
+The following diagram models possible English syllables. Each state is labeled with its role in syllable structure: `Sib` tracks the special behavior of /s/ in onsets, `Obs` tracks obstruents that can start clusters, `App` is the pre-nucleus position where approximants and other singleton-only consonants land, and so on.
 
 ```tikz
 %%| filename=english-syllables
 \begin{tikzpicture}[
     > = stealth,
     shorten > = 1pt,
-    auto,
-    node distance = 4cm,
     semithick,
-    every state/.style = {
-        draw = black,
-        thick,
-        fill = white,
-        minimum size = 4mm
-    },
-    scale=0.9, transform shape
+    every state/.style = {draw=black, thick, fill=white, minimum size=14mm, font=\small},
+    lbl/.style = {font=\small, inner sep=2pt},
+    scale=0.55, transform shape
 ]
 
-% ONSET SECTION - MADE MUCH TALLER
-\node[state, initial] (q0) {$q_0$};
+% ONSET STATES
+\node[state, initial, initial text=] (ini) at (0, 0) {\textsf{ini}};
+\node[state] (sib) at (6, 5) {\textsf{Sib}};
+\node[state] (obs) at (6, 0) {\textsf{Obs}};
+\node[state] (sP) at (12, 5) {\textsf{sP}};
+\node[state] (app) at (12, 0) {\textsf{App}};
 
-% Single consonant onset states - increased vertical spacing
-\node[state, right=of q0] (q1a) {$q_{1a}$};
-\node[state, above right=4cm and 2.5cm of q1a] (q1b) {$q_{1b}$};
-\node[state, right=of q1a] (q1c) {$q_{1c}$};
-\node[state, below right=4cm and 2.5cm of q1a] (q1d) {$q_{1d}$};
+% NUCLEUS STATES
+\node[state, accepting] (nuc) at (20, 0) {\textsf{Nuc}};
+\node[state, accepting] (dip) at (20, -6) {\textsf{Dip}};
 
-% Two-consonant onset cluster states
-\node[state, right=of q1b] (q2a) {$q_{2a}$};
-\node[state, right=of q1c] (q2b) {$q_{2b}$};
-\node[state, right=of q1d] (q2c) {$q_{2c}$};
+% CODA STATES
+\node[state, accepting] (son) at (27, 3.5) {\textsf{Son}};
+\node[state, accepting] (ob1) at (32, 0) {\textsf{Ob\textsubscript{1}}};
+\node[state, accepting] (ob2) at (38, 0) {\textsf{Ob\textsubscript{2}}};
+\node[state, accepting] (ob3) at (44, 0) {\textsf{Ob\textsubscript{3}}};
 
-% Three-consonant onset cluster states
-\node[state, right=of q2a] (q3a) {$q_{3a}$};
-\node[state, right=of q2b] (q3b) {$q_{3b}$};
+% === ONSET TRANSITIONS ===
 
-% NUCLEUS SECTION - ALSO INCREASED HEIGHT
-\node[state, right=6cm of q1c] (n1) {$n_1$};
-\node[state, above right=2cm and 3cm of n1] (n2) {$n_2$};
-\node[state, below right=2cm and 3cm of n1] (n3) {$n_3$};
+% ini -> Sib: /s/
+\path[->] (ini) edge node[lbl, above, sloped] {$s$} (sib);
 
-% CODA SECTION
-\node[state, right=6cm of n2] (c1a) {$c_{1a}$};
-\node[state, above right=2cm and 2.5cm of c1a] (c1b) {$c_{1b}$};
-\node[state, right=of c1a] (c1c) {$c_{1c}$};
-\node[state, below right=2cm and 2.5cm of c1a] (c1d) {$c_{1d}$};
+% ini -> Obs: stops, fricatives
+\path[->] (ini) edge node[lbl, above] {$P,\, F$} (obs);
 
-% Two-consonant coda cluster states
-\node[state, right=of c1b] (c2a) {$c_{2a}$};
-\node[state, right=of c1c] (c2b) {$c_{2b}$};
-\node[state, right=of c1d] (c2c) {$c_{2c}$};
+% ini -> App: singleton-only onsets (nasals, liquids, glides, affricates) + null onset
+\path[->] (ini) edge[bend right=18] node[lbl, below] {$\varepsilon,\, N,\, L,\, G,\, Aff$} (app);
 
-% Three-consonant coda cluster states
-\node[state, right=of c2a] (c3a) {$c_{3a}$};
-\node[state, accepting, right=of c2b] (c3b) {$c_{3b}$};
-\node[state, right=of c2c] (c3c) {$c_{3c}$};
+% Sib -> sP: /s/ + stop
+\path[->] (sib) edge node[lbl, above] {$P$} (sP);
 
-% Four-consonant coda cluster states (rare but exist)
-\node[state, accepting, right=of c3a] (c4a) {$c_{4a}$};
-\node[state, accepting, right=of c3c] (c4b) {$c_{4b}$};
+% Sib -> App: /s/ + sonorant (sn, sl, sw) or /s/ alone
+\path[->] (sib) edge node[lbl, left, pos=0.4] {$\varepsilon,\, N,\, L,\, G$} (app);
 
-% SYLLABIC CONSONANT SECTION - MOVED FURTHER DOWN
-\node[state, below=8cm of q1c] (s1) {$s_1$};
-\node[state, right=of s1] (s2) {$s_2$};
-\node[state, right=of s2] (s3) {$s_3$};
-\node[state, accepting, right=of s3] (s4) {$s_4$};
+% Obs -> App: obstruent + approximant (bl, fr, tw, etc.) or singleton
+\path[->] (obs) edge node[lbl, above] {$\varepsilon,\, L,\, G$} (app);
 
-% Make all states accepting that can end a syllable
-\node[state, accepting] at (n3) {$n_3$};
-\node[state, accepting] at (c1a) {$c_{1a}$};
-\node[state, accepting] at (c1b) {$c_{1b}$};
-\node[state, accepting] at (c1c) {$c_{1c}$};
-\node[state, accepting] at (c1d) {$c_{1d}$};
-\node[state, accepting] at (c2a) {$c_{2a}$};
-\node[state, accepting] at (c2b) {$c_{2b}$};
-\node[state, accepting] at (c2c) {$c_{2c}$};
-\node[state, accepting] at (c3a) {$c_{3a}$};
-\node[state, accepting] at (c3c) {$c_{3c}$};
+% sP -> App: s+stop+approx (spl, str, skw) or s+stop alone
+\path[->] (sP) edge node[lbl, right, pos=0.4] {$\varepsilon,\, L,\, G$} (app);
 
-% ONSET TRANSITIONS
-% Single consonant onset
-\path[->] (q0) edge node[above, align=center] {$C_{stop}$} (q1a);
-\path[->] (q0) edge node[above, sloped, align=center] {$C_{fric}$} (q1b);
-\path[->] (q0) edge node[above, align=center] {$C_{affr/nas}$} (q1c);
-\path[->] (q0) edge node[below, sloped, align=center] {$C_{liq/glide}$} (q1d);
+% === ONSET -> NUCLEUS ===
 
-% Legal two-consonant onsets
-\path[->] (q1a) edge node[above, sloped, align=center] {$C_{liq/glide}$} (q2a);
-\path[->] (q1b) edge[bend left] node[above, sloped, align=center] {$C_{liq/glide}$} (q2a);
-\path[->] (q1b) edge node[above, align=center] {$C_{stop}$} (q2b);
-\path[->] (q1c) edge node[above, align=center] {$C_{glide}$} (q2c);
+% App -> Nuc: the only V-labeled edge (all onset paths converge here)
+\path[->] (app) edge node[lbl, above] {$V$} (nuc);
 
-% Legal three-consonant onsets
-\path[->] (q2b) edge node[above, align=center] {$C_{liq/glide}$} (q3a);
-\path[->] (q2a) edge node[above, sloped, align=center] {$C_{glide}$} (q3b);
+% === NUCLEUS TRANSITIONS ===
 
-% Connect all onset possibilities to nucleus
-\path[->] (q0) edge[bend left=20] node[above, sloped, align=center] {$\varepsilon$} (n1);
-\path[->] (q1a) edge[bend left=15] node[above, sloped, align=center] {} (n1);
-\path[->] (q1b) edge[bend left=25] node[above, sloped, align=center] {} (n1);
-\path[->] (q1c) edge[bend left=5] node[above, sloped, align=center] {} (n1);
-\path[->] (q1d) edge[bend right=20] node[above, sloped, align=center] {} (n1);
-\path[->] (q2a) edge[bend left=10] node[above, sloped, align=center] {} (n1);
-\path[->] (q2b) edge[bend left=5] node[above, sloped, align=center] {} (n1);
-\path[->] (q2c) edge[bend right=10] node[above, sloped, align=center] {} (n1);
-\path[->] (q3a) edge[bend left=5] node[above, sloped, align=center] {} (n1);
-\path[->] (q3b) edge[bend right=5] node[above, sloped, align=center] {} (n1);
+% Nuc -> Dip: diphthong offglide
+\path[->] (nuc) edge node[lbl, left] {$V_g$} (dip);
 
-% NUCLEUS TRANSITIONS
-\path[->] (n1) edge node[above, sloped, align=center] {$V_{front}$} (n2);
-\path[->] (n1) edge node[below, sloped, align=center] {$V_{back}$} (n3);
-\path[->] (n2) edge[bend right=30] node[right, align=center] {$V_{glide}$} (n3);
-\path[->] (n2) edge[loop above] node[above, align=center] {$\varepsilon$} (n2);
+% === CODA TRANSITIONS (from Nuc) ===
 
-% Connect nucleus to coda or end
-\path[->] (n2) edge[bend right=30] node[above, align=center] {$\varepsilon$} (c1a);
-\path[->] (n3) edge[bend left=20] node[below, sloped, align=center] {$\varepsilon$} (c1a);
+% Nuc -> Son: sonorant coda
+\path[->] (nuc) edge node[lbl, above, sloped] {$N,\, L$} (son);
 
-% CODA TRANSITIONS
-% Single consonant coda
-\path[->] (n2) edge node[above, sloped, align=center] {$C_{stop}$} (c1a);
-\path[->] (n2) edge node[above, sloped, align=center] {$C_{fric}$} (c1b);
-\path[->] (n3) edge node[below, sloped, align=center] {$C_{affr/nas}$} (c1c);
-\path[->] (n3) edge node[below, sloped, align=center] {$C_{liq}$} (c1d);
+% Nuc -> Ob1: obstruent coda
+\path[->] (nuc) edge[bend left=8] node[lbl, above, pos=0.6] {$Ob$} (ob1);
 
-% Legal two-consonant codas
-\path[->] (c1a) edge node[above, sloped, align=center] {$C_{obstr}$} (c2a);
-\path[->] (c1b) edge node[above, align=center] {$C_{obstr}$} (c2b);
-\path[->] (c1c) edge node[above, align=center] {$C_{obstr}$} (c2b);
-\path[->] (c1d) edge node[above, align=center] {$C_{obstr}$} (c2c);
+% === CODA TRANSITIONS (from Dip) ===
 
-% Legal three-consonant codas
-\path[->] (c2a) edge node[above, align=center] {$C_{obstr}$} (c3a);
-\path[->] (c2b) edge node[above, align=center] {$C_{s}$} (c3b);
-\path[->] (c2c) edge node[above, align=center] {$C_{obstr}$} (c3c);
+% Dip -> Son: sonorant coda after diphthong
+\path[->] (dip) edge node[lbl, below, sloped, pos=0.4] {$N,\, L$} (son);
 
-% Legal four-consonant codas (rare)
-\path[->] (c3a) edge node[above, align=center] {$C_{s}$} (c4a);
-\path[->] (c3c) edge node[above, align=center] {$C_{s}$} (c4b);
+% Dip -> Ob1: obstruent coda after diphthong
+\path[->] (dip) edge[bend right=12] node[lbl, below, sloped, pos=0.5] {$Ob$} (ob1);
 
-% SYLLABIC CONSONANT PATH
-\path[->] (q0) edge[bend right=30] node[left, align=center] {$\varepsilon$} (s1);
-\path[->] (s1) edge node[above, align=center] {$C_{obstr}$} (s2);
-\path[->] (s2) edge node[above, align=center] {$C_{syl}$} (s3);
-\path[->] (s3) edge node[above, align=center] {$C_{obstr}$} (s4);
-\path[->] (s3) edge[bend right=20] node[above, align=center] {$\varepsilon$} (s4);
+% === CODA CHAIN ===
 
-% ANNOTATIONS AND GROUPING
-% Highlight different sections
+% Son -> Ob1: sonorant + obstruent (nd, lt, mp, ...)
+\path[->] (son) edge node[lbl, above, sloped] {$Ob$} (ob1);
+
+% Ob1 -> Ob2: two obstruents in coda (ks, pt, ft, ...)
+\path[->] (ob1) edge node[lbl, above] {$Ob$} (ob2);
+
+% Ob2 -> Ob3: complex coda ending in /s/ (ksts, mpts, ...)
+\path[->] (ob2) edge node[lbl, above] {$s$} (ob3);
+
+% === BACKGROUND REGIONS ===
 \begin{pgfonlayer}{background}
-    % Onset section
-    \node[fit=(q0) (q1a) (q1b) (q1c) (q1d) (q2a) (q2b) (q2c) (q3a) (q3b), 
-          draw=blue!30, fill=blue!5, rounded corners, inner sep=1cm, label={[anchor=north,font=\bfseries]north:ONSET}] (onset) {};
-    
-    % Nucleus section  
-    \node[fit=(n1) (n2) (n3), 
-          draw=red!30, fill=red!5, rounded corners, inner sep=1cm, label={[anchor=north,font=\bfseries]north:NUCLEUS}] (nucleus) {};
-    
-    % Coda section
-    \node[fit=(c1a) (c1b) (c1c) (c1d) (c2a) (c2b) (c2c) (c3a) (c3b) (c3c) (c4a) (c4b), 
-          draw=green!30, fill=green!5, rounded corners, inner sep=0.5cm, label={[anchor=north,font=\bfseries]north:CODA}] (coda) {};
-    
-    % Syllabic consonant section
-    \node[fit=(s1) (s2) (s3) (s4), 
-          draw=purple!30, fill=purple!5, rounded corners, inner sep=0.5cm, label={[anchor=west,font=\bfseries]west:SYLLABIC CONSONANT}] (syllabic) {};
+    \node[fit=(ini)(sib)(sP)(app)(obs),
+          draw=blue!40, fill=blue!5, rounded corners=10pt, inner sep=15pt,
+          label={[font=\bfseries\large, blue!70]above:\textsf{ONSET}}] {};
+    \node[fit=(nuc)(dip),
+          draw=red!40, fill=red!5, rounded corners=10pt, inner sep=15pt,
+          label={[font=\bfseries\large, red!70]above:\textsf{NUCLEUS}}] {};
+    \node[fit=(son)(ob1)(ob2)(ob3),
+          draw=green!60!black!40, fill=green!5, rounded corners=10pt, inner sep=15pt,
+          label={[font=\bfseries\large, green!60!black!70]above:\textsf{CODA}}] {};
 \end{pgfonlayer}
 
 \end{tikzpicture}
 ```
 
-The symbols along the arrow represent collections of symbols.
+The state labels reflect where you are in the syllable structure:
 
-| Class Symbol | IPA Symbols | Description |
-|--------------|-------------|-------------|
-| C<sub>stop</sub> | [p, b, t, d, k, g] | Stop consonants/plosives |
-| C<sub>fric</sub> | [f, v, θ, ð, s, z, ʃ, ʒ, h] | Fricatives |
-| C<sub>affr/nas</sub> | [tʃ, dʒ, m, n, ŋ] | Affricates and nasals |
-| C<sub>liq/glide</sub> | [l, r, w, j] | Liquids and glides |
-| C<sub>liq</sub> | [l, r] | Liquids only |
-| C<sub>glide</sub> | [w, j] | Glides only |
-| C<sub>obstr</sub> | [t, d, s, z, θ, ð] | Obstruents in coda clusters |
-| C<sub>s</sub> | [s] | Just /s/, common in complex codas |
-| C<sub>syl</sub> | [n̩, m̩, l̩, r̩] | Syllabic consonants |
+| State | Meaning |
+|-------|---------|
+| **ini** | Initial state — beginning of syllable |
+| **Sib** | Onset: /s/ consumed (the sibilant that begins three-consonant onsets) |
+| **Obs** | Onset: a stop or fricative consumed |
+| **sP** | Onset: /s/ + stop consumed (as in *sp*, *st*, *sk*) |
+| **App** | Onset complete — approximant or other final onset consonant consumed; ready for vowel |
+| **Nuc** | Nucleus: vowel produced (accepting) |
+| **Dip** | Nucleus: diphthong offglide produced (accepting) |
+| **Son** | Coda: sonorant (nasal or liquid) consumed (accepting) |
+| **Ob₁** | Coda: first obstruent consumed (accepting) |
+| **Ob₂** | Coda: second obstruent consumed (accepting) |
+| **Ob₃** | Coda: final /s/ consumed (accepting) |
 
-| Class Symbol | IPA Symbols | Description |
-|--------------|-------------|-------------|
-| V<sub>front</sub> | [i, ɪ, e, ɛ, æ, a] | Front vowels |
-| V<sub>back</sub> | [ɑ, ɔ, o, ʊ, u, ʌ, ə, ɝ] | Back vowels |
-| V<sub>glide</sub> | [ɪ, ʊ] | Vowels that can form glides in diphthongs |
+A few things about the notation. The labels on the transitions—$P$, $F$, $N$, etc.—are not individual symbols but *natural classes*: shorthand for sets of phonemes. An edge labeled $P$ actually represents six separate transitions, one for each stop consonant. Similarly, an edge labeled $\varepsilon$ is an [*epsilon transition*](https://en.wikipedia.org/wiki/Nondeterministic_finite_automaton#NFA_with_%CE%B5-moves): it allows the automaton to move between states without consuming any symbol from the input. For instance, the $\varepsilon$ on the edge from **Obs** to **App** lets the automaton treat a single obstruent as a complete onset (skipping the approximant position).
+
+The following table defines each natural class:
+
+| Label | IPA members | Description |
+|-------|-------------|-------------|
+| $s$ | {s} | The sibilant /s/, which has a special role in English onsets |
+| $P$ | {p, b, t, d, k, g} | Stops (plosives) |
+| $F$ | {f, v, θ, ð, ʃ, ʒ, h} | Fricatives other than /s/ |
+| $Aff$ | {tʃ, dʒ} | Affricates |
+| $N$ | {m, n, ŋ} | Nasals |
+| $L$ | {l, r} | Liquids |
+| $G$ | {w, j} | Glides |
+| $V$ | {i, ɪ, e, ɛ, æ, ɑ, ɔ, o, ʊ, u, ʌ, ə} | Vowels (monophthongs) |
+| $V_g$ | {ɪ, ʊ} | Offglide vowels (for diphthongs like /aɪ/, /aʊ/) |
+| $Ob$ | {p, b, t, d, k, g, f, v, θ, ð, s, z, ʃ, ʒ} | Obstruents (stops and fricatives, in coda clusters) |
+
+To trace through an example: the word *string* /stɹɪŋ/ follows the path **ini** $\xrightarrow{s}$ **Sib** $\xrightarrow{P}$ **sP** $\xrightarrow{L}$ **App** $\xrightarrow{V}$ **Nuc** $\xrightarrow{N}$ **Son**. The word *a* /ə/ follows **ini** $\xrightarrow{\varepsilon}$ **App** $\xrightarrow{V}$ **Nuc**. The word *sixths* /sɪksθs/ follows **ini** $\xrightarrow{\varepsilon}$ **App** $\xrightarrow{V}$ **Nuc** $\xrightarrow{N}$ ... — wait, that doesn't work, since /s/ is the onset. Actually: **ini** $\xrightarrow{s}$ **Sib** $\xrightarrow{\varepsilon}$ **App** $\xrightarrow{V}$ **Nuc** $\xrightarrow{Ob}$ **Ob₁** $\xrightarrow{Ob}$ **Ob₂** $\xrightarrow{s}$ **Ob₃**.
 
 There's a few components to notice here:
 

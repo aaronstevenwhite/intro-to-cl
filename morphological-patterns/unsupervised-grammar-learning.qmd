@@ -36,6 +36,57 @@ $$\text{count}(A \rightarrow B\; C, i, k, j) = \frac{\beta_A(i, j) \cdot p(A \ri
 
 The denominator $\alpha_S(1, n)$ is the total probability of the string under the current grammar—the inside probability of the start symbol spanning the whole string. Dividing by it normalizes the expected count so that it represents a posterior expectation.
 
+### A worked example
+
+To make this concrete, consider a tiny grammar with start symbol $W$, nonterminals $\{W, M\}$, terminals $\{un, lock, able\}$, and rules:
+
+| Rule | Probability |
+|------|-------------|
+| $W \rightarrow M\; M$ | 0.6 |
+| $W \rightarrow M\; W$ | 0.4 |
+| $M \rightarrow \text{un}$ | 0.3 |
+| $M \rightarrow \text{lock}$ | 0.5 |
+| $M \rightarrow \text{able}$ | 0.2 |
+
+We want to compute inside and outside probabilities for the string $\text{un lock able}$ (3 terminals, positions 1–3).
+
+**Inside probabilities (bottom-up).** Start with the terminals. For each single-position span:
+
+- $\alpha_M(1,1) = p(M \rightarrow \text{un}) = 0.3$
+- $\alpha_M(2,2) = p(M \rightarrow \text{lock}) = 0.5$
+- $\alpha_M(3,3) = p(M \rightarrow \text{able}) = 0.2$
+
+For length-2 spans, we look for rules $A \rightarrow B\;C$ where $B$ covers one position and $C$ covers the other:
+
+- $\alpha_W(1,2) = p(W \rightarrow M\;M) \cdot \alpha_M(1,1) \cdot \alpha_M(2,2) = 0.6 \times 0.3 \times 0.5 = 0.09$
+- $\alpha_W(2,3) = p(W \rightarrow M\;M) \cdot \alpha_M(2,2) \cdot \alpha_M(3,3) = 0.6 \times 0.5 \times 0.2 = 0.06$
+
+For the full span (1,3), there are two possible split points ($k = 1$ and $k = 2$) and two rules:
+
+$$\alpha_W(1,3) = \underbrace{p(W \rightarrow M\;M) \cdot \alpha_M(1,1) \cdot \alpha_M(2,3)}_{\text{split at }k=1,\text{ but } \alpha_M(2,3) = 0} + \underbrace{p(W \rightarrow M\;W) \cdot \alpha_M(1,1) \cdot \alpha_W(2,3)}_{\text{split at }k=1} + \underbrace{p(W \rightarrow M\;M) \cdot \alpha_M(1,2) \cdot \alpha_M(3,3)}_{\alpha_M(1,2) = 0} + \underbrace{p(W \rightarrow M\;W) \cdot \alpha_M(1,2) \cdot \alpha_W(3,3)}_{\alpha_W(3,3) = 0}$$
+
+Only the second term survives (the others involve nonterminals that can't generate the required substrings): $\alpha_W(1,3) = 0.4 \times 0.3 \times 0.06 = 0.0072$. But we also need the split at $k=2$:
+
+$$\alpha_W(1,3) \mathrel{+}= p(W \rightarrow M\;M) \cdot \alpha_M(1,2) \cdot \alpha_M(3,3) + p(W \rightarrow M\;W) \cdot \alpha_M(1,2) \cdot \alpha_W(3,3)$$
+
+Since $M$ has no binary rules, $\alpha_M(1,2) = 0$ and $\alpha_W(3,3) = 0$, so nothing is added. We also need the $W \rightarrow M\;W$ rule at split $k=2$: $\alpha_W(1,2) \cdot \alpha_?(3,3)$ — but this reads the wrong way (left child $=W$, not $M$). So: $\alpha_W(1,3) = 0.0072$.
+
+**Outside probabilities (top-down).** Start with the root:
+
+- $\beta_W(1,3) = 1$ (base case)
+
+For the right child at span (2,3) under rule $W \rightarrow M\;W$ with parent spanning (1,3) and left sibling $M$ at (1,1):
+
+$$\beta_W(2,3) = p(W \rightarrow M\;W) \cdot \beta_W(1,3) \cdot \alpha_M(1,1) = 0.4 \times 1 \times 0.3 = 0.12$$
+
+This says: the "context" for $W$ spanning positions 2–3 (i.e., everything outside *lock able*) has probability 0.12 under the current grammar.
+
+**Expected counts.** The expected count of the rule $W \rightarrow M\;W$ at span (1,3) with split at $k=1$ is:
+
+$$\frac{\beta_W(1,3) \cdot p(W \rightarrow M\;W) \cdot \alpha_M(1,1) \cdot \alpha_W(2,3)}{\alpha_W(1,3)} = \frac{1 \times 0.4 \times 0.3 \times 0.06}{0.0072} = 1.0$$
+
+In this tiny example, the expected count is 1 because there is only one parse of the string, and it uses $W \rightarrow M\;W$ exactly once. With a more ambiguous grammar, the expected counts would be fractional, distributed across the competing parses.
+
 ## The M step
 
 Given the expected counts from the E step, the M step is straightforward. For each nonterminal $A$, we re-estimate the probability of each rule $A \rightarrow \alpha$ as the proportion of expected uses of that rule among all rules with $A$ on the left-hand side:

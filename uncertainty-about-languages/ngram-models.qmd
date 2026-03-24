@@ -57,7 +57,35 @@ The parameter $\lambda$ controls the strength of this effect, and it is worth un
 - When $\lambda = 0$, we recover the MLE exactly. The model trusts the data completely: observed counts determine probabilities, and unseen $N$-grams get probability zero.
 - As $\lambda \to \infty$, the pseudocounts overwhelm the observed counts and every conditional distribution converges to uniform: $\hat{\theta} \to 1/|\Sigma|$ for all contexts. The model ignores the data entirely and assigns equal probability to all phones in all positions.
 
-Between these extremes, $\lambda$ interpolates between fitting the data closely and hedging toward a uniform distribution. A small $\lambda$ stays close to the observed frequencies while giving unseen $N$-grams just enough probability to avoid zeros. A large $\lambda$ washes out the distinctions the model learned from the data. The right value of $\lambda$ depends on how much data we have and how much we trust the model's specific estimates—which is exactly the kind of question that [cross-validation](#evaluating-a-predictor) can answer.^[For those interested: add-$\lambda$ smoothing corresponds to placing a symmetric [Dirichlet prior](https://en.wikipedia.org/wiki/Dirichlet_distribution) $\text{Dir}(\boldsymbol{1} + \lambda)$ on each conditional distribution and computing a [maximum a posteriori](https://en.wikipedia.org/wiki/Maximum_a_posteriori_estimation) (MAP) estimate rather than an MLE. The pseudocounts are the prior's way of encoding a belief about what the distribution looks like before seeing any data. When $\lambda = 0$—a uniform Dirichlet $\text{Dir}(\boldsymbol{1})$—the MAP estimate reduces to the MLE. See @hastie_elements_2009[Ch. 8] for a broader discussion of regularization, of which smoothing is a special case.]
+Between these extremes, $\lambda$ interpolates between fitting the data closely and hedging toward a uniform distribution. The following plot illustrates this on a toy example: a unigram distribution over 5 phones with counts $(10, 5, 3, 1, 0)$. As $\lambda$ increases, the distribution flattens from the MLE toward uniform.
+
+```{python}
+#| code-fold: true
+#| code-summary: Effect of smoothing on a toy distribution
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+counts = np.array([10, 5, 3, 1, 0])
+phones = ['a', 'b', 'c', 'd', 'e']
+lambdas = [0, 0.1, 0.5, 1, 5, 50]
+
+fig, axes = plt.subplots(1, len(lambdas), figsize=(16, 2.8), sharey=True)
+
+for ax, lam in zip(axes, lambdas):
+    smoothed = (counts + lam) / (counts.sum() + lam * len(counts))
+    ax.bar(phones, smoothed, color='steelblue', edgecolor='white')
+    ax.set_title(f'λ = {lam}', fontsize=10)
+    ax.set_ylim(0, 0.6)
+    ax.tick_params(labelsize=8)
+    if lam == 0:
+        ax.set_ylabel('Probability', fontsize=9)
+
+fig.tight_layout()
+plt.show()
+```
+
+A small $\lambda$ stays close to the observed frequencies while giving unseen $N$-grams just enough probability to avoid zeros. A large $\lambda$ washes out the distinctions the model learned from the data. The right value of $\lambda$ depends on how much data we have and how much we trust the model's specific estimates—which is exactly the kind of question that [cross-validation](#evaluating-a-predictor) can answer.^[For those interested: add-$\lambda$ smoothing corresponds to placing a symmetric [Dirichlet prior](https://en.wikipedia.org/wiki/Dirichlet_distribution) $\text{Dir}(\boldsymbol{1} + \lambda)$ on each conditional distribution and computing a [maximum a posteriori](https://en.wikipedia.org/wiki/Maximum_a_posteriori_estimation) (MAP) estimate rather than an MLE. The pseudocounts are the prior's way of encoding a belief about what the distribution looks like before seeing any data. When $\lambda = 0$—a uniform Dirichlet $\text{Dir}(\boldsymbol{1})$—the MAP estimate reduces to the MLE. See @hastie_elements_2009[Ch. 8] for a broader discussion of regularization, of which smoothing is a special case.]
 
 Add-$\lambda$ smoothing is the simplest member of a large family of smoothing techniques for $N$-gram models, all of which address the same core problem—redistributing probability mass from observed $N$-grams to unobserved ones—but differ in how they decide how much mass to redistribute and where to put it. [Good-Turing smoothing](https://en.wikipedia.org/wiki/Good%E2%80%93Turing_frequency_estimation) [@good_population_1953] estimates the total probability of unseen events from the number of events seen exactly once. [Jelinek-Mercer smoothing](https://en.wikipedia.org/wiki/Jelinek%E2%80%93Mercer_smoothing) [@jelinek_interpolated_1980] interpolates between higher-order and lower-order $N$-gram estimates, so that a trigram model can fall back to a bigram estimate when the trigram count is sparse. [Katz backoff](https://en.wikipedia.org/wiki/Katz%27s_back-off_model) [@katz_estimation_1987] takes a similar approach but uses the lower-order model only when the higher-order count falls below a threshold. [Kneser-Ney smoothing](https://en.wikipedia.org/wiki/Kneser%E2%80%93Ney_smoothing) [@kneser_improved_1995] refines this further by basing the lower-order distribution not on raw counts but on the number of distinct contexts in which a word appears, which gives better estimates for words that are common only in a few fixed phrases. @chen_empirical_1996 provide a thorough empirical comparison of these methods. We use add-$\lambda$ smoothing here because it is easy to implement and sufficient for our purposes, but the more sophisticated methods are standard in large-scale language modeling.
 
