@@ -122,8 +122,46 @@ There is nothing in the definition of a DFA that prevents a phonological pattern
 
 ## Learnability revisited
 
-One candidate explanation comes from learnability. Recall Gold's result: the full class of regular languages is not learnable in the limit from positive data, because it contains infinite chains $L_1 \subset L_2 \subset \ldots$ that allow the learner to be tricked.
+One candidate explanation for why phonological patterns cluster in the subregular hierarchy comes from learnability. Recall [Gold's result](../the-generativist-conceit.qmd): the full class of regular languages is not learnable in the limit from positive data, because it contains infinite chains $L_1 \subset L_2 \subset \ldots$ that allow the learner to be tricked. If the subregular classes avoid this problem—if they *are* learnable from positive data—then the clustering of phonological patterns in these classes would have a principled explanation: natural languages live where they do because those are the languages that children can learn.
 
-The subregular classes avoid this problem. @heinz2010learning showed that SL and SP languages are learnable in the limit from positive data using straightforward algorithms that track $k$-grams or $k$-subsequences. @jardine2016learning extended this to TSL. @heinz2013learning provided a general framework for learning subregular classes using factored deterministic automata. And @lambert2021typology argued that the convergence between learnability and typology is not a coincidence—that the distributional properties of subregular classes predict which patterns should be common cross-linguistically.
+This is not just a hope. @heinz2010learning showed that SL and SP languages are learnable in the limit from positive data, and the algorithms that do it are remarkably simple.
 
-The picture that emerges is this: the constraint that phonological systems must be learnable from the kind of data children have access to pushes the class of possible phonological grammars into exactly the region of the regular languages where we find them. The subregular hierarchy provides a precise characterization of that region.
+### Learning SL languages
+
+Recall from the [section on SL languages](local-languages.qmd) that an SL-$k$ language is determined by a set of forbidden $k$-grams $\mathcal{F}$: a string is in the language if and only if none of its $k$-grams (in the boundary-augmented string) appear in $\mathcal{F}$. The learning algorithm exploits this directly.
+
+Given a parameter $k$ and a stream of positive examples $w_1, w_2, \ldots$ from an unknown SL-$k$ language $L$:
+
+1. Initialize $\mathcal{A} = \emptyset$ (the set of *attested* $k$-grams).
+2. For each new example $w_i$, extract all $k$-grams from the augmented string $\rtimes^{k-1} w_i \ltimes^{k-1}$ and add them to $\mathcal{A}$.
+3. At any point, the learner's current hypothesis is the SL-$k$ language with forbidden factors $\mathcal{F} = (\Sigma \cup \{\rtimes, \ltimes\})^k \setminus \mathcal{A}$—that is, every $k$-gram that has *not yet been observed* is assumed forbidden.
+
+The learner starts maximally restrictive (everything is forbidden) and relaxes constraints as it sees evidence. Since the alphabet is finite, there are only finitely many possible $k$-grams. After enough examples, every $k$-gram that is licit in $L$ will have been observed at least once, and the learner's hypothesis will stabilize at $L$.^[More precisely: since $L$ is SL-$k$, its set of permitted $k$-grams is exactly the set of $k$-grams that appear in strings in $L$. Any [text](../the-generativist-conceit.qmd) for $L$—any sequence that eventually includes every string in $L$—will therefore eventually present every permitted $k$-gram. Once all permitted $k$-grams have been seen, $\mathcal{A}$ equals the true set of permitted $k$-grams, $\mathcal{F}$ equals the true set of forbidden $k$-grams, and the hypothesis is correct. It will never change again, because no future example can introduce a $k$-gram not already in $\mathcal{A}$.]
+
+This algorithm converges to the correct language in finite time from any text, which is exactly what [identification in the limit](https://en.wikipedia.org/wiki/Language_identification_in_the_limit) requires. It never overgeneralizes beyond the target language (since it only permits $k$-grams it has evidence for), and it never gets permanently stuck on a sublanguage (since the finite set of permitted $k$-grams will eventually all be observed).
+
+Why doesn't Gold's impossibility result apply? Because the SL-$k$ class (for a fixed $k$) does *not* contain an infinite ascending chain. The number of possible SL-$k$ languages over a finite alphabet is finite (there are only finitely many subsets of the finite set of $k$-grams), so the condition Gold's theorem requires—an infinite chain $L_1 \subset L_2 \subset \ldots$—simply cannot arise.^[The union $\text{SL} = \bigcup_k \text{SL}_k$ over all $k$ *does* contain infinite chains (since SL-$k \subset$ SL-$(k+1)$), and indeed $\text{SL}$ as a whole is not learnable from positive data without knowing $k$ in advance. But for any fixed $k$, the class is finite and learnable. In practice, this means the learner must either know $k$ or have a method for selecting it—an issue @heinz2010learning discusses in detail.]
+
+### Learning SP languages
+
+The algorithm for SP languages is entirely parallel. An SP-$k$ language is determined by a set of forbidden $k$-*subsequences* $\mathcal{F}$: a string is in the language if and only if none of the forbidden subsequences appear as subsequences of the string.
+
+The learning algorithm:
+
+1. Initialize $\mathcal{A} = \emptyset$ (attested $k$-subsequences).
+2. For each new example $w_i$, extract all length-$k$ subsequences of $w_i$ and add them to $\mathcal{A}$.
+3. The current hypothesis is the SP-$k$ language with forbidden subsequences $\mathcal{F} = \Sigma^k \setminus \mathcal{A}$.
+
+The convergence argument is the same: there are finitely many $k$-subsequences over a finite alphabet, so after enough examples all permitted subsequences will have been observed and the hypothesis stabilizes.^[Extracting all $k$-subsequences from a string of length $n$ takes $O(\binom{n}{k})$ time, which for fixed $k$ is polynomial in $n$. For the values of $k$ relevant to phonology (typically 2 or 3), this is fast.]
+
+### Learning TSL languages
+
+@jardine2016learning extended the approach to TSL languages. Recall that a TSL-$k$ language with tier $\tau$ is one where the projection $\pi_\tau(L)$ is SL-$k$. The learning algorithm must discover both the tier $\tau$ and the forbidden $k$-grams on that tier.
+
+The key insight is that the tier can be identified from the data: a symbol belongs to the tier if and only if it participates in a long-distance dependency. @jardine2016learning formalize this by looking for symbols whose distribution is not independent of their non-adjacent context—if a symbol's distribution depends on what appeared several positions earlier (beyond the SL window), it must be on the tier. Once the tier is identified, the SL learning algorithm is applied to the projected strings.
+
+### The broader picture
+
+@heinz2013learning provided a general framework that unifies these algorithms using *factored deterministic automata*: the idea is that each subregular class corresponds to a particular way of factoring the state space of a DFA, and the learning algorithm for each class exploits the corresponding factorization to learn from positive data. @lambert2021typology argued that the convergence between learnability and typology is not a coincidence—that the distributional properties of subregular classes predict which patterns should be common cross-linguistically.
+
+The picture that emerges is this: the constraint that phonological systems must be learnable from the kind of data children have access to pushes the class of possible phonological grammars into exactly the region of the regular languages where we find them. The subregular hierarchy provides a precise characterization of that region, and the learning algorithms provide a mechanistic account of *why* that region is special.
