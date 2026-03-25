@@ -13,26 +13,27 @@ Over the past several decades, a body of work in formal language theory and comp
 
 The hierarchy looks roughly like this:
 
+```{mermaid}
+%%| fig-width: 7
+graph BT
+    SL["<b>SL</b><br/>Strictly Local"] --> LT["<b>LT</b><br/>Locally Testable"]
+    SP["<b>SP</b><br/>Strictly Piecewise"] --> PT["<b>PT</b><br/>Piecewise Testable"]
+    LT --> SF["<b>Star-Free</b>"]
+    PT --> SF
+    SF --> REG["<b>Regular</b>"]
+    SL -.-> TSL["<b>TSL</b><br/>Tier-based<br/>Strictly Local"]
+    LT -.-> TSL
+
+    style SL fill:#d4edda,stroke:#28a745,stroke-width:2px
+    style SP fill:#d4edda,stroke:#28a745,stroke-width:2px
+    style TSL fill:#fff3cd,stroke:#ffc107,stroke-width:2px,stroke-dasharray: 5 5
+    style LT fill:#d1ecf1,stroke:#17a2b8
+    style PT fill:#d1ecf1,stroke:#17a2b8
+    style SF fill:#e2e3e5,stroke:#6c757d
+    style REG fill:#f8d7da,stroke:#dc3545
 ```
-                         ┌──────────┐
-                         │ Regular  │
-                         └────┬─────┘
-                              │
-                       ┌──────┴──────┐
-                       │  Star-Free  │
-                       └──┬───────┬──┘
-                          │       │
-                    ┌─────┴──┐ ┌──┴─────┐
-                    │   LT   │ │   PT   │
-                    └────┬───┘ └───┬────┘
-                         │        │
-           ┌─────┐ ┌────┴───┐ ┌──┴─────┐
-           │ TSL │ │   SL   │ │   SP   │
-           └──┬──┘ └────────┘ └────────┘
-              │
-         (crosscuts SL
-          and LT)
-```
+
+Solid arrows indicate strict containment ($\subset$); the dashed lines to TSL indicate that it crosscuts the local branch, containing languages that are not SL but are contained in LT. The green classes at the bottom are where most attested phonological patterns live.
 
 - **SL** ([Strictly Local](local-languages.qmd)) and **SP** ([Strictly Piecewise](piecewise-languages.qmd)) are the smallest classes, capturing constraints on adjacent segments and on subsequences respectively.
 - **LT** (Locally Testable) and **PT** (Piecewise Testable) are somewhat larger: they can count local or piecewise patterns up to a threshold.
