@@ -4,7 +4,7 @@ bibliography: ../../references.bib
 jupyter: python3
 ---
 
-Consider the English onset cluster [bl], as in *black*. This is a perfectly fine way to start a word. The reverse, [lb], is not—there is no English word that begins with [lb]. This constraint depends only on pairs of adjacent symbols: [lb] is bad regardless of what comes before or after it. In the terminology we'll develop here, this makes it a *local* constraint.
+Consider the English onset cluster [bl], as in *black*. This is a perfectly fine way to start a word. The reverse, [lb], is not—there is no English word that begins with [lb]. This constraint depends only on a short sequence of symbols at a particular position in the word: the beginning. In the terminology we'll develop here, this makes it a *local* constraint.
 
 ## Strictly Local languages
 
@@ -16,18 +16,22 @@ $$w \in L \iff \text{no } k\text{-gram of } \rtimes^{k-1} w \ltimes^{k-1} \text{
 
 The set $\mathcal{F}$ is called the set of *forbidden factors*. Notice that the boundary markers let us express constraints on how strings begin and end: a forbidden $k$-gram starting with $\rtimes$ is a constraint on the first symbols of the string.
 
-For instance, the constraint against [lb] onsets in English can be expressed as an SL-2 constraint with $\mathcal{F} \ni \rtimes\text{l}\text{b}$... but actually, [lb] is bad not just at the beginning of a word. It's bad everywhere: English doesn't allow [lb] word-internally either (at least within a morpheme). So a simpler SL-2 constraint just forbids the bigram $\text{lb}$ outright: $\text{lb} \in \mathcal{F}$.
+For instance, the constraint against [lb] onsets in English can be expressed as an SL-3 constraint with $\rtimes\text{lb} \in \mathcal{F}$: the trigram consisting of the left boundary marker followed by [l] followed by [b] is forbidden.^[Why SL-3 and not SL-2? Because the forbidden factor involves three symbols: the boundary marker $\rtimes$ plus the two consonants. An SL-2 constraint with $\text{lb} \in \mathcal{F}$ would forbid [lb] *everywhere* in the string—but English allows [lb] across syllable boundaries, as in *elbow* [ɛlboʊ], *bulb* [bʌlb], and *album* [ælbəm]. The boundary marker is what lets us restrict the constraint to word-initial position.]
 
-We can build an FSA that enforces this constraint using `arcweight`. The idea is to construct an automaton that accepts precisely the strings containing the forbidden factor, and then take its complement.
+This illustrates an important point: boundary markers are not just a technical convenience. They are what allow SL grammars to distinguish between positional and non-positional constraints. Without them, every SL constraint would apply uniformly across the string. With them, we can express constraints like "word-initial [lb] is forbidden" separately from "word-medial [lb] is fine."
+
+For a constraint that *does* apply uniformly, consider the sequence [ŋm]: English never allows a velar nasal [ŋ] followed immediately by a bilabial nasal [m], regardless of position in the word. This is an SL-2 constraint with $\text{ŋm} \in \mathcal{F}$—no boundary marker needed.
+
+We can build FSAs that enforce these constraints using `arcweight`. The idea is to construct an automaton that accepts precisely the strings containing the forbidden factor, and then take its complement.
 
 ```{python}
 #| code-fold: true
-#| code-summary: Build an SL-2 constraint FSA forbidding [lb]
+#| code-summary: Build an SL-2 constraint FSA forbidding [ŋm]
 
 import arcweight
 
 # Define the alphabet
-phones = ['l', 'b', 'k', 'æ', 'ɪ']
+phones = ['l', 'b', 'k', 'æ', 'ɪ', 'ŋ', 'm']
 syms = arcweight.SymbolTable()
 sym_ids = {}
 for p in phones:
@@ -41,44 +45,44 @@ sigma_star.set_final(s, 0.0)
 for p in phones:
     sigma_star.add_arc(s, sym_ids[p], sym_ids[p], 0.0, s)
 
-# Build an FSA that accepts strings containing the bigram [lb]
-# States: 0 = start/no l seen, 1 = just saw l, 2 = saw lb (accept sink)
-contains_lb = arcweight.VectorFst()
-s0 = contains_lb.add_state()
-s1 = contains_lb.add_state()
-s2 = contains_lb.add_state()
-contains_lb.set_start(s0)
-contains_lb.set_final(s2, 0.0)
+# Build an FSA that accepts strings containing the bigram [ŋm]
+# States: 0 = no ŋ just seen, 1 = just saw ŋ, 2 = saw ŋm (accept sink)
+contains_nm = arcweight.VectorFst()
+s0 = contains_nm.add_state()
+s1 = contains_nm.add_state()
+s2 = contains_nm.add_state()
+contains_nm.set_start(s0)
+contains_nm.set_final(s2, 0.0)
 
-# From s0: seeing 'l' goes to s1, anything else stays at s0
+# From s0: seeing 'ŋ' goes to s1, anything else stays at s0
 for p in phones:
-    if p == 'l':
-        contains_lb.add_arc(s0, sym_ids[p], sym_ids[p], 0.0, s1)
+    if p == 'ŋ':
+        contains_nm.add_arc(s0, sym_ids[p], sym_ids[p], 0.0, s1)
     else:
-        contains_lb.add_arc(s0, sym_ids[p], sym_ids[p], 0.0, s0)
+        contains_nm.add_arc(s0, sym_ids[p], sym_ids[p], 0.0, s0)
 
-# From s1: seeing 'b' goes to s2 (found lb), seeing 'l' stays at s1, else back to s0
+# From s1: seeing 'm' goes to s2 (found ŋm), seeing 'ŋ' stays at s1, else back to s0
 for p in phones:
-    if p == 'b':
-        contains_lb.add_arc(s1, sym_ids[p], sym_ids[p], 0.0, s2)
-    elif p == 'l':
-        contains_lb.add_arc(s1, sym_ids[p], sym_ids[p], 0.0, s1)
+    if p == 'm':
+        contains_nm.add_arc(s1, sym_ids[p], sym_ids[p], 0.0, s2)
+    elif p == 'ŋ':
+        contains_nm.add_arc(s1, sym_ids[p], sym_ids[p], 0.0, s1)
     else:
-        contains_lb.add_arc(s1, sym_ids[p], sym_ids[p], 0.0, s0)
+        contains_nm.add_arc(s1, sym_ids[p], sym_ids[p], 0.0, s0)
 
 # From s2: accept sink — everything stays
 for p in phones:
-    contains_lb.add_arc(s2, sym_ids[p], sym_ids[p], 0.0, s2)
+    contains_nm.add_arc(s2, sym_ids[p], sym_ids[p], 0.0, s2)
 
-# The SL-2 constraint: accept strings that do NOT contain [lb]
-no_lb = arcweight.difference(sigma_star, contains_lb)
+# The SL-2 constraint: accept strings that do NOT contain [ŋm]
+no_nm = arcweight.difference(sigma_star, contains_nm)
 
 print(f"sigma_star states: {sigma_star.num_states()}")
-print(f"contains_lb states: {contains_lb.num_states()}")
-print(f"no_lb states: {no_lb.num_states()}")
+print(f"contains_nm states: {contains_nm.num_states()}")
+print(f"no_nm states: {no_nm.num_states()}")
 ```
 
-Notice that the states of an SL-$k$ constraint automaton are determined by the last $k - 1$ symbols seen. In our SL-2 example, the state tracks only the previous symbol: whether it was an [l] (in which case a following [b] is forbidden) or something else. This is a very restricted kind of DFA—one where the state space is essentially $\Sigma^{k-1}$ (or a subset of it).
+Notice that the states of an SL-$k$ constraint automaton are determined by the last $k - 1$ symbols seen. In our SL-2 example, the state tracks only the previous symbol: whether it was an [ŋ] (in which case a following [m] is forbidden) or something else. This is a very restricted kind of DFA—one where the state space is essentially $\Sigma^{k-1}$ (or a subset of it).
 
 This is the same information that an [$N$-gram model](../../uncertainty-about-languages/ngram-models.qmd) conditions on: the preceding $N - 1$ symbols. An SL-$k$ automaton and a $k$-gram model are tracking the same context; the difference is that the SL automaton makes a binary decision about whether the context is licit, while the $N$-gram model assigns it a probability.
 
@@ -94,35 +98,35 @@ This is why we can specify a phonotactic grammar as a *collection* of forbidden 
 #| code-fold: true
 #| code-summary: Combine multiple SL-2 constraints
 
-# Also forbid word-initial [bk] (not a licit English onset)
-contains_bk = arcweight.VectorFst()
-s0 = contains_bk.add_state()
-s1 = contains_bk.add_state()
-s2 = contains_bk.add_state()
-contains_bk.set_start(s0)
-contains_bk.set_final(s2, 0.0)
+# Also forbid [mŋ] (bilabial nasal followed by velar nasal — doesn't occur in English)
+contains_mn = arcweight.VectorFst()
+s0 = contains_mn.add_state()
+s1 = contains_mn.add_state()
+s2 = contains_mn.add_state()
+contains_mn.set_start(s0)
+contains_mn.set_final(s2, 0.0)
 
 for p in phones:
-    if p == 'b':
-        contains_bk.add_arc(s0, sym_ids[p], sym_ids[p], 0.0, s1)
+    if p == 'm':
+        contains_mn.add_arc(s0, sym_ids[p], sym_ids[p], 0.0, s1)
     else:
-        contains_bk.add_arc(s0, sym_ids[p], sym_ids[p], 0.0, s0)
+        contains_mn.add_arc(s0, sym_ids[p], sym_ids[p], 0.0, s0)
 
 for p in phones:
-    if p == 'k':
-        contains_bk.add_arc(s1, sym_ids[p], sym_ids[p], 0.0, s2)
-    elif p == 'b':
-        contains_bk.add_arc(s1, sym_ids[p], sym_ids[p], 0.0, s1)
+    if p == 'ŋ':
+        contains_mn.add_arc(s1, sym_ids[p], sym_ids[p], 0.0, s2)
+    elif p == 'm':
+        contains_mn.add_arc(s1, sym_ids[p], sym_ids[p], 0.0, s1)
     else:
-        contains_bk.add_arc(s1, sym_ids[p], sym_ids[p], 0.0, s0)
+        contains_mn.add_arc(s1, sym_ids[p], sym_ids[p], 0.0, s0)
 
 for p in phones:
-    contains_bk.add_arc(s2, sym_ids[p], sym_ids[p], 0.0, s2)
+    contains_mn.add_arc(s2, sym_ids[p], sym_ids[p], 0.0, s2)
 
-no_bk = arcweight.difference(sigma_star, contains_bk)
+no_mn = arcweight.difference(sigma_star, contains_mn)
 
-# Combine: strings with neither [lb] nor [bk]
-combined = arcweight.intersect(no_lb, no_bk)
+# Combine: strings with neither [ŋm] nor [mŋ]
+combined = arcweight.intersect(no_nm, no_mn)
 combined = arcweight.minimize(combined)
 
 print(f"Combined constraint states: {combined.num_states()}")
