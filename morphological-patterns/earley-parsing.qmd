@@ -23,7 +23,7 @@ Before diving into the Earley algorithm, let's briefly compare top-down and bott
 - Can incorporate contextual constraints more easily
 - May get stuck in loops with left-recursive grammars
 
-The Earley algorithm combines the strengths of both approaches by using a top-down prediction strategy but avoiding redundant work through dynamic programming techniques similar to those used in CKY.
+The Earley algorithm combines the strengths of both approaches by using a top-down prediction strategy but avoiding redundant work through dynamic programming techniques similar to those used in CKY. Like CKY, Earley runs in $O(n^3)$ time in the worst case (for arbitrary CFGs). But for *unambiguous* grammars—grammars where each string has at most one parse tree—it runs in $O(n^2)$, and for many practically useful grammar classes it is effectively linear. This makes it a good choice when the grammar is not in CNF and ambiguity is moderate.
 
 ## Dotted Rules
 

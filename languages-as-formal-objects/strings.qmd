@@ -5,11 +5,23 @@ jupyter: python3
 
 We build strings from some alphabet/lexicon $\Sigma$.
 
-Strings of length $N$ are given by $\Sigma^N$ and the **Kleene
-closure** of $\Sigma$—notated $\Sigma^*$—gives us the set
-of all such sets.
+Strings of length $N$ are given by $\Sigma^N$ and the [**Kleene closure**](https://en.wikipedia.org/wiki/Kleene_star) of $\Sigma$—notated $\Sigma^*$—gives us the set of all such sets.
 
 $$\Sigma^* \equiv \bigcup_{i\in\mathbb{N}} \Sigma^i$$
+
+Note that $\Sigma^0 = \{\varepsilon\}$, where $\varepsilon$ denotes the *empty string*—the unique string of length zero. It is important not to confuse the empty string $\varepsilon$ (which is an element of $\Sigma^*$) with the empty set $\emptyset$ (which contains no elements at all) or with the empty *language* $\emptyset \subset \Sigma^*$ (a language with no strings in it). The set $\{\varepsilon\}$ is not empty—it contains exactly one string, the empty string. This distinction will matter throughout the course: $\varepsilon$ is a string, $\emptyset$ is a set.
+
+::: {.callout-caution}
+## Question
+
+If $|\Sigma| = 3$, how many strings are in $\Sigma^0$? In $\Sigma^1$? In $\Sigma^2$? What about $\Sigma^k$ in general? Is $\Sigma^*$ finite or infinite?
+:::
+
+::: {.callout-tip collapse=true}
+## Answer
+
+$|\Sigma^0| = 1$ (just the empty string), $|\Sigma^1| = 3$, $|\Sigma^2| = 9$, and in general $|\Sigma^k| = 3^k$. Since $\Sigma^* = \bigcup_{k=0}^{\infty} \Sigma^k$ is a countably infinite union of finite sets of increasing size, $\Sigma^*$ is countably infinite.
+:::
 
 As an infinite set, we need to implement $\Sigma^*$ using a generator. We'll start by defining a function that produces $\Sigma^i$.
 

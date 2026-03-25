@@ -10,7 +10,9 @@ In the phonological-patterns module, we saw that phonological constraints on str
 
 But there is an important exception. Total reduplication—the process by which a word $w$ is mapped to $ww$, as in Indonesian *orang* → *orang-orang* (people)—is not a regular relation. We proved a version of this in the [section on the pumping lemma](../phonological-patterns/generative-capacity/pumping-lemma.qmd): the language $\{ww \mid w \in \Sigma^+\}$ is not regular, which means no finite state automaton can recognize it, and no finite state transducer can compute the map $w \mapsto ww$.
 
-This is one of the motivations for moving beyond finite state methods. Morphological structure exhibits *hierarchical nesting* that regular grammars cannot capture. Consider the word *unlockable*: it has two possible structures—$[\text{un}[\text{lock-able}]]$ (not able to be locked) and $[[\text{un-lock}]\text{-able}]$ (able to be unlocked)—and distinguishing between them requires tracking nested constituency, not just sequences of symbols.
+This is one of the motivations for moving beyond finite state methods. In this module, we'll use two complementary families of models for morphology. For *segmentation*—finding where the morpheme boundaries are—we'll use sequence labeling models like [HMMs](../uncertainty-about-languages/beyond-ngrams.qmd) and [CRFs](segmentation-with-structured-prediction.qmd), which operate on flat character sequences (just as HMMs operate on phone sequences for phonotactics). For *parsing*—determining the hierarchical structure of how morphemes compose—we'll use [context-free grammars](operations.qmd) and their [probabilistic extensions](probabilistic-context-free-grammars.qmd). Segmentation feeds into parsing: once we know the morpheme boundaries, we can ask how those morphemes are structured.
+
+Morphological structure exhibits *hierarchical nesting* that regular grammars cannot capture. Consider the word *unlockable*: it has two possible structures—$[\text{un}[\text{lock-able}]]$ (not able to be locked) and $[[\text{un-lock}]\text{-able}]$ (able to be unlocked)—and distinguishing between them requires tracking nested constituency, not just sequences of symbols.
 
 The formalism we'll use for this is the *context-free grammar* (CFG). A context-free grammar is a 4-tuple $G = (V, \Sigma, R, S)$ where:
 
@@ -64,3 +66,16 @@ for rule in sorted(grammar.rules(), key=lambda r: str(r)):
 This grammar generates words like *unkind*, *kindness*, *unkindly*, and *unhappiness*, each with a hierarchical structure that reflects its morphological composition.
 
 In the following sections, we'll develop the tools needed to work with these grammars. We'll start with the formal machinery: operations on CFGs (union, concatenation, Kleene closure), normal forms (especially Chomsky Normal Form, which enables efficient algorithms), and two parsing algorithms—CKY (bottom-up) and Earley (top-down)—for recovering the structure of a word given a grammar. With that machinery in hand, we'll turn to the empirical question of morphological well-formedness: we'll look at gradient acceptability judgments for morphologically complex nonwords, explore methods for segmenting words into morphemes, and then train probabilistic context-free grammars—both from labeled data and from scratch—to predict how acceptable a given morphological structure is.
+
+### Choosing a model
+
+The table below summarizes when each model type is appropriate. The key distinctions are whether the task requires flat (sequential) or hierarchical structure, and whether labeled training data is available.
+
+| Model | Structure | Training data | Best for |
+|-------|-----------|---------------|----------|
+| $N$-gram | Sequential | Unlabeled corpus | Phonotactic well-formedness; quick baseline |
+| HMM | Sequential (latent states) | Labeled sequences | Segmentation when features are simple |
+| CRF | Sequential (discriminative) | Labeled sequences | Segmentation when rich features matter |
+| BPE | Sequential (compression) | Unlabeled corpus | Subword tokenization; morpheme-like units without supervision |
+| CFG/PCFG (supervised) | Hierarchical | Labeled parse trees | Parsing when gold-standard trees are available |
+| PCFG (unsupervised, EM) | Hierarchical | Segmented strings only | Learning structure when no labeled trees exist |

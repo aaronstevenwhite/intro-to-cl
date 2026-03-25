@@ -13,10 +13,31 @@ Over the past several decades, a body of work in formal language theory and comp
 
 The hierarchy looks roughly like this:
 
-$$\text{SL} \subset \text{LT} \subset \text{Star-Free} \subset \text{Regular}$$
-$$\text{SP} \subset \text{PT} \subset \text{Star-Free} \subset \text{Regular}$$
+```
+                         ┌──────────┐
+                         │ Regular  │
+                         └────┬─────┘
+                              │
+                       ┌──────┴──────┐
+                       │  Star-Free  │
+                       └──┬───────┬──┘
+                          │       │
+                    ┌─────┴──┐ ┌──┴─────┐
+                    │   LT   │ │   PT   │
+                    └────┬───┘ └───┬────┘
+                         │        │
+           ┌─────┐ ┌────┴───┐ ┌──┴─────┐
+           │ TSL │ │   SL   │ │   SP   │
+           └──┬──┘ └────────┘ └────────┘
+              │
+         (crosscuts SL
+          and LT)
+```
 
-where SL (Strictly Local) and SP (Strictly Piecewise) are the smallest classes, LT (Locally Testable) and PT (Piecewise Testable) are somewhat larger, and the Star-Free languages sit just below the full regular languages. There is also a class called TSL (Tier-based Strictly Local) that crosscuts this picture in a way I'll describe shortly.
+- **SL** ([Strictly Local](local-languages.qmd)) and **SP** ([Strictly Piecewise](piecewise-languages.qmd)) are the smallest classes, capturing constraints on adjacent segments and on subsequences respectively.
+- **LT** (Locally Testable) and **PT** (Piecewise Testable) are somewhat larger: they can count local or piecewise patterns up to a threshold.
+- The **[Star-Free](star-free-and-the-full-picture.qmd)** languages sit just below the full regular languages—they are exactly the languages definable without the Kleene star (using only union, concatenation, and complement).
+- **TSL** (Tier-based Strictly Local) crosscuts this picture: it projects the string onto a *tier* (a subset of the alphabet) and then applies SL constraints on the projected string. This allows it to handle long-distance consonant harmony and similar patterns that are not SL on the full alphabet but become SL once irrelevant segments are ignored [@heinz2011tier; @jardine2016learning].
 
 Attested phonological patterns cluster at the bottom of this hierarchy, primarily in SL, SP, and TSL. Very few phonological patterns require even LT or PT, and essentially none require the full power of the regular languages. The convergence between the formal hierarchy and the typological distribution of phonological patterns suggests that the learnability constraint is doing real work in shaping what phonological systems look like.
 

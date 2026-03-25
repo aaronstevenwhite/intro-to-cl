@@ -20,12 +20,37 @@ For instance, when parsing "unhappiness", we want to not only verify that it's a
 
 The CKY algorithm is a [dynamic programming](https://en.wikipedia.org/wiki/Dynamic_programming) algorithm that fills a parse table bottom-up. It's particularly efficient because it avoids redundant computations by storing and reusing intermediate results. See @jurafsky_speech_2023[Ch. 18] and @hopcroft_introduction_1979 for textbook treatments.
 
+The algorithm runs in $O(n^3 \cdot |R|)$ time, where $n$ is the length of the input and $|R|$ is the number of grammar rules. The cubic factor comes from three nested loops: there are $O(n^2)$ possible spans $(i, j)$ in the input, and for each span, we consider $O(n)$ possible split points $k$ where the span could be divided into two smaller spans. For each split point, we check which grammar rules could combine the non-terminals from the two sub-spans. This is efficient enough for morphological analysis, where inputs are typically short (a single word with a handful of morphemes).^[For comparison, a naive approach that enumerates all possible parse trees would take exponential time, since the number of binary trees over $n$ leaves is the [Catalan number](https://en.wikipedia.org/wiki/Catalan_number) $C_n$, which grows as $\Theta(4^n / n^{3/2})$.]
+
 Here's the core idea of the algorithm:
 
 1. For a word with $n$ morphemes, create an $n \times n$ table where each cell $(i,j)$ represents the possible non-terminals that can derive the span of morphemes from position $i$ to position $j$.
 2. Fill the table diagonally, starting with single morphemes (spans of length 1), then spans of length 2, and so on.
 3. For each span $(i,j)$, consider all possible ways to split it into two smaller spans $(i,k)$ and $(k,j)$ for $i < k < j$.
 4. Use the grammar rules to determine which non-terminals can derive the combination of the non-terminals in the smaller spans.
+
+::: {.callout-caution}
+## Exercise: Hand-trace CKY
+
+Consider the grammar $W \rightarrow M\;M$, $W \rightarrow M\;W$, $M \rightarrow \text{un}$, $M \rightarrow \text{lock}$, $M \rightarrow \text{able}$ (in CNF) and the input string $\langle \text{un}, \text{lock}, \text{able} \rangle$. Fill in the CKY table by hand. Which cells can contain $W$? Which can contain $M$? How many complete parses does the string have?
+:::
+
+::: {.callout-tip collapse=true}
+## Answer
+
+The table (lower-triangular, with cell $(i,j)$ representing span from position $i$ to $j$):
+
+| | 1 | 2 | 3 |
+|---|---|---|---|
+| **1** | {$M$} | {$W$} | {$W$} |
+| **2** | | {$M$} | {$W$} |
+| **3** | | | {$M$} |
+
+- Diagonal: $M$ in each cell (the terminal rules).
+- Cell $(1,2)$: $W$ via $W \rightarrow M\;M$ (split at $k=1$).
+- Cell $(2,3)$: $W$ via $W \rightarrow M\;M$ (split at $k=2$).
+- Cell $(1,3)$: $W$ via $W \rightarrow M\;W$ at split $k=1$ (using $M$ from cell $(1,1)$ and $W$ from cell $(2,3)$). Also $W$ via $W \rightarrow W\;M$? No—that rule doesn't exist. So there is exactly one parse: $[_W [_M \text{un}]\; [_W [_M \text{lock}]\; [_M \text{able}]]]$.
+:::
 
 ### CKY Algorithm Pseudocode
 
