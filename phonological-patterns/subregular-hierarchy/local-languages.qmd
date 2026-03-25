@@ -84,7 +84,11 @@ This is the same information that an [$N$-gram model](../../uncertainty-about-la
 
 ### Combining SL constraints
 
-Because SL languages are regular, they are closed under intersection. This means we can specify a phonotactic grammar as a *collection* of forbidden $k$-grams and intersect the corresponding constraints to get the language that satisfies all of them simultaneously.
+A key property of the SL class is that it is closed under intersection—and this fact does *not* follow from the regularity of SL languages. The regular languages are closed under intersection, but that only tells us the intersection of two SL languages is regular; it doesn't tell us it's still SL. We need a direct argument.
+
+The argument is simple. Suppose $L_1$ is SL-$k$ with forbidden factors $\mathcal{F}_1$ and $L_2$ is SL-$k$ with forbidden factors $\mathcal{F}_2$.^[If $L_1$ is SL-$k_1$ and $L_2$ is SL-$k_2$ with $k_1 \neq k_2$, take $k = \max(k_1, k_2)$ and extend the shorter forbidden factors. Every $k'$-gram $u$ in $\mathcal{F}_1$ (with $k' < k$) can be replaced by the set of all $k$-grams that contain $u$ as a substring—these are the $k$-grams that are forbidden because they contain the shorter forbidden factor. After this extension, both sets of forbidden factors have the same order $k$.] A string $w$ is in $L_1 \cap L_2$ if and only if it contains no forbidden factor from $\mathcal{F}_1$ *and* no forbidden factor from $\mathcal{F}_2$—which is exactly the condition for $w$ to be in the SL-$k$ language with forbidden factors $\mathcal{F}_1 \cup \mathcal{F}_2$. So $L_1 \cap L_2$ is SL-$k$ with $\mathcal{F} = \mathcal{F}_1 \cup \mathcal{F}_2$.
+
+This is why we can specify a phonotactic grammar as a *collection* of forbidden $k$-grams: the language satisfying all constraints simultaneously is the intersection of the individual SL constraints, and that intersection is itself SL. Each forbidden $k$-gram contributes to a single unified forbidden-factor set.
 
 ```{python}
 #| code-fold: true
