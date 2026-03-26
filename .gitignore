@@ -9,6 +9,12 @@ __MACOSX
 *.zip
 .dockerignore
 cmudict-*
+*.quarto_ipynb
+site_libs/
+__pycache__/
+*.html
+morphological-patterns/celex
+**/index_files/
 
 formal-and-practical-preliminaries/regular-expressions/cmudict-0.7b
 formal-and-practical-preliminaries/regular-expressions/cmudict-ipa
