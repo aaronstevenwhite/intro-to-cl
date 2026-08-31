@@ -39,6 +39,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --yes --no-install-recommends inkscape
+          "$HOME/.TinyTeX/bin/x86_64-linux/tlmgr" update --self
           "$HOME/.TinyTeX/bin/x86_64-linux/tlmgr" install pgf standalone varwidth
           echo "$HOME/.TinyTeX/bin/x86_64-linux" >> "$GITHUB_PATH"
 
