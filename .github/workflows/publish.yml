@@ -39,7 +39,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --yes --no-install-recommends inkscape
-          tlmgr install pgf standalone varwidth
+          "$HOME/.TinyTeX/bin/x86_64-linux/tlmgr" install pgf standalone varwidth
+          echo "$HOME/.TinyTeX/bin/x86_64-linux" >> "$GITHUB_PATH"
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v6
