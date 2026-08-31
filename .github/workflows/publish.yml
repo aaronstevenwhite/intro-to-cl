@@ -40,7 +40,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes --no-install-recommends inkscape
           "$HOME/.TinyTeX/bin/x86_64-linux/tlmgr" update --self
-          "$HOME/.TinyTeX/bin/x86_64-linux/tlmgr" install pgf standalone varwidth
+          "$HOME/.TinyTeX/bin/x86_64-linux/tlmgr" install luatex85 pgf standalone varwidth
           echo "$HOME/.TinyTeX/bin/x86_64-linux" >> "$GITHUB_PATH"
 
       - name: Configure GitHub Pages
@@ -50,7 +50,10 @@ jobs:
         run: quarto render --no-execute
 
       - name: Verify rendered site
-        run: test -f docs/index.html
+        run: |
+          test -f docs/index.html
+          find docs/phonological-patterns/formal-definition/index_files/mediabag \
+            -type f -name '*.svg' -print -quit | grep --quiet .
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v5
