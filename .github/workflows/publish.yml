@@ -17,40 +17,52 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
-          python-version: '3.13'
-          cache: pip
+          python-version: '3.14'
 
-      - name: Install Python dependencies
-        run: pip install -r requirements.txt
+      - name: Install Jupyter
+        run: python -m pip install jupyter
 
-      - name: Download NLTK data
-        run: python -c "import nltk; nltk.download('cmudict', quiet=True)"
-
-      - name: Install Quarto
+      - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          tinytex: true
+
+      - name: Install diagram dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends inkscape
+          tlmgr install pgf standalone varwidth
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v6
 
       - name: Render site
-        run: quarto render
+        run: quarto render --no-execute
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Verify rendered site
+        run: test -f docs/index.html
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v5
         with:
           path: docs
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

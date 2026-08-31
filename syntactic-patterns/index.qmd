@@ -3,12 +3,16 @@ title: Overview
 bibliography: ../references.bib
 ---
 
-In the morphological-patterns module, we used context-free grammars to describe how morphemes compose into words. We developed parsing algorithms—CKY and Earley—that recover the hierarchical structure of a word given a grammar, and we extended these grammars with probabilities to model gradient morphological well-formedness.
+::: {.callout-tip}
+## Reading
 
-Syntax is the same problem at a larger scale. Where morphological grammars describe how morphemes combine to form words, syntactic grammars describe how words combine to form phrases and sentences. The formal machinery is the same: context-free grammars, parsing, probabilistic estimation. But the shift from morphology to syntax introduces new challenges. Sentences are longer than words, so parsing is more expensive. Syntactic ambiguity is more pervasive—a single sentence may have dozens or hundreds of parses. And certain syntactic phenomena—cross-serial dependencies, unbounded extraction—push beyond what context-free grammars can express.
+@shieber1985evidence on the non-context-freeness of Swiss German and @joshi1985tree on mild context-sensitivity.
+:::
 
-This last point is the most theoretically interesting. In the phonological-patterns module, we saw that phonological constraints are subregular: they don't use the full power of the regular languages. In morphology, most processes are subsequential: they don't use the full power of the regular relations. In syntax, the situation is different. There is evidence that natural language syntax is not context-free—that it requires strictly more computational power than a CFG can provide. But it does not require the full power of context-sensitive grammars either. It falls in a narrow band just above the context-free languages, known as the *mildly context-sensitive* languages.
+The morphological module used CFGs to compose morphemes into words. What happens when we use the same formalism to compose words into phrases and sentences? The change of empirical domain does not alter the definition of a CFG or the logic of CKY and Earley parsing.
 
-Understanding this band—what it contains, what formalisms characterize it, and why natural languages fall into it—is the central topic of this module.
+It does change the pressure placed on the formalism. Syntactic grammars must represent long-distance dependencies, discontinuous constituents, and cross-serial patterns. Some of these can be encoded awkwardly in a CFG; others give rise to string languages that are not context-free [@shieber1985evidence]. So we need to ask both whether a CFG generates the right strings and whether it assigns the right structures.
 
-We'll proceed as follows. First, I'll review how CFGs apply to syntax and discuss their limitations. Then I'll introduce a general framework for specifying parsing algorithms as deductive systems, which will be important for the final project. After that, we'll study four formalisms that characterize the mildly context-sensitive languages: Tree-Adjoining Grammars, type-logical and Combinatory Categorial Grammars, Multiple Context-Free Grammars (the formalism you'll implement a parser for in the final project), and Minimalist Grammars. The remarkable result is that these four formalisms—developed independently from very different linguistic and computational motivations—converge on the same class of languages.
+The formalisms proposed near that boundary do not define one universally agreed-upon class. Tree-Adjoining Grammars (TAGs), a restricted form of Combinatory Categorial Grammar (CCG), Head Grammars, and Linear Indexed Grammars are weakly equivalent [@vijayshanker1994equivalence]. Multiple Context-Free Grammars (MCFGs) and Linear Context-Free Rewriting Systems (LCFRSs) describe a larger family, while still permitting polynomial recognition for a fixed grammar [@seki1991multiple]. Formal versions of Minimalist Grammars can be translated into that MCFG/LCFRS family [@michaelis2001transforming].
+
+We first apply CFGs to syntax and separate their weak generative capacity from the structures they assign. We then recast parsing as deduction, which supplies the control structure for the final project. With that machinery in place, we can ask where CFGs stop being adequate and how the mildly context-sensitive formalisms extend them.

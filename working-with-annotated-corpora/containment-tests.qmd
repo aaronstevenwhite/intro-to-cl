@@ -7,12 +7,12 @@ Suppose I’m interested in finding all sentences with a definite determiner in 
 
 Let's figure out how to compute whether a tree contains a particular piece of data, and then we'll get back to figuring out how to grab the relevant subtree. 
 
-Containment tests for a particular class (viewed as a sort of container) are often implemented in the `__contains__` magic method, which defines the behavior of `in`. The idea is that `__contains__` should take a piece of data and tell us whether it matches a piece of data somewhere in the tree. So basically, we want the analogue of asking whether a list contains some element using `in`.
+Containment tests for a class are often implemented in the `__contains__` magic method, which defines the behavior of `in`. What should this method do for a tree? It should take a piece of data and tell us whether that data occurs at any node. This is the tree analogue of asking whether a list contains an element.
 
 For a list, containment could be naturally implemented using a `for`-loop. So suppose we're redefining the `list` class, `__contains__` could be implemented something like this:
 
 ```python
-def __contains__(self, data):
+def __contains__[T](self: list[T], data: T) -> bool:
     for d in self:
         if d == data:
             return True
@@ -20,10 +20,10 @@ def __contains__(self, data):
     return False
 ```
 
-The way we'll implement `__contains__` for `Tree` is analogous, but we have to take into account that the tree has a more interesting structure to it. We'll do this by implementing two kinds of tree search algorithms: 
+The implementation for `Tree` will follow the same basic idea, but a tree is not a single sequence. We'll compare two ways of visiting its nodes:
 
 - depth-first search
-- breath-first search
+- breadth-first search
 
 In both kinds of search, we start at the top of the tree and work our way down, the question is which nodes we look at.
 
@@ -33,16 +33,16 @@ We'll look at two ways we can implement depth-first search: pre-order and post-o
 
 ### Pre-order depth-first search
 
-To conduct pre-order depth-first search, we start from the left-most child subtree and,
-moving right, look at the data at the root of that subtree; then do
-pre-order depth-first search on that subtree. 
+To conduct pre-order depth-first search, we inspect the root first. We then search each child subtree from left to right, applying the same root-before-children order within each child.
 
-This search path is visualized in the image below, where the line is our traversal path and the dots are wehn we look at a piece of data in a node.
+This search path is visualized in the image below, where the line is our traversal path and the dots mark when we look at a piece of data in a node.
 
 ![500px-Sorted_binary_tree_preorder.svg.png](https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Sorted_binary_tree_preorder.svg/500px-Sorted_binary_tree_preorder.svg.png)
 
 ```{python}
 #| executionInfo: {elapsed: 8, status: ok, timestamp: 1680619933969, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+from __future__ import annotations
+
 class Tree:
     """A tree.
 
@@ -50,22 +50,36 @@ class Tree:
     ----------
     data : str
         The data contained in this tree.
-    children : list[Tree]
+    children : list[Tree] or tuple[Tree, ...]
         The subtrees of this tree.
     """
-    def __init__(self, data: str, children: list['Tree']=[]):
+    def __init__(
+        self,
+        data: str,
+        children: list[Tree] | tuple[Tree, ...] | None = None,
+    ) -> None:
+        if children is not None and not isinstance(children, (list, tuple)):
+            raise TypeError("children must be a finite list or tuple of trees")
         self._data = data
-        self._children = children
+        self._children = tuple(() if children is None else children)
         
         self._validate()
         
     def _validate(self) -> None:
-        try:
-            assert all(isinstance(c, Tree)
-                       for c in self._children)
-        except AssertionError:
-            msg = 'all children must be trees'
-            raise TypeError(msg)
+        """Reject non-trees, cycles, and shared subtree objects."""
+        seen = {id(self)}
+
+        def visit(node: Tree) -> None:
+            if not isinstance(node, Tree):
+                raise TypeError("all children must be trees")
+            if id(node) in seen:
+                raise ValueError("trees cannot contain cycles or shared subtrees")
+            seen.add(id(node))
+            for child in node._children:
+                visit(child)
+
+        for child in self._children:
+            visit(child)
         
     @property
     def data(self) -> str:
@@ -73,20 +87,20 @@ class Tree:
         return self._data
 
     @property
-    def children(self) -> list['Tree']:
+    def children(self) -> tuple[Tree, ...]:
         """The subtrees of this node."""
         return self._children
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self._children:
             return ' '.join(c.__str__() for c in self._children)
         else:
             return str(self._data)
         
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.to_string(0)
      
-    def to_string(self, depth: int) -> str:
+    def to_string(self, depth: int = 0) -> str:
         """Render the tree as an indented string.
 
         Parameters
@@ -118,6 +132,18 @@ class Tree:
                 
             return False
 ```
+
+#### Why recursive containment is correct
+
+So when should `data in t` return `True`? Exactly when some node of `t` stores `data`. We'll call this the **containment invariant**. Let's check the two directions separately by structural induction on `t`.
+
+Start with a leaf `t`. If its data equals the target, the first branch returns `True`. If its data differs, the child loop has no iterations and the method returns `False`. The claim thus holds for a leaf.
+
+Now fix a tree `t` and suppose that the containment invariant holds for each child. There are two ways the method can return `True`. First, the root data may equal the target, in which case the root itself witnesses containment. Second, a recursive call on some child may return `True`; by the induction hypothesis, that child contains a matching node, which is also a node of `t`. So every positive result has a witness in the tree.
+
+Conversely, suppose some node of `t` stores the target. If that node is the root, the first branch returns `True`. Otherwise, the node belongs to exactly one child subtree. The induction hypothesis makes the recursive call on that child return `True`, so the loop returns `True`. Every matching node is thus found.
+
+We have now shown both directions: every `True` result has a matching node as a witness, and every matching node is found. So the method returns `True` exactly for trees containing the target. Pre-order determines when a witness is found, but not whether one exists.
 
 ```{python}
 #| executionInfo: {elapsed: 12, status: ok, timestamp: 1680619933973, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
@@ -156,9 +182,7 @@ tree = Tree('S',
 
 ### Post-order depth-first search
 
-In post-order depth-first search, we start from the left-most child subtree and
-moving right, do post-order depth-first search on that subtree, then look
-at the data at the root of that subtree.
+In post-order depth-first search, we recursively inspect each child subtree from left to right and inspect the current root only after all of its child subtrees.
 
 ![500px-Sorted_binary_tree_postorder.svg.png](https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Sorted_binary_tree_postorder.svg/500px-Sorted_binary_tree_postorder.svg.png)
 
@@ -177,6 +201,10 @@ class Tree(Tree):
             
             return self._data == data
 ```
+
+Does changing the visit order change the answer? It should not. The post-order version satisfies the same containment invariant. For a leaf, `not self._children` is true, so the method compares the leaf's data with the target. The one-node tree contains the target exactly when that comparison returns `True`.
+
+Now suppose the invariant holds for every child of a nonleaf. The method searches those children first and checks the root last. If a child call succeeds, the induction hypothesis supplies a matching descendant; if the final root comparison succeeds, the root supplies the match. Conversely, any matching node is either in a child, where the induction hypothesis finds it, or at the root, where the last line finds it. Thus, pre-order and post-order may stop at different times while returning the same boolean answer.
 
 ```{python}
 #| executionInfo: {elapsed: 591, status: ok, timestamp: 1680619943809, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
@@ -203,14 +231,13 @@ tree = Tree('S',
 "loves" in tree, "hates" in tree
 ```
 
-#### Breadth-first search
+## Breadth-first search
 
-Rather than recursing on subtrees, bread-first search looks at the data in all nodes at depth $i$ then
-to breadth-first search at depth $i+1$.
+Rather than recursing through one subtree before moving to the next, breadth-first search inspects the data at every node of depth $i$ before proceeding to depth $i+1$.
 
 ![500px-Sorted_binary_tree_breadth-first_traversal.svg.png](https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Sorted_binary_tree_breadth-first_traversal.svg/500px-Sorted_binary_tree_breadth-first_traversal.svg.png)
 
-One natural way to implement breadth-first search is using what's called [iteratively deepening depth-first search](https://en.wikipedia.org/wiki/Iterative_deepening_depth-first_search). 
+One natural way to implement breadth-first search is [iterative deepening depth-first search](https://en.wikipedia.org/wiki/Iterative_deepening_depth-first_search).
 
 ```{python}
 #| executionInfo: {elapsed: 2, status: ok, timestamp: 1680619943810, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
@@ -226,13 +253,13 @@ class Tree(Tree):
 
     def __contains__(self, data: str) -> bool:
         # breadth-first search
-        for d in range(self.depth):
+        for d in range(self.depth + 1):
             if self._iddfs(data, d):
                 return True
 
         return False
 
-    def _iddfs(self, data, depth):
+    def _iddfs(self, data: str, depth: int) -> bool:
         # iterative deepening depth-first search
         if depth == 0:
             return self._data == data
@@ -243,6 +270,25 @@ class Tree(Tree):
         
         return False
 ```
+
+### Why iterative deepening searches every level
+
+What exactly does the helper answer? `t._iddfs(data, d)` returns `True` if and only if a node exactly $d$ edges below the root of `t` stores `data`. We'll call this the **exact-depth invariant**.
+
+At $d=0$, the only node zero edges below the root is the root itself. The helper compares exactly that node's data with the target, so the claim holds.
+
+For $d>0$, suppose the claim holds at depth $d-1$ for every child. A node exactly $d$ edges below `t` must be exactly $d-1$ edges below one of its children. The loop asks each child that question. If one call returns `True`, the induction hypothesis supplies a target node at the required depth. And if such a node exists, it lies under some child, whose recursive call returns `True` by the same hypothesis. The helper thus satisfies the exact-depth invariant in both directions.
+
+It remains to check the outer loop's bounds. The `depth` property is the maximum root-to-leaf distance: a leaf has depth $0$, and a nonleaf has one plus the maximum child depth. Thus, every node occurs at one of the depths $0,\ldots,\texttt{self.depth}$. The loop must include both endpoints, which is why it uses `range(self.depth + 1)`. On the example tree, the visits are:
+
+| depth | node data inspected |
+|---:|---|
+| 0 | `S` |
+| 1 | `NP`, `VP` |
+| 2 | `D`, `N`, `V`, `NP` |
+| 3 | `a`, `greyhound`, `loves`, `a`, `greyhound` |
+
+A target such as `loves` is found only on the final iteration. The table also shows why the outer loop must include depth $3$. Combining the exact-depth invariant with this inclusive loop gives the desired result: breadth-first containment returns `True` exactly when the target occurs somewhere in the tree.
 
 ```{python}
 #| executionInfo: {elapsed: 8, status: ok, timestamp: 1680619944132, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
@@ -268,4 +314,3 @@ tree = Tree('S',
 #| outputId: de69c31b-9faf-44c3-da30-1342de9c6809
 "loves" in tree, "hates" in tree
 ```
-

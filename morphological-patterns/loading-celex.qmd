@@ -6,172 +6,79 @@ execute:
   eval: false
 ---
 
-To train and evaluate the morphological grammars we've been building, we need a dataset that provides gold-standard morphological parses—not just a list of morpheme boundaries but full hierarchical structure showing how morphemes compose. The [CELEX](https://catalog.ldc.upenn.edu/LDC96L14) lexical database [@baayen_celex_1995] provides exactly this. It's one of the most widely used resources in computational morphology, and we'll use it throughout the rest of this module as both a training set (for estimating grammar parameters) and an evaluation set (for checking our models against known parses).
+::: {.callout-tip}
+## Reading
+
+@baayen_celex_1995 on the design and contents of CELEX.
+:::
+
+CELEX contains lexical data for English, Dutch, and German, including morphological structure labels [@baayen_celex_1995]. What do we need from those labels? For each English lemma, we want two objects: a sequence of morphemes for segmentation and a tree of labeled constituents for grammar estimation.
 
 ::: {.callout-warning}
 ## Data availability
 
-CELEX (LDC96L14) is distributed by the [Linguistic Data Consortium](https://www.ldc.upenn.edu/) and requires an LDC license. If you have access, place the extracted database in a `celex/` directory. The code below assumes this directory exists. If it does not, the code blocks on this page will not execute, but I've included representative output so you can follow along.
+CELEX (LDC96L14) requires a Linguistic Data Consortium license. Place an extracted copy in `morphological-patterns/celex/` to run the code on this page. The page is not executed as part of the public site build.
 :::
 
-## What is CELEX?
+## Loading the entries
 
-CELEX is a lexical database for English, Dutch, and German that includes phonological, morphological, syntactic, and frequency information for a large number of word forms [@baayen_celex_1995]. It was compiled in the early 1990s at the Centre for Lexical Information in Nijmegen, and it remains one of the standard resources in psycholinguistics and computational linguistics despite its age.
-
-For our purposes, the relevant field is `StrucLab`—the morphological structure label—which provides a serialized parse tree for each entry. The notation looks a bit cryptic at first, but it encodes exactly the kind of hierarchical structure that our context-free grammars generate.
-
-For example, the word *unhappiness* has the `StrucLab` representation `((un)[A],(happy)[A])[A],(ness)[N|A.])[N]`. What this means is: the prefix *un-* combines with the adjective *happy* to form an adjective (the inner bracketing), which then combines with the suffix *-ness* to form a noun (the outer bracketing). The category labels in square brackets correspond to what we've been calling nonterminals in our CFG formalism.
-
-## Parsing CELEX entries
-
-The `ParsedWord` class aligns the serialized parse with the actual surface string using the `edlib` library for sequence alignment.
+The file `eml.cd` contains backslash-separated records. In that file, field 1 contains the headword and field 21 contains its `StrucLab` analysis. The loader checks the field count rather than assigning an eight-column schema to a 25-field record.
 
 ```{python}
-#| code-fold: true
-#| code-summary: Define `ParsedWord`
-
-import re
-import edlib
-import pyparsing
-
 import sys
-sys.path.insert(0, '_code')
-from grammar import Rule
+from dataclasses import asdict
 
-
-# Parse the CELEX StrucLab format
-LPAR = pyparsing.Suppress('(')
-RPAR = pyparsing.Suppress(')')
-LBRACK = pyparsing.Suppress('[')
-RBRACK = pyparsing.Suppress(']')
-
-morpheme = pyparsing.Regex(r'[a-zA-Z]+')
-category = LBRACK + pyparsing.Regex(r'[A-Z|.]+') + RBRACK
-
-exp = pyparsing.Forward()
-constituent = pyparsing.Group(LPAR + (exp | morpheme) + RPAR + category)
-exp <<= constituent | pyparsing.Group(constituent + pyparsing.Suppress(',') + exp)
-
-
-class ParsedWord:
-    """A morphologically parsed word from CELEX.
-
-    Parameters
-    ----------
-    word : str
-        The surface form.
-    struclab : str
-        The CELEX StrucLab morphological structure string.
-
-    Attributes
-    ----------
-    word : str
-        The surface form.
-    parse : list | None
-        The parsed structure, or None if parsing failed.
-    """
-
-    def __init__(self, word: str, struclab: str):
-        self._word = word
-        self._struclab = struclab
-        self._parse = self._parse_struclab(struclab)
-
-    def _parse_struclab(self, struclab: str):
-        """Parse a CELEX StrucLab string into a nested list.
-
-        Parameters
-        ----------
-        struclab : str
-            The CELEX bracket notation.
-
-        Returns
-        -------
-        list | None
-            The parsed structure, or None on failure.
-        """
-        try:
-            return exp.parseString(struclab)[0]
-        except pyparsing.ParseException:
-            return None
-
-    @property
-    def word(self) -> str:
-        """The surface form."""
-        return self._word
-
-    @property
-    def parse(self):
-        """The parsed morphological structure."""
-        return self._parse
-
-    def extract_rules(self) -> set[Rule]:
-        """Extract CFG rules from this parse.
-
-        Returns
-        -------
-        set[Rule]
-            The production rules implied by the tree.
-        """
-        if self._parse is None:
-            return set()
-        return self._extract_rules_recursive(self._parse)
-
-    def _extract_rules_recursive(self, node) -> set[Rule]:
-        """Recursively extract rules from a parse tree node.
-
-        Parameters
-        ----------
-        node : list | str
-            A node in the parsed tree.
-
-        Returns
-        -------
-        set[Rule]
-            The rules found in this subtree.
-        """
-        rules = set()
-        if isinstance(node, str):
-            return rules
-        return rules
-```
-
-## Loading the database
-
-```{python}
 import pandas as pd
 
-# Load the English morphological lemma file
-celex = pd.read_csv(
-    'celex/english/eml/eml.cd',
-    sep='\\',
-    header=None,
-    names=['IdNum', 'Head', 'MorphStatus', 'MorphCnt', 'StrucLab',
-           'MorphOp', 'StrucAllo', 'StrucLabAdj'],
-    encoding='latin-1'
-)
+sys.path.insert(0, "_code")
+from celex import load_celex_entries, parse_morph_tree
 
-# Filter to entries with structure labels
-celex_parsed = celex[celex.StrucLab.notna()].copy()
+entries = load_celex_entries("celex/english/eml/eml.cd")
+celex = pd.DataFrame(asdict(entry) for entry in entries)
 
-print(f"Total entries: {len(celex)}")
-print(f"Entries with structure: {len(celex_parsed)}")
-celex_parsed[['Head', 'StrucLab']].head(10)
+print(f"Entries with morphological structures: {len(celex)}")
+celex.head()
 ```
 
-## Extracting a grammar
+## Parsing a structure label
 
-From the parsed entries, we can extract a context-free grammar by walking each parse tree and collecting the production rules.
+A `StrucLab` value places a category in square brackets after each bracketed constituent. Consider the following normalized analysis of *unhappiness*:
+
+```
+(((un)[Prefix] (happy)[Adjective])[Adjective] (ness)[Suffix])[Noun]
+```
+
+The inner constituent combines *un* and *happy* as an adjective; the outer constituent combines that adjective with *ness* as a noun. The category labels correspond to CFG variables.
 
 ```{python}
-from grammar import ContextFreeGrammar
+analysis = (
+    "(((un)[Prefix] (happy)[Adjective])[Adjective] "
+    "(ness)[Suffix])[Noun]"
+)
+tree = parse_morph_tree(analysis)
 
-all_rules = set()
-
-for _, row in celex_parsed.iterrows():
-    pw = ParsedWord(row.Head, row.StrucLab)
-    all_rules |= pw.extract_rules()
-
-print(f"Extracted {len(all_rules)} unique rules")
+tree.morphemes
 ```
 
-This grammar—extracted directly from a morphological database—gives us a supervised baseline for morphological analysis. In the following sections, we'll explore ways to learn such grammars from less annotated data.
+The same tree supplies a set of rules.
+
+```{python}
+for rule in sorted(tree.rules, key=str):
+    print(rule)
+```
+
+The lexical rules introduce *un*, *happy*, and *ness*. The nonlexical rules record how their categories compose. Counting these rules across the database will give us the supervised estimates used by the probabilistic grammar.
+
+::: {.callout-caution}
+## Question
+
+Why retain the full tree if `tree.morphemes` already gives us the segmentation?
+:::
+
+::: {.callout-tip collapse=true}
+## Answer
+
+The segmentation records only the terminal sequence. It does not say whether *un* first combines with *happy* or whether *ness* does. The internal nodes determine which CFG rules occurred and thus which attachment structures the grammar can learn.
+:::
+
+CELEX uses underlying morpheme spellings in some analyses, so concatenating the leaves need not reproduce the surface headword exactly. We will handle that mismatch with string alignment when constructing character-level boundary labels.

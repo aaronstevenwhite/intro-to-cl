@@ -13,16 +13,17 @@ $$L \in 2^{\Sigma^*}$$
 
 This terminology arises from the fact that, if $\Sigma$ were, say, all of the phonemes of English, at least one element of $2^{\Sigma^*}$ would be all and only the words of English (or at least one persons English idiolect). If $\Sigma$ were all English words (and assuming that _grammaticality_ is a coherent binary concept), at least one element of $2^{\Sigma^*}$ would be all the grammatical sentences of English (or at least one persons English idiolect). Of course, many of the sets in $2^{\Sigma^*}$ won't look anything like English or any other languages, and a big part of this class is going to be figuring out how to find subsets of $2^{\Sigma^*}$ that look like possible languages.
 
-To generate the set of all languages, we can compose our generator for $\Sigma^*$ with our power set generator.
+To generate the finite languages, we can compose our generator for $\Sigma^*$ with the incremental finite-subset generator developed earlier. No generator can enumerate *all* languages on a nonempty finite alphabet, because $2^{\Sigma^*}$ is uncountable.
 
 ```{python}
 
+from collections.abc import Iterable, Iterator, Sequence
 from itertools import product
 
 #| code-fold: true
 #| code-summary: Generator for natural numbers
 
-def natural_numbers() -> int:
+def natural_numbers() -> Iterator[int]:
     """Yield the natural numbers starting from 0.
 
     Yields
@@ -40,11 +41,8 @@ def natural_numbers() -> int:
 #| code-fold: true
 #| code-summary: Generator for power set
 
-from collections.abc import Iterable
-
-emptyset = frozenset()
-
-def powerset[T](iterable: Iterable[T]) -> set[T]:
+def powerset[T](iterable: Iterable[T]) -> Iterator[frozenset[T]]:
+    emptyset: frozenset[T] = frozenset()
     yield emptyset
 
     seen = {emptyset}
@@ -60,30 +58,32 @@ def powerset[T](iterable: Iterable[T]) -> set[T]:
 #| code-fold: true
 #| code-summary: Generator for Σ*
 
-def sigma_i(sigma: set[str], i: int) -> product:
+def sigma_i(sigma: Sequence[str], i: int) -> Iterator[tuple[str, ...]]:
     """Generate all strings of length i over an alphabet.
 
     Parameters
     ----------
-    sigma : set[str]
+    sigma : Sequence[str]
         The alphabet.
     i : int
         The string length.
 
     Returns
     -------
-    product
+    Iterator[tuple[str, ...]]
         An iterator over all strings of length ``i``.
     """
-    sigma_repeated = [sigma]*i
+    if i < 0:
+        raise ValueError("i must be nonnegative")
+    sigma_repeated = [sigma] * i
     return product(*sigma_repeated)
 
-def sigma_star(sigma: set[str]) -> str:
+def sigma_star(sigma: Sequence[str]) -> Iterator[str]:
     """Generate all strings over an alphabet in length order.
 
     Parameters
     ----------
-    sigma : set[str]
+    sigma : Sequence[str]
         The alphabet.
 
     Yields
@@ -97,16 +97,15 @@ def sigma_star(sigma: set[str]) -> str:
 ```
 
 ```{python}
-from collections.abc import Generator
+english_phonemes: tuple[str, ...] = (
+    "ɑ", "æ", "ə", "ʌ", "ɔ", "aʊ", "aɪ", "b", "tʃ", "d", "ð", "ɛ", "ɝ", "eɪ",
+    "f", "g", "h", "ɪ", "i", "dʒ", "k", "l", "m", "n", "ŋ", "oʊ", "ɔɪ", "p", "ɹ", "s",
+    "ʃ", "t", "θ", "ʊ", "u", "v", "w", "j", "z", "ʒ",
+)
 
-english_phonemes = {"ɑ", "æ", "ə", "ʌ", "ɔ", "aʊ", "aɪ", "b", "tʃ", "d", "ð", "ɛ", 
-                    "ɝ", "eɪ", "f", "g", "h", "ɪ", "i", "dʒ", "k", "l", "m", 
-                    "n", "ŋ", "oʊ", "ɔɪ", "p", "ɹ", "s", "ʃ", "t", "θ", "ʊ", 
-                    "u", "v", "w", "j", "z", "ʒ"}
+finite_languages: Iterator[frozenset[str]] = powerset(sigma_star(english_phonemes))
 
-languages: Generator[frozenset[str]] = powerset(sigma_star(english_phonemes))
-
-for i, l in enumerate(languages):
+for i, l in enumerate(finite_languages):
     if not i % 100000:
         print(l)
     
@@ -114,7 +113,7 @@ for i, l in enumerate(languages):
         break
 ```
 
-Notice that even if we compute a million of these languages using our power set generator, we are still ending up with small languages consisting of only singleton strings.
+Notice that even if we compute a million finite languages using this generator, we are still ending up with small languages. More generally, every value it can yield is finite; it necessarily misses every infinite language.
 
 ::: {.callout-caution}
 ## Question
@@ -122,9 +121,8 @@ Notice that even if we compute a million of these languages using our power set 
 How many languages are there in $2^{\Sigma^*}$? That is, what is $|2^{\Sigma^*}|$?
 :::
 
-Because $\{s\} \in 2^{\Sigma^*}$ for all $s \in \Sigma^*$, we know that $2^{\Sigma^*}$ must be at least as large as $\mathbb{\Sigma}^*$, which is the same size as $\mathbb{N}$. But unlike $\mathbb{\Sigma}^*$ in comparison to $\mathbb{N}$, it turns out that $2^{\Sigma^*}$ is larger than either.
+Because $\{s\} \in 2^{\Sigma^*}$ for all $s \in \Sigma^*$, we know that $2^{\Sigma^*}$ must be at least as large as $\Sigma^*$, which is the same size as $\mathbb{N}$. But unlike $\Sigma^*$ in comparison to $\mathbb{N}$, it turns out that $2^{\Sigma^*}$ is larger than either.
 
-The trick to seeing this is to try to sequence all languages in $2^{\Sigma^*}$. Suppose there were such a sequence of languages $L_*: \mathbb{N} \rightarrow 2^{\Sigma^*}$ such that $L$ is bijective: if $L_*(i) = L_*(j)$, then $i = j$ ($L_*$ is injective), and $L_*(\mathbb{N}) = 2^{\Sigma^*}$ ($L_*$ is surjective). Given a sequence $S_*$ on the strings, which we know we can construct, define a language $\bar{L}$ such that $S(i) \in \bar{L}$ if $S(i) \not\in L_*(i)$, otherwise $S(i) \not\in \bar{L}$ for all $i \in \mathbb{N}$. 
+The trick to seeing this is to try to sequence all languages in $2^{\Sigma^*}$. Suppose there were such a sequence of languages $L_*: \mathbb{N} \rightarrow 2^{\Sigma^*}$ such that $L_*$ is bijective: if $L_*(i) = L_*(j)$, then $i = j$ ($L_*$ is injective), and $L_*(\mathbb{N}) = 2^{\Sigma^*}$ ($L_*$ is surjective). Given a sequence $S_*$ on the strings, which we know we can construct, define a language $\bar{L}$ such that $S_*(i) \in \bar{L}$ if $S_*(i) \not\in L_*(i)$, and $S_*(i) \not\in \bar{L}$ otherwise, for every $i \in \mathbb{N}$.
 
-By definition, $\bar{L} \neq L_*(i)$ for any $i$, since $\bar{L}$ and $L_*(i)$ differ on at least $S(i)$: either $S(i) \in \bar{L}$ and $S(i) \not\in L_*(i)$ or $S(i) \in L_*(i)$ and $S(i) \not\in \bar{L}$. But if $\bar{L} \neq L_*(i)$ for any $i$, that means that $\bar{L} \not\in L_*(\mathbb{N})$ and therefore $L_*$ is not bijective (because it is not surjective): there will always be some $\bar{L}$ not in a particular sequence $L_*$. Therefore, $|2^{\Sigma^*}| > |\Sigma^*| = |\mathbb{N}|$.
-
+By definition, $\bar{L} \neq L_*(i)$ for any $i$, since $\bar{L}$ and $L_*(i)$ differ on at least $S_*(i)$: either $S_*(i) \in \bar{L}$ and $S_*(i) \not\in L_*(i)$ or $S_*(i) \in L_*(i)$ and $S_*(i) \not\in \bar{L}$. But if $\bar{L} \neq L_*(i)$ for every $i$, then $\bar{L} \not\in L_*(\mathbb{N})$. Thus, $L_*$ is not surjective, contrary to our assumption. Every proposed sequence omits at least its diagonal language $\bar{L}$, so $|2^{\Sigma^*}| > |\Sigma^*| = |\mathbb{N}|$.

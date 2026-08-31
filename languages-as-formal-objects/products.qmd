@@ -11,6 +11,8 @@ The cardinality of a cartesian product of two sets is the product of their cardi
 
 $$|A \times B| = |A| \times |B|$$
 
+Why does this give the right count for finite $A$ and $B$? Fix some $a\in A$. There is one pair $\langle a,b\rangle$ for each $b\in B$, so exactly $|B|$ pairs have $a$ as their first coordinate. The groups associated with different choices of $a$ cannot overlap, since a pair cannot have both $a$ and $a'$ as its first coordinate when $a\neq a'$. So we have $|A|$ groups, each containing $|B|$ pairs. This gives $|A\times B|=|A||B|$.
+
 ```{python}
 from itertools import product
 
@@ -23,45 +25,76 @@ z = {(i, j) for i in x for j in y}
 set(product(x, y)) == z # evaluates to True
 ```
 
-The cartesian product can be iterated–notated using exponentiation notation
+The cartesian product can be iterated using exponentiation notation.
 
 $$A^3 = A \times (A \times A)$$ 
 $$A^4 = A \times (A \times (A \times A))$$
 
-Since we know $|A \times B|$, we also know the cardinality of $|A^N| = |\times_{i=1}^N A| = |A| \times |A^{N-1}| = |A|^N$.
+Since we know $|A \times B|$, we also know the cardinality of $A^N$. Specifically,
+
+$$|A^N|=|A|^N$$
+
+for every positive integer $N$. So why does the equality continue to hold as we add more copies of $A$? We can show this by induction on $N$. In the base case, $A^1=A$, so $|A^1|=|A|=|A|^1$. Now fix some $N>1$ and assume $|A^{N-1}|=|A|^{N-1}$. Since $A^N=A\times A^{N-1}$, the product argument gives
+
+$$
+|A^N|=|A|\,|A^{N-1}|=|A|\,|A|^{N-1}=|A|^N.
+$$
+
+Thus, the equality holds for the base case and is preserved from $N-1$ to $N$. It holds for every positive $N$.
 
 ```{python}
 vowels: set[str] = {"e", "i", "o", "u", "æ", "ɑ", "ɔ", "ə", "ɛ", "ɪ", "ʊ"}
 
-def exponentiate(a, n):
+type NestedProduct[T] = T | tuple[T, NestedProduct[T]]
+
+
+def exponentiate[T](a: set[T], n: int) -> set[NestedProduct[T]]:
+    if n < 1:
+        raise ValueError("n must be positive")
     if n == 1:
-        return a
-    else:
-        return {(x, t) for t in exponentiate(a, n-1) for x in a}
+        return set(a)
+    return {(x, t) for t in exponentiate(a, n - 1) for x in a}
         
     
 exponentiate(vowels, 5)
 ```
 
-While exponentiation is defined in terms of the application of a bunch of binary $\times$, resulting in pairs of an element of $A$ with pairs of an element of $A$ with pairs of...we can always treat $A^N$ as a set of $N$-tuples because we can always map elements of $A^N$ to $N$-tuples.
+While exponentiation is defined using right-associated binary products, we often want to treat $A^N$ as the set of ordinary $N$-tuples. How do we get from one representation to the other? The conversion needs to keep track of $N$: checking whether an object belongs to $A$ is not enough when elements of $A$ may themselves be pairs.
 
-$$\mathrm{flatten}_A(a) = \begin{cases}\langle a \rangle & \text{if } a \in A\\
-\langle x\;:\;x \in \mathrm{flatten}(y) \land y \in a \rangle & \text{otherwise}\end{cases}$$
+Define $\operatorname{flatten}_{A,n}:A^n\to\{\langle a_1,\ldots,a_n\rangle\mid a_i\in A\}$ by
+
+$$
+\begin{aligned}
+\operatorname{flatten}_{A,1}(a)&=\langle a\rangle,\\
+\operatorname{flatten}_{A,n+1}(\langle a,x\rangle)&=
+\langle a\rangle\mathbin{\smallfrown}\operatorname{flatten}_{A,n}(x),
+\end{aligned}
+$$
+
+where $\smallfrown$ is tuple concatenation. The arity parameter, rather than the shape of $a$, selects the base case.
 
 ```{python}
-def flatten(t, a):
-    if t in a:
-        return (t,)
-    else:
-        return tuple(x for y in t for x in flatten(y, a))
+from typing import cast
+
+def flatten[T](t: NestedProduct[T], n: int) -> tuple[T, ...]:
+    if n < 1:
+        raise ValueError("n must be positive")
+    if n == 1:
+        return (cast(T, t),)
+    head, tail = cast(tuple[T, NestedProduct[T]], t)
+    return (head,) + flatten(tail, n - 1)
  
-{flatten(x, vowels) for x in exponentiate(vowels, 2)}
+{flatten(x, 2) for x in exponentiate(vowels, 2)}
 ```
 
-And we can always map back to the element of $A^N$.
+Define the inverse $\operatorname{reconstruct}_{A,n}$ by
 
-$$\mathrm{reconstruct}_A(a) = \begin{cases}a & \text{if } a \in A\\
-\langle \mathrm{head}(a), \mathrm{reconstruct}_A(\mathrm{tail}(a))\rangle & \text{otherwise}\end{cases}$$
+$$
+\begin{aligned}
+\operatorname{reconstruct}_{A,1}(\langle a\rangle)&=a,\\
+\operatorname{reconstruct}_{A,n+1}(\langle a\rangle\mathbin{\smallfrown}\mathbf{s})
+&=\langle a,\operatorname{reconstruct}_{A,n}(\mathbf{s})\rangle.
+\end{aligned}
+$$
 
-where $\mathrm{head}$ returns the first element of a tuple and $\mathrm{tail}$ returns the tuple with the first element removed.
-
+These maps are inverses by induction on $n$. The base case follows from the two definitions. For the inductive step, flattening removes the outer pair and reconstruction restores it; the induction hypothesis restores the remaining nested product. The reverse composition has the same two steps in the opposite order. Thus, the arity-indexed map is a bijection even when members of $A$ are themselves tuples.

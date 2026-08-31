@@ -24,9 +24,9 @@ else:
     print("e ∉ V_1")
     
 if "t" in vowels_1:
-    print("t ∈ V_3")
+    print("t ∈ V_1")
 else:
-    print("t ∉ V_3")
+    print("t ∉ V_1")
 ```
 
 Sets can be represented in many ways. For instance, we could also represent the set $V_1$ in this way:
@@ -92,15 +92,15 @@ Similarly, we can remove elements from `set`s but not `frozenset`s.
 ```{python}
 try:
     vowels.remove("t")
-    print("Successfully removed 't' to vowels.")
+    print("Successfully removed 't' from vowels.")
 except AttributeError:
-    print("Failed to remove 't' to vowels.")
+    print("Failed to remove 't' from vowels.")
 
 try:
     vowels_frozen.remove("ə")
-    print("Successfully removed 'ə' to vowels_frozen.")
+    print("Successfully removed 'ə' from vowels_frozen.")
 except AttributeError:
-    print("Failed to remove 'ə' to vowels_frozen.")
+    print("Failed to remove 'ə' from vowels_frozen.")
 ```
 
 This behavior makes `frozenset`s seem pretty useless, since it would seem they can do fewer things with them. But `frozenset`s turn out to have a really useful property: they can be *elements* of other `set`s or `frozenset`s.
@@ -120,4 +120,3 @@ except TypeError:
 ```
 
 The reason `frozenset`s can be elements of `set`s or `frozenset`s is that they are [hashable](https://docs.python.org/3/glossary.html#term-hashable), while `set`s are not.^[There is a correlation between hashability and immutability, but they are not the same thing.] We are going to use this property extensively throughout this course.
-

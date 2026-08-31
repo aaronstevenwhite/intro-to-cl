@@ -22,23 +22,22 @@ $$\mathbb{N} = \{0, 1, 2, 3, \ldots\}\text{ (or }\{1, 2, 3, \ldots\})$$
 We unfortunately can't use `set` to work with infinite sets in Python. Instead, we have to use [generators](https://docs.python.org/3/tutorial/classes.html#generators). One way to initialize a generator is to define a function containing a [`yield` statement](https://docs.python.org/3/reference/simple_stmts.html#yield).
 
 ```{python}
-from collections.abc import Generator
+from collections.abc import Iterator
 
-def natural_numbers() -> int:
-    """Initialize a generator for the natural numbers"""
+def natural_numbers() -> Iterator[int]:
+    """Yield the natural numbers starting with zero."""
     i = 0
     while True:
         yield i
         i += 1
 
 # initialize a generator of the natural numbers
-N: Generator[int] = natural_numbers()
+naturals: Iterator[int] = natural_numbers()
 
 # print the first 10 natural numbers
-for i in N:
-  if i < 10:
-    print(i)
-  else:
-    break
+for i in naturals:
+    if i < 10:
+        print(i)
+    else:
+        break
 ```
-

@@ -13,12 +13,12 @@ The operation of concatenation, which we represented using $\circ$, is implicit 
 #| code-fold: true
 #| code-summary: Load IPA representation of CMU Pronouncing Dictionary
 
-with open("cmudict-ipa") as f:
-    entries: list[tuple[str, str]] = [
-        l.strip().split(",") for l in f
+with open("cmudict-ipa", encoding="utf-8") as f:
+    entry_rows: list[list[str]] = [
+        line.strip().split(",", maxsplit=1) for line in f
     ]
     entries: dict[str, list[str]] = {
-        w: ipa.split() for w, ipa in entries
+        word: ipa.split() for word, ipa in entry_rows
     }
 ```
 
@@ -111,4 +111,3 @@ for i in range(3):
     print(re.fullmatch(regex_reæbstɹækʃən, "ɹidi"*i + string_æbstɹækʃən))
     print(re.fullmatch(regex_reæbstɹækʃən, "diɹi"*i + string_æbstɹækʃən))
 ```
-

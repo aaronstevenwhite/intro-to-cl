@@ -11,6 +11,20 @@ cd intro-to-cl
 
 All further commands on this page assume you are inside this directory.
 
+## Python
+
+The notes and assignments target Python 3.14 or later. To work outside Docker, create a virtual environment with a Python 3.14+ interpreter and install the requirements:
+
+```bash
+python3.14 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install --requirement requirements.txt
+python -m ipykernel install --user --name intro-to-cl --display-name "Python 3.14 (intro-to-cl)"
+```
+
+The code uses current typing syntax, including built-in collection types, `X | None` unions, and PEP 695 `type` aliases and type parameters.
+
 ## Quarto and extensions
 
 The site is built using [Quarto](https://quarto.org/). You will need to [install Quarto](https://quarto.org/docs/get-started/) and then install the extensions the site depends on:

@@ -3,11 +3,11 @@ title: Recognition
 bibliography: ../../references.bib
 ---
 
-In the previous sections, we've explored how finite state automata (FSAs) can be used to define and generate languages. Now, we'll examine the other direction: given a string, how do we determine whether it belongs to the language defined by an FSA?
+In the previous sections, we used finite state automata (FSAs) to define and generate languages. Now take the other direction: given a string, how do we determine whether it belongs to the language defined by an FSA?
 
 ## The Recognition Problem
 
-We've already seen an example of the recognition problem: when we discussed matching with regular expressions. In @grammars-as-languages, we formally defined matching as a function:
+We've already seen an example of the recognition problem: when we discussed matching with regular expressions. In the [section on basic matching](../../grammars-as-languages/basic-matching.qmd), we formally defined matching as a function:
 
 $$\text{match}: R(\Sigma)\;\times\;\Sigma^*  \rightarrow \{\top, \bot\}$$
 
@@ -24,7 +24,7 @@ This parameterized view parallels how we'll define our recognition algorithm for
 
 For a given FSA $G = \langle Q, \Sigma, \delta, q_0, F \rangle$ and an input string $\boldsymbol\sigma = \sigma_1\sigma_2\ldots\sigma_n$, we can define a recognition function $\text{recognize}(G, \boldsymbol\sigma)$ that returns true if $\boldsymbol\sigma \in \mathbb{L}(G)$ and false otherwise.
 
-First, we need a helper function to handle epsilon transitions. Let's define $\text{epsilon-reachable}(q)$ as the set of all states reachable from state $q$ via epsilon transitions only:
+Before reading the first symbol, the machine might already move along one or more epsilon transitions. So we first need a helper function. Let's define $\text{epsilon-reachable}(q)$ as the set of all states reachable from state $q$ via epsilon transitions only:
 
 $$
 \text{epsilon-reachable}(q) = \{q'\in Q \mid \text{there exists a path from } q \text{ to } q' \text{ using only } \epsilon \text{ transitions}\}
@@ -58,6 +58,18 @@ $$
 
 This algorithm starts by finding all states reachable from the initial state via epsilon transitions, then processes each symbol in the input string, tracking the set of possible states at each step. After processing the entire string, it checks if any of the current states is an accepting state.
 
+Why does this procedure return the right answer? For $0\leq i\leq n$, let $S_i$ be the state set held after processing $\sigma_1\ldots\sigma_i$. After that prefix, $S_i$ should contain exactly the states reachable from $q_0$ while consuming the prefix. This is the **recognition invariant**:
+
+$$
+S_i=\{q\in Q\mid q_0\xRightarrow{\sigma_1\ldots\sigma_i}q\},
+$$
+
+where the double arrow allows any number of epsilon transitions before, between, or after the displayed input symbols.
+
+Start with $i=0$. The algorithm initializes $S_0$ to $\operatorname{epsilon\text{-}reachable}(\{q_0\})$. This is exactly the set of states reachable without consuming input, so the invariant holds. Now suppose it holds for $S_i$. The algorithm takes every $\sigma_{i+1}$-transition out of every state in $S_i$ and then closes the result under epsilon transitions. Every state it adds is thus reachable after the prefix $\sigma_1\ldots\sigma_{i+1}$. Conversely, any path consuming that prefix must be in some state of $S_i$ just before it consumes $\sigma_{i+1}$; its symbol transition and following epsilon transitions are among those the update collects. Thus, the update adds every reachable state and no unreachable one, preserving the invariant.
+
+At $i=n$, the invariant says that $S_n$ contains exactly the states reachable after the full input. Now the final test has a direct interpretation: $S_n\cap F\neq\emptyset$ exactly when at least one of those paths ends in a final state. So the algorithm accepts exactly the strings that label an accepting path.
+
 For deterministic finite automata (DFAs), the algorithm simplifies because there are no epsilon transitions, and $\delta(q, \sigma)$ always returns a single state rather than a set of states. In this case:
 
 $$
@@ -77,4 +89,4 @@ q & \text{if } \boldsymbol\sigma = \epsilon \\
 \end{cases}
 $$
 
-This algorithm has a time complexity of $O(n)$ for DFAs and $O(n \cdot (|Q| + |E|))$ for NFAs, where $n$ is the length of the input string, $|Q|$ is the number of states, and $|E|$ is the number of transitions in the automaton. The per-symbol cost for the NFA comes from computing $\delta$ for each state in $S$ (up to $|Q|$ states) and then taking the epsilon-reachable closure of the result.
+This algorithm has a time complexity of $O(n)$ for DFAs and $O(n \cdot (|Q| + |E|))$ for NFAs, where $n$ is the length of the input string, $|Q|$ is the number of states, and $|E|$ is the number of transitions in the automaton. For a DFA, each of the $n$ symbols triggers one table lookup, which gives the linear bound. For an NFA, one update may inspect up to $|Q|$ active states and traverse the epsilon-transition graph, whose size is bounded by $|Q|+|E|$. Repeating that work for each input symbol gives the stated upper bound. The current-state set requires $O(|Q|)$ space.

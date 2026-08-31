@@ -7,53 +7,97 @@ Since random variables are required to preserve the structure of the event space
 
 ## Joint probability
 
-Defining the joint probability of random variables $X$ and $Y$ with underlying probability spaces $\langle \Omega_X, \mathcal{F}_X, \mathbb{P}_X \rangle$ and $\langle \Omega_Y, \mathcal{F}_Y, \mathbb{P}_Y \rangle$ requires us to define a new probability space $\langle \Omega_X \times \Omega_Y, \mathcal{F}_{X, Y}, \mathbb{P}_{X, Y} \rangle$, where $\mathcal{F}_{X, Y}$ is the [product $\sigma$-algebra](https://en.wikipedia.org/wiki/%CE%A3-algebra#Product_%CF%83-algebra) $\sigma\left(\left\{E_X \times E_Y \mid E_X \in \mathcal{F}_X, E_Y \in \mathcal{F}_Y\right\}\right)$ on $\Omega_X \times \Omega_Y$. We then define the joint distribution $p_{X, Y}$ in terms of $X'(\omega_X, \omega_Y) = X(\omega_X)$ and $Y'(\omega_X, \omega_Y) = Y(\omega_Y)$:
+How do we define a joint distribution for two random variables? There are two cases to consider. First, suppose $X$ and $Y$ are defined on the same probability space $(\Omega,\mathcal F,\mathbb P)$. Their joint distribution is the pushforward of $\mathbb P$ under the measurable pairing $\omega\mapsto(X(\omega),Y(\omega))$. In the discrete case,
 
-$$\begin{align*}p_{X, Y}(x, y) &= \mathbb{P}_{X, Y}(X' = x, Y' = y)\\ &= \mathbb{P}_{X, Y}\left(\{\langle\omega_X, \omega_Y\rangle \mid X'(\langle\omega_X, \omega_Y\rangle) = x\} \cap \{\langle\omega_X, \omega_Y\rangle \mid Y'(\langle\omega_X, \omega_Y\rangle) = y\}\right)\\ &= \mathbb{P}_{X, Y}\left(\{\langle\omega_X, \omega_Y\rangle \mid X(\omega_X) = x \land Y(\omega_Y) = y\}\right)\end{align*}$$
+$$
+p_{X,Y}(x,y)
+=\mathbb P(\{\omega\in\Omega\mid X(\omega)=x,\ Y(\omega)=y\}).
+$$
 
-where $p_{X, Y}$ (and thus $\mathbb{P}_{X, Y}$) must be such that the *marginal distributions* $p_X$ and $p_Y$ satisfy:
+Now suppose instead that we are given only separate marginal probability spaces for $X$ and $Y$. Those marginals do not determine a joint law. We need to choose a **coupling**: a probability measure $\mathbb P_{X,Y}$ on the [product $\sigma$-algebra](https://en.wikipedia.org/wiki/%CE%A3-algebra#Product_%CF%83-algebra)
+
+$$
+\mathcal F_X\otimes\mathcal F_Y
+=\sigma\left(\{E_X\times E_Y\mid E_X\in\mathcal F_X,\ E_Y\in\mathcal F_Y\}\right)
+$$
+
+whose coordinate marginals equal the supplied measures. Using $X'(\omega_X,\omega_Y)=X(\omega_X)$ and $Y'(\omega_X,\omega_Y)=Y(\omega_Y)$ then induces a joint PMF that must satisfy
 
 $$p_X(x) = \sum_{y \in Y(\Omega_Y)} p_{X, Y}(x, y)$$
 
 $$p_Y(y) = \sum_{x \in X(\Omega_X)} p_{X, Y}(x, y)$$
 
-I'm writing only the discrete case here, since the random variables we'll be working with in this module are discrete. (For continuous random variables, the sums become integrals.)
+These marginal equations are requirements. They do not follow merely from placing an arbitrary measure on the product space. The independent product measure is one coupling, but dependent couplings may have the same marginals. I'm writing only the discrete case here, since the random variables we'll be working with in this module are discrete. For continuous random variables, the corresponding marginalization uses integrals or, more generally, pushforward measures.
 
 I'll sometimes simply write $p(x, y)$ — with $x$ and $y$ as values of implicit random variables — instead of $p_{X, Y}(x, y)$. I'll also often drop all but the variable of summation from the sum over the range of a random variable. So I'll write things like $p(x) = \sum_{y} p(x, y)$ rather than $p_X(x) = \sum_{y \in Y(\Omega_Y)} p_{X, Y}(x, y)$. Just remember that $p_{X, Y}$ is a different function from $p_X$ or $p_Y$ — even when I use the shorthand.
 
 ## Conditional probability
 
-The conditional probability of a random variable $X$ given a random variable $Y$ is defined in terms of their joint probability and the marginal probability of $Y$:
+For a value $y$ with $p_Y(y)>0$, the conditional probability of a random variable $X$ given a random variable $Y$ is defined in terms of their joint probability and the marginal probability of $Y$:
 
 $$p_{X \mid Y}(x \mid y) \equiv \frac{p_{X, Y}(x, y)}{p_{Y}(y)} = \frac{p_{X, Y}(x, y)}{\sum_{x'} p_{X, Y}(x', y)}$$
 
-This is the direct analogue of the conditional probability we defined for events: $\mathbb{P}(A \mid B) = \frac{\mathbb{P}(A, B)}{\mathbb{P}(B)}$.
+This is the direct analogue of the conditional probability we defined for events: $\mathbb{P}(A \mid B) = \frac{\mathbb{P}(A, B)}{\mathbb{P}(B)}$. If $p_Y(y)=0$, the ratio is undefined. One may assign an arbitrary conditional PMF at such a null value as part of a version, but the joint law does not identify that choice and changing it has no probabilistic effect.
 
 ## Independence
 
-We can extend the definition of independent events to that of independent random variables by saying that two random variables $X$ and $Y$ are independent if and only if:
+We extend independence from events to random variables using the **pointwise product criterion** (PPC). Two discrete random variables $X$ and $Y$ are independent if, for every $x$ and $y$ in their ranges,
 
-$$p_{X \mid Y}(x \mid y) = p_X(x)$$
-$$p_{Y \mid X}(y \mid x) = p_Y(y)$$
+$$p_{X,Y}(x,y)=p_X(x)p_Y(y).$$
 
-By the same reasoning as for independent events, this in turn implies that:
+To connect the PPC to conditional probability, fix arbitrary values $x$ and $y$ with $p_Y(y)>0$. The definition of a conditional PMF gives
 
-$$p_{X, Y}(x, y) = p_X(x)p_Y(y)$$
+$$
+p_{X\mid Y}(x\mid y)
+=\frac{p_{X,Y}(x,y)}{p_Y(y)}.
+$$
 
-We say that two random variables $X$ and $Y$ are *conditionally independent* given another random variable $Z$ if and only if:
+If the PPC holds, substituting $p_X(x)p_Y(y)$ in the numerator and cancelling $p_Y(y)$ yields $p_{X\mid Y}(x\mid y)=p_X(x)$. Conversely, if this conditional equality holds, multiplying both sides by $p_Y(y)$ recovers the PPC at $x,y$. Since $x$ and $y$ were arbitrary, the two characterizations are equivalent wherever the conditional distribution is defined. The product form remains preferable as the definition because it also covers values with zero marginal probability and makes symmetry immediate.
 
-$$p_{X \mid Y, Z}(x \mid y, z) = p_{X \mid Z}(x \mid z)$$
-$$p_{Y \mid X, Z}(y \mid x, z) = p_{Y \mid Z}(y \mid z)$$
+Conditional independence repeats the same argument within each distribution selected by $Z$. We say that $X$ and $Y$ are *conditionally independent given $Z$* if, for every $z$ with $p_Z(z)>0$ and all $x,y$,
 
-As before, this implies that:
+$$
+p_{X,Y\mid Z}(x,y\mid z)
+=p_{X\mid Z}(x\mid z)p_{Y\mid Z}(y\mid z).
+$$
 
-$$p_{X, Y \mid Z}(x, y \mid z) = p_{X \mid Z}(x \mid z)p_{Y \mid Z}(y \mid z)$$
+Fix such a $z$ and a $y$ for which $p_{Y\mid Z}(y\mid z)>0$. Dividing the displayed identity by this term yields $p_{X\mid Y,Z}(x\mid y,z)=p_{X\mid Z}(x\mid z)$. Multiplication proves the reverse direction. Thus, conditional independence means that, once $Z=z$ has selected a conditional distribution, learning $Y=y$ does not change that distribution's probability for $X=x$.
 
-Note that being conditionally independent is not the same as being independent. Two random variables can be marginally independent but conditionally dependent, and vice versa.
+Conditional independence is not the same as marginal independence. How do we know? We can see both directions of the difference in two explicit binary distributions.
 
-To see why, consider a concrete example using the position-specific random variables $W_1, W_2, W_3$ that we will define in the [next section](language-models.qmd), where $W_i$ extracts the phone at position $i$ of a string. Suppose we're sampling three-phone strings from an English lexicon. It might be the case that $W_1$ and $W_3$ are approximately independent: knowing the first phone of a word doesn't tell you much about the third. But now condition on $W_2$ being a specific vowel—say $\text{æ}$. Given that the middle phone is $\text{æ}$, the string is a CVC monosyllable, and now $W_1$ and $W_3$ are both constrained to be consonants. More than that, certain onset–coda pairings are more or less likely than others (e.g. $\text{bæt}$ and $\text{kæt}$ are words, but $\text{ʒæŋ}$ is not). So conditioning on $W_2$ can introduce a dependence between $W_1$ and $W_3$ that wasn't there marginally.
+First consider the **exclusive-or distribution** (XOR distribution), in which $Z=1$ exactly when $X\neq Y$:
 
-The reverse can happen too. The [earlier section](some-useful-definitions.qmd) showed that highness and backness are not independent in the vowel space under a uniform measure: $\mathbb{P}(H, B) \neq \mathbb{P}(H)\mathbb{P}(B)$. But one could imagine a probability measure under which they *are* dependent marginally but become conditionally independent given some third variable—say, the prosodic context in which the vowel appears.
+| $x$ | $y$ | $z$ | $p(x,y,z)$ |
+|---:|---:|---:|---:|
+| 0 | 0 | 0 | $1/4$ |
+| 0 | 1 | 1 | $1/4$ |
+| 1 | 0 | 1 | $1/4$ |
+| 1 | 1 | 0 | $1/4$ |
+
+Marginalizing over $Z$ gives $p_X(0)=p_X(1)=p_Y(0)=p_Y(1)=1/2$, while $p_{X,Y}(x,y)=1/4$ for every pair. Thus,
+
+$$
+p_{X,Y}(x,y)=\frac14
+=\frac12\cdot\frac12
+=p_X(x)p_Y(y),
+$$
+
+so $X$ and $Y$ are marginally independent. Now condition on $Z=0$. Since $p_Z(0)=1/2$, the two compatible rows have conditional probability $(1/4)/(1/2)=1/2$. In particular,
+
+$$
+p_{X,Y\mid Z}(0,0\mid0)=\frac12,
+$$
+
+but $p_{X\mid Z}(0\mid0)=p_{Y\mid Z}(0\mid0)=1/2$, whose product is $1/4$. The PPC fails after conditioning. Thus, marginally independent variables may be conditionally dependent.
+
+For the reverse direction, consider the **common-cause distribution**:
+
+| $x$ | $y$ | $z$ | $p(x,y,z)$ |
+|---:|---:|---:|---:|
+| 0 | 0 | 0 | $1/2$ |
+| 1 | 1 | 1 | $1/2$ |
+
+Here $p_{X,Y}(0,0)=1/2$, while $p_X(0)p_Y(0)=(1/2)(1/2)=1/4$, so $X$ and $Y$ are marginally dependent. Given $Z=0$, however, both $X$ and $Y$ equal $0$ with probability $1$. The joint conditional mass at $(0,0)$ is thus $1=1\cdot1$, and every other pair has joint mass $0$ and a product containing at least one zero factor. The same calculation holds at $Z=1$. Hence $p_{X,Y\mid Z}(x,y\mid z)=p_{X\mid Z}(x\mid z)p_{Y\mid Z}(y\mid z)$ for every $x,y,z$ with positive $p_Z(z)$. Thus, marginally dependent variables may be conditionally independent.
 
 ## Expected values
 
@@ -61,9 +105,33 @@ The *expected value* $\mathbb{E}[X]$ of a random variable $X$ can be thought of 
 
 $$\mathbb{E}[X] \equiv \sum_{x} x \cdot p_X(x)$$
 
-The expected value of a random variable $X$ is often referred to as the *mean of* $X$. Given a PMF of a probability distribution, we can often (though not always) compute the mean analytically in terms of the distribution's parameters. For instance, the mean of a random variable $X \sim \text{Geom}(\pi)$ is:
+The expected value of a random variable $X$ is often referred to as the *mean of* $X$. Given a PMF of a probability distribution, we can often (though not always) compute the mean analytically in terms of the distribution's parameters. For instance, the mean of a random variable $X \sim \text{Geom}(\pi)$ is
 
 $$\mathbb{E}[X] = \sum_{k=0}^\infty k \cdot (1-\pi)^k\pi = \frac{1-\pi}{\pi}$$
+
+for the convention in which $X$ counts the number of failures before the first success. So why does the mean have this form? We can answer this with a **geometric-series calculation**. Let $q=1-\pi$. When $0<\pi<1$, we have $|q|<1$ and
+
+$$
+\sum_{k=0}^{\infty}q^k=\frac{1}{1-q}.
+$$
+
+The geometric series is a power series with radius of convergence $1$. A standard power-series theorem permits termwise differentiation at every point strictly inside that radius, and the differentiated series has the same radius of convergence. Since $q\in(0,1)$, differentiating both sides with respect to $q$ is licensed:
+
+$$
+\sum_{k=1}^{\infty}kq^{k-1}=\frac{1}{(1-q)^2}.
+$$
+
+Multiplying by $q\pi$ changes the term on the left to $kq^k\pi$ and gives
+
+$$
+\mathbb{E}[X]
+=\pi\sum_{k=0}^{\infty}kq^k
+=\frac{q\pi}{(1-q)^2}
+=\frac{q}{\pi}
+=\frac{1-\pi}{\pi}.
+$$
+
+The endpoint $\pi=1$ assigns all mass to $X=0$, so its expectation is $0$, which agrees with the same formula. Hence, the stated mean holds throughout $\pi\in(0,1]$.
 
 The moral is to be careful in assuming that the expected value is always defined — there exist distributions, such as the [Cauchy distribution](https://en.wikipedia.org/wiki/Cauchy_distribution), for which the expected value does not exist.
 
@@ -73,7 +141,18 @@ We'll often have cause to take the expected value of some function $g(X) \equiv 
 
 $$\mathbb{E}\left[g(X)\right] \equiv \sum_{x} g(x) \cdot p(x)$$
 
-For simple [affine functions](https://en.wikipedia.org/wiki/Affine_transformation), it is straightforward to prove that $\mathbb{E}\left[aX + b\right] = a\mathbb{E}\left[X\right] + b$. But it's important to note that $\mathbb{E}\left[g(X)\right] \neq g\left(\mathbb{E}\left[X\right]\right)$ in general. If $g$ is [convex](https://en.wikipedia.org/wiki/Convex_function), however, $\mathbb{E}\left[g(X)\right] \geq g\left(\mathbb{E}\left[X\right]\right)$ by [Jensen's inequality](https://en.wikipedia.org/wiki/Jensen%27s_inequality).
+Suppose the relevant sums converge. Linearity for an [affine function](https://en.wikipedia.org/wiki/Affine_transformation) follows by distributing the sum and using the normalization of the PMF:
+
+$$
+\begin{aligned}
+\mathbb{E}[aX+b]
+  &=\sum_x (ax+b)p_X(x)\\
+  &=a\sum_x xp_X(x)+b\sum_x p_X(x)\\
+  &=a\mathbb{E}[X]+b.
+\end{aligned}
+$$
+
+The last equality is where $\sum_x p_X(x)=1$ enters the proof. This argument does not extend to an arbitrary nonlinear $g$. For instance, if $X\sim\operatorname{Bern}(1/2)$ and $g(x)=x^2$, then $\mathbb{E}[g(X)]=1/2$, whereas $g(\mathbb{E}[X])=(1/2)^2=1/4$. If $g$ is [convex](https://en.wikipedia.org/wiki/Convex_function), the two quantities are related instead by [Jensen's inequality](https://en.wikipedia.org/wiki/Jensen%27s_inequality): $\mathbb{E}[g(X)]\geq g(\mathbb{E}[X])$.
 
 ### Central moments
 
@@ -87,24 +166,69 @@ Like the expected value, the variance of a particular distribution can often be 
 
 $$\mathbb{V}[X] = \sum_{k=0}^\infty (k - \mathbb{E}[X])^2 \cdot (1-\pi)^k\pi = \frac{1-\pi}{\pi^2}$$
 
+We can derive this value from the same geometric series. The power-series theorem just invoked also licenses a second termwise derivative for $|q|<1$. Differentiating twice gives
+
+$$
+\sum_{k=2}^{\infty}k(k-1)q^{k-2}=\frac{2}{(1-q)^3}.
+$$
+
+Multiplying by $q^2\pi$ yields $\mathbb{E}[X(X-1)]=2q^2/\pi^2$. Since $X^2=X(X-1)+X$, the mean calculation above gives
+
+$$
+\mathbb{E}[X^2]
+=\frac{2q^2}{\pi^2}+\frac{q}{\pi}.
+$$
+
+Now use $\mathbb{V}[X]=\mathbb{E}[X^2]-\mathbb{E}[X]^2$:
+
+$$
+\mathbb{V}[X]
+=\frac{2q^2}{\pi^2}+\frac{q}{\pi}-\frac{q^2}{\pi^2}
+=\frac{q}{\pi^2}
+=\frac{1-\pi}{\pi^2}.
+$$
+
+Thus, the variance formula follows from the same generating series as the mean.
+
 ### Covariance and correlation
 
 It is often useful to know how two random variables $X$ and $Y$ "move together" or *covary*. The [covariance](https://en.wikipedia.org/wiki/Covariance) extends variance — which is a property of a single random variable — to pairs of random variables with a joint distribution $p_{X, Y}$.
 
 $$\text{cov}(X, Y) = \mathbb{E}[(X - \mathbb{E}[X])(Y - \mathbb{E}[Y])] = \sum_{x}\sum_{y} (x - \mathbb{E}[X]) \cdot (y - \mathbb{E}[Y]) \cdot p(x, y)$$
 
-The covariance of a random variable with itself is just the variance: $\text{cov}(X, X) = \mathbb{V}[X]$.
+The covariance of a random variable with itself is the variance. Set $Y=X$ in the definition:
+
+$$
+\operatorname{cov}(X,X)
+=\mathbb{E}[(X-\mathbb{E}[X])^2]
+=\mathbb{V}[X].
+$$
+
+The conclusion follows by the definition of the second central moment; no independence assumption is involved.
 
 The covariance has units corresponding to whatever the units of $X$ and $Y$ are. The (Pearson) [correlation](https://en.wikipedia.org/wiki/Pearson_correlation_coefficient) normalizes these units away to a quantity in $[-1, 1]$:
 
 $$\text{corr}(X, Y) \equiv \frac{\text{cov}(X, Y)}{\sqrt{\mathbb{V}[X]}\sqrt{\mathbb{V}[Y]}}$$
 
-This quantity is guaranteed to be between $[-1, 1]$ due to an application of the [Cauchy-Schwarz inequality](https://en.wikipedia.org/wiki/Cauchy%E2%80%93Schwarz_inequality#Probability_theory): $\text{cov}(X, Y)^2 \leq \mathbb{V}[X] \cdot \mathbb{V}[Y]$.
+To verify the bounds, let $U=X-\mathbb{E}[X]$ and $V=Y-\mathbb{E}[Y]$. The [Cauchy–Schwarz inequality](https://en.wikipedia.org/wiki/Cauchy%E2%80%93Schwarz_inequality#Probability_theory) gives
+
+$$
+|\mathbb{E}[UV]|^2
+\leq\mathbb{E}[U^2]\mathbb{E}[V^2].
+$$
+
+The three quantities here are $|\operatorname{cov}(X,Y)|^2$, $\mathbb{V}[X]$, and $\mathbb{V}[Y]$, respectively. If both variances are positive, taking square roots and dividing by $\sqrt{\mathbb{V}[X]\mathbb{V}[Y]}$ gives $|\operatorname{corr}(X,Y)|\leq1$. Thus, the correlation belongs to $[-1,1]$. If either variance is zero, the displayed correlation formula divides by zero and correlation is undefined rather than equal to a value in that interval.
 
 ### Conditional expectation
 
-In certain cases, we need the expected value of one random variable $X$ conditioned on another random variable $Y$: $\mathbb{E}[X \mid Y]$. When we know the value of $Y$ (or want to assume we do):
+In certain cases, we need the expected value of an integrable real-valued random variable $X$ conditioned on another random variable $Y$: $\mathbb{E}[X \mid Y]$. For every $y$ with $p_Y(y)>0$,
 
 $$\mathbb{E}[X \mid Y = y] = \sum_x x \cdot p(x \mid y)$$
 
-We can think of $\mathbb{E}[X \mid Y = y]$ as a function $g: \text{cod}(Y) \rightarrow \text{cod}(X)$. Alternatively, we can think of $\mathbb{E}[X \mid Y]$ as itself a random variable $g(Y) = g \circ Y: \text{dom}(Y) \rightarrow \text{cod}(X)$, where $\text{dom}(Y)$ is the sample space of the probability space underlying $Y$.
+This defines a real-valued function
+
+$$
+g:\{y\in\operatorname{cod}(Y)\mid p_Y(y)>0\}\rightarrow\mathbb R.
+$$
+
+At a value with $p_Y(y)=0$, the ratio defining $p(x\mid y)$ does not determine $g(y)$. Extending $g$ arbitrarily to those null values produces a version of the conditional expectation. The random variable $\mathbb E[X\mid Y]=g(Y):\Omega\rightarrow\mathbb R$ is thus determined only almost surely: two versions may differ on zero-probability fibers of $Y$ but agree with probability one.

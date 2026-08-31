@@ -4,13 +4,15 @@ bibliography: ../../references.bib
 jupyter: python3
 ---
 
-We've now seen two branches of the subregular hierarchy: the local side (SL $\subset$ LT) and the piecewise side (SP $\subset$ PT), along with TSL crosscutting both. These branches converge at a class called the *star-free languages*, which sits just below the full regular languages and just above both LT and PT.
+We've now seen a local branch (SL $\subset$ LT), a piecewise branch (SP $\subset$ PT), and TSL crosscutting both. What class contains these branches but still excludes some regular languages? The answer is the *star-free languages*.
 
 ## Star-free languages
 
 A language is *star-free* if it can be described by a generalized regular expression that uses union, concatenation, and *complement* but not Kleene star [@mcnaughton1971counter; @schutzenberger1965finite]. That is, we replace the $*$ operation with $\overline{\cdot}$ (complement with respect to $\Sigma^*$).
 
-This might sound like a minor change, but it turns out to carve out a very specific subclass of the regular languages. The reason is that Kleene star is what gives regular expressions the ability to count modulo a number. For instance, the language $\{w \in \{a, b\}^* \mid |w|_a \equiv 0 \pmod{2}\}$—strings with an even number of $a$'s—is regular (you can build a two-state DFA for it) but not star-free.
+Why is every star-free language regular? Use structural induction on a star-free expression. Start with the atomic languages $\emptyset$, $\{\epsilon\}$, and $\{a\}$ for $a\in\Sigma$, all of which are regular. Now suppose the immediate subexpressions describe regular languages. Their union and concatenation are regular by the constructions from the preceding sections, and the complement of either one is regular after determinization and completion. Each licensed star-free constructor thus preserves regularity. Since every star-free expression has a finite construction, its language is regular.
+
+This change carves out a particular subclass of the regular languages. In the presence of complement, removing Kleene star rules out the cyclic behavior needed for modular counting. For instance, the language $\{w \in \{a, b\}^* \mid |w|_a \equiv 0 \pmod{2}\}$—strings with an even number of $a$'s—is regular (you can build a two-state DFA for it) but not star-free. This does not mean that every regular expression containing a star performs modular counting; it means that some regular languages requiring modular counting have no star-free description.
 
 We can build star-free expressions using `arcweight` by constructing automata with `union`, `concat`, and `difference` (complement) only.
 
@@ -22,6 +24,7 @@ import arcweight
 
 # Alphabet: {a, b}
 syms = arcweight.SymbolTable()
+syms.add_symbol('<eps>')
 a = syms.add_symbol('a')
 b = syms.add_symbol('b')
 
@@ -48,30 +51,23 @@ fst_b.set_start(s0)
 fst_b.set_final(s1, 0.0)
 fst_b.add_arc(s0, b, b, 0.0, s1)
 
-# Star-free expression for "strings that contain at least one 'a'":
-# complement(complement({a}) ∘ sigma_star)... actually let's do it directly.
-# "strings containing 'a'" = sigma_star ∘ {a} ∘ sigma_star
-# But we can't use Kleene star! We use complement instead:
-# "strings NOT containing 'a'" = complement of (sigma_star ∘ {a} ∘ sigma_star)
-# But sigma_star itself uses star...
-# The trick: sigma_star = complement(empty_set), and empty_set is star-free.
-
-# Actually, the standard star-free construction for sigma_star:
-# Σ* = complement(∅)
-# So we need ∅ first
+# A star-free description may use Σ* because Σ* = complement(∅).
+# We construct the empty-language acceptor first to make that identity explicit.
 empty = arcweight.VectorFst()
 s = empty.add_state()
 empty.set_start(s)
-# No final state — accepts nothing
+# No final state: this machine accepts nothing.
 
-# Σ* = complement(∅) = difference(sigma_star, empty)
-# But we need sigma_star to compute the difference...
-# In practice, we work with sigma_star as given and use difference for complement.
+# `arcweight.difference` requires an explicit machine for the ambient universe,
+# so the executable code uses `sigma_star` above to compute complements.
 
 # "Strings that contain [ab] as a substring" (star-free):
 # Σ* ∘ {a} ∘ {b} ∘ Σ* — but this uses concatenation, not star.
 # We concatenate with sigma_star (= complement(∅)) on both sides.
-ab_substr = arcweight.concat(arcweight.concat(sigma_star, fst_a), arcweight.concat(fst_b, sigma_star))
+ab_substr = arcweight.concat(
+    arcweight.concat(sigma_star, fst_a),
+    arcweight.concat(fst_b, sigma_star),
+)
 
 # "Strings that do NOT contain [ab]" (complement of the above)
 no_ab = arcweight.difference(sigma_star, ab_substr)
@@ -82,11 +78,11 @@ print(f"no_ab states: {no_ab.num_states()}")
 
 ### The McNaughton-Papert theorem
 
-The star-free languages have a beautiful algebraic characterization due to @mcnaughton1971counter and @schutzenberger1965finite: a regular language is star-free if and only if its [syntactic monoid](https://en.wikipedia.org/wiki/Syntactic_monoid) is *aperiodic*—meaning it contains no nontrivial cyclic groups. The equivalent automaton-theoretic statement is that a regular language is star-free if and only if it is recognizable by a [*counter-free* automaton](https://en.wikipedia.org/wiki/Aperiodic_finite_automaton): a DFA in which there is no state $q$, nonempty string $w$, and integer $n > 1$ such that $\delta(q, w^n) = q$ but $\delta(q, w) \neq q$. In other words, if iterating some string $w$ eventually cycles a state back to itself, then a *single* application of $w$ must already return to that state—the automaton has no nontrivial cycles and therefore cannot count repetitions.
+@mcnaughton1971counter and @schutzenberger1965finite give an algebraic characterization of the star-free languages: a regular language is star-free if and only if its [syntactic monoid](https://en.wikipedia.org/wiki/Syntactic_monoid) is *aperiodic*, meaning it contains no nontrivial cyclic groups. The equivalent minimal-automaton statement is that a regular language is star-free if and only if its minimal DFA is [*counter-free*](https://en.wikipedia.org/wiki/Aperiodic_finite_automaton): there is no state $q$, nonempty string $w$, and integer $n > 1$ such that $\delta(q,w^n)=q$ but $\delta(q,w)\neq q$. In other words, if iterating some string $w$ cycles a state back to itself, then one application of $w$ must already return to that state.
 
 There is also a logical characterization: the star-free languages are exactly the languages definable in first-order logic with the linear order and successor predicates on string positions. This connects the subregular hierarchy to a broader program of relating language classes to logical expressiveness.
 
-I won't prove these equivalences here, but they are worth knowing about because they illuminate *why* star-free languages are a natural boundary: the languages above them (but still regular) are exactly those that require modular counting, and there is no known phonological pattern that requires counting modulo a number.
+We won't prove these equivalences here. For current purposes, their upshot is that the regular languages outside the star-free class require modular counting, while no known phonological pattern requires counting modulo a number.
 
 ## The complete hierarchy
 
@@ -95,7 +91,7 @@ We can now assemble the full picture. The following containments are all proper:
 $$\text{SL}_k \subset \text{SL}_{k+1} \subset \ldots \subset \text{SL} \subset \text{LT} \subset \text{Star-Free} \subset \text{Regular}$$
 $$\text{SP}_k \subset \text{SP}_{k+1} \subset \ldots \subset \text{SP} \subset \text{PT} \subset \text{Star-Free} \subset \text{Regular}$$
 
-where SL $= \bigcup_k \text{SL}_k$ and SP $= \bigcup_k \text{SP}_k$. TSL sits to the side: it is not contained in SL or SP, but many TSL languages are contained in the star-free languages. The relationships among SL, SP, LT, PT, and TSL are not simple containment—there are languages in each that are not in the others—but they all live within the star-free languages, and all are well below the full regular class.
+where SL $= \bigcup_k \text{SL}_k$ and SP $= \bigcup_k \text{SP}_k$. TSL sits on a third branch: it properly contains SL, is properly contained in the star-free languages, and is incomparable with LT and PT [@heinz2011tier]. Thus, the relationships among the branches are not captured by a single linear ordering.
 
 ::: {.callout-caution}
 ## Question
@@ -109,9 +105,23 @@ The language "strings over $\{a, b\}$ with an even number of $a$'s" is regular. 
 No. This language requires counting $a$'s modulo 2, which requires a cyclic group in the syntactic monoid. The minimal DFA has two states that cycle with each $a$, making it a counter. Since the syntactic monoid is not aperiodic, the language is not star-free.
 :::
 
+We can spell out the counter-free argument without computing the full syntactic monoid. A two-state DFA recognizes the language: let $q_{\mathrm{even}}$ be the initial and final state and $q_{\mathrm{odd}}$ the other state; `a` swaps them and `b` leaves them unchanged.
+
+This DFA is minimal. Both states are reachable, by $\epsilon$ and `a`, respectively. They are also distinguishable by the empty suffix: stopping in $q_{\mathrm{even}}$ accepts, while stopping in $q_{\mathrm{odd}}$ rejects. Thus, no equivalent DFA can merge them. And every string reaches one of the two states according to the parity of its number of `a`s, so the two states exhaust the equivalence classes.
+
+Now read one and then two copies of `a` from the even state:
+
+$$
+\delta(q_{\mathrm{even}},a)=q_{\mathrm{odd}}
+\quad\text{but}\quad
+\delta(q_{\mathrm{even}},a^2)=q_{\mathrm{even}}.
+$$
+
+Thus, the nonempty string $a$ forms a cycle of length $2$: applying it twice returns the state, while applying it once does not. The minimal DFA violates the counter-free condition, so the McNaughton-Papert theorem rules out any star-free description.
+
 ## The empirical picture
 
-Documented across a large body of work [@heinz_computational_2018; @rogers2013cognitive; @lambert2021typology; @graf2017power], attested phonological patterns overwhelmingly fall into the lowest levels of this hierarchy.
+Across the work cited here, attested phonological patterns tend to fall into the lower levels of this hierarchy [@heinz_computational_2018; @rogers2013cognitive; @lambert2021typology; @graf2017power].
 
 - Most phonotactic constraints (restrictions on what sequences of sounds can appear) are SL—they depend on short contiguous contexts.
 - Long-distance phonological processes like harmony are typically SP or TSL.
@@ -122,9 +132,9 @@ There is nothing in the definition of a DFA that prevents a phonological pattern
 
 ## Learnability revisited
 
-One candidate explanation for why phonological patterns cluster in the subregular hierarchy comes from learnability. Recall [Gold's result](../the-generativist-conceit.qmd): the full class of regular languages is not learnable in the limit from positive data, because it contains infinite chains $L_1 \subset L_2 \subset \ldots$ that allow the learner to be tricked. If the subregular classes avoid this problem—if they *are* learnable from positive data—then the clustering of phonological patterns in these classes would have a principled explanation: natural languages live where they do because those are the languages that children can learn.
+One candidate explanation for why phonological patterns cluster in the subregular hierarchy comes from learnability. Recall [Gold's result](../the-generativist-conceit.qmd): over a fixed nonempty finite alphabet $\Sigma$, if a hypothesis class contains every finite subset of $\Sigma^*$ and at least one infinite language, no learner can identify every member of that class in the limit from arbitrary positive text [@gold1967language]. The regular languages meet this condition. If particular restricted subregular families are identifiable from positive data, their learnability may help explain why phonological patterns cluster there.
 
-This is not just a hope. @heinz2010learning showed that SL and SP languages are learnable in the limit from positive data, and the algorithms that do it are remarkably simple.
+The scope of the positive results matters. @heinz2010learning describes the simple factor learner for SL-$k$ when $k$ is known in advance and proves positive-data identification for precedence languages, which correspond to SP-$2$ [see also @rogers2010languages]. The constructions below likewise hold a finite alphabet and $k$ fixed. They do not establish that every unbounded union—or every class in the hierarchy—is identifiable from positive data.
 
 ### Learning SL languages
 
@@ -136,11 +146,11 @@ Given a parameter $k$ and a stream of positive examples $w_1, w_2, \ldots$ from 
 2. For each new example $w_i$, extract all $k$-grams from the augmented string $\rtimes^{k-1} w_i \ltimes^{k-1}$ and add them to $\mathcal{A}$.
 3. At any point, the learner's current hypothesis is the SL-$k$ language with forbidden factors $\mathcal{F} = (\Sigma \cup \{\rtimes, \ltimes\})^k \setminus \mathcal{A}$—that is, every $k$-gram that has *not yet been observed* is assumed forbidden.
 
-The learner starts maximally restrictive (everything is forbidden) and relaxes constraints as it sees evidence. Since the alphabet is finite, there are only finitely many possible $k$-grams. After enough examples, every $k$-gram that is licit in $L$ will have been observed at least once, and the learner's hypothesis will stabilize at $L$.^[More precisely: since $L$ is SL-$k$, its set of permitted $k$-grams is exactly the set of $k$-grams that appear in strings in $L$. Any [text](../the-generativist-conceit.qmd) for $L$—any sequence that eventually includes every string in $L$—will therefore eventually present every permitted $k$-gram. Once all permitted $k$-grams have been seen, $\mathcal{A}$ equals the true set of permitted $k$-grams, $\mathcal{F}$ equals the true set of forbidden $k$-grams, and the hypothesis is correct. It will never change again, because no future example can introduce a $k$-gram not already in $\mathcal{A}$.]
+The learner starts maximally restrictive (everything is forbidden) and relaxes constraints as it sees evidence. Since the alphabet is finite, there are only finitely many possible $k$-grams. After enough examples, every $k$-gram that is licit in $L$ will have been observed at least once, and the learner's hypothesis will stabilize at $L$.^[More precisely: since $L$ is SL-$k$, its set of permitted $k$-grams is exactly the set of $k$-grams that appear in strings in $L$. Any [text](../the-generativist-conceit.qmd) for $L$—any sequence that eventually includes every string in $L$—will thus eventually present every permitted $k$-gram. Once all permitted $k$-grams have been seen, $\mathcal{A}$ equals the true set of permitted $k$-grams, $\mathcal{F}$ equals the true set of forbidden $k$-grams, and the hypothesis is correct. It will never change again, because no future example can introduce a $k$-gram not already in $\mathcal{A}$.]
 
 This algorithm converges to the correct language in finite time from any text, which is exactly what [identification in the limit](https://en.wikipedia.org/wiki/Language_identification_in_the_limit) requires. It never overgeneralizes beyond the target language (since it only permits $k$-grams it has evidence for), and it never gets permanently stuck on a sublanguage (since the finite set of permitted $k$-grams will eventually all be observed).
 
-Why doesn't Gold's impossibility result apply? Because the SL-$k$ class (for a fixed $k$) does *not* contain an infinite ascending chain. The number of possible SL-$k$ languages over a finite alphabet is finite (there are only finitely many subsets of the finite set of $k$-grams), so the condition Gold's theorem requires—an infinite chain $L_1 \subset L_2 \subset \ldots$—simply cannot arise.^[The union $\text{SL} = \bigcup_k \text{SL}_k$ over all $k$ *does* contain infinite chains (since SL-$k \subset$ SL-$(k+1)$), and indeed $\text{SL}$ as a whole is not learnable from positive data without knowing $k$ in advance. But for any fixed $k$, the class is finite and learnable. In practice, this means the learner must either know $k$ or have a method for selecting it—an issue @heinz2010learning discusses in detail.]
+Why doesn't Gold's impossibility result apply? For a fixed finite alphabet and fixed $k$, there are only finitely many subsets of the finite set of possible $k$-grams, so there are only finitely many SL-$k$ hypotheses. This finite class is not superfinite and can be identified by the attested-factor learner. In contrast, the unbounded union $\mathrm{SL}=\bigcup_k\mathrm{SL}_k$ contains every finite language as well as infinite languages, so Gold's obstruction applies to that unrestricted class [@gold1967language]. A learner must instead receive a bound on $k$, additional information, or some other restriction on its hypothesis space. The operative contrast is superfinite versus restricted hypothesis spaces, not the mere presence of an ascending chain.
 
 ### Learning SP languages
 
@@ -148,20 +158,20 @@ The algorithm for SP languages is entirely parallel. An SP-$k$ language is deter
 
 The learning algorithm:
 
-1. Initialize $\mathcal{A} = \emptyset$ (attested $k$-subsequences).
-2. For each new example $w_i$, extract all length-$k$ subsequences of $w_i$ and add them to $\mathcal{A}$.
-3. The current hypothesis is the SP-$k$ language with forbidden subsequences $\mathcal{F} = \Sigma^k \setminus \mathcal{A}$.
+1. Initialize $\mathcal{A} = \emptyset$ (attested subsequences of length at most $k$).
+2. For each new example $w_i$, extract all subsequences of $w_i$ whose lengths are at most $k$ and add them to $\mathcal{A}$.
+3. The current hypothesis is the SP-$k$ language with forbidden subsequences $\mathcal{F} = \Sigma^{\leq k} \setminus \mathcal{A}$, where $\Sigma^{\leq k}=\bigcup_{j=0}^k\Sigma^j$.
 
-The convergence argument is the same: there are finitely many $k$-subsequences over a finite alphabet, so after enough examples all permitted subsequences will have been observed and the hypothesis stabilizes.^[Extracting all $k$-subsequences from a string of length $n$ takes $O(\binom{n}{k})$ time, which for fixed $k$ is polynomial in $n$. For the values of $k$ relevant to phonology (typically 2 or 3), this is fast.]
+The convergence argument is the same: $\Sigma^{\leq k}$ is finite, so after enough examples all permitted subsequences will have been observed and the hypothesis stabilizes.^[Extracting the subsequences of lengths at most $k$ from a string of length $n$ takes $O(\sum_{j=0}^k\binom{n}{j})$ time, which is polynomial in $n$ for fixed $k$.] The shorter lengths matter. With $k=2$, the positive example `a` contributes both $\epsilon$ and `a`; an exact-length-2 extractor contributes nothing and thus loses evidence about short strings.
 
 ### Learning TSL languages
 
-@jardine2016learning extended the approach to TSL languages. Recall that a TSL-$k$ language with tier $\tau$ is one where the projection $\pi_\tau(L)$ is SL-$k$. The learning algorithm must discover both the tier $\tau$ and the forbidden $k$-grams on that tier.
+@jardine2016learning address TSL-$2$, not unrestricted TSL-$k$. Their Tier-based Strictly 2-Local Inference Algorithm (2TSLIA) assumes a fixed finite ordered alphabet and $k=2$. It computes paths recording two endpoints and the symbols intervening between them, begins with the entire alphabet on the hypothesized tier, and removes a symbol only when the paper's path conditions identify it as a free non-tier element rather than an exclusive blocker. The algorithm then records the attested adjacent pairs on the resulting tier.
 
-The key insight is that the tier can be identified from the data: a symbol belongs to the tier if and only if it participates in a long-distance dependency. @jardine2016learning formalize this by looking for symbols whose distribution is not independent of their non-adjacent context—if a symbol's distribution depends on what appeared several positions earlier (beyond the SL window), it must be on the tier. Once the tier is identified, the SL learning algorithm is applied to the projected strings.
+The polynomial identification result depends on a characteristic sample with evidence for (i) each non-tier symbol, (ii) each exclusive blocker, and (iii) each permitted tier $2$-factor. Under those conditions, 2TSLIA learns both a canonical tier and its permitted pairs from positive data. The result does not supply a generic tier-discovery procedure for arbitrary $k$.
 
 ### The broader picture
 
-@heinz2013learning provided a general framework that unifies these algorithms using *factored deterministic automata*: the idea is that each subregular class corresponds to a particular way of factoring the state space of a DFA, and the learning algorithm for each class exploits the corresponding factorization to learn from positive data. @lambert2021typology argued that the convergence between learnability and typology is not a coincidence—that the distributional properties of subregular classes predict which patterns should be common cross-linguistically.
+@heinz2013learning provided a general framework that unifies these algorithms using *factored deterministic automata*: each subregular class corresponds to a particular way of factoring the state space of a DFA, and the learning algorithm for each class exploits the corresponding factorization to learn from positive data. @lambert2021typology argued that the convergence between learnability and typology is not a coincidence. On this view, the distributional properties of subregular classes predict which patterns should be common cross-linguistically.
 
-The picture that emerges is this: the constraint that phonological systems must be learnable from the kind of data children have access to pushes the class of possible phonological grammars into exactly the region of the regular languages where we find them. The subregular hierarchy provides a precise characterization of that region, and the learning algorithms provide a mechanistic account of *why* that region is special.
+The narrower picture is that positive-data learnability may help explain why some phonological pattern classes cluster near the bottom of the subregular hierarchy. The results reviewed here support that hypothesis for parameter-bounded families and specified data conditions. They do not derive the full typological distribution or show that human learners must use these particular algorithms.

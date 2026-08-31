@@ -9,12 +9,12 @@ Note that `.`, the character ranges, and the escape characters match only a sing
 #| code-fold: true
 #| code-summary: Load IPA representation of CMU Pronouncing Dictionary
 
-with open("cmudict-ipa") as f:
-    entries: list[tuple[str, str]] = [
-        l.strip().split(",") for l in f
+with open("cmudict-ipa", encoding="utf-8") as f:
+    entry_rows: list[list[str]] = [
+        line.strip().split(",", maxsplit=1) for line in f
     ]
     entries: dict[str, list[str]] = {
-        w: ipa.split() for w, ipa in entries
+        word: ipa.split() for word, ipa in entry_rows
     }
 ```
 
@@ -111,7 +111,7 @@ for w, ipa in entries.items():
 
 Note that `{,}` is equivalent to `*`. There is also a special quantifier symbol for `{1,}`: `+` 
 
-And if you wanted at least one character ot come after `Aaron`, but didn't care after that you could use `+`.
+And if you wanted at least one character to come after `Aaron`, but didn't care how many came after that, you could use `+`.
 
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/'}
@@ -131,17 +131,35 @@ for w, ipa in entries.items():
             break
 ```
 
-Note that none of these quantifiers increase the expressive power of the regular expressions. We can always write their equivalents as a vanilla regular expression (in the sense of the formal definition we gave above); it would just be tedious in many cases.
+Do any of these quantifiers increase the expressive power of regular expressions? No. We can translate each one into the three regular operations.
+
+Fix an arbitrary regular expression $\rho$. Define $\rho^0=\epsilon$ and $\rho^{i+1}=\rho^i\circ\rho$. The main translations are
+
+$$
+\begin{aligned}
+\rho\{m\} &\equiv \rho^m,\\
+\rho\{m,n\} &\equiv \rho^m\cup\rho^{m+1}\cup\cdots\cup\rho^n,\\
+\rho\{m,\} &\equiv \rho^m\circ\rho^*,\\
+\rho\{,n\} &\equiv \epsilon\cup\rho\cup\cdots\cup\rho^n,\\
+\rho+ &\equiv \rho\circ\rho^*.
+\end{aligned}
+$$
+
+Take the bounded-range case. A string matches $\rho\{m,n\}$ exactly when it is a concatenation of $i$ strings from $\operatorname{eval}(\rho)$ for some $m\leq i\leq n$. The expression on the right evaluates to the union of those same languages $\operatorname{eval}(\rho)^i$. Thus, every quantified match appears in one union branch, and every string in a union branch has a permitted repetition count.
+
+The unbounded case has the same form. If a string uses at least $m$ repetitions, separate its first $m$ factors from the remaining $j\geq0$ factors. The first portion belongs to $\operatorname{eval}(\rho)^m$ and the remainder belongs to $\operatorname{eval}(\rho)^*$. Conversely, concatenating a member of $\operatorname{eval}(\rho)^m$ with any member of $\operatorname{eval}(\rho)^*$ produces $m+j$ repetitions for some $j\geq0$. Thus, $\rho\{m,\}$ and $\rho^m\circ\rho^*$ describe the same language.
+
+For instance, `a{2,3}` abbreviates $(a\circ a)\cup(a\circ a\circ a)$, which evaluates to $\{\text{aa},\text{aaa}\}$. The quantifier is more compact, but the translated expression uses no additional operation. Since each quantifier has such a translation, adding them changes notation rather than expressive power.
 
 ### Set complement
 
-For any of these cases where we escape a lowercase alphabetic character to get a character set, the set complement can generally be gotten with by the uppercase version—e.g. `\w` goes to `\W`.
+For these escaped character classes, the uppercase version generally matches the complement—e.g. `\w` becomes `\W`.
 
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 4, status: ok, timestamp: 1675099877617, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
 #| outputId: f0da836e-2572-4963-bf0e-68e635f9905c
-regex_notw_bstɹækt = '\Wbstɹəkt'
+regex_notw_bstɹækt = r'\Wbstɹəkt'
 
 (re.fullmatch(regex_notw_bstɹækt, "".join(entries["obstruct"])),
  re.fullmatch(regex_notw_bstɹækt, '\n'+"".join(entries["obstruct"])[1:]))
@@ -161,4 +179,3 @@ for w, ipa in entries.items():
 ```
 
 The placement of this `^` is really important, since it only has the negation interpretation directly after `[`.
-

@@ -7,13 +7,38 @@ Regular expressions *evaluate* to sets of strings on $\Sigma$–i.e. languages o
 
 We can define this evaluation procedure formally as a function $\text{eval}: R(\Sigma) \rightarrow 2^{\Sigma^*}$, where $R(\Sigma)$ is the set of regular expressions on $\Sigma$.
 
-$\text{eval}(\rho) = \begin{cases}\{\} & \text{if } \rho = \emptyset \\\{\_\} & \text{if } \rho = \epsilon \\ \{\rho\} & \text{if } \rho \in \Sigma\\ \text{eval}(\rho_1) \times \text{eval}(\rho_2) & \text{if } \rho = (\rho_1 \circ \rho_2) \\ \text{eval}(\rho_1) \cup \text{eval}(\rho_2) & \text{if } \rho = (\rho_1 \cup \rho_2)\\  \bigcup_{i = 0}^\infty \text{eval}(\rho_1)^i & \text{if } \rho = \rho_1^*\\ \end{cases}$
+$$
+\operatorname{eval}(\rho)=
+\begin{cases}
+\emptyset & \text{if }\rho=\emptyset\\
+\{\epsilon\} & \text{if }\rho=\epsilon\\
+\{\rho\} & \text{if }\rho\in\Sigma\\
+\{xy\mid x\in\operatorname{eval}(\rho_1)\land y\in\operatorname{eval}(\rho_2)\}
+& \text{if }\rho=(\rho_1\circ\rho_2)\\
+\operatorname{eval}(\rho_1)\cup\operatorname{eval}(\rho_2)
+& \text{if }\rho=(\rho_1\cup\rho_2)\\
+\displaystyle\bigcup_{i=0}^{\infty}\operatorname{eval}(\rho_1)^i
+& \text{if }\rho=\rho_1^*.
+\end{cases}
+$$
 
 So first, we're going to want to have access to the regular expressions' structure for the purposes of evaluating them. We could do this by using `pyparsing` or some hand-built parser to reconstruct the structure of each expression, but we may as well just build retain the structure while generating the expression.
 
 ```{python}
 #| executionInfo: {elapsed: 87, status: ok, timestamp: 1675099876765, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
-def regular_expressions_structured(sigma):
+from collections.abc import Iterator
+from typing import Literal
+
+type RegularExpression = (
+    str
+    | tuple[RegularExpression, Literal['*']]
+    | tuple[RegularExpression, Literal['∪', '∘'], RegularExpression]
+)
+
+
+def regular_expressions_structured(
+    sigma: set[str],
+) -> Iterator[RegularExpression]:
     old_regex_set = frozenset(sigma | {'∅', '𝜖'})
     
     for rho in old_regex_set:
@@ -54,40 +79,119 @@ for i, r in enumerate(regular_expressions_structured({'ə', 'm'})):
         break
 ```
 
-Next, we can write a function that recursively evaluates a regular expression.
+Next, we can write an evaluator. A direct recursive generator needs some care: if the first branch of a union is infinite, iterating through that branch completely would prevent us from ever reaching the second branch. We avoid this **enumeration-starvation problem** (ESP) by computing all strings up to a finite length bound and then increasing the bound.
 
 ```{python}
 #| executionInfo: {elapsed: 126, status: ok, timestamp: 1675099876889, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
-def evaluate_regular_expression(regex):
+def _is_empty(regex: RegularExpression) -> bool:
     if regex == '∅':
+        return True
+    if regex == '𝜖' or isinstance(regex, str):
+        return False
+    if regex[1] == '*':
+        return False
+    if regex[1] == '∪':
+        return _is_empty(regex[0]) and _is_empty(regex[2])
+    return _is_empty(regex[0]) or _is_empty(regex[2])
+
+
+def _has_nonempty_string(regex: RegularExpression) -> bool:
+    if regex in {'∅', '𝜖'}:
+        return False
+    if isinstance(regex, str):
+        return True
+    if regex[1] == '*':
+        return _has_nonempty_string(regex[0])
+    if regex[1] == '∪':
+        return (_has_nonempty_string(regex[0])
+                or _has_nonempty_string(regex[2]))
+    return (not _is_empty(regex[0])
+            and not _is_empty(regex[2])
+            and (_has_nonempty_string(regex[0])
+                 or _has_nonempty_string(regex[2])))
+
+
+def _maximum_length(regex: RegularExpression) -> int | None:
+    """Maximum generated length, or None when the language is infinite."""
+    if regex in {'∅', '𝜖'}:
+        return 0
+    if isinstance(regex, str):
+        return len(regex)
+    if regex[1] == '*':
+        return None if _has_nonempty_string(regex[0]) else 0
+
+    left = _maximum_length(regex[0])
+    right = _maximum_length(regex[2])
+    if regex[1] == '∪':
+        return None if left is None or right is None else max(left, right)
+    if _is_empty(regex[0]) or _is_empty(regex[2]):
+        return 0
+    return None if left is None or right is None else left + right
+
+
+def _evaluate_bounded(
+    regex: RegularExpression,
+    max_length: int,
+) -> set[str]:
+    """Evaluate a regular expression up to a maximum string length."""
+    if regex == '∅':
+        return set()
+    if regex == '𝜖':
+        return {''}
+    if isinstance(regex, str):
+        return {regex} if len(regex) <= max_length else set()
+    if regex[1] == '∪':
+        return (_evaluate_bounded(regex[0], max_length)
+                | _evaluate_bounded(regex[2], max_length))
+    if regex[1] == '∘':
+        left = _evaluate_bounded(regex[0], max_length)
+        right = _evaluate_bounded(regex[2], max_length)
+        return {s1 + s2 for s1 in left for s2 in right
+                if len(s1 + s2) <= max_length}
+
+    pieces = _evaluate_bounded(regex[0], max_length) - {''}
+    closure = {''}
+    frontier = {''}
+    while frontier:
+        extended = {prefix + piece
+                    for prefix in frontier
+                    for piece in pieces
+                    if len(prefix + piece) <= max_length}
+        frontier = extended - closure
+        closure |= frontier
+    return closure
+
+
+def evaluate_regular_expression(regex: RegularExpression) -> Iterator[str]:
+    max_length = _maximum_length(regex)
+    if max_length is not None:
+        yield from sorted(_evaluate_bounded(regex, max_length),
+                          key=lambda s: (len(s), s))
         return
-    
-    elif regex == '𝜖':
-        yield ''
-    
-    elif isinstance(regex, str):
-        yield regex
-    
-    elif regex[1] == '*':
-        i = 0
-        while True:
-            for s in evaluate_regular_expression(regex[0]):
-                yield s*i
-            
-            i += 1
-            
-    elif regex[1] == '∪':
-        for s1 in evaluate_regular_expression(regex[0]):
-            yield s1
-            
-        for s2 in evaluate_regular_expression(regex[2]):
-            yield s2
-            
-    elif regex[1] == '∘':
-        for s1 in evaluate_regular_expression(regex[0]):
-            for s2 in evaluate_regular_expression(regex[2]):
-                yield s1 + s2
+
+    seen: set[str] = set()
+    length_bound = 0
+    while True:
+        bounded = _evaluate_bounded(regex, length_bound)
+        yield from sorted(bounded - seen, key=lambda s: (len(s), s))
+        seen |= bounded
+        length_bound += 1
 ```
+
+So what do we need to show? For every length bound $n$, the bounded evaluator must satisfy
+
+$$
+\texttt{\_evaluate\_bounded}(\rho,n)
+=\{w\in\operatorname{eval}(\rho)\mid |w|\leq n\}.
+$$
+
+The atomic cases follow directly from their definitions. For union, the code takes the set union of the two bounded evaluations, so the invariant is preserved. For concatenation, it takes every $s_1$ from the left language and every $s_2$ from the right, retains $s_1s_2$ exactly when its length is at most $n$, and thus constructs precisely the bounded concatenation language.
+
+For the star case, `closure` starts with $\epsilon$, which is the zero-factor concatenation. Suppose after some iteration it contains every bounded concatenation of at most $r$ nonempty strings from $\operatorname{eval}(\rho_1)$. Extending each frontier string by each `piece` adds exactly the bounded concatenations with one further factor. The loop stops only when no new bounded concatenation exists. Since a finite alphabet has only finitely many strings of length at most $n$, this fixed-point computation terminates. It contains every member of $\operatorname{eval}(\rho_1)^*$ of length at most $n$, and every string it contains is licensed by that star. The bounded invariant thus holds for star as well.
+
+The outer generator now gives both directions. This is the [double-inclusion argument introduced for set equality](../languages-as-formal-objects/set-relations.qmd#equality-by-double-inclusion), applied to the set of strings yielded by the evaluator and the language $\operatorname{eval}(\rho)$. Every yielded string comes from a bounded evaluation and thus belongs to $\operatorname{eval}(\rho)$. Conversely, fix an arbitrary $w\in\operatorname{eval}(\rho)$. Once `length_bound` reaches $|w|$, the bounded invariant places $w$ in `bounded`; if it was not yielded earlier, it is yielded then. Thus, the evaluator eventually yields every string in $\operatorname{eval}(\rho)$ and no others.
+
+For instance, evaluating $(\text{ə}\cup\text{m})^*$ yields $\epsilon$ at bound $0$, `ə` and `m` at bound $1$, and all four strings `əə`, `əm`, `mə`, and `mm` at bound $2$. The mixed strings are the concrete reason the star case must concatenate arbitrary pieces rather than repeat a single selected string.
 
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/'}
@@ -142,4 +246,3 @@ for i, s in enumerate(evaluate_regular_expression((('ə', '∪', 'm'), '*'))):
     if i > 10:
         break
 ```
-

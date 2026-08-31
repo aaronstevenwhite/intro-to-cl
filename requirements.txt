@@ -7,7 +7,6 @@ scikit-learn
 arcweight
 pyparsing
 rdflib
-stanza
 statsmodels
 requests
 jupyter
@@ -16,3 +15,5 @@ edlib
 subword-nmt
 hmmlearn
 sklearn-crfsuite
+beautifulsoup4
+lxml

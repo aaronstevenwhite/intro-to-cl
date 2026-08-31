@@ -5,9 +5,9 @@ jupyter: python3
 
 [*Tuples*](https://en.wikipedia.org/wiki/Tuple) are *ordered*, *nonuniqued* collections. In this course, we will use tuples to model words, phrases, and sentences. We will refer to these objects generically as [strings](https://en.wikipedia.org/wiki/String_(computer_science)).
 
-Tuples are often represented using the notation $\langle \cdot, \cdot, \ldots \rangle$. For instance, we might represent the phonological word *ruder* as:
+Tuples are often represented using the notation $\langle \cdot, \cdot, \ldots \rangle$. For instance, we might represent the phonological word *rude* as:
 
-$$\mathbf{w} \equiv \langle \text{ɹ,u,d,ə,ɹ} \rangle$$
+$$\mathbf{w} \equiv \langle \text{ɹ,u,d} \rangle$$
 
 In Python, there are multiple ways to represent a tuple: as a `str`, as a `tuple`, or as a `list`.
 
@@ -25,13 +25,13 @@ A tuple with $n$ elements is called an $n$-tuple. So $\mathbf{w}$ is a 3-tuple. 
 len(w_str), len(w_tuple), len(w_list)
 ```
 
-Why would we use a `tuple` or a `list` to represent a string, when we have `str` available? Well. Many times, the elements string are themselves complex. So for instance, if we want to represent the morphological word *ruder*, we might want to represent the morpheme $\langle \text{ɹ,u,d,ə,ɹ} \rangle$ as a separate element from the morpheme $\langle \text{ə,r} \rangle$.
+Why would we use a `tuple` or a `list` to represent a string, when we have `str` available? Well. Many times, the elements of a string are themselves complex. So for instance, if we want to represent the morphological word *ruder*, we might want to represent the morpheme $\langle \text{ɹ,u,d} \rangle$ as a separate element from the morpheme $\langle \text{ə,ɹ} \rangle$.
 
-$$\bar{\mathbf{w}} \equiv \langle \langle \text{ɹ,u,d} \rangle, \langle \text{ə,r} \rangle \rangle$$
+$$\bar{\mathbf{w}} \equiv \langle \langle \text{ɹ,u,d} \rangle, \langle \text{ə,ɹ} \rangle \rangle$$
 
 ```{python}
 w_rude = ("ɹ", "u", "d")
-w_er = ("ə", "r")
+w_er = ("ə", "ɹ")
 w_bar_tuple = (w_rude, w_er)
 
 print(w_bar_tuple)
@@ -45,4 +45,3 @@ for i in range(len(w_str)):
 ```
 
 You'll note that I am using bolded $\mathbf{w}$ to represent a tuple, but italic $w$ when indexing its elements. This is a common convention for tuples.^[If you have taken linear algebra, you may be familiar with this notation.]
-

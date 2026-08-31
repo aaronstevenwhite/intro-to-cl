@@ -4,9 +4,19 @@ bibliography: ../references.bib
 jupyter: python3
 ---
 
-In the previous section, I defined a language model as a specification of a probability measure on $\Sigma^*$ and showed that the chain rule gives us an exact decomposition:
+::: {.callout-note}
+The executable cells on this page use Python 3.14 syntax, matching the project configuration. The Quarto kernel is named `python3`; before rendering with execution, configure that kernelspec to point to a Python 3.14 environment.
+:::
 
-$$p(w_1 w_2 \ldots w_n) = p(w_1) \prod_{i=2}^{n} p(w_i \mid w_1 \ldots w_{i-1})$$
+In the previous section, I defined a language model as a specification of a probability measure on $\Sigma^*$. For a distribution over variable-length strings, the **termination-inclusive chain rule** (TCR) gives the exact decomposition
+
+$$
+p(w_1 w_2 \ldots w_n)
+=\prod_{i=1}^{n+1}p(w_i\mid w_1\ldots w_{i-1}),
+\qquad w_{n+1}=\langle\text{/s}\rangle.
+$$
+
+The final factor is the probability of stopping after $w_n$. Omitting it would instead give the probability of the observed symbols without asserting termination—for instance, a quantity conditioned on a separately specified length.
 
 The trouble with using this decomposition directly is that each conditional $p(w_i \mid w_1 \ldots w_{i-1})$ depends on the entire prefix $w_1 \ldots w_{i-1}$. As the prefix gets longer, the number of possible prefixes grows exponentially: there are $|\Sigma|^{i-1}$ possible prefixes of length $i - 1$. Estimating a separate distribution for every possible prefix would require an enormous amount of data and memory, and for most prefixes we'd never observe enough examples to get a reliable estimate.
 
@@ -24,19 +34,77 @@ Each conditional distribution $p(w_i \mid w_{i-N+1} \ldots w_{i-1})$ is a catego
 
 ## Maximum likelihood estimation
 
-Given a corpus of strings, we want to find the parameters $\boldsymbol{\Theta}$ that maximize the likelihood of the observed data. For a unigram model ($N = 1$), where there is no conditioning context, this amounts to:
+Given a corpus of strings, we want to find the parameters $\boldsymbol{\Theta}$ that maximize the likelihood of the observed data. Let $\mathcal A=\Sigma\cup\{\langle\text{/s}\rangle\}$ be the continuation alphabet and let $K=|\mathcal A|$. For a unigram model ($N = 1$), where there is no conditioning context, this amounts to:
 
-$$\hat{\boldsymbol{\Theta}}_\text{MLE} = \arg_{\boldsymbol{\Theta}}\max \prod_{j=1}^{V} \theta_j^{c_j}$$
+$$\hat{\boldsymbol{\Theta}}_\text{MLE} = \arg_{\boldsymbol{\Theta}}\max \prod_{j=1}^{K} \theta_j^{c_j}$$
 
-where $c_j$ is the number of times phone $j$ occurs in the corpus and $V = |\Sigma|$. The solution is to set each $\theta_j$ proportional to its count:
+where $c_j$ counts continuation symbol $j$, including one end symbol for every corpus string. The solution is to set each $\theta_j$ proportional to its count:
 
 $$\hat{\theta}_j = \frac{c_j}{\sum_k c_k}$$
 
-More generally, for any $N$-gram model:
+But why do the relative counts maximize the likelihood? We can show this with a **simplex-constrained likelihood argument** (SLA). Let $C=\sum_j c_j>0$. Because the logarithm is increasing, the parameter vector that maximizes the likelihood also maximizes the log-likelihood
+
+$$
+\ell(\boldsymbol\theta)=\sum_{j=1}^K c_j\log\theta_j
+$$
+
+subject to $\sum_j\theta_j=1$ and $\theta_j\geq0$. First suppose $c_j>0$ for every $j$, so the optimum is in the interior of the simplex. Introduce a Lagrange multiplier $\mu$ for the normalization constraint:
+
+$$
+\mathcal{L}(\boldsymbol\theta,\mu)
+=\sum_{j=1}^K c_j\log\theta_j
++\mu\left(1-\sum_{j=1}^K\theta_j\right).
+$$
+
+At a stationary point, differentiating with respect to an arbitrary $\theta_j$ gives
+
+$$
+\frac{\partial\mathcal{L}}{\partial\theta_j}
+=\frac{c_j}{\theta_j}-\mu=0,
+$$
+
+so $\theta_j=c_j/\mu$. Summing this identity over $j$ and imposing $\sum_j\theta_j=1$ yields $1=C/\mu$, hence $\mu=C$. Substitution gives $\hat\theta_j=c_j/C$, the claimed relative-frequency estimate.
+
+The stationary point is a global maximum, not merely a local candidate. For positive counts, the Hessian of the log-likelihood is diagonal:
+
+$$
+\frac{\partial^2\ell}{\partial\theta_j^2}
+=-\frac{c_j}{\theta_j^2}<0,
+\qquad
+\frac{\partial^2\ell}{\partial\theta_j\partial\theta_k}=0
+\quad(j\neq k).
+$$
+
+Thus, $\ell$ is strictly concave on the interior of the simplex. For a concave objective subject to an affine equality constraint, the first-order Lagrange conditions are sufficient for global maximality; strict concavity makes that maximizer unique. Hence, the stationary point is the unique global maximum when every count is positive.
+
+What if some counts are zero? Let $P=\{j\mid c_j>0\}$. Any vector with $\theta_j=0$ for some $j\in P$ has likelihood zero and cannot beat a vector that assigns every member of $P$ positive mass. Now consider a feasible vector with finite log-likelihood that assigns total mass $\delta=\sum_{j\notin P}\theta_j>0$ to zero-count symbols. Renormalize the positive-count coordinates by setting $\theta'_j=\theta_j/(1-\delta)$ for $j\in P$ and $\theta'_j=0$ otherwise. The change in log-likelihood is
+
+$$
+\begin{aligned}
+\ell(\boldsymbol\theta')-\ell(\boldsymbol\theta)
+  &=\sum_{j\in P}c_j
+    \log\left(\frac{\theta_j}{1-\delta}\right)
+    -\sum_{j\in P}c_j\log\theta_j\\
+  &=-C\log(1-\delta)>0.
+\end{aligned}
+$$
+
+Hence no maximizing vector can assign positive mass to a zero-count symbol. On the simplex face supported by $P$, every remaining count is positive, so the strict-concavity argument applies and gives the unique maximizer $\hat\theta_j=c_j/C$ for $j\in P$, with $\hat\theta_j=0$ elsewhere. If $C=0$, every likelihood factor is $\theta_j^0=1$; all parameter vectors have the same likelihood, and the MLE is not identified. Here and below, the likelihood uses the convention $\theta^0=1$, including $0^0=1$. The corresponding log-likelihood convention is $0\log\theta=0$; if $c_j>0$ and $\theta_j=0$, however, that term is $-\infty$.
+
+More generally, for any $N$-gram model and any context with a positive continuation count:
 
 $$\hat{\theta}_{w_{i_1} \ldots w_{i_N}} = \frac{c_{i_1 i_2 \ldots i_N}}{\sum_j c_{i_1 i_2 \ldots j}}$$
 
-where $c_{i_1 i_2 \ldots i_N}$ is the number of times the sequence $w_{i_1} \ldots w_{i_N}$ occurs in the corpus. In words: the estimated probability of a phone given a context is just the proportion of times that phone follows that context in the training data.
+where $c_{i_1 i_2 \ldots i_N}$ is the number of times the sequence $w_{i_1} \ldots w_{i_N}$ occurs in the corpus. In words: the estimated probability of a continuation symbol, which may be $\langle\text{/s}\rangle$, given a context is the proportion of times that symbol follows the context in the training data. If the denominator is zero, the corpus supplies no likelihood information about that conditional vector, so its unsmoothed MLE is not identified.
+
+To see why the unigram calculation applies, fix an arbitrary context $h=w_{i_1}\ldots w_{i_{N-1}}$. The corpus likelihood groups into one factor $\prod_x(\theta_x^{(h)})^{c(h,x)}$ for each context, and the parameters for that factor satisfy their own constraint $\sum_x\theta_x^{(h)}=1$. Write $C(h)=\sum_{x'}c(h,x')$. When $C(h)>0$, applying the SLA to this factor gives
+
+$$
+\hat\theta_x^{(h)}
+=\frac{c(h,x)}{\sum_{x'}c(h,x')}.
+$$
+
+Because the factors use disjoint parameter vectors, maximizing each identified factor separately maximizes their product. We thus obtain the general $N$-gram estimate for observed contexts while isolating the unidentified $C(h)=0$ case.
 
 ## Smoothing
 
@@ -50,12 +118,23 @@ The fix is to ensure that no $N$-gram probability is ever exactly zero. [Add-$\l
 
 $$\hat{\theta}_{w_{i_1} \ldots w_{i_N}} = \frac{c_{i_1 i_2 \ldots i_N} + \lambda}{\sum_j \left[c_{i_1 i_2 \ldots j} + \lambda\right]}$$
 
-The pseudocount works as if we had observed each possible $N$-gram $\lambda$ additional times on top of whatever the data actually contains. This has two effects. First, no probability is ever zero: even an $N$-gram that never occurred in the training data gets a small positive probability proportional to $\lambda$. Second, the probabilities of frequently observed $N$-grams are slightly reduced to make room, since the denominator grows by $|\Sigma| \cdot \lambda$ (the total pseudocounts across all phones that could follow the context).
+The denominator does the required normalization. Fix a context $h$, let $K$ be the number of possible continuation symbols, and write $C(h)=\sum_x c(h,x)$. Then
+
+$$
+\sum_x\hat\theta_x^{(h)}
+=\sum_x\frac{c(h,x)+\lambda}{C(h)+K\lambda}
+=\frac{C(h)+K\lambda}{C(h)+K\lambda}
+=1.
+$$
+
+When $\lambda>0$, every numerator and the denominator are positive, including for a context with no observed continuation. Thus, smoothing produces a well-defined categorical distribution for every context represented by the model.
+
+The pseudocount works as if we had observed each possible $N$-gram $\lambda$ additional times on top of whatever the data actually contains. This has two effects. First, no probability is ever zero: even an $N$-gram that never occurred in the training data gets a small positive probability proportional to $\lambda$. Second, the probabilities of frequently observed $N$-grams are slightly reduced to make room, since the denominator grows by $K\lambda$, where $K$ includes every symbol that may follow the context, including the end symbol.
 
 The parameter $\lambda$ controls the strength of this effect, and it is worth understanding its two extremes:
 
-- When $\lambda = 0$, we recover the MLE exactly. The model trusts the data completely: observed counts determine probabilities, and unseen $N$-grams get probability zero.
-- As $\lambda \to \infty$, the pseudocounts overwhelm the observed counts and every conditional distribution converges to uniform: $\hat{\theta} \to 1/|\Sigma|$ for all contexts. The model ignores the data entirely and assigns equal probability to all phones in all positions.
+- When $\lambda = 0$, we recover the MLE for every observed context. The model trusts the data completely: observed counts determine probabilities, and an unseen continuation of an observed context gets probability zero. An entirely unseen context has $C(h)=0$, so its unsmoothed conditional distribution is not identified by the data.
+- As $\lambda \to \infty$, divide the numerator and denominator by $\lambda$ to obtain $[c(h,x)/\lambda+1]/[C(h)/\lambda+K]$. The count terms tend to zero, so every conditional probability tends to $1/K$. The model ignores the relative counts and approaches a uniform continuation distribution.
 
 Between these extremes, $\lambda$ interpolates between fitting the data closely and hedging toward a uniform distribution. The following plot illustrates this on a toy example: a unigram distribution over 5 phones with counts $(10, 5, 3, 1, 0)$. As $\lambda$ increases, the distribution flattens from the MLE toward uniform.
 
@@ -110,7 +189,7 @@ nltk.download('cmudict', quiet=True)
 
 from nltk.corpus import cmudict
 
-arpabet_to_phoneme = {
+arpabet_to_phoneme: dict[str, str] = {
     'AA': 'ɑ', 'AE': 'æ', 'AH': 'ʌ', 'AO': 'ɔ', 'AW': 'aʊ', 'AY': 'aɪ',
     'B': 'b', 'CH': 'tʃ', 'D': 'd', 'DH': 'ð', 'EH': 'ɛ', 'ER': 'ɝ',
     'EY': 'eɪ', 'F': 'f', 'G': 'g', 'HH': 'h', 'IH': 'ɪ', 'IY': 'i',
@@ -120,8 +199,16 @@ arpabet_to_phoneme = {
     'Y': 'j', 'Z': 'z', 'ZH': 'ʒ'
 }
 
-entries = {
-    word: [arpabet_to_phoneme[re.sub(r'[0-9]', '', phone)] for phone in phones]
+
+def arpabet_phone_to_ipa(phone: str) -> str:
+    """Convert one stress-marked ARPABET phone to IPA."""
+    if phone == 'AH0':
+        return 'ə'
+    return arpabet_to_phoneme[re.sub(r'\d', '', phone)]
+
+
+entries: dict[str, list[str]] = {
+    word: [arpabet_phone_to_ipa(phone) for phone in phones]
     for word, phones in cmudict.entries()
     if len(set(word)) > 1
     if len(phones) > 1
@@ -137,11 +224,16 @@ Next, we define the $N$-gram model. The implementation stores log-probabilities 
 #| code-fold: true
 #| code-summary: Define `NgramModel`
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from collections import defaultdict, Counter
 from itertools import product
+from math import isfinite
+from numbers import Real
+from typing import Self
 
-alphabet = {phone for phones in entries.values() for phone in phones}
+alphabet: set[str] = {
+    phone for phones in entries.values() for phone in phones
+}
 
 
 class NgramModel:
@@ -157,17 +249,32 @@ class NgramModel:
         The smoothing pseudocount (default 0 for MLE).
     """
 
-    def __init__(self, alphabet: set[str], n: int = 2, lam: float = 0.):
-        self._alphabet = alphabet
-        self._n = n
-        self._lam = lam
+    def __init__(
+        self,
+        alphabet: set[str],
+        n: int = 2,
+        lam: float = 0.,
+    ) -> None:
+        if isinstance(n, bool) or not isinstance(n, int):
+            raise TypeError("n must be an integer")
+        if n < 1:
+            raise ValueError("n must be at least 1")
+        if isinstance(lam, bool) or not isinstance(lam, Real):
+            raise TypeError("lam must be a real number")
+        if not isfinite(lam) or lam < 0:
+            raise ValueError("lam must be finite and nonnegative")
 
-    def predict(self, string: list[str]) -> float:
+        self._alphabet = set(alphabet)
+        self._n = n
+        self._lam = float(lam)
+        self._logprob: dict[tuple[str, ...], dict[str, float]] = {}
+
+    def predict(self, string: Sequence[str]) -> float:
         """Compute the log-probability of a string.
 
         Parameters
         ----------
-        string : list[str]
+        string : Sequence[str]
             The phone sequence to score.
 
         Returns
@@ -194,12 +301,12 @@ class NgramModel:
 
         return logprob
 
-    def fit(self, lexicon: Iterable[list[str]]) -> 'NgramModel':
+    def fit(self, lexicon: Iterable[Sequence[str]]) -> Self:
         """Fit the model to a lexicon of phone sequences.
 
         Parameters
         ----------
-        lexicon : Iterable[list[str]]
+        lexicon : Iterable[Sequence[str]]
             An iterable of phone sequences to train on.
 
         Returns
@@ -209,7 +316,7 @@ class NgramModel:
         """
         vocab = self._alphabet | {'</s>'}
 
-        freq: dict[tuple, Counter] = {}
+        freq: dict[tuple[str, ...], Counter[str]] = {}
 
         # Contexts that start with <s> padding
         for k in range(1, self._n):
@@ -239,16 +346,53 @@ class NgramModel:
                     freq[context][token] += 1
 
         # Compute log-probabilities with add-λ smoothing
-        self._logprob = {
-            ctx: {
-                tok: np.log(count + self._lam) -
-                     np.log(sum(counts.values()) + len(counts) * self._lam)
+        self._logprob = {}
+        for ctx, counts in freq.items():
+            denominator = sum(counts.values()) + len(counts) * self._lam
+
+            # With λ = 0, an unseen context has no identified MLE.
+            if denominator == 0:
+                continue
+
+            self._logprob[ctx] = {
+                tok: (
+                    np.log(count + self._lam) - np.log(denominator)
+                    if count + self._lam > 0
+                    else -np.inf
+                )
                 for tok, count in counts.items()
             }
-            for ctx, counts in freq.items()
-        }
 
         return self
+```
+
+The implementation preserves the normalization argument above by using the same denominator for every continuation of a fixed context. With $\lambda>0$, every enumerated context receives all $K$ continuation probabilities. With $\lambda=0$, a context with positive total count receives its MLE probabilities, including $-\infty$ log-probability for zero-count continuations. A context with zero total count is omitted because its MLE is unidentified; `predict` then assigns $-\infty$ when a string requires that context. Thus, the code distinguishes an undefined unsmoothed conditional estimate from a `NaN` produced by the indeterminate expression $\log 0-\log 0$.
+
+The following checks exercise the parameter boundary and the termination count. A unigram trained on the one-symbol string `a` sees two continuation tokens—`a` and `</s>`—so its two fitted probabilities are each $1/2$.
+
+```{python}
+#| code-fold: true
+#| code-summary: Check N-gram parameter and termination invariants
+
+toy_unigram = NgramModel({'a'}, n=1, lam=0).fit([['a']])
+assert np.isclose(np.exp(toy_unigram._logprob[()]['a']), 0.5)
+assert np.isclose(np.exp(toy_unigram._logprob[()]['</s>']), 0.5)
+
+for invalid_n in (0, -1, 1.5, True):
+    try:
+        NgramModel({'a'}, n=invalid_n)
+    except (TypeError, ValueError):
+        pass
+    else:
+        raise AssertionError(f"accepted invalid n={invalid_n!r}")
+
+for invalid_lam in (-0.1, np.inf, np.nan, True):
+    try:
+        NgramModel({'a'}, lam=invalid_lam)
+    except (TypeError, ValueError):
+        pass
+    else:
+        raise AssertionError(f"accepted invalid lam={invalid_lam!r}")
 ```
 
 We'll fit models with $N \in \{1, 2, 3, 4\}$ and a range of smoothing values $\lambda \in \{0, 0.1, 0.5, 1, 2, 5, 10\}$.
@@ -292,15 +436,19 @@ Now let's ask a more systematic question: how well do these models predict the a
 #| code-summary: Load acceptability data and convert to IPA
 
 acceptability = pd.read_csv('Daland_etal_2011__AverageScores.csv')
-acceptability['phono_cmu'] = acceptability.phono_cmu.str.strip('Coda').str.split()
+acceptability['phono_cmu'] = (
+    acceptability.phono_cmu
+    .str.replace(r'Coda$', '', regex=True)
+    .str.split()
+)
 
 
-def map_to_ipa(phones: list[str]) -> list[str]:
+def map_to_ipa(phones: Sequence[str]) -> list[str]:
     """Convert ARPABET phone list to IPA symbols.
 
     Parameters
     ----------
-    phones : list[str]
+    phones : Sequence[str]
         ARPABET phone symbols, possibly with stress digits.
 
     Returns
@@ -308,7 +456,7 @@ def map_to_ipa(phones: list[str]) -> list[str]:
     list[str]
         The corresponding IPA symbols.
     """
-    return [arpabet_to_phoneme[re.sub(r'[0-9]', '', p)] for p in phones]
+    return [arpabet_phone_to_ipa(phone) for phone in phones]
 
 
 acceptability['phono_ipa'] = acceptability.phono_cmu.map(map_to_ipa)
@@ -346,15 +494,15 @@ For simple linear regression with a single predictor, $R^2$ is exactly the squar
 
 #### Cross-validation
 
-If we compute $R^2$ on the same data we used to fit $m$ and $b$, we get an optimistic estimate of how well the model generalizes. The regression is free to latch onto idiosyncratic properties of the training data, inflating its apparent performance relative to performance we would observe on new data. A model with more flexibility (say, a 4-gram with very little smoothing) can fit training data better than a simpler model without actually predicting new data better. This is [overfitting](https://en.wikipedia.org/wiki/Overfitting)—and it is exactly the problem that the smoothing parameter $\lambda$ was introduced to control. Recall that as $\lambda$ grows, the $N$-gram model relies less on observed counts and more on the uniform prior, trading the ability to memorize training patterns for the ability to generalize. Cross-validation lets us measure this tradeoff directly: if a particular combination of $N$ and $\lambda$ has overfit, its in-sample $R^2$ will look good, but its held-out $R^2$ will not.
+If we compute $R^2$ on the same data we used to fit $m$ and $b$, we get an optimistic estimate of how well that fitted calibration generalizes. The regression is free to latch onto idiosyncratic properties of the judgment data, inflating its apparent performance relative to performance on new judgment items. This is [overfitting](https://en.wikipedia.org/wiki/Overfitting). The $N$-gram scores used here have already been fitted to a separate lexicon, so the resampling below evaluates the regression that maps those fixed scores to judgments; it does not refit the $N$-gram counts or measure their sensitivity to a new lexical sample.
 
-[Cross-validation](https://en.wikipedia.org/wiki/Cross-validation_(statistics)) guards against this [@stone_cross-validatory_1974]. The idea is simple: partition the data into $K$ non-overlapping subsets called *folds*. For each fold, fit the model on the other $K - 1$ folds (the *training set*) and evaluate $R^2$ on the held-out fold (the *test set*). Rotate through all $K$ folds and report the average $R^2$ across them.^[The choice of $K = 5$ is a common default that balances bias and variance in the estimate. Smaller $K$ means more training data per fold but fewer evaluation points; larger $K$ (up to leave-one-out, where $K = n$) reduces bias but increases variance and computation. See @hastie_elements_2009[Sec. 7.10] for analysis of this tradeoff.]
+[Cross-validation](https://en.wikipedia.org/wiki/Cross-validation_(statistics)) guards against this [@stone_cross-validatory_1974]. The idea is simple: partition the judgment items into $K$ non-overlapping subsets called *folds*. For each fold, fit the linear regression on the other $K - 1$ folds (the *training set*) and evaluate $R^2$ on the held-out fold (the *test set*). Each regression fit thus uses approximately the fraction $(K-1)/K$ of the items for training. Rotate through all $K$ folds and report the average $R^2$ across them.^[The choice of $K = 5$ is a common default that balances bias and variance in the estimate. Smaller $K$ uses a smaller training fraction and places more items in each test fold; larger $K$ (up to leave-one-out, where $K = n$) uses a larger training fraction but leaves fewer evaluation items per fold and increases computation. See @hastie_elements_2009[Sec. 7.10] for analysis of this tradeoff.]
 
-Because the model is always evaluated on data it hasn't seen, the cross-validated $R^2$ is a more honest estimate of predictive performance. It can go negative: that means the model's predictions on held-out data are worse than just predicting the mean—a useful signal that the model is not capturing anything real. See @hastie_elements_2009[Ch. 7] for an extended discussion of cross-validation and related model-selection methods.
+Because the regression is always evaluated on judgment items it hasn't seen, the cross-validated $R^2$ is a more honest estimate of its predictive calibration. It can go negative: under the held-out-fold definition used by `scikit-learn`, that means the predictions are worse than the baseline that assigns every item the held-out fold's mean. Comparing many choices of $N$ and $\lambda$ on these same folds is still model selection; a final performance estimate for the selected setting would require nested cross-validation or a separate test set. See @hastie_elements_2009[Ch. 7] for an extended discussion of cross-validation and related model-selection methods.
 
-#### Bootstrap confidence intervals
+#### Descriptive fold-resampling bands
 
-Cross-validation gives us $K$ scores (one per fold), and we report their mean. But how uncertain are we about that mean? The [bootstrap](https://en.wikipedia.org/wiki/Bootstrapping_(statistics)) provides a simple, [nonparametric](https://en.wikipedia.org/wiki/Nonparametric_statistics) answer [@efron_introduction_1993]: resample $K$ values *with replacement* from the $K$ observed scores, compute the mean of the resample, and repeat this many times. The 2.5th and 97.5th percentiles of the resampled means give a 95% confidence interval.^[The bootstrap was introduced by @efron_introduction_1993 as a general-purpose method for estimating the sampling distribution of almost any statistic. The idea is deceptively simple: if we don't know the population distribution, we treat the sample itself as a stand-in and resample from it.] This makes no assumption about the distribution of the per-fold scores—it lets the data speak for itself.
+Cross-validation gives us $K$ scores, one per held-out fold. The code below resamples those observed scores and plots percentiles of their means. We call these **fold-resampling bands** (FRBs), not confidence intervals. The five fold scores are not independent because their training sets overlap, and five values do not provide a reliable empirical approximation to a sampling distribution. Thus, an FRB summarizes how the displayed mean changes when the observed folds receive different multiplicities; it is not a calibrated 95% interval for performance on new items. An item-level bootstrap that repeats the entire fitting and evaluation procedure, or repeated cross-validation with a prespecified inferential target, would be needed for that stronger interpretation.
 
 With these tools in hand, we evaluate each model.
 
@@ -371,12 +519,12 @@ acceptability_shuffled = acceptability.sort_values(
 
 cv_stats = []
 all_logprobs = []
+rng = np.random.default_rng(40393)
 
 for n in range(1, 5):
-    for lam in [0., 0.1, 0.5, 1., 2., 5., 10.]:
+    for lam in [0.1, 0.5, 1., 2., 5., 10.]:
         logprob = acceptability_shuffled.phono_ipa.map(models[n][lam].predict)
-        logprob_min = logprob[logprob != -np.inf].min()
-        logprob = np.maximum(logprob, logprob_min - 1)
+        assert np.isfinite(logprob).all()
 
         logprob_df = pd.DataFrame({
             'logprob': logprob.values,
@@ -391,18 +539,23 @@ for n in range(1, 5):
         scores = cross_val_score(
             LinearRegression(),
             logprob_df.logprob.values[:, None],
-            logprob_df.likert_rating.values[:, None],
+            logprob_df.likert_rating.values,
             cv=5
         )
         stats = np.quantile(
-            [np.mean(np.random.choice(scores, size=5)) for _ in range(99)],
+            [np.mean(rng.choice(scores, size=5)) for _ in range(2_000)],
             [0.5, 0.025, 0.975]
         )
         cv_stats.append([n, lam] + list(stats))
 
 all_logprobs = pd.concat(all_logprobs, axis=0)
-cv_stats = pd.DataFrame(cv_stats, columns=['n', 'lam', 'r2', 'ci_lo', 'ci_hi'])
+cv_stats = pd.DataFrame(
+    cv_stats,
+    columns=['n', 'lam', 'r2', 'band_lo', 'band_hi']
+)
 ```
+
+The unsmoothed models are omitted from this regression analysis. They assign probability zero, and hence log-probability $-\infty$, to some test strings. Replacing those values with a data-dependent finite cutoff would define neither the original model nor a normalized floor model. Every evaluated model instead has $\lambda>0$, so every enumerated transition has finite log-probability.
 
 The following plot shows the relationship between log-probability and acceptability rating for each combination of $N$ and $\lambda$.
 
@@ -412,8 +565,8 @@ The following plot shows the relationship between log-probability and acceptabil
 
 import matplotlib.pyplot as plt
 
-fig, axes = plt.subplots(4, 7, figsize=(20, 12), sharex=False, sharey=True)
-lam_values = [0., 0.1, 0.5, 1., 2., 5., 10.]
+fig, axes = plt.subplots(4, 6, figsize=(18, 12), sharex=False, sharey=True)
+lam_values = [0.1, 0.5, 1., 2., 5., 10.]
 
 for row, n in enumerate(range(1, 5)):
     for col, lam in enumerate(lam_values):
@@ -439,7 +592,7 @@ fig.tight_layout()
 plt.show()
 ```
 
-And the following plot shows the cross-validated $R^2$ as a function of $\lambda$ for each value of $N$, with bootstrap confidence intervals.
+And the following plot shows the cross-validated $R^2$ as a function of $\lambda$ for each value of $N$, with descriptive FRBs.
 
 ```{python}
 #| code-fold: true
@@ -451,7 +604,7 @@ for i, n in enumerate(range(1, 5)):
     ax = axes[i]
     subset = cv_stats[cv_stats.n == n]
     ax.plot(subset.lam, subset.r2, marker='o', markersize=4)
-    ax.fill_between(subset.lam, subset.ci_lo, subset.ci_hi, alpha=0.15)
+    ax.fill_between(subset.lam, subset.band_lo, subset.band_hi, alpha=0.15)
     ax.set_title(f'N = {n}', fontsize=11)
     ax.set_xlabel('λ', fontsize=10)
     if i == 0:
@@ -466,6 +619,6 @@ plt.show()
 cv_stats.sort_values('r2', ascending=False).head(10)
 ```
 
-A few things are worth noting. The unigram model ($N = 1$) does poorly regardless of $\lambda$, which makes sense: it has no way of capturing the fact that some sequences of phones are more acceptable than others, since it treats each phone independently. The bigram and trigram models do substantially better, and the best-performing models tend to use moderate smoothing. Too little smoothing and the model overfits to the training data; too much and it washes out the distinctions it learned.
+The main pattern is that the unigram model ($N = 1$) does poorly regardless of $\lambda$, which makes sense: it has no way of capturing the fact that some sequences of phones are more acceptable than others, since it treats each phone independently. The bigram and trigram models do substantially better, and the best-performing models tend to use moderate smoothing. Too little smoothing and the model overfits to the training data; too much and it washes out the distinctions it learned.
 
 A simple bigram or trigram model trained on a dictionary can predict a reasonable amount of variance in human acceptability judgments. This suggests that a good deal of phonotactic knowledge can be captured by tracking short-range sequential regularities in the lexicon, consistent with the lexicalist approach that @daland_explaining_2011 investigate.

@@ -3,13 +3,13 @@ title: Overview
 bibliography: ../../references.bib
 ---
 
-We've now seen that the regular languages on an alphabet $\Sigma$ are closed under union, concatenation, Kleene star, complement, and intersection. This means that if we start with any finite collection of regular languages and combine them using these operations, we always get another regular language. It's a powerful class—and as I mentioned in the [section on generation](../generation.qmd), it seems likely that all phonological grammars of natural languages fall within it.
+We've now seen that the regular languages on an alphabet $\Sigma$ are closed under union, concatenation, Kleene star, complement, and intersection. If we start with finitely many regular languages and combine them using these operations, the result is still regular. As I mentioned in the [section on generation](../generation.qmd), the string languages needed to state phonological generalizations appear to fall within this class.
 
-But recall the point I made in the [section on the Generativist Conceit](../the-generativist-conceit.qmd): Gold's theorem tells us that the full class of regular languages is not learnable in the limit from positive data, because it contains infinite chains of languages $L_1 \subset L_2 \subset \ldots$ that allow the learner to be tricked. If phonological grammars are regular, and if children learn phonological grammars from positive data, then the class of phonological grammars cannot be the *entire* class of regular languages. It must be a proper subclass—one that avoids these infinite containment chains.
+But recall the point I made in the [section on the Generativist Conceit](../the-generativist-conceit.qmd): fix a nonempty finite alphabet $\Sigma$. Gold's **superfinite obstruction** (SFO) applies to any hypothesis class that contains every finite subset of $\Sigma^*$ and at least one infinite language. No learner can identify every language in such a class in the limit from an arbitrary text—that is, a positive presentation of the target [@gold1967language]. The regular languages satisfy both conditions, so the full class is not identifiable from positive examples alone. If phonological grammars are regular and children learn them from positive data, the hypothesis space must thus be restricted. Merely lacking an infinite ascending chain is neither Gold's stated condition nor a general requirement for learnability.
 
-This observation raises a natural question: which subclass? Is there a principled way to identify the region of the regular languages where phonological patterns live?
+So which subclass should we consider? Is there a principled way to identify the region of the regular languages where phonological patterns live?
 
-Over the past several decades, a body of work in formal language theory and computational phonology has identified a collection of subclasses of the regular languages—known collectively as the *subregular hierarchy*—that have two properties relevant to this question: (i) they are learnable in the limit from positive data; and (ii) the phonological patterns of natural languages overwhelmingly fall into them [@heinz_computational_2018; @rogers2011aural; @rogers2013cognitive; @lambert2021typology].
+Work in formal language theory and computational phonology identifies a collection of subclasses known as the *subregular hierarchy*. This hierarchy bears on our question in two ways. First, particular parameter-bounded families near its bottom have positive-data learning results [@heinz2010learning; @jardine2016learning]. Second, many attested phonological patterns fall into these low subregular classes [@heinz_computational_2018; @rogers2011aural; @rogers2013cognitive; @lambert2021typology]. This does not mean that every class pictured below is learnable from positive data as an unrestricted hypothesis space.
 
 The hierarchy looks roughly like this:
 
@@ -20,9 +20,9 @@ graph BT
     SP["<b>SP</b><br/>Strictly Piecewise"] --> PT["<b>PT</b><br/>Piecewise Testable"]
     LT --> SF["<b>Star-Free</b>"]
     PT --> SF
+    TSL["<b>TSL</b><br/>Tier-based<br/>Strictly Local"] --> SF
     SF --> REG["<b>Regular</b>"]
-    SL -.-> TSL["<b>TSL</b><br/>Tier-based<br/>Strictly Local"]
-    LT -.-> TSL
+    SL --> TSL
 
     style SL fill:#d4edda,stroke:#28a745,stroke-width:2px
     style SP fill:#d4edda,stroke:#28a745,stroke-width:2px
@@ -33,13 +33,13 @@ graph BT
     style REG fill:#f8d7da,stroke:#dc3545
 ```
 
-Solid arrows indicate strict containment ($\subset$); the dashed lines to TSL indicate that it crosscuts the local branch, containing languages that are not SL but are contained in LT. The green classes at the bottom are where most attested phonological patterns live.
+Solid arrows indicate strict containment ($\subset$). TSL properly contains SL and is properly contained in the star-free languages, but it is incomparable with LT and PT [@heinz2011tier]. The green classes at the bottom are where most attested phonological patterns live.
 
 - **SL** ([Strictly Local](local-languages.qmd)) and **SP** ([Strictly Piecewise](piecewise-languages.qmd)) are the smallest classes, capturing constraints on adjacent segments and on subsequences respectively.
 - **LT** (Locally Testable) and **PT** (Piecewise Testable) are somewhat larger: they can count local or piecewise patterns up to a threshold.
 - The **[Star-Free](star-free-and-the-full-picture.qmd)** languages sit just below the full regular languages—they are exactly the languages definable without the Kleene star (using only union, concatenation, and complement).
-- **TSL** (Tier-based Strictly Local) crosscuts this picture: it projects the string onto a *tier* (a subset of the alphabet) and then applies SL constraints on the projected string. This allows it to handle long-distance consonant harmony and similar patterns that are not SL on the full alphabet but become SL once irrelevant segments are ignored [@heinz2011tier; @jardine2016learning].
+- **TSL** (Tier-based Strictly Local) crosscuts this picture: it projects the string onto a *tier* (a subset of the alphabet) and then applies SL constraints on the projected string. This allows it to handle long-distance consonant harmony and similar patterns that are not SL on the full alphabet but become SL once irrelevant segments are ignored [@heinz2011tier].
 
-Attested phonological patterns cluster at the bottom of this hierarchy, primarily in SL, SP, and TSL. Very few phonological patterns require even LT or PT, and essentially none require the full power of the regular languages. The convergence between the formal hierarchy and the typological distribution of phonological patterns suggests that the learnability constraint is doing real work in shaping what phonological systems look like.
+Attested phonological patterns cluster at the bottom of this hierarchy, primarily in SL, SP, and TSL. Very few phonological patterns require even LT or PT, and essentially none require the full power of the regular languages. This convergence is compatible with a role for learnability in shaping phonological systems, though the formal results by themselves do not establish that causal claim.
 
-In the following sections, I'll define each of these classes, ground them in phonological examples, and show how they relate to each other and to the finite state automata we've been studying.
+We'll begin with local constraints such as restrictions on adjacent segments. Then we'll allow long-distance subsequences and projected tiers. With those examples in hand, we'll return to the full hierarchy and its learnability claims.

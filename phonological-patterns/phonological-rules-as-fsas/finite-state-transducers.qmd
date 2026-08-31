@@ -1,42 +1,66 @@
 ---
-title: Finite State Transducers
+title: Finite state transducers
 bibliography: ../../references.bib
 ---
 
-There are two ways that we can define FSTs: one that focuses on their use as methods for defining a relation and another that focuses on their use as methods for defining mappings from $\Sigma^*$ to $2^{\Gamma^*}$–i.e. as mappings from strings in $\Sigma^*$ to languages on $\Gamma$.
+An FSA associates a path with one string. What changes if each transition has two labels? A finite state transducer (FST) then associates a path with a pair of strings, one on an input tape and one on an output tape [@kaplan1994regular; @mohri_fst_1997].
 
 ## The relation view
 
-A Finite State Transducer (FST) is a grammar with 6 components:
+We define an FST $T$ as a 6-tuple:
 
-1. A set of states $Q$
-2. An input alphabet $\Sigma$
-3. An output alphabet $\Gamma$
-4. A transition function $\delta : Q \times (\Sigma \cup \{\epsilon\}) \times (\Gamma \cup \{\epsilon\}) \rightarrow \mathcal{P}(Q)$
-5. An initial state $q_0$
-6. A set of final states $F \subseteq Q$
+$$T = \langle Q, \Sigma, \Gamma, \delta, q_0, F \rangle$$
+
+with the following components:
+
+1. a finite set of states $Q$;
+2. an input alphabet $\Sigma$;
+3. an output alphabet $\Gamma$;
+4. a transition relation $\delta \subseteq Q \times \Sigma_\epsilon \times \Gamma_\epsilon \times Q$, where $\Sigma_\epsilon = \Sigma \cup \{\epsilon\}$ and $\Gamma_\epsilon = \Gamma \cup \{\epsilon\}$;
+5. an initial state $q_0 \in Q$; and
+6. a set of final states $F \subseteq Q$.
+
+A path through $T$ is a sequence of transitions
+
+$$
+q_0 \xrightarrow{\sigma_1:\gamma_1} q_1
+    \xrightarrow{\sigma_2:\gamma_2} \cdots
+    \xrightarrow{\sigma_n:\gamma_n} q_n.
+$$
+
+The input label of the path is $\sigma_1\sigma_2\ldots\sigma_n$ after the $\epsilon$s have been removed; the output label is defined in the same way from $\gamma_1\gamma_2\ldots\gamma_n$. If $q_n \in F$, the path contributes that pair to the relation described by $T$.
+
+$$
+\mathbb{R}(T) = \{\langle x,y\rangle \in \Sigma^* \times \Gamma^* \mid
+  \text{some successful path in }T\text{ has labels }x:y\}
+$$
+
+This path-based definition is the finite-state acceptor definition of a rational relation: the machine accepts pairs rather than single strings [@kaplan1994regular].
+
+This definition generalizes the definition of an NFA in two related ways. We can turn an NFA into an identity transducer by copying every input label onto the output tape. In the other direction, ignoring either tape of an arbitrary FST gives one of its FSA projections. These constructions are different: an arbitrary projection need not preserve the identity relation.
 
 ## The mapping view
 
-Alternatively, a Finite State Transducer (FST) is a grammar with 7 components:
+Because $\mathbb{R}(T)$ is a relation, a single input may be paired with zero, one, or many outputs. We can thus view the same FST as a function from input strings to *sets* of output strings:
 
-1. A set of states $Q$
-2. An input alphabet $\Sigma$
-3. An output alphabet $\Gamma$
-4. A transition function $\delta : Q \times (\Sigma \cup \{\epsilon\}) \rightarrow \mathcal{P}(Q)$
-5. An output function $\omega : Q \times (\Sigma \cup \{\epsilon\}) \times Q \rightarrow \Gamma \cup \{\epsilon\}$
-6. An initial state $q_0 \in Q$
-7. A set of final states $F \subseteq Q$
+$$
+T(x) = \{y \in \Gamma^* \mid \langle x,y\rangle \in \mathbb{R}(T)\}.
+$$
 
-FSTs in general are similar to vanilla FSAs:
+This is the **mapping view** of an FST. Note that the value of $T(x)$ is a language, not necessarily a single string. Mohri focuses on sequential transducers, whose input side is deterministic, and subsequential transducers, which may add a final output. A $p$-subsequential transducer permits a bounded number of final outputs. These restrictions support application time linear in the input length [@mohri_fst_1997].
 
-1. Closed under union
-2. Closed under concatenation
-3. Closed under Kleene star
+::: {.callout-caution}
+## Question
 
-But they are different in a few respects:
+Suppose that an FST has two successful paths for the same input $x$. One path outputs $y$ and the other outputs $z$. Is the transducer a function from $\Sigma^*$ to $\Gamma^*$?
+:::
 
-1. Not all FSTs are determinizable.
-2. FSTs aren't closed under intersection or complementation
-3. Conceptualizing FSTs as language tuple recognizers/generators, we can define *projection*.
-4. Conceptualizing FSTs as maps, we can define *composition* and *inversion*.
+::: {.callout-tip collapse=true}
+## Answer
+
+Not unless $y=z$. The transducer always describes a relation and always induces the set-valued map $T(x)$. It describes an ordinary function from strings to strings only when every input is paired with at most one output.
+:::
+
+An FST whose relation is a function is called *functional* (or *single-valued*). Functionality is a property of the realized relation, whereas sequentiality is a property of the machine's input control. A rational function need not be sequential [@mohri_fst_1997]. And multiple successful paths that produce the same output do not violate functionality: the relation still pairs the input with only one output.
+
+The relation and mapping views describe the same object. The relation view will make the closure properties in the next section easier to state; the mapping view will be more useful when we transduce a particular underlying form.

@@ -4,11 +4,11 @@ bibliography: ../../references.bib
 jupyter: python3
 ---
 
-Consider the English onset cluster [bl], as in *black*. This is a perfectly fine way to start a word. The reverse, [lb], is not—there is no English word that begins with [lb]. This constraint depends only on a short sequence of symbols at a particular position in the word: the beginning. In the terminology we'll develop here, this makes it a *local* constraint.
+Consider the English onset cluster [bl], as in *black*. This is a perfectly fine way to start a word. The reverse, [lb], is not: there is no English word that begins with [lb]. This constraint depends only on a short sequence of symbols at a particular position in the word, namely the beginning. In the terminology we'll develop here, this makes it a *local* constraint.
 
 ## Strictly Local languages
 
-A *Strictly Local* language of order $k$, or SL-$k$ language, is one whose membership can be determined by checking whether any forbidden sequence of $k$ consecutive symbols appears in the string [@heinz2010learning; @rogers2011aural]. More precisely, we augment the string with boundary markers $\rtimes$ (left edge) and $\ltimes$ (right edge) and check all the $k$-grams of the augmented string against a finite set of forbidden $k$-grams.
+How can we formalize the contrast between [bl] and word-initial [lb]? A *Strictly Local* language of order $k$, or SL-$k$ language, is one whose membership can be determined by checking whether any forbidden sequence of $k$ consecutive symbols appears in the string [@heinz2010learning; @rogers2011aural]. More precisely, we augment the string with boundary markers $\rtimes$ (left edge) and $\ltimes$ (right edge) and check all the $k$-grams of the augmented string against a finite set of forbidden $k$-grams.
 
 A language $L$ is SL-$k$ if and only if there exists a finite set $\mathcal{F} \subset (\Sigma \cup \{\rtimes, \ltimes\})^k$ such that:
 
@@ -16,11 +16,11 @@ $$w \in L \iff \text{no } k\text{-gram of } \rtimes^{k-1} w \ltimes^{k-1} \text{
 
 The set $\mathcal{F}$ is called the set of *forbidden factors*. Notice that the boundary markers let us express constraints on how strings begin and end: a forbidden $k$-gram starting with $\rtimes$ is a constraint on the first symbols of the string.
 
-For instance, the constraint against [lb] onsets in English can be expressed as an SL-3 constraint with $\rtimes\text{lb} \in \mathcal{F}$: the trigram consisting of the left boundary marker followed by [l] followed by [b] is forbidden.^[Why SL-3 and not SL-2? Because the forbidden factor involves three symbols: the boundary marker $\rtimes$ plus the two consonants. An SL-2 constraint with $\text{lb} \in \mathcal{F}$ would forbid [lb] *everywhere* in the string—but English allows [lb] across syllable boundaries, as in *elbow* [ɛlboʊ], *bulb* [bʌlb], and *album* [ælbəm]. The boundary marker is what lets us restrict the constraint to word-initial position.]
+For instance, the constraint against [lb] onsets in English can be expressed as an SL-3 constraint with $\rtimes\text{lb} \in \mathcal{F}$: the trigram consisting of the left boundary marker followed by [l] followed by [b] is forbidden.^[Why SL-3 and not SL-2? Because the forbidden factor involves three symbols: the boundary marker $\rtimes$ plus the two consonants. An SL-2 constraint with $\text{lb} \in \mathcal{F}$ would forbid [lb] *everywhere* in the string. But English allows [lb] across syllable boundaries, as in *elbow* [ɛlboʊ], *bulb* [bʌlb], and *album* [ælbəm]. The boundary marker is what lets us restrict the constraint to word-initial position.]
 
 This illustrates an important point: boundary markers are not just a technical convenience. They are what allow SL grammars to distinguish between positional and non-positional constraints. Without them, every SL constraint would apply uniformly across the string. With them, we can express constraints like "word-initial [lb] is forbidden" separately from "word-medial [lb] is fine."
 
-For a constraint that *does* apply uniformly, consider the sequence [ŋm]: English never allows a velar nasal [ŋ] followed immediately by a bilabial nasal [m], regardless of position in the word. This is an SL-2 constraint with $\text{ŋm} \in \mathcal{F}$—no boundary marker needed.
+For a constraint that *does* apply uniformly, consider the sequence [ŋm]: English never allows a velar nasal [ŋ] followed immediately by a bilabial nasal [m], regardless of position in the word. This is an SL-2 constraint with $\text{ŋm} \in \mathcal{F}$, with no boundary marker needed.
 
 We can build FSAs that enforce these constraints using `arcweight`. The idea is to construct an automaton that accepts precisely the strings containing the forbidden factor, and then take its complement.
 
@@ -33,6 +33,7 @@ import arcweight
 # Define the alphabet
 phones = ['l', 'b', 'k', 'æ', 'ɪ', 'ŋ', 'm']
 syms = arcweight.SymbolTable()
+syms.add_symbol('<eps>')
 sym_ids = {}
 for p in phones:
     sym_ids[p] = syms.add_symbol(p)
@@ -84,13 +85,19 @@ print(f"no_nm states: {no_nm.num_states()}")
 
 Notice that the states of an SL-$k$ constraint automaton are determined by the last $k - 1$ symbols seen. In our SL-2 example, the state tracks only the previous symbol: whether it was an [ŋ] (in which case a following [m] is forbidden) or something else. This is a very restricted kind of DFA—one where the state space is essentially $\Sigma^{k-1}$ (or a subset of it).
 
+This observation gives a construction for every SL-$k$ language. Fix an arbitrary forbidden-factor set $\mathcal{F}$. Create one state for each suffix of length at most $k-1$ that can occur without completing a member of $\mathcal{F}$, together with a rejecting sink state. After a symbol is read, append it to the stored suffix. If the resulting $k$-gram belongs to $\mathcal{F}$, move to the sink; otherwise retain only the newest $k-1$ symbols. Boundary markers are processed in the same way at the beginning and end, though they are not part of the surface string.
+
+Why does this construction work? After any prefix $x$, a nonsink state should record exactly the suffix of the augmented $x$ of length at most $k-1$. The machine should be in the sink if and only if it has already encountered a forbidden $k$-gram. This is the **suffix-memory invariant**. It holds before any surface symbol is read because the initial state stores the left boundary markers. Now append the next symbol. This creates exactly one new $k$-gram, namely the stored suffix followed by that symbol. The transition checks that new factor and then updates the suffix, so it preserves both parts of the invariant.
+
+After the full string and right boundary markers have been processed, the invariant says that the machine avoids the sink exactly when the augmented string contains no member of $\mathcal{F}$. This is the definition of membership in the SL-$k$ language. There are only finitely many possible suffixes because $\Sigma$ and $k$ are finite. Thus, the construction is a finite-state automaton and every SL language is regular.
+
 This is the same information that an [$N$-gram model](../../uncertainty-about-languages/ngram-models.qmd) conditions on: the preceding $N - 1$ symbols. An SL-$k$ automaton and a $k$-gram model are tracking the same context; the difference is that the SL automaton makes a binary decision about whether the context is licit, while the $N$-gram model assigns it a probability.
 
 ### Combining SL constraints
 
 A key property of the SL class is that it is closed under intersection—and this fact does *not* follow from the regularity of SL languages. The regular languages are closed under intersection, but that only tells us the intersection of two SL languages is regular; it doesn't tell us it's still SL. We need a direct argument.
 
-The argument is simple. Suppose $L_1$ is SL-$k$ with forbidden factors $\mathcal{F}_1$ and $L_2$ is SL-$k$ with forbidden factors $\mathcal{F}_2$.^[If $L_1$ is SL-$k_1$ and $L_2$ is SL-$k_2$ with $k_1 \neq k_2$, take $k = \max(k_1, k_2)$ and extend the shorter forbidden factors. Every $k'$-gram $u$ in $\mathcal{F}_1$ (with $k' < k$) can be replaced by the set of all $k$-grams that contain $u$ as a substring—these are the $k$-grams that are forbidden because they contain the shorter forbidden factor. After this extension, both sets of forbidden factors have the same order $k$.] A string $w$ is in $L_1 \cap L_2$ if and only if it contains no forbidden factor from $\mathcal{F}_1$ *and* no forbidden factor from $\mathcal{F}_2$—which is exactly the condition for $w$ to be in the SL-$k$ language with forbidden factors $\mathcal{F}_1 \cup \mathcal{F}_2$. So $L_1 \cap L_2$ is SL-$k$ with $\mathcal{F} = \mathcal{F}_1 \cup \mathcal{F}_2$.
+Let's check the claim directly. Suppose $L_1$ is SL-$k$ with forbidden factors $\mathcal{F}_1$ and $L_2$ is SL-$k$ with forbidden factors $\mathcal{F}_2$.^[If $L_1$ is SL-$k_1$ and $L_2$ is SL-$k_2$ with $k_1 \neq k_2$, take $k = \max(k_1, k_2)$ and extend the shorter grammar. First discard any forbidden $k'$-gram that cannot occur in a well-formed boundary-augmented string, since such a factor has no effect. Replace each remaining forbidden factor $u$ with all well-formed $k$-grams that contain $u$ as a substring. An occurrence of $u$ extends to one of these longer windows, including at either padded boundary, and every such longer window contains an occurrence of $u$. The extended grammar thus defines the same language at order $k$.] A string $w$ is in $L_1 \cap L_2$ if and only if it contains no forbidden factor from $\mathcal{F}_1$ *and* no forbidden factor from $\mathcal{F}_2$. But this is exactly the condition for $w$ to be in the SL-$k$ language with forbidden factors $\mathcal{F}_1 \cup \mathcal{F}_2$. So $L_1 \cap L_2$ is SL-$k$ with $\mathcal{F} = \mathcal{F}_1 \cup \mathcal{F}_2$.
 
 This is why we can specify a phonotactic grammar as a *collection* of forbidden $k$-grams: the language satisfying all constraints simultaneously is the intersection of the individual SL constraints, and that intersection is itself SL. Each forbidden $k$-gram contributes to a single unified forbidden-factor set.
 
@@ -136,7 +143,7 @@ This is the sense in which SL grammars are *constraint-based*: we specify what i
 
 ## Locally Testable languages
 
-Strictly Local languages can only express *negative* constraints: certain factors are forbidden. But what if we want to say that a factor is *required*? For instance, suppose we want to express the constraint that every word must contain at least one vowel. This is not an SL constraint, because SL can only forbid substrings—it cannot require them.^[To see why: an SL language is defined by a set of forbidden $k$-grams. If a string avoids all forbidden $k$-grams, it's in the language. There is no mechanism for requiring that a particular $k$-gram be present.]
+Strictly Local grammars are stated in terms of *negative* constraints: certain factors are forbidden. That format does not let us express every positive requirement. For instance, suppose we require every word to contain at least one vowel. No fixed window can tell us that a vowel occurs somewhere in an arbitrarily long word, so this language is not SL.^[Some requirements at an edge can be restated as local prohibitions. The claim here concerns the unbounded requirement that a vowel occur somewhere, not every statement that happens to contain the word *require*.]
 
 *Locally Testable* (LT) languages generalize SL by allowing *Boolean combinations* of factor constraints—not just forbidden factors but required factors and arbitrary combinations thereof [@brzozowski1973characterizations; @rogers2013cognitive]. A language is LT-$k$ if membership can be determined by a Boolean formula over statements of the form "the $k$-gram $u$ appears in $\rtimes^{k-1} w \ltimes^{k-1}$."
 
@@ -154,4 +161,8 @@ Is the constraint "a word must contain at least one vowel" SL? Is it LT?
 It is not SL (for any $k$), because SL can only forbid substrings; it cannot require them. But it is LT-1: the constraint is that the set of 1-grams occurring in the word must include at least one vowel, which is a positive Boolean statement about factor occurrence.
 :::
 
-LT properly contains SL: every SL language is LT (a forbidden factor is just the negation of "this factor does not appear"), but not every LT language is SL (because SL cannot express positive requirements). In practice, most phonotactic constraints are SL rather than LT—they tend to be prohibitions against certain sequences rather than requirements for certain sequences to appear. But the distinction is important for understanding the full hierarchy.
+Why can't some larger value of $k$ rescue the SL analysis? Reduce the alphabet to a consonant $c$ and a vowel $v$, and let $L$ contain exactly the strings with at least one $v$. Suppose for contradiction that $L$ is SL-$k$ for some fixed $k$. Choose $N\geq k$. The string $c^N$ is not in $L$, so its augmented representation must contain some forbidden $k$-gram $u$.
+
+Now consider $c^Nvc^N$, which belongs to $L$. Every $k$-gram in the augmented $c^N$ also occurs in the augmented $c^Nvc^N$: left-edge factors occur in the first $c$ block, right-edge factors occur in the second, and the interior factor $c^k$ occurs in both. In particular, $u$ occurs in $c^Nvc^N$. The proposed SL grammar would thus reject a string in $L$, a contradiction. Since the argument applies to an arbitrary $k$, no SL order can express the positive vowel requirement.
+
+LT properly contains SL: every SL language is LT because forbidding a factor is the negation of the statement "this factor appears," but not every LT language is SL because SL cannot express positive requirements. In practice, most phonotactic constraints are SL rather than LT because they tend to prohibit particular sequences rather than require a sequence to appear. But the distinction is important for understanding the full hierarchy.

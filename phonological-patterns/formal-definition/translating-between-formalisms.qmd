@@ -3,9 +3,9 @@ title: Translating Regular Expressions to NFAs
 jupyter: python3
 ---
 
-We've seen that NFAs and DFAs are weakly equivalent: they both generate exactly the same languages. Now, we'll look at the relationship of NFAs–and thus, DFAs (given their equivalence)–to regular expressions. What we'll see is that regular expressions, NFAs, and DFAs all generate the same languages–by definition, the regular languages.
+We've seen that NFAs and DFAs are weakly equivalent: they both generate exactly the same languages. How do they relate to regular expressions? We'll answer this question in both directions. First, we'll turn any regular expression into an NFA. Then we'll turn any NFA into a regular expression. Since DFAs and NFAs are already known to be equivalent, the two constructions will show that all three formalisms generate exactly the regular languages.
 
-The idea is similar to what we just saw with NFAs and DFAs: we'll show that, for any regular expression $\rho$, we can construct an NFA $G$ that recognizes exactly the language $\mathbb{L}(G) = \mathbb{L}(\rho)$; and conversely, for any NFA $G$, we can construct a regular expression $\rho$ that recognizes exactly the language $\mathbb{L}(\rho) = \mathbb{L}(G)$.
+The target in the first direction is $\mathbb{L}(G)=\mathbb{L}(\rho)$ for the machine $G$ constructed from $\rho$. The target in the reverse direction is $\mathbb{L}(\rho)=\mathbb{L}(G)$ for the expression constructed from $G$.
 
 ## Translating Regular Expressions to NFAs
 
@@ -64,6 +64,22 @@ $$
 \text{kleene}(\text{regex2nfa}(\rho_1)) & \text{if } \rho = \rho_1^*
 \end{cases}
 $$
+
+Why should this recursive conversion preserve the language? The claim we need is
+
+$$\mathbb{L}(\operatorname{regex2nfa}(\rho))=\operatorname{eval}(\rho)$$
+
+by structural induction on $\rho$. There are three base cases. The machine for $\emptyset$ has no final state, so it accepts no string. The machine for $\epsilon$ begins in its only final state and has no transitions, so it accepts exactly the empty string. And the machine for $a\in\Sigma$ has one $a$-transition from its initial state to its only final state, so it accepts exactly $\{a\}$. Each machine thus agrees with the corresponding evaluation clause.
+
+For the recursive cases, assume that the machines constructed for the immediate subexpressions recognize exactly their evaluated languages. If $\rho=(\rho_1\cup\rho_2)$, the union construction recognizes
+
+$$\mathbb{L}(G_{\rho_1})\cup\mathbb{L}(G_{\rho_2})
+=\operatorname{eval}(\rho_1)\cup\operatorname{eval}(\rho_2)
+=\operatorname{eval}(\rho).$$
+
+The concatenation case replaces union in this equality with language concatenation, and the star case replaces it with Kleene closure. The correctness proofs for the three automaton operations establish those first equalities. So each constructor preserves the induction hypothesis. Every regular expression is built from a base case by finitely many constructors, which gives the desired equality for every $\rho$.
+
+Consider $\rho=a\circ b^*$. The recursive calls build the one-transition machine for $a$ and the one-transition machine for $b$, apply the star construction to the latter, and concatenate the results. An accepting path must first consume one `a`; it may then take the restarted `b` path any finite number of times. The resulting language is $\{ab^i\mid i\geq0\}$, exactly $\operatorname{eval}(a\circ b^*)$.
 
 ## Translating NFAs to Regular Expressions
 
@@ -129,4 +145,20 @@ $$
 
 This recursive definition captures the state elimination process, where we consider paths that may pass through state $k$ in addition to paths that don't.
 
-The final regular expression $\text{nfa2regex}(M)$ is equivalent to the original NFA $M$ in the sense that they recognize exactly the same language: $\mathbb{L}(G) = \mathbb{L}(\text{nfa2regex}(G))$. 
+What does $R_{i,j}^S$ describe at each step? The **allowed-intermediate invariant** says that it describes exactly the labels of paths from $i$ to $j$ whose intermediate states all belong to $S$.
+
+For $S=\emptyset$, an eligible path has no intermediate state. It is thus either a direct transition from $i$ to $j$ or, when $i=j$, the length-zero path labeled $\epsilon$. The four base clauses list exactly these possibilities, so the invariant holds initially.
+
+For the inductive step, fix a state $k\notin S$ and an arbitrary eligible path from $i$ to $j$ whose intermediate states lie in $S\cup\{k\}$. There are two cases. If the path never visits $k$, its label belongs to $R_{i,j}^S$. If it visits $k$, divide it at its first and last visits to $k$. The first portion has a label in $R_{i,k}^S$, the middle consists of zero or more loops with labels in $R_{k,k}^S$, and the final portion has a label in $R_{k,j}^S$. Its full label thus belongs to
+
+$$R_{i,k}^S\circ(R_{k,k}^S)^*\circ R_{k,j}^S.$$
+
+For instance, consider the path
+
+$$i\xrightarrow{a}k\xrightarrow{b}k\xrightarrow{b}k\xrightarrow{c}j.$$
+
+Its first visit to $k$ follows the entry path labeled $a$, its two returns to $k$ contribute the loop label $bb$, and its final departure contributes $c$. The complete label `abbc` is thus in $a\circ b^*\circ c$. More generally, a path that visits $k$ repeatedly has one entry segment, zero or more $k$-to-$k$ segments, and one exit segment; this is exactly the decomposition expressed by the starred middle term.
+
+This shows that every eligible path is included by the recurrence. Now check the other direction. Each string in the first union branch labels a path that avoids $k$. Each string in the second branch concatenates a path into $k$, zero or more loops at $k$, and a path out of $k$. All intermediate states in the combined path lie in $S\cup\{k\}$. So the recurrence adds no ineligible string, and the invariant is preserved in both directions.
+
+After all original states have been allowed as intermediates, every path from the new initial state to the new final state is represented. Those paths correspond exactly to the accepting paths of the original NFA, because the two new boundary transitions are labeled $\epsilon$. The final regular expression $\text{nfa2regex}(M)$ thus recognizes exactly $\mathbb{L}(M)$.

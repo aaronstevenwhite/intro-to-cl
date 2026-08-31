@@ -11,9 +11,11 @@ diagram:
         - '\usetikzlibrary{automata, positioning, arrows, decorations.pathreplacing, fit, backgrounds, calc, shapes.multipart}'
 ---
 
-We'll start with an application of FSAs to modeling licit English syllables. English syllable structure follows the template (C)(C)(C)V(C)(C)(C)(C), where the consonant clusters are heavily constrained—not any sequence of consonants can appear in the onset or coda. An FSA can encode exactly which clusters are allowed.
+What does an FSA look like when it describes a phonological pattern? We'll start with a small application to English syllable structure. English allows up to three consonants in an onset and several consonants in a coda, but the possible clusters are heavily constrained. The machine below is a **toy syllable automaton**: it records a few broad ordering generalizations, not the complete English inventory.
 
-The following diagram models possible English syllables. Each state is labeled with its role in syllable structure: `Sib` tracks the special behavior of /s/ in onsets, `Obs` tracks obstruents that can start clusters, `App` is the pre-nucleus position where approximants and other singleton-only consonants land, and so on.
+The broad natural-class labels make the machine readable, but they also make it overgenerate. For instance, an edge labeled $P$ followed by one labeled $L$ admits every stop-liquid combination, including combinations English excludes. A full grammar would replace these class labels with the individual transitions that the language actually licenses.
+
+Each state is labeled with its role in the toy syllable structure: `Sib` tracks the special behavior of /s/ in onsets, `Obs` tracks obstruents that can start clusters, `App` is the pre-nucleus position where approximants and other singleton-only consonants land, and so on.
 
 ```tikz
 %%| filename=english-syllables
@@ -123,11 +125,11 @@ The state labels reflect where you are in the syllable structure:
 
 | State | Meaning |
 |-------|---------|
-| **ini** | Initial state — beginning of syllable |
+| **ini** | Initial state; beginning of syllable |
 | **Sib** | Onset: /s/ consumed (the sibilant that begins three-consonant onsets) |
 | **Obs** | Onset: a stop or fricative consumed |
 | **sP** | Onset: /s/ + stop consumed (as in *sp*, *st*, *sk*) |
-| **App** | Onset complete — approximant or other final onset consonant consumed; ready for vowel |
+| **App** | Onset complete; approximant or other final onset consonant consumed; ready for vowel |
 | **Nuc** | Nucleus: vowel produced (accepting) |
 | **Dip** | Nucleus: diphthong offglide produced (accepting) |
 | **Son** | Coda: sonorant (nasal or liquid) consumed (accepting) |
@@ -135,7 +137,7 @@ The state labels reflect where you are in the syllable structure:
 | **Ob₂** | Coda: second obstruent consumed (accepting) |
 | **Ob₃** | Coda: final /s/ consumed (accepting) |
 
-A few things about the notation. The labels on the transitions—$P$, $F$, $N$, etc.—are not individual symbols but *natural classes*: shorthand for sets of phonemes. An edge labeled $P$ actually represents six separate transitions, one for each stop consonant. Similarly, an edge labeled $\varepsilon$ is an [*epsilon transition*](https://en.wikipedia.org/wiki/Nondeterministic_finite_automaton#NFA_with_%CE%B5-moves): it allows the automaton to move between states without consuming any symbol from the input. For instance, the $\varepsilon$ on the edge from **Obs** to **App** lets the automaton treat a single obstruent as a complete onset (skipping the approximant position).
+Now consider the notation. The labels on the transitions—$P$, $F$, $N$, etc.—are not individual symbols but *natural classes*: shorthand for sets of phonemes. An edge labeled $P$ actually represents six separate transitions, one for each stop consonant. Similarly, an edge labeled $\varepsilon$ is an [*epsilon transition*](https://en.wikipedia.org/wiki/Nondeterministic_finite_automaton#NFA_with_%CE%B5-moves): it allows the automaton to move between states without consuming any symbol from the input. For instance, the $\varepsilon$ on the edge from **Obs** to **App** lets the automaton treat a single obstruent as a complete onset (skipping the approximant position).
 
 The following table defines each natural class:
 
@@ -152,9 +154,9 @@ The following table defines each natural class:
 | $V_g$ | {ɪ, ʊ} | Offglide vowels (for diphthongs like /aɪ/, /aʊ/) |
 | $Ob$ | {p, b, t, d, k, g, f, v, θ, ð, s, z, ʃ, ʒ} | Obstruents (stops and fricatives, in coda clusters) |
 
-To trace through an example: the word *string* /stɹɪŋ/ follows the path **ini** $\xrightarrow{s}$ **Sib** $\xrightarrow{P}$ **sP** $\xrightarrow{L}$ **App** $\xrightarrow{V}$ **Nuc** $\xrightarrow{N}$ **Son**. The word *a* /ə/ follows **ini** $\xrightarrow{\varepsilon}$ **App** $\xrightarrow{V}$ **Nuc**. The word *sixths* /sɪksθs/ follows **ini** $\xrightarrow{\varepsilon}$ **App** $\xrightarrow{V}$ **Nuc** $\xrightarrow{N}$ ... — wait, that doesn't work, since /s/ is the onset. Actually: **ini** $\xrightarrow{s}$ **Sib** $\xrightarrow{\varepsilon}$ **App** $\xrightarrow{V}$ **Nuc** $\xrightarrow{Ob}$ **Ob₁** $\xrightarrow{Ob}$ **Ob₂** $\xrightarrow{s}$ **Ob₃**.
+To trace through some examples, the word *string* /stɹɪŋ/ follows **ini** $\xrightarrow{s}$ **Sib** $\xrightarrow{P}$ **sP** $\xrightarrow{L}$ **App** $\xrightarrow{V}$ **Nuc** $\xrightarrow{N}$ **Son**. The word *a* /ə/ follows **ini** $\xrightarrow{\varepsilon}$ **App** $\xrightarrow{V}$ **Nuc**. And *cats* /kæts/ follows **ini** $\xrightarrow{P}$ **Obs** $\xrightarrow{\varepsilon}$ **App** $\xrightarrow{V}$ **Nuc** $\xrightarrow{Ob}$ **Ob₁** $\xrightarrow{Ob}$ **Ob₂**.
 
-There's a few components to notice here:
+There are a few components to notice here:
 
 1. The circles represent the *states* of the finite *state* automaton. As you might expect, there are a finite number of them.
 2. The arrows represent the *transitions* between states.

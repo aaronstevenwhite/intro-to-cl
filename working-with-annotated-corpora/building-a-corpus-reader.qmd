@@ -1,6 +1,7 @@
 ---
 title: Building a corpus reader
 jupyter: python3
+bibliography: ../references.bib
 execute:
   eval: false
 ---
@@ -8,6 +9,12 @@ execute:
 ```{python}
 #| code-fold: true
 #| code-summary: Definition of `Tree` up to this point
+
+from __future__ import annotations
+
+from collections.abc import Iterator
+from typing import ClassVar
+from uuid import uuid4
 
 from rdflib import Graph, URIRef
 
@@ -18,22 +25,36 @@ class Tree:
     ----------
     data : str
         The data contained in this tree.
-    children : list[Tree]
+    children : list[Tree] or tuple[Tree, ...]
         The subtrees of this tree.
     """
-    def __init__(self, data: str, children: list['Tree']=[]):
+    def __init__(
+        self,
+        data: str,
+        children: list[Tree] | tuple[Tree, ...] | None = None,
+    ) -> None:
+        if children is not None and not isinstance(children, (list, tuple)):
+            raise TypeError("children must be a finite list or tuple of trees")
         self._data = data
-        self._children = children
+        self._children = tuple(() if children is None else children)
         
         self._validate()
         
     def _validate(self) -> None:
-        try:
-            assert all(isinstance(c, Tree)
-                       for c in self._children)
-        except AssertionError:
-            msg = 'all children must be trees'
-            raise TypeError(msg)
+        """Reject non-trees, cycles, and shared subtree objects."""
+        seen = {id(self)}
+
+        def visit(node: Tree) -> None:
+            if not isinstance(node, Tree):
+                raise TypeError("all children must be trees")
+            if id(node) in seen:
+                raise ValueError("trees cannot contain cycles or shared subtrees")
+            seen.add(id(node))
+            for child in node._children:
+                visit(child)
+
+        for child in self._children:
+            visit(child)
         
     @property
     def data(self) -> str:
@@ -41,20 +62,20 @@ class Tree:
         return self._data
 
     @property
-    def children(self) -> list['Tree']:
+    def children(self) -> tuple[Tree, ...]:
         """The subtrees of this node."""
         return self._children
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self._children:
             return ' '.join(c.__str__() for c in self._children)
         else:
             return str(self._data)
         
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.to_string(0)
      
-    def to_string(self, depth: int) -> str:
+    def to_string(self, depth: int = 0) -> str:
         """Render the tree as an indented string.
 
         Parameters
@@ -86,15 +107,12 @@ class Tree:
                 
             return False
         
-    def __getitem__(self, idx: tuple[int]) -> 'Tree':
-        idx = (idx,) if isinstance(idx, int) else idx
-        
-        try:
-            assert all(isinstance(i, int) for i in idx)
-            assert all(i >= 0 for i in idx)
-        except AssertionError:
-            errmsg = 'index must be a positive int or tuple of positive ints'
-            raise IndexError(errmsg)
+    def __getitem__(self, idx: tuple[int, ...]) -> Tree:
+        if (
+            not isinstance(idx, tuple)
+            or not all(isinstance(i, int) and i >= 0 for i in idx)
+        ):
+            raise IndexError("index must be a tuple of nonnegative integers")
         
         if not idx:
             return self
@@ -104,23 +122,24 @@ class Tree:
             return self._children[idx[0]][idx[1:]]
 
     
-    RDF_TYPES = {}
-    RDF_EDGES = {'is': URIRef('is-a'),
-                 'parent': URIRef('is-the-parent-of'),
-                 'child': URIRef('is-a-child-of'),
-                 'sister': URIRef('is-a-sister-of')}
+    RDF_TYPES: ClassVar[dict[str, URIRef]] = {}
+    RDF_EDGES: ClassVar[dict[str, URIRef]] = {
+        'is': URIRef('is-a'),
+        'parent': URIRef('is-the-parent-of'),
+        'child': URIRef('is-a-child-of'),
+        'sister': URIRef('is-a-sister-of'),
+    }
             
-    def to_rdf(self, graph=None, nodes={}, idx=tuple()) -> Graph:
+    def to_rdf(
+        self,
+        graph: Graph | None = None,
+    ) -> Graph:
         """Convert the tree to an RDF graph for SPARQL querying.
 
         Parameters
         ----------
         graph : Graph, optional
             An existing graph to add triples to.
-        nodes : dict, optional
-            A mapping from index tuples to URI nodes.
-        idx : tuple, optional
-            The index of this node in the parent tree.
 
         Returns
         -------
@@ -128,56 +147,57 @@ class Tree:
             The RDF graph representing the tree.
         """
         graph = Graph() if graph is None else graph
-        
-        idxstr = '_'.join(str(i) for i in idx)
-        nodes[idx] = URIRef(idxstr)
-            
-        if self._data not in Tree.RDF_TYPES:
-            Tree.RDF_TYPES[self._data] = URIRef(self._data)
+        namespace = f"urn:tree:{uuid4().hex}:"
+        nodes: dict[tuple[int, ...], URIRef] = {}
 
-        typetriple = (nodes[idx], 
-                      Tree.RDF_EDGES['is'],
-                      Tree.RDF_TYPES[self.data])
+        def encode(tree: Tree, idx: tuple[int, ...]) -> None:
+            path_string = "root" if not idx else ".".join(map(str, idx))
+            nodes[idx] = URIRef(namespace + path_string)
 
-        graph.add(typetriple)
+            if tree._data not in Tree.RDF_TYPES:
+                Tree.RDF_TYPES[tree._data] = URIRef(tree._data)
 
-        for i, child in enumerate(self._children):
-            childidx = idx+(i,)
-            child.to_rdf(graph, nodes, childidx)
-                
-            partriple = (nodes[idx], 
-                         Tree.RDF_EDGES['parent'],
-                         nodes[childidx])
-            chitriple = (nodes[childidx], 
-                         Tree.RDF_EDGES['child'],
-                         nodes[idx])
-            
-            graph.add(partriple)
-            graph.add(chitriple)
-            
-        for i, child1 in enumerate(self._children):
-            for j, child2 in enumerate(self._children):
-                child1idx = idx+(i,)
-                child2idx = idx+(j,)
-                sistriple = (nodes[child1idx], 
-                             Tree.RDF_EDGES['sister'],
-                             nodes[child2idx])
-                
-                graph.add(sistriple)
-        
+            graph.add((
+                nodes[idx],
+                Tree.RDF_EDGES["is"],
+                Tree.RDF_TYPES[tree.data],
+            ))
+
+            for i, child in enumerate(tree._children):
+                childidx = idx + (i,)
+                encode(child, childidx)
+                graph.add((
+                    nodes[idx],
+                    Tree.RDF_EDGES["parent"],
+                    nodes[childidx],
+                ))
+                graph.add((
+                    nodes[childidx],
+                    Tree.RDF_EDGES["child"],
+                    nodes[idx],
+                ))
+
+            for i, _ in enumerate(tree._children):
+                for j, _ in enumerate(tree._children):
+                    if i != j:
+                        graph.add((
+                            nodes[idx + (i,)],
+                            Tree.RDF_EDGES["sister"],
+                            nodes[idx + (j,)],
+                        ))
+
+        encode(self, ())
         self._rdf_nodes = nodes
+        self._rdf_paths = {node: path for path, node in nodes.items()}
         
         return graph
     
     @property
     def rdf(self) -> Graph:
-        """The lazily-constructed RDF graph for this tree."""
-        if not hasattr(self, "_rdf"):
-            self._rdf = self.to_rdf()
+        """A fresh RDF graph for this tree."""
+        return self.to_rdf()
 
-        return self._rdf
-
-    def find(self, query: str) -> list[tuple[int]]:
+    def find(self, query: str) -> list[tuple[int, ...]]:
         """Find subtrees matching a SPARQL query.
 
         Parameters
@@ -187,24 +207,39 @@ class Tree:
 
         Returns
         -------
-        list[tuple[int]]
+        list[tuple[int, ...]]
             Index paths to matching nodes.
         """
-        return [tuple([int(i) 
-                       for i in str(res[0]).split('_')]) 
-                for res in self.rdf.query(query)]
+        paths: list[tuple[int, ...]] = []
+        seen: set[tuple[int, ...]] = set()
+        graph = self.rdf
+        for result in graph.query(query):
+            if not result:
+                raise ValueError("query must select a node in its first column")
+            node = result[0]
+            if node not in self._rdf_paths:
+                raise ValueError(
+                    "the first selected column must be a node from this tree"
+                )
+            path = self._rdf_paths[node]
+            if path not in seen:
+                paths.append(path)
+                seen.add(path)
+        return paths
 ```
 
-Now that we can search over individual trees, let's now see how to automatically load all trees from a corpus. We'll use the constituency-parsed [English Web TreeBank](https://catalog.ldc.upenn.edu/LDC2012T13) for this purpose. This corpus is separated into different genres, sources, and documents, with each `.tree` file containing possibly multiple parse trees (one per line).
+Before we load a corpus, let's collect what this cumulative definition assumes. Children are an immutable tuple, repeated subtree objects are rejected, and path indices must be tuples. Each RDF conversion also receives a fresh UUID namespace, including an explicit URI for the root path `()`, so multiple trees can be added to one graph without node collisions. Finally, SPARQL has bag semantics. `find` thus deduplicates first-column tree nodes in result order; callers who need row multiplicity or other selected columns should use `tree.rdf.query` directly.
+
+Now that we can search over individual trees, let's see how to load all trees from a corpus. A treebank records the result of annotation decisions, not just raw text: the Penn Treebank, for instance, combined automatic POS tagging and skeletal parsing with manual correction [@marcus_building_1993]. We will use the constituency-parsed [English Web TreeBank](https://catalog.ldc.upenn.edu/LDC2012T13) for this purpose. This corpus is separated into different genres, sources, and documents, with each `.tree` file containing possibly multiple parse trees, one per line.
 
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 511, status: ok, timestamp: 1680619992100, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 #| outputId: 75090126-df60-4208-a45b-e5b16cf207bd
-!tar -xzf LDC2012T13.tgz --to-command=cat 'eng_web_tbk/data/newsgroup/penntree/groups.google.com_8TRACKGROUPFORCOOLPEOPLE_3b43577fb9121c9f_ENG_20050320_090500.xml.tree'
+!tar -xzf assignments/LDC2012T13.tgz --to-command=cat 'eng_web_tbk/data/newsgroup/penntree/groups.google.com_8TRACKGROUPFORCOOLPEOPLE_3b43577fb9121c9f_ENG_20050320_090500.xml.tree'
 ```
 
-We will talk about how to actually parse these sorts of strings against a grammar later in the class, but for current purposes, we'll use [`pyparsing`](https://github.com/pyparsing/pyparsing) to define a grammar and parse threse strings to a list of lists.
+We will talk about how to parse these strings against a grammar later in the class, but for current purposes, we'll use [`pyparsing`](https://github.com/pyparsing/pyparsing) to define a grammar and parse them into nested lists.
 
 ```{python}
 #| executionInfo: {elapsed: 15, status: ok, timestamp: 1680619999957, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
@@ -215,10 +250,13 @@ RPAR = pyparsing.Suppress(')')
 data = pyparsing.Regex(r'[^\(\)\s]+')
 
 exp = pyparsing.Forward()
-expList = pyparsing.Group(LPAR + data + exp[...] + RPAR)
-exp <<= data | expList
+constituent = pyparsing.Group(
+    LPAR + data + pyparsing.OneOrMore(exp) + RPAR
+)
+exp <<= data | constituent
 
-Tree.PARSER = exp
+Tree.PARSER = (LPAR + constituent + RPAR) | constituent
+Tree.SOURCE_PARSER = (LPAR + pyparsing.OneOrMore(constituent) + RPAR) | constituent
 ```
 
 ```{python}
@@ -226,26 +264,25 @@ Tree.PARSER = exp
 #| executionInfo: {elapsed: 1126, status: ok, timestamp: 1680620001069, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 #| outputId: d8f65200-e826-4fb8-81ab-0f1af7792f81
 import tarfile
-from pprint import pprint
 
 fname = "eng_web_tbk/data/newsgroup/penntree/groups.google.com_8TRACKGROUPFORCOOLPEOPLE_3b43577fb9121c9f_ENG_20050320_090500.xml.tree"
 
-with tarfile.open("LDC2012T13.tgz") as corpus:
+with tarfile.open("assignments/LDC2012T13.tgz") as corpus:
     with corpus.extractfile(fname) as treefile:
-        treestr = treefile.readline().decode()[2:-2]
-        treelist = exp.parseString(treestr)[0]
+        treestr = treefile.readline().decode().strip()
+        treelist = Tree.PARSER.parse_string(treestr, parse_all=True)[0]
     
 treelist
 ```
 
-First, we'll define a method for building a `Tree` from this `ParseResults` object, which can be viewed as a list of list of lists...
+First, we'll define a method for building a `Tree` from this nested `ParseResults` object.
 
 ```{python}
 #| executionInfo: {elapsed: 3, status: ok, timestamp: 1680620001405, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 class Tree(Tree):
     
     @classmethod
-    def from_string(cls, treestr: str) -> 'Tree':
+    def from_string(cls, treestr: str) -> Tree:
         """Parse a bracketed tree string into a Tree.
 
         Parameters
@@ -258,11 +295,19 @@ class Tree(Tree):
         Tree
             The parsed tree.
         """
-        treelist = cls.PARSER.parseString(treestr[2:-2])[0]
-        return cls.from_list(treelist)
+        parsed = cls.SOURCE_PARSER.parse_string(treestr.strip(), parse_all=True)
+        if len(parsed) == 1:
+            return cls.from_list(parsed[0])
+        return cls(
+            "ROOT",
+            [cls.from_list(treelist) for treelist in parsed],
+        )
 
     @classmethod
-    def from_list(cls, treelist) -> 'Tree':
+    def from_list(
+        cls,
+        treelist: str | pyparsing.ParseResults,
+    ) -> Tree:
         """Build a Tree from a nested list structure.
 
         Parameters
@@ -276,11 +321,43 @@ class Tree(Tree):
             The constructed tree.
         """
         if isinstance(treelist, str):
-            return cls(treelist[0])
-        elif isinstance(treelist[1], str):
-            return cls(treelist[0], [cls(treelist[1])])
-        else:
-            return cls(treelist[0], [cls.from_list(l) for l in treelist[1:]])
+            return cls(treelist)
+
+        return cls(
+            treelist[0],
+            [cls.from_list(child) for child in treelist[1:]],
+        )
+```
+
+### Why parsing and construction preserve the tree
+
+What does the parser return? Its recursive expression grammar has two cases. `data` recognizes one nonparenthesis terminal. `constituent` recognizes an opening parenthesis, one data label, one or more recursively parsed expressions, and a closing parenthesis. `Suppress` removes the parentheses from the result, while `Group` keeps the label and child results together. The source parser accepts either one constituent or an unlabeled pair of parentheses around one or more constituents, since the treebank contains both single-root and multi-root records.
+
+We can now check a **parser invariant** by induction on bracket nesting: the parser preserves the label, number and order of children, and nesting of every accepted expression. At nesting depth zero, `data` returns the complete terminal token as a string. Now suppose the invariant holds for every child expression inside $(A\ e_1\cdots e_m)$, where $m\geq1$. `OneOrMore(exp)` parses $e_1,\ldots,e_m$ in source order. Then `Group` returns $[A,c_1,\ldots,c_m]$, where each $c_i$ corresponds to $e_i$ by the induction hypothesis. So the invariant also holds one level higher. A wrapper containing one constituent adds no node; a wrapper containing multiple constituents is represented by a synthetic `ROOT` whose children preserve their source order.
+
+Now what does `from_list` do with that parsed result? We want every parsed label to become the data of one output node, child order to remain unchanged, and the output yield to be the sequence of terminal strings in the parse result. We'll call these three properties the **construction invariant**.
+
+Use structural induction on the parsed input. Start with a terminal string. The first branch constructs one leaf whose data is the complete string. Its one-node structure and one-element yield thus agree with the input.
+
+Now fix a parsed constituent $[A,c_1,\ldots,c_m]$ and suppose that `from_list(c_i)` satisfies the construction invariant for every child. The return statement constructs one node labeled $A$ and places the recursively constructed children beneath it in the original order. The induction hypothesis preserves every child subtree and its yield; concatenating those child yields in list order gives exactly the terminal sequence below the input constituent. Thus, all three parts of the invariant are preserved.
+
+Every recursive parse result is either a terminal or a labeled constituent, so these two cases cover the entire parsed input. Note that the public source parser still requires its root to be a constituent, possibly within the one permitted wrapper. In particular, `(S)` is rejected rather than reinterpreted as a leaf labeled `S`, because a bracketed constituent must have at least one child. The parser invariant takes us from an accepted string to the nested result. The construction invariant then takes us from that result to the returned object. So `from_string` returns a `Tree` with the same recursive labeled structure and terminal yield as every source string accepted by `Tree.PARSER`.
+
+```{python}
+ordinary = Tree.from_string("( S (NP dogs) (VP run) )")
+wrapped = Tree.from_string("( (S (NP dogs) (VP run)) )")
+multi_root = Tree.from_string("( (S first) (S second) )")
+assert ordinary.data == wrapped.data == "S"
+assert str(ordinary) == str(wrapped) == "dogs run"
+assert multi_root.data == "ROOT"
+assert str(multi_root) == "first second"
+
+try:
+    Tree.from_string("(S)")
+except pyparsing.ParseException:
+    pass
+else:
+    raise AssertionError("a label-only constituent must be rejected")
 ```
 
 We can now build a lightweight container for our trees.
@@ -290,7 +367,6 @@ We can now build a lightweight container for our trees.
 #| executionInfo: {elapsed: 595, status: ok, timestamp: 1680620001997, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 #| outputId: 9dac79d6-f474-488a-ec60-e1750ffacd6d
 import tarfile
-from collections import defaultdict
 
 class EnglishWebTreebank:
     """Lazy reader for the English Web Treebank.
@@ -301,26 +377,76 @@ class EnglishWebTreebank:
         Path to the LDC tgz archive.
     """
 
-    def __init__(self, root='LDC2012T13.tgz'):
-        
-        def trees():
-            with tarfile.open(root) as corpus:
-                for fname in corpus.getnames():
-                    if '.xml.tree' in fname:
-                        with corpus.extractfile(fname) as treefile:
-                            treestr = treefile.readline().decode()
-                            yield fname, Tree.from_string(treestr)
+    def __init__(self, root: str = 'assignments/LDC2012T13.tgz') -> None:
+        self._root = root
                         
-        self._trees = trees()
-                        
-    def items(self):
+    def items(self) -> Iterator[tuple[str, Tree]]:
         """Yield filename-tree pairs from the treebank."""
-        for fn, tlist in self._trees:
-              yield fn, tlist
+        with tarfile.open(self._root) as corpus:
+            for member in corpus.getmembers():
+                if not (member.isfile() and member.name.endswith(".xml.tree")):
+                    continue
+
+                treefile = corpus.extractfile(member)
+                if treefile is None:
+                    raise OSError(f"could not read archive member {member.name}")
+                with treefile:
+                    for raw_line in treefile:
+                        treestr = raw_line.decode()
+                        if treestr.strip():
+                            yield member.name, Tree.from_string(treestr)
         
 ewt = EnglishWebTreebank()
 
 next(ewt.items())
+```
+
+### Why the reader does not skip trees
+
+What should the reader yield? It should produce one output pair for every nonempty tree line in every regular archive member whose name ends exactly in `.xml.tree`. Within a matching member, the inner `for` loop receives its lines in file order. A blank line produces no output. A nonempty line is parsed once and immediately yields one filename-tree pair. So after $k$ line iterations, the generator has yielded exactly the trees on the nonempty lines among the first $k$ lines.
+
+Before the loop, no line has been visited and no tree has been yielded. The next line either contributes nothing because it is blank or contributes its one tree. When the loop terminates, $k$ is the number of lines in the member, so every tree line in that member has been yielded once.
+
+Now move up one level to the archive. After the first $j$ `TarInfo` members have been inspected, the generator has emitted exactly the nonempty tree lines from the matching members among those $j$ members, in archive and file order. For $j=0$, no member and no line has been visited. The next member emits nothing if it is a directory or has a nonmatching suffix. A matching regular file emits exactly its nonempty lines by the preceding line-by-line argument. When the outer loop ends, every archive member has been inspected, so every tree line in every matching member has been yielded once.
+
+Using `TarInfo` objects is material here. A directory named `x.xml.tree` is skipped, a backup named `x.xml.tree.bak` is skipped, and two regular members with the same name are both read in archive order. Passing each `TarInfo` object to `extractfile` preserves duplicate-name occurrences that a name-based lookup could conflate.
+
+Suppose the archive contains two matching members:
+
+| member | lines in file order | pairs yielded |
+|---|---|---|
+| `a.xml.tree` | tree $t_1$, blank, tree $t_2$ | `(a.xml.tree, t1)`, `(a.xml.tree, t2)` |
+| `b.xml.tree` | blank, tree $t_3$ | `(b.xml.tree, t3)` |
+
+The blank lines change neither invariant. After the first member, exactly $t_1$ and $t_2$ have been emitted; after the second, $t_3$ has been appended.
+
+One final detail matters when we use the reader more than once. `items()` opens the archive inside the method rather than storing one generator in `__init__`. Each call thus begins a fresh traversal. A partially consumed iterator remains single-pass, as Python iterators generally are, but calling `ewt.items()` again returns a new iterator over the complete archive.
+
+```{python}
+from io import BytesIO
+from tempfile import NamedTemporaryFile
+
+with NamedTemporaryFile(suffix=".tgz") as archive_file:
+    with tarfile.open(archive_file.name, "w:gz") as corpus:
+        for name, source in (
+            ("duplicate.xml.tree", b"(S first)\n"),
+            ("ignored.xml.tree.bak", b"(S backup)\n"),
+            ("duplicate.xml.tree", b"(S second)\n"),
+        ):
+            member = tarfile.TarInfo(name)
+            member.size = len(source)
+            corpus.addfile(member, BytesIO(source))
+        directory = tarfile.TarInfo("ignored.xml.tree")
+        directory.type = tarfile.DIRTYPE
+        corpus.addfile(directory)
+
+    observed = list(EnglishWebTreebank(archive_file.name).items())
+
+assert [name for name, _ in observed] == [
+    "duplicate.xml.tree",
+    "duplicate.xml.tree",
+]
+assert [str(tree) for _, tree in observed] == ["first", "second"]
 ```
 
 Now, we can run arbitrary queries across trees.
@@ -355,4 +481,3 @@ for _, tree in ewt.items():
                                         ?node <is-a> <NP>.
                                       }''')
 ```
-

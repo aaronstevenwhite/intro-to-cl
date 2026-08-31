@@ -4,6 +4,10 @@ bibliography: ../references.bib
 jupyter: python3
 ---
 
+::: {.callout-note}
+The executable cells on this page use Python 3.14 syntax, matching the project configuration. The Quarto kernel is named `python3`; before rendering with execution, configure that kernelspec to point to a Python 3.14 environment.
+:::
+
 I said that a probability is a measurement of a possibility. We've now formalized what a possibility is in this context. Now let's turn to the measurement part.
 
 The Kolmogorov axioms build the notion of a [probability measure](https://en.wikipedia.org/wiki/Probability_measure) from the more general concept of a [measure](https://en.wikipedia.org/wiki/Measure_(mathematics)). All a probability measure $\mathbb{P}$ is going to do is to map from some event in the event space (e.g. high vowel, high back vowel, etc.) to a non-negative real value–with values corresponding to higher probabilities. So it is a function $\mathbb{P}: \mathcal{F} \rightarrow \mathbb{R}_+$. This condition is the first of the Kolmogorov axioms.
@@ -19,15 +23,15 @@ You might be used to thinking of probabilities as being between $[0, 1]$. This p
 #| code-fold: true
 #| code-summary: Define `FiniteMeasurableSpace`
 
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable, Iterator
 from itertools import chain, combinations
 from functools import reduce
 
-SampleSpace = frozenset[str]
-Event = frozenset[str]
-SigmaAlgebra = frozenset[Event]
+type SampleSpace = frozenset[str]
+type Event = frozenset[str]
+type SigmaAlgebra = frozenset[Event]
 
-def powerset(iterable: Iterable) -> Iterable:
+def powerset[T](iterable: Iterable[T]) -> Iterator[tuple[T, ...]]:
     """Compute the power set of an iterable.
 
     See https://docs.python.org/3/library/itertools.html#itertools-recipes
@@ -55,13 +59,28 @@ class FiniteMeasurableSpace:
   sigma_algebra : SigmaAlgebra
       The sigma-algebra of the space.
   """
-  def __init__(self, atoms: SampleSpace, sigma_algebra: SigmaAlgebra):
+  def __init__(self, atoms: SampleSpace, sigma_algebra: SigmaAlgebra) -> None:
     self._atoms = atoms
     self._sigma_algebra = sigma_algebra
 
     self._validate()
 
-  def _validate(self):
+  def _validate(self) -> None:
+    if not isinstance(self._atoms, frozenset):
+      raise TypeError("The sample space must be a frozenset")
+
+    if not isinstance(self._sigma_algebra, frozenset):
+      raise TypeError("The event family must be a frozenset")
+
+    if not all(isinstance(event, frozenset) for event in self._sigma_algebra):
+      raise TypeError("Every event must be a frozenset")
+
+    if frozenset() not in self._sigma_algebra:
+      raise ValueError("The event family must contain the empty event")
+
+    if self._atoms not in self._sigma_algebra:
+      raise ValueError("The event family must contain the sample space")
+
     for subset in self._sigma_algebra:
       if not subset <= self._atoms:
         raise ValueError("All events must be a subset of the atoms")
@@ -103,11 +122,16 @@ class FiniteMeasurableSpace:
 #| code-fold: true
 #| code-summary: Define `generate_sigma_algebra`
 
-def generate_sigma_algebra(family: SigmaAlgebra) -> SigmaAlgebra:
+def generate_sigma_algebra(
+    atoms: SampleSpace,
+    family: SigmaAlgebra,
+) -> SigmaAlgebra:
   """Generate a sigma-algebra from a family of sets.
 
   Parameters
   ----------
+  atoms : SampleSpace
+      The sample space.
   family : SigmaAlgebra
       The family of sets from which to generate the sigma-algebra.
 
@@ -117,12 +141,18 @@ def generate_sigma_algebra(family: SigmaAlgebra) -> SigmaAlgebra:
       The smallest sigma-algebra containing the family.
   """
 
-  sigma_algebra = set(family)
-  old_sigma_algebra = set(family)
+  if not all(event <= atoms for event in family):
+    raise ValueError("Every generator must be a subset of the sample space")
 
-  complete = False
+  sigma_algebra = {frozenset(), atoms, *family}
+  old_sigma_algebra: set[Event] = set()
 
-  while not complete:
+  while sigma_algebra != old_sigma_algebra:
+    old_sigma_algebra = set(sigma_algebra)
+
+    for event in old_sigma_algebra:
+      sigma_algebra.add(atoms - event)
+
     for subsets in powerset(old_sigma_algebra):
       subsets = list(subsets)
 
@@ -134,9 +164,6 @@ def generate_sigma_algebra(family: SigmaAlgebra) -> SigmaAlgebra:
 
       intersection = reduce(frozenset.intersection, subsets)
       sigma_algebra.add(intersection)
-
-    complete = sigma_algebra == old_sigma_algebra
-    old_sigma_algebra = set(sigma_algebra)
 
   return frozenset(sigma_algebra)
 ```
@@ -159,7 +186,7 @@ f_highness = frozenset({
 })
 
 # back v. nonback
-back = frozenset({'u', 'ʊ', 'o', 'ɔ'})
+back = frozenset({'u', 'ʊ', 'o', 'ɔ', 'ɑ'})
 nonback = vowels - back
 
 f_backness = frozenset({
@@ -171,13 +198,18 @@ f_backness = frozenset({
 highness_space = FiniteMeasurableSpace(vowels, f_highness)
 backness_space = FiniteMeasurableSpace(vowels, f_backness)
 
-f_highness_backness = generate_sigma_algebra(f_highness | f_backness)
+f_highness_backness = generate_sigma_algebra(
+    vowels,
+    f_highness | f_backness,
+)
 
 highness_backness_space = FiniteMeasurableSpace(vowels, f_highness_backness)
 ```
 
 ```{python}
 from itertools import combinations
+from math import isclose, isfinite
+from numbers import Real
 
 class ProbabilityMeasure:
   """A probability measure with finite support.
@@ -190,7 +222,11 @@ class ProbabilityMeasure:
       The graph of the measure.
   """
 
-  def __init__(self, domain: FiniteMeasurableSpace, measure: dict[Event, float]):
+  def __init__(
+      self,
+      domain: FiniteMeasurableSpace,
+      measure: dict[Event, float],
+  ) -> None:
     self._domain = domain
     self._measure = measure
 
@@ -211,13 +247,35 @@ class ProbabilityMeasure:
     """
     return self._measure[event]
 
-  def _validate(self):
-    for event in self._domain.sigma_algebra:
-      if event not in self._measure:
-        raise ValueError("Probability measure must be defined for all events.")
+  def _validate(self) -> None:
+    expected_events = set(self._domain.sigma_algebra)
+    supplied_events = set(self._measure)
 
-    if self._measure[frozenset(self._domain.atoms)] != 1:
+    if supplied_events != expected_events:
+      missing = expected_events - supplied_events
+      extra = supplied_events - expected_events
+      raise ValueError(
+          f"Probability graph has missing keys {missing} and extra keys {extra}."
+      )
+
+    for event, mass in self._measure.items():
+      if isinstance(mass, bool) or not isinstance(mass, Real):
+        raise TypeError(f"Probability of {event} must be a real number.")
+
+      if not isfinite(float(mass)):
+        raise ValueError(f"Probability of {event} must be finite.")
+
+      if mass < 0:
+        raise ValueError(f"Probability of {event} must be nonnegative.")
+
+    if not isclose(
+        self._measure[self._domain.atoms],
+        1.0,
+        rel_tol=1e-9,
+        abs_tol=1e-12,
+    ):
       raise ValueError("The probability of the sample space must be 1.")
+
     for events in powerset(self._domain.sigma_algebra):
       events = list(events)
 
@@ -228,8 +286,78 @@ class ProbabilityMeasure:
         prob_union = self._measure[reduce(frozenset.union, events)]
         prob_sum = sum(self._measure[e] for e in events)
 
-        if round(prob_union, 4) != round(prob_sum, 4):
+        if not isclose(prob_union, prob_sum, rel_tol=1e-9, abs_tol=1e-12):
           raise ValueError("The measure does not satisfy 𝜎-additivity.")
+```
+
+The validator checks the exact finite event family and the numerical boundary cases. The following counterexamples must all be rejected.
+
+```{python}
+#| code-fold: true
+#| code-summary: Exercise finite-space and probability-measure validators
+
+def assert_rejected(
+    exception: type[Exception],
+    constructor: Callable[[], object],
+) -> None:
+  try:
+    constructor()
+  except exception:
+    pass
+  else:
+    raise AssertionError(f"Expected {exception.__name__}")
+
+toy_atoms = frozenset({'a', 'b'})
+toy_empty = frozenset()
+toy_a = frozenset({'a'})
+toy_b = frozenset({'b'})
+
+assert_rejected(
+    ValueError,
+    lambda: FiniteMeasurableSpace(
+        toy_atoms,
+        frozenset({toy_atoms, toy_a, toy_b}),
+    ),
+)
+assert_rejected(
+    ValueError,
+    lambda: FiniteMeasurableSpace(
+        toy_atoms,
+        frozenset({toy_empty, toy_a, toy_b}),
+    ),
+)
+
+toy_space = FiniteMeasurableSpace(
+    toy_atoms,
+    frozenset({toy_empty, toy_atoms}),
+)
+ProbabilityMeasure(toy_space, {toy_empty: 0.0, toy_atoms: 1.0})
+
+assert_rejected(
+    ValueError,
+    lambda: ProbabilityMeasure(toy_space, {toy_atoms: 1.0}),
+)
+assert_rejected(
+    ValueError,
+    lambda: ProbabilityMeasure(
+        toy_space,
+        {toy_empty: 0.0, toy_atoms: 1.0, toy_a: 0.0},
+    ),
+)
+assert_rejected(
+    ValueError,
+    lambda: ProbabilityMeasure(
+        toy_space,
+        {toy_empty: -0.1, toy_atoms: 1.0},
+    ),
+)
+assert_rejected(
+    ValueError,
+    lambda: ProbabilityMeasure(
+        toy_space,
+        {toy_empty: 0.0, toy_atoms: float('nan')},
+    ),
+)
 ```
 
 One example of a probability measure for our measurable space $\langle \Omega, \mathcal{F}_\text{highness-backness}\rangle$ is the uniform measure: $\mathbb{P}(E) = \frac{|E|}{|\Omega|}$.
@@ -243,11 +371,29 @@ measure_highness_backness = ProbabilityMeasure(
 ```
 
 
-These axioms imply that the range of $\mathbb{P}$ is $[0, 1]$, even if its codomain is $\mathbb{R}_+$; otherwise, it would have to be the case that $\mathbb{P}(E) > 1$ for some $E \subset \Omega$. ($E$ would have to be a strict subset of $\Omega$, since $\Omega \supseteq E$ for all $E \in \mathcal{F}$ and $\mathbb{P}(\Omega) = 1$ by definition.) But $\mathbb{P}(E) > 1$ cannot hold, since $\mathbb{P}(\Omega - E)$–which must be defined, given that $\mathcal{F}$ is closed under complementation–is nonnegative; and thus  $\mathbb{P}(E) + \mathbb{P}(\Omega - E) > \mathbb{P}(\Omega) = 1$ contradicts the third axiom $\mathbb{P}(E) + \mathbb{P}(\Omega - E) = \mathbb{P}(E \cup [\Omega - E]) = \mathbb{P}(\Omega) = 1$.  
+So why do probabilities end up between $0$ and $1$? We need two consequences of the axioms: $\mathbb{P}(\emptyset)=0$ and the fact that every probability lies in $[0,1]$. We'll establish them separately because the second uses the first.
+
+First, fix the disjoint events $\Omega$ and $\emptyset$. Their union is $\Omega$, so finite additivity, which is the two-event case of $\sigma$-additivity, gives
+
+$$
+\mathbb{P}(\Omega)
+=\mathbb{P}(\Omega\cup\emptyset)
+=\mathbb{P}(\Omega)+\mathbb{P}(\emptyset).
+$$
+
+Subtracting the finite quantity $\mathbb{P}(\Omega)=1$ from both sides yields $\mathbb{P}(\emptyset)=0$.
+
+Second, fix an arbitrary event $E\in\mathcal{F}$ and let $E^c=\Omega-E$. Closure under complementation ensures that $E^c\in\mathcal{F}$. The events $E$ and $E^c$ are disjoint, and their union is $\Omega$. Applying finite additivity again gives the **complement identity**
+
+$$
+1=\mathbb{P}(\Omega)
+=\mathbb{P}(E\cup E^c)
+=\mathbb{P}(E)+\mathbb{P}(E^c).
+$$
+
+Both terms on the right are nonnegative because the codomain of $\mathbb{P}$ is $\mathbb{R}_+$. Hence $\mathbb{P}(E)\leq1$; and nonnegativity also gives $\mathbb{P}(E)\geq0$. Since $E$ was arbitrary, the range of any probability measure is contained in $[0,1]$. It need not equal the whole interval: a probability measure on a finite sample space may attain only finitely many values.
 
 (One reason the codomain of $\mathbb{P}$ is often specified as the more general $\mathbb{R}_+$–rather than $[0, 1]$ is to make salient the fact that probabilities are analogous to other kinds of measurements, like weight, height, temperature, etc.)
-
-These axioms also imply that $\mathbb{P}(\emptyset) = 0$, since $\mathbb{P}(\Omega) = \mathbb{P}(\Omega \cup \emptyset) = \mathbb{P}(\Omega) + \mathbb{P}(\emptyset) = 1$, and so $\mathbb{P}(\emptyset) = 1 - \mathbb{P}(\Omega) = 0$.
 
 ```{python}
 class ProbabilityMeasure(ProbabilityMeasure):
@@ -268,7 +414,7 @@ class ProbabilityMeasure(ProbabilityMeasure):
     self._validate_events(events)
     return not any(e1.intersection(e2) for e1, e2 in combinations(events, 2))
 
-  def _validate_events(self, events: Iterable[Event]):
+  def _validate_events(self, events: Iterable[Event]) -> None:
     for i, event in enumerate(events):
       if event not in self._domain.sigma_algebra:
         raise ValueError(f"event{i} is not in the event space.")
@@ -289,4 +435,3 @@ measure_highness_backness = ProbabilityMeasure(
 
 measure_highness_backness.are_mutually_exclusive(high, nonhigh)
 ```
-

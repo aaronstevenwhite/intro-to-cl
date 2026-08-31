@@ -23,7 +23,7 @@ More generally, we could define a distance on elements of a set $E$ to be any fu
 3. The order of comparison doesn't matter: $d(x, y) = d(y, x)$ (*symmetry*)
 4. The distance between two elements is no more than the distance between the first element and any other element plus the distance between the second element and that other element: $d(x, y) \leq d(x, z) + d(z, y)$ (*subadditivity* or *triangle inequality*)
 
-[Measure Theory](https://en.wikipedia.org/wiki/Measure_(mathematics)) and [General Topology](https://en.wikipedia.org/wiki/General_topology) study (in part) functions like $d$ and more general classes of functions that arise from lifting some of the constraints 1-4. But for our purposes, this notion of a distance is useful.
+[Metric geometry](https://en.wikipedia.org/wiki/Metric_geometry) studies spaces equipped with functions like $d$, while topology studies more general ways of representing which points are near one another. For our purposes, the metric-space definition is enough.
 
 ### Vectors of real numbers
 
@@ -75,7 +75,7 @@ _ = plt.plot(ab[:,0], ab[:,1])
 
 We could get even fancier by noticing that the absolute difference and Euclidean distance can be generalized—e.g. to the Minkowski $p$-norm for some $p$.
 
-$$d_{\text{mink}, p}(\mathbf{a}, \mathbf{b}) = \sqrt[p]{\sum_i |a_i - b_i|^p}$$
+$$d_{\text{mink}, p}(\mathbf{a}, \mathbf{b}) = \sqrt[p]{\sum_i |a_i - b_i|^p},\qquad p\geq1.$$
 
 where absolute difference is the case where $p=1$ and the Euclidean distance is the case where $p=2$. (And this isn't even near as [fancy](https://en.wikipedia.org/wiki/Hilbert_space) as we can get.)
 
@@ -83,21 +83,21 @@ where absolute difference is the case where $p=1$ and the Euclidean distance is 
 
 The reason for going through all of this is to notice:
 
-1. There are many different reasonable notions of the distance between two things, even when we're talking about relatively simple things like points in a plane.
-2. One we have some reasonable notion, we can often *parameterize* it, providing us with an often infinite variety of new metrics.
+1. There are many reasonable notions of the distance between two things, even when we're talking about relatively simple things like points in a plane.
+2. Once we have a reasonable notion, we can often *parameterize* it, providing us with an infinite family of related metrics.
 
-Both of these notions are import for understanding string distance because we can think of strings as vectors—sort of like the vectors we discussed above. 
+Both points are important for understanding string distance because we can think of strings as being something like the vectors we discussed above.
 
 There are two main differences between strings and real-valued vectors though:
 
-1. The elements of a string are not necessarily ordered. And even if we treat them as ordered (e.g. by hashing them to their ASCII code or unicode) it's not clear that the relevant ordering is useful in any way, especially for the computational linguist. (We could of course define lexicographic distance or something like that, but the order of the alphabet is arbitrary and doesn't reallt reveal any interesting linguistic properties.)
+1. The symbols in an alphabet need not have an intrinsic ordering. And even if we impose one (e.g. by mapping symbols to their ASCII or Unicode code points), it isn't clear that the resulting ordering is linguistically useful. We could define lexicographic distance, but the order of the alphabet is largely arbitrary and doesn't reveal the properties we usually care about.
 2. We can only compare real-valued vectors of the same dimensions with the distance metrics we just defined, but we often want to compare strings of different dimensions (i.e. lengths).
 
-To understand how to deal with the these issue, it's useful to first start with boolean "vectors" because strings are just a generalization of boolean vectors.
+To understand how to deal with these issues, it is useful to start with Boolean vectors. Strings over a two-symbol alphabet are Boolean vectors, and strings over larger alphabets generalize them.
 
 ### "Vectors" of booleans
 
-A boolean "vector" (I'm say shortly why I include quotes) is some tuple of boolean values $\mathbf{a} \in \mathbb{B}^M = \{\top, \bot\}^M$. Notice that the case where $M=2$ gives us the vertices of a square with sides of length 1.
+A Boolean vector is a tuple of Boolean values $\mathbf{a} \in \mathbb{B}^M = \{\top, \bot\}^M$. Notice that the case where $M=2$ gives us the vertices of a square with sides of length 1.
 
 ```{python}
 a = [0,0]
@@ -118,7 +118,7 @@ So how do we compute distance on boolean vectors? Let's start with equality: how
 
 $d_{eq}(a, b) = \begin{cases}0 & \text{if } a \leftrightarrow b \\1 & \text{otherwise}\end{cases}$
 
-This may look backward, but remember that (i) $d$ is supposed to be a distance, so being equal means having no distance; and (ii) $d$ has a real-valued codomain (even if it's range is just $\{0, 1\}$. Indeed, $d$ actually just turns out to be isomorphic to XOR, which is just the negation of the biconditional. (It is crucially not *equivalent* to XOR or the biconditional, because $d$ has $\mathbb{R}$ as the codomain and XOR has $\mathbb{B}$ as its codomain.)
+This may look backward, but remember that (i) $d$ is supposed to be a distance, so equal elements must be at distance $0$; and (ii) $d$ has a real-valued codomain, even though its range is just $\{0, 1\}$. The definition has the same truth table as XOR if we identify $\bot$ with $0$ and $\top$ with $1$. But it is still useful to distinguish the distance function, whose outputs are real numbers, from the Boolean connective, whose outputs are truth values.
 
 Now that we have a notion of distance for booleans, we can do the same thing we did for the real numbers:
 
@@ -126,9 +126,9 @@ $$d_\text{eq-vec}(\mathbf{a}, \mathbf{b}) = \begin{cases} 0 & \text{if } d_\text
 
 And notice that if $M>2$, we can actually just generalize this to:
 
-$$d_\text{eq-vec}(\mathbf{a}, \mathbf{b}) = \begin{cases} 0 & \text{if } \bigwedge_i d_\text{eq}(a_i, b_i) = 0\\1 & \text{otherwise}\end{cases}$$
+$$d_\text{eq-vec}(\mathbf{a}, \mathbf{b}) = \begin{cases} 0 & \text{if } \bigwedge_i \bigl(d_\text{eq}(a_i, b_i)=0\bigr)\\1 & \text{otherwise}\end{cases}$$
 
-So now I can say why I'm using quotes around *vector*. Technically, vectors must have elements that come from a [field](https://en.wikipedia.org/wiki/Field_(mathematics)). If we use the notion of distance and the notion of combining distance mentioned above, we do get a field: the [Galois Field](https://en.wikipedia.org/wiki/GF(2)). You don't need to know this, but if I had chosen, say, conjunction for our notion of equality, we would provably not have a field.
+The set $\{0,1\}^M$ can also be treated as a vector space over the [two-element field](https://en.wikipedia.org/wiki/GF(2)), provided that addition and multiplication are defined modulo $2$. We don't need that vector-space structure to define Hamming distance. We need only be able to decide whether two symbols are equal.
 
 So here's a question: can we similarly define a reasonable distance that acts more like absolute difference? Sure. Instead of asking for strict equality at the vector level, we can count up the distances at the element level.
 
@@ -136,17 +136,37 @@ $$d_\text{abs-vec}(\mathbf{a}, \mathbf{b}) = \sum_i d_\text{eq}(a_i, b_i)$$
 
 This is alternatively known as the [Hamming distance](https://en.wikipedia.org/wiki/Hamming_distance).
 
-So here's why the thing about $M=2$ being a square, $M=3$ being a cube, etc. matters: basically what we're doing here is counting how many sides of the square, cube, etc. we have to travel to get from one point to the other. It's straightforward to check that this satisfies the distance constraints.
+So here's why the thing about $M=2$ being a square, $M=3$ being a cube, etc. matters: basically what we're doing here is counting how many sides of the square, cube, etc. we have to travel to get from one point to the other.
 
-The thing to notice here is that we did perfectly well here without an ordering on the boolean elements because we know when they will be equal: basically, when the biconditional holds. Further, this didn't force us to only have a 0-1 distance output, since we can count the mismatches.
+We can verify that this is a metric one condition at a time. Fix arbitrary $\mathbf{a},\mathbf{b},\mathbf{c}\in\mathbb{B}^M$, and write $[P]$ for $1$ when the proposition $P$ is true and $0$ otherwise. Then Hamming distance is
 
-Okay, so what we wanted to compare variable length boolean vectors? So what if we had a vector $\mathbf{a} \in \mathbb{B}^2$ and another $\mathbf{b} \in \mathbb{B}^3$?
+$$d_H(\mathbf{a},\mathbf{b})=\sum_{i=1}^M[a_i\neq b_i].$$
 
-Let's return to the idea about squares and cubes: $\mathbf{a}$ would be a vertex of a square while $\mathbf{b}$ would be a vertex of a cube. But here's the trick: squares are just one side of a cube. So how can we leverage that? 
+First, every summand is nonnegative, so $d_H(\mathbf{a},\mathbf{b})\geq0$. Second, $d_H(\mathbf{a},\mathbf{b})=0$ if and only if every summand is $0$. This happens if and only if $a_i=b_i$ at every coordinate, which is exactly the condition $\mathbf{a}=\mathbf{b}$. Third, $[a_i\neq b_i]=[b_i\neq a_i]$ at each coordinate. Summing these equalities gives $d_H(\mathbf{a},\mathbf{b})=d_H(\mathbf{b},\mathbf{a})$.
 
-The basic idea is to ask "what if I thought of $\mathbf{a}$ as *actually* denoting a vertex of the cube that $\mathbf{b}$ is a vertex of? Then, I could compute the distance between the two using whatever distance I already defined."
+The triangle inequality is the only condition that requires an argument. Fix an arbitrary coordinate $i$. If $a_i=b_i$, then
 
-Where this gets complicated is in how exactly you decide to "think of" (map) $\mathbf{a}$ as a cube vertex. Here's a few ways:
+$$[a_i\neq b_i]=0\leq[a_i\neq c_i]+[c_i\neq b_i].$$
+
+If $a_i\neq b_i$, $c_i$ cannot equal both of them. At least one of $a_i\neq c_i$ and $c_i\neq b_i$ must thus hold, giving
+
+$$[a_i\neq b_i]=1\leq[a_i\neq c_i]+[c_i\neq b_i].$$
+
+The coordinatewise inequality holds in both cases. Summing it over all $M$ coordinates yields
+
+$$d_H(\mathbf{a},\mathbf{b})\leq d_H(\mathbf{a},\mathbf{c})+d_H(\mathbf{c},\mathbf{b}).$$
+
+Thus, Hamming distance satisfies nonnegativity, identity of indiscernibles, symmetry, and the triangle inequality. It is a metric on $\mathbb{B}^M$.
+
+The thing to notice here is that we didn't need an ordering on the Boolean elements. Equality was enough. And we weren't forced to return only $0$ or $1$, since we could count the coordinatewise mismatches.
+
+Okay, so what if we want to compare Boolean vectors of different lengths? Suppose we have a vector $\mathbf{a} \in \mathbb{B}^2$ and another $\mathbf{b} \in \mathbb{B}^3$.
+
+Let's return to the idea about squares and cubes: $\mathbf{a}$ would be a vertex of a square while $\mathbf{b}$ would be a vertex of a cube. But a square can be embedded as a face of a cube. That gives us a possible strategy.
+
+The basic idea is to ask: what if I treated $\mathbf{a}$ as denoting a vertex of the cube containing $\mathbf{b}$? Then I could compute the distance between the two using the distance we already defined.
+
+The complication is deciding how to map $\mathbf{a}$ to a cube vertex. Here are three possibilities.
 
 If you're mapping $\mathbf{a}$ from $\mathbb{B}^M$ to $\mathbb{B}^N$, where $N>M$, for comparison to $\mathbf{b} \in \mathbb{B}^N$...
 
@@ -156,17 +176,21 @@ If you're mapping $\mathbf{a}$ from $\mathbb{B}^M$ to $\mathbb{B}^N$, where $N>M
 
 These all involve choosing a "face" of the higher dimensional thing to compare $\mathbf{a}$ to $\mathbf{b}$ on. The first just chooses the same face every time. The second chooses the the face dependent on $\mathbf{b}$ and will always result in a distance that is no longer than the one computed for the first, but it is not necessarily optimal. The last one will give us the shortest distance possible (by definition), but it is significantly more complicated to compute. You can get a sense for this by considering how many different ways you can spin a cube around to try to match a face.
 
-Of course, we could also go in the other direction, instead of trying to think of $\mathbf{a}$ as a cube vertex, we could try to think of $\mathbf{b}$ as a square vertex. This entails "flattening" the cube in some direction. But then the same challenge comes up: which direction do you flatten in? You again basically have the same choices, except that, when you're deleting instead of adding, 1 and 2 end up looking the same.
+Of course, we could go in the other direction. Instead of treating $\mathbf{a}$ as a cube vertex, we could treat $\mathbf{b}$ as a square vertex by deleting coordinates. But the same challenge comes up: which coordinates do we delete?
 
 1. Delete $N-M$ elements from the beginning or end of $\mathbf{b}$.
-2. Delete $N-M$ elements from the beginning or end of $\mathbf{b}$.
+2. Delete the $N-M$ elements at some fixed set of positions in $\mathbf{b}$.
 3. Delete $N-M$ elements from $\mathbf{b}$ so that the distance between $\mathbf{a}$ and $\mathbf{b}$ is minimized.
 
-But there's actually a problem with the first way: the direction you choose can give you different answers! This is because the deletion method will give distances that are at most $M$, whereas the addition method will give distances that are at most $N$. That's bad because then you don't have something that looks like a distance anymore, since remember that $d(\mathbf{a}, \mathbf{b}) = d(\mathbf{b}, \mathbf{a})$. To fix this, we could always define the distance to only delete or only add, but the problem still remains that methods one and two require us to should what to add arbitrarily.
+There is a problem with letting the direction of comparison determine the operation. Deleting from the longer vector gives at most $M$ coordinatewise mismatches, while adding to the shorter vector gives at most $N$. The two directions can thus give different answers, violating symmetry. We could define a canonical direction, but methods 1 and 2 would still require an arbitrary choice of where to add or delete coordinates.
 
-Method 3 doesn't turn out to have this directionality problem (as long as either addition and deletion don't themselves add to the distance or they add the same amount), since you can always select your additions so that the added elements always match. And even if it did, we could back off to always moving from the smaller vector to the larger vector (or vice versa), with whatever penalty structure we wanted.
+Method 3 handles the alignment problem, but it introduces another one. If inserted symbols are copied from the longer vector and insertion itself costs nothing, then two unequal vectors can have distance $0$. For instance, $(\top)$ can be aligned perfectly with the first coordinate of $(\top,\bot)$, leaving the copied $\bot$ with no cost. The result violates identity of indiscernibles. We thus need to assign a positive cost to insertions and deletions, and those costs must be the same if the resulting distance is to be symmetric. This is exactly the move made by edit distance.
 
-The problem is figuring out what the best way of inserting or deleting elements is, since regardless of which way you go, you always have ${N \choose N-M}$ possible choices (in the deletion case) and ${M \choose N-M} \times {N \choose N-M}$ in the insertion case (since you need to not only decide where to insert, but always where to insert from). And even in the deletion case, if you consider all of these choices naively, you end up having check for the equality of $M$ elements, resulting in ${N \choose N-M} \times M$ equality checks. 
+The problem is figuring out the best insertion or deletion alignment. In either direction, an order-preserving alignment of an $M$-element vector with $M$ of the $N$ positions is determined by choosing those positions. There are
+
+$$\binom{N}{M}=\binom{N}{N-M}$$
+
+such choices. In the insertion view, the remaining $N-M$ positions are filled from the corresponding positions of $\mathbf{b}$; there is no second independent choice. In the deletion view, they are exactly the positions deleted from $\mathbf{b}$. For instance, aligning a one-element vector with a three-element vector gives $\binom31=3$ possibilities, whereas the old product count would incorrectly give $\binom12\binom32=0$. Checking all alignments naively still requires $M\binom{N}{M}$ element comparisons.
 
 It turns out there's a better way, which we'll see in a second. But first, how does any of this relate to strings?
 

@@ -4,24 +4,27 @@ bibliography: ../references.bib
 jupyter: python3
 ---
 
+::: {.callout-note}
+The executable cells on this page use Python 3.14 syntax, matching the project configuration. The Quarto kernel is named `python3`; before rendering with execution, configure that kernelspec to point to a Python 3.14 environment.
+:::
 
 ## Joint probability
 
-The *joint probability* $\mathbb{P}(A, B)$ of two events $A \in \mathcal{F}$ and $B \in \mathcal{F}$ is defined as the probability of the intersection of those two events $\mathbb{P}(A, B) = \mathbb{P}(A \cap B)$, which must be defined give that $\mathcal{F}$ is closed under countable intersection.
+The *joint probability* $\mathbb{P}(A, B)$ of two events $A \in \mathcal{F}$ and $B \in \mathcal{F}$ is defined as the probability of their intersection: $\mathbb{P}(A, B) = \mathbb{P}(A \cap B)$. This value is defined because $\mathcal{F}$ is closed under countable intersection.
 
 ```{python}
 #| code-fold: true
 #| code-summary: Define `FiniteMeasurableSpace`
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
 from itertools import chain, combinations
 from functools import reduce
 
-SampleSpace = frozenset[str]
-Event = frozenset[str]
-SigmaAlgebra = frozenset[Event]
+type SampleSpace = frozenset[str]
+type Event = frozenset[str]
+type SigmaAlgebra = frozenset[Event]
 
-def powerset(iterable: Iterable) -> Iterable:
+def powerset[T](iterable: Iterable[T]) -> Iterator[tuple[T, ...]]:
     """Compute the power set of an iterable.
 
     See https://docs.python.org/3/library/itertools.html#itertools-recipes
@@ -49,13 +52,28 @@ class FiniteMeasurableSpace:
   sigma_algebra : SigmaAlgebra
       The sigma-algebra of the space.
   """
-  def __init__(self, atoms: SampleSpace, sigma_algebra: SigmaAlgebra):
+  def __init__(self, atoms: SampleSpace, sigma_algebra: SigmaAlgebra) -> None:
     self._atoms = atoms
     self._sigma_algebra = sigma_algebra
 
     self._validate()
 
-  def _validate(self):
+  def _validate(self) -> None:
+    if not isinstance(self._atoms, frozenset):
+      raise TypeError("The sample space must be a frozenset")
+
+    if not isinstance(self._sigma_algebra, frozenset):
+      raise TypeError("The event family must be a frozenset")
+
+    if not all(isinstance(event, frozenset) for event in self._sigma_algebra):
+      raise TypeError("Every event must be a frozenset")
+
+    if frozenset() not in self._sigma_algebra:
+      raise ValueError("The event family must contain the empty event")
+
+    if self._atoms not in self._sigma_algebra:
+      raise ValueError("The event family must contain the sample space")
+
     for subset in self._sigma_algebra:
       if not subset <= self._atoms:
         raise ValueError("All events must be a subset of the atoms")
@@ -98,6 +116,8 @@ class FiniteMeasurableSpace:
 #| code-summary: Define `ProbabilityMeasure`
 
 from itertools import combinations
+from math import isclose, isfinite
+from numbers import Real
 
 class ProbabilityMeasure:
   """A probability measure with finite support.
@@ -110,7 +130,11 @@ class ProbabilityMeasure:
       The graph of the measure.
   """
 
-  def __init__(self, domain: FiniteMeasurableSpace, measure: dict[Event, float]):
+  def __init__(
+      self,
+      domain: FiniteMeasurableSpace,
+      measure: dict[Event, float],
+  ) -> None:
     self._domain = domain
     self._measure = measure
 
@@ -131,12 +155,33 @@ class ProbabilityMeasure:
     """
     return self._measure[event]
 
-  def _validate(self):
-    for event in self._domain.sigma_algebra:
-      if event not in self._measure:
-        raise ValueError("Probability measure must be defined for all events.")
+  def _validate(self) -> None:
+    expected_events = set(self._domain.sigma_algebra)
+    supplied_events = set(self._measure)
 
-    if self._measure[frozenset(self._domain.atoms)] != 1:
+    if supplied_events != expected_events:
+      missing = expected_events - supplied_events
+      extra = supplied_events - expected_events
+      raise ValueError(
+          f"Probability graph has missing keys {missing} and extra keys {extra}."
+      )
+
+    for event, mass in self._measure.items():
+      if isinstance(mass, bool) or not isinstance(mass, Real):
+        raise TypeError(f"Probability of {event} must be a real number.")
+
+      if not isfinite(float(mass)):
+        raise ValueError(f"Probability of {event} must be finite.")
+
+      if mass < 0:
+        raise ValueError(f"Probability of {event} must be nonnegative.")
+
+    if not isclose(
+        self._measure[self._domain.atoms],
+        1.0,
+        rel_tol=1e-9,
+        abs_tol=1e-12,
+    ):
       raise ValueError("The probability of the sample space must be 1.")
 
     for events in powerset(self._domain.sigma_algebra):
@@ -149,7 +194,7 @@ class ProbabilityMeasure:
         prob_union = self._measure[reduce(frozenset.union, events)]
         prob_sum = sum(self._measure[e] for e in events)
 
-        if round(prob_union, 4) != round(prob_sum, 4):
+        if not isclose(prob_union, prob_sum, rel_tol=1e-9, abs_tol=1e-12):
           raise ValueError("The measure does not satisfy 𝜎-additivity.")
         
   def are_mutually_exclusive(self, *events: Event) -> bool:
@@ -168,7 +213,7 @@ class ProbabilityMeasure:
     self._validate_events(events)
     return not any(e1.intersection(e2) for e1, e2 in combinations(events, 2))
 
-  def _validate_events(self, events: Iterable[Event]):
+  def _validate_events(self, events: Iterable[Event]) -> None:
     for i, event in enumerate(events):
       if event not in self._domain.sigma_algebra:
         raise ValueError(f"event{i} is not in the event space.")
@@ -190,6 +235,8 @@ class ProbabilityMeasure(ProbabilityMeasure):
     float
         The probability of the intersection of the events.
     """
+    if not events:
+      raise ValueError("At least one event is required.")
     self._validate_events(events)
 
     intersection = reduce(frozenset.intersection, events)
@@ -203,11 +250,16 @@ In our running example, the probability of a high back vowel is the joint probab
 #| code-fold: true
 #| code-summary: Define `generate_sigma_algebra`
 
-def generate_sigma_algebra(family: SigmaAlgebra) -> SigmaAlgebra:
+def generate_sigma_algebra(
+    atoms: SampleSpace,
+    family: SigmaAlgebra,
+) -> SigmaAlgebra:
   """Generate a sigma-algebra from a family of sets.
 
   Parameters
   ----------
+  atoms : SampleSpace
+      The sample space.
   family : SigmaAlgebra
       The family of sets from which to generate the sigma-algebra.
 
@@ -217,12 +269,18 @@ def generate_sigma_algebra(family: SigmaAlgebra) -> SigmaAlgebra:
       The smallest sigma-algebra containing the family.
   """
 
-  sigma_algebra = set(family)
-  old_sigma_algebra = set(family)
+  if not all(event <= atoms for event in family):
+    raise ValueError("Every generator must be a subset of the sample space")
 
-  complete = False
+  sigma_algebra = {frozenset(), atoms, *family}
+  old_sigma_algebra: set[Event] = set()
 
-  while not complete:
+  while sigma_algebra != old_sigma_algebra:
+    old_sigma_algebra = set(sigma_algebra)
+
+    for event in old_sigma_algebra:
+      sigma_algebra.add(atoms - event)
+
     for subsets in powerset(old_sigma_algebra):
       subsets = list(subsets)
 
@@ -234,9 +292,6 @@ def generate_sigma_algebra(family: SigmaAlgebra) -> SigmaAlgebra:
 
       intersection = reduce(frozenset.intersection, subsets)
       sigma_algebra.add(intersection)
-
-    complete = sigma_algebra == old_sigma_algebra
-    old_sigma_algebra = set(sigma_algebra)
 
   return frozenset(sigma_algebra)
 ```
@@ -259,7 +314,7 @@ f_highness = frozenset({
 })
 
 # back v. nonback
-back = frozenset({'u', 'ʊ', 'o', 'ɔ'})
+back = frozenset({'u', 'ʊ', 'o', 'ɔ', 'ɑ'})
 nonback = vowels - back
 
 f_backness = frozenset({
@@ -271,7 +326,10 @@ f_backness = frozenset({
 highness_space = FiniteMeasurableSpace(vowels, f_highness)
 backness_space = FiniteMeasurableSpace(vowels, f_backness)
 
-f_highness_backness = generate_sigma_algebra(f_highness | f_backness)
+f_highness_backness = generate_sigma_algebra(
+    vowels,
+    f_highness | f_backness,
+)
 
 highness_backness_space = FiniteMeasurableSpace(vowels, f_highness_backness)
 ```
@@ -308,6 +366,8 @@ class ProbabilityMeasure(ProbabilityMeasure):
     ProbabilityMeasure
         A new measure conditioned on the intersection of the events.
     """
+    if not conditions:
+      raise ValueError("At least one conditioning event is required.")
     condition = reduce(frozenset.intersection, conditions)
 
     self._validate_condition(condition)
@@ -319,7 +379,7 @@ class ProbabilityMeasure(ProbabilityMeasure):
 
     return ProbabilityMeasure(self._domain, measure)
 
-  def _validate_condition(self, condition: Event):
+  def _validate_condition(self, condition: Event) -> None:
     if condition not in self._domain.sigma_algebra:
       raise ValueError("The conditions must be in the event space.")
 
@@ -347,21 +407,64 @@ measure_given_back = measure_highness_backness | [back]
 measure_given_back(high)
 ```
 
-From this definition, it immediately follows that $\mathbb{P}(A, B) = \mathbb{P}(A \mid B)\mathbb{P}(B) = \mathbb{P}(B \mid A)\mathbb{P}(A)$, which in turn implies [*Bayes' theorem*](https://en.wikipedia.org/wiki/Bayes%27_theorem).
+We can now derive two identities that will recur throughout the course. The first is the **Bayes rearrangement**. Fix events $A$ and $B$ with $\mathbb{P}(A)>0$ and $\mathbb{P}(B)>0$. Multiplying the definition of $\mathbb{P}(A\mid B)$ by $\mathbb{P}(B)$ gives
 
-$$\mathbb{P}(A \mid B) = \frac{\mathbb{P}(A, B)}{\mathbb{P}(B)} = \frac{\mathbb{P}(B \mid A)\mathbb{P}(A)}{\mathbb{P}(B)}$$
+$$
+\mathbb{P}(A\mid B)\mathbb{P}(B)=\mathbb{P}(A\cap B).
+$$
 
-Bayes' theorem will be very important in this course.
+Reversing the roles of the events gives $\mathbb{P}(B\mid A)\mathbb{P}(A)=\mathbb{P}(B\cap A)$. But intersection is symmetric, so the two right-hand sides name the same event. Equating the left-hand sides and dividing by $\mathbb{P}(B)$ yields [Bayes' theorem](https://en.wikipedia.org/wiki/Bayes%27_theorem):
 
-Another important consequence of the definition of conditional probability is the [chain rule](https://en.wikipedia.org/wiki/Chain_rule_(probability)):
+$$
+\mathbb{P}(A\mid B)
+=\frac{\mathbb{P}(B\mid A)\mathbb{P}(A)}{\mathbb{P}(B)}.
+$$
 
-$$\begin{align*}\mathbb{P}(E_1, E_2, E_3, \ldots, E_N) &= \mathbb{P}(E_1)\mathbb{P}(E_2 \mid E_1)\mathbb{P}(E_3 \mid E_1, E_2)\ldots\mathbb{P}(E_N \mid E_1, E_2, \ldots, E_{N-1})\\ &= \mathbb{P}(E_1)\prod_{i=2}^N \mathbb{P}(E_i\mid E_1, \ldots, E_{i-1})\end{align*}$$
+The positivity assumptions identify exactly where this derivation is licensed. If $\mathbb{P}(B)=0$, the final division is undefined; if $\mathbb{P}(A)=0$, the intermediate term $\mathbb{P}(B\mid A)$ is undefined under the elementary definition used here.
 
-The chain rule will also be very important in this course.
+The second identity is the [chain rule](https://en.wikipedia.org/wiki/Chain_rule_(probability)). For $i\geq1$, let $C_i=E_1\cap\cdots\cap E_i$, and assume that every conditioning event $C_i$ appearing below has positive probability. We need to show that
+
+$$
+\mathbb{P}(C_N)
+=\mathbb{P}(E_1)
+ \prod_{i=2}^N \mathbb{P}(E_i\mid C_{i-1}).
+$$
+
+We use induction on $N$. For $N=2$, the definition of conditional probability gives
+
+$$
+\mathbb{P}(C_2)
+=\mathbb{P}(E_1\cap E_2)
+=\mathbb{P}(E_2\mid E_1)\mathbb{P}(E_1),
+$$
+
+which is the required base case. Now assume the formula holds for $N$. Since $C_{N+1}=C_N\cap E_{N+1}$, the two-event identity gives
+
+$$
+\begin{aligned}
+\mathbb{P}(C_{N+1})
+  &=\mathbb{P}(E_{N+1}\mid C_N)\mathbb{P}(C_N)\\
+  &=\mathbb{P}(E_{N+1}\mid C_N)
+    \mathbb{P}(E_1)
+    \prod_{i=2}^{N}\mathbb{P}(E_i\mid C_{i-1})\\
+  &=\mathbb{P}(E_1)
+    \prod_{i=2}^{N+1}\mathbb{P}(E_i\mid C_{i-1}).
+\end{aligned}
+$$
+
+The second line substitutes the induction hypothesis, and the third merely includes the new factor in the product. Thus, the formula holds for every finite $N$. For $N=3$, the proof specializes to $\mathbb{P}(E_1,E_2,E_3)=\mathbb{P}(E_1)\mathbb{P}(E_2\mid E_1)\mathbb{P}(E_3\mid E_1,E_2)$.
 
 ## Independence
 
-An event $A \in \mathcal{F}$ is *independent* of an event $B \in \mathcal{F}$ (under $\mathbb{P}$) if $\mathbb{P}(A \mid B) = \mathbb{P}(A)$. A theoreom that immediately follows from this definition is that $A$ and $B$ are independent under $\mathbb{P}$ if and only if $\mathbb{P}(A, B) = \mathbb{P}(A \mid B)\mathbb{P}(B) = \mathbb{P}(A)\mathbb{P}(B)$.
+Two events $A,B\in\mathcal{F}$ are *independent* under $\mathbb{P}$ if
+
+$$
+\mathbb{P}(A\cap B)=\mathbb{P}(A)\mathbb{P}(B).
+$$
+
+This definition is symmetric and remains meaningful when one event has probability zero. When $\mathbb{P}(B)>0$, it is equivalent to the conditional statement $\mathbb{P}(A\mid B)=\mathbb{P}(A)$. To prove the forward direction, divide the product identity by $\mathbb{P}(B)$. For the reverse direction, multiply the conditional identity by $\mathbb{P}(B)$ and use $\mathbb{P}(A\cap B)=\mathbb{P}(A\mid B)\mathbb{P}(B)$. The same argument with $A$ and $B$ reversed applies when $\mathbb{P}(A)>0$.
+
+For more than two events, **mutual independence** requires the product identity for every subfamily containing at least two events. Checking only the intersection of the entire family is not sufficient, because a triple can satisfy the three-way product identity while one of its pairs is dependent.
 
 ```{python}
 class ProbabilityMeasure(ProbabilityMeasure):
@@ -381,13 +484,30 @@ class ProbabilityMeasure(ProbabilityMeasure):
     """
     self._validate_events(events)
 
-    joint = self(*events)
-    product = reduce(lambda x, y: x * y, [self(e) for e in events])
+    for size in range(2, len(events) + 1):
+      for subfamily in combinations(events, size):
+        joint = self(*subfamily)
+        product = reduce(
+            lambda x, y: x * y,
+            [self(event) for event in subfamily],
+        )
 
-    return joint == product
+        if not isclose(joint, product, rel_tol=1e-9, abs_tol=1e-12):
+          return False
+
+    return True
 ```
 
-In our running example of an event space structured by high and back vowels, assuming all vowels are equiprobable, none of the events are independent. In the discrete event space, many events will be independent.
+In our running example with equiprobable vowels, no distinct pair among the nontrivial feature events $H$, $H^c$, $B$, and $B^c$ is independent. The two complementary pairs have empty intersections despite positive marginals. For the four cross-feature pairs, the relevant calculations are
+
+| pair | joint probability | product of marginals |
+|---|---:|---:|
+| $H,B$ | $2/11=22/121$ | $(4/11)(5/11)=20/121$ |
+| $H,B^c$ | $2/11=22/121$ | $(4/11)(6/11)=24/121$ |
+| $H^c,B$ | $3/11=33/121$ | $(7/11)(5/11)=35/121$ |
+| $H^c,B^c$ | $4/11=44/121$ | $(7/11)(6/11)=42/121$ |
+
+Each row violates the product criterion. This claim is deliberately restricted to those four feature events. The generated $\sigma$-algebra also contains $\emptyset$ and $\Omega$, each of which is independent of every event under the product definition, as well as composite events that require separate checks.
 
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/'}
@@ -402,5 +522,6 @@ measure_highness_backness.are_independent(frozenset(high), frozenset(back))
 ```
 
 
-Note that independence is not the same as *mutual exclusivity*; indeed, mutually exclusive events are *not* independent, since $\mathbb{P}(A \mid B) = \frac{\mathbb{P}(A, B)}{\mathbb{P}(B)} = \frac{0}{\mathbb{P}(B)} = 0$ (or is undefined if $\mathbb{P}(B) = 0$) regardless of $\mathbb{P}(A)$, and therefore either $\mathbb{P}(A \mid B)$ does not equal $\mathbb{P}(A)$ or $\mathbb{P}(B \mid A)$ is undefined (because $\mathbb{P}(A) = 0$), even when $\mathbb{P}(B)$ is.
+Independence is not the same as *mutual exclusivity*. Fix disjoint events $A$ and $B$. Disjointness gives $\mathbb{P}(A\cap B)=\mathbb{P}(\emptyset)=0$. Independence would require this value to equal $\mathbb{P}(A)\mathbb{P}(B)$. If both events have positive probability, their product is positive, so the required equality fails. Thus, two disjoint positive-probability events are dependent.
 
+The positive-probability qualification matters. If $\mathbb{P}(A)=0$, then $\mathbb{P}(A\cap B)=0=\mathbb{P}(A)\mathbb{P}(B)$ for every $B$, and the product definition classifies $A$ and $B$ as independent even when they are disjoint. In the running example, $H$ and its complement both have positive probability, so their mutual exclusivity does imply dependence.

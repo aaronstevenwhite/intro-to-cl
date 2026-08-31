@@ -4,21 +4,38 @@ bibliography: ../../references.bib
 jupyter: python3
 ---
 
-A probability distribution is a compact description of a probability space $\langle \Omega, \mathcal{F}, \mathbb{P} \rangle$ in conjunction with a random variable whose domain is $\Omega$ (relative to $\mathcal{F}$).
+::: {.callout-note}
+The executable cells on this page use Python 3.14 syntax, matching the project configuration. The Quarto kernel is named `python3`; before rendering with execution, configure that kernelspec to point to a Python 3.14 environment.
+:::
+
+So what does the probability distribution of a random variable record? Suppose $X:(\Omega,\mathcal F)\to(A,\mathcal G)$ is a random variable on a probability space $(\Omega,\mathcal F,\mathbb P)$. For any event $E\in\mathcal G$, we collect the outcomes that $X$ maps into $E$ and measure the probability of that collection. The resulting function is the **pushforward measure** $\mathbb P_X$ on $(A,\mathcal G)$:
+
+$$
+\mathbb P_X(E)=\mathbb P(X^{-1}(E))
+\qquad(E\in\mathcal G).
+$$
+
+Thus, the distribution records probabilities of measurable sets of values. It does not retain which particular outcomes in $\Omega$ produced those values.
 
 # Discrete probability distributions
 
-In the case of a discrete random variable $X$ (e.g. our vowel phoneme and string-length examples), we can fully describe its probability distribution using a [probability mass function](https://en.wikipedia.org/wiki/Probability_mass_function) (PMF) $p_X: \text{cod}(X) \rightarrow \mathbb{R}_+$. This function is defined directly in terms of the random variable and the probability function $\mathbb{P}$:
+In the case of a discrete random variable $X$ (e.g. our vowel phoneme and string-length examples), we can fully describe its probability distribution using a [probability mass function](https://en.wikipedia.org/wiki/Probability_mass_function) (PMF) $p_X:A\rightarrow[0,1]$. For each $x$ whose singleton $\{x\}$ belongs to $\mathcal G$, this function is defined by
 
-$$p_X(x) \equiv \mathbb{P}(\{\omega \in \Omega \mid X(\omega) = x\})$$
+$$
+p_X(x)
+\equiv \mathbb P_X(\{x\})
+=\mathbb{P}(\{\omega \in \Omega \mid X(\omega) = x\}).
+$$
+
+Singleton measurability is automatic when $A$ has the discrete $\sigma$-algebra $2^A$, as it does in the finite and countable examples below. Without measurable singletons, the displayed point masses need not be defined.
 
 These definitions are related to a notation that you might be familiar with: $\mathbb{P}(X = x) \equiv p_X(x)$. This notation is often extended to other relations $\mathbb{P}(X \in E) = \mathbb{P}(\{\omega \in \Omega \mid \omega \in X^{-1}(E)\})$ or $\mathbb{P}(X \leq x) \equiv \mathbb{P}(\{\omega: X(\omega) \leq x\})$.
 
-The latter of these is often used in defining the [cumulative distribution function](https://en.wikipedia.org/wiki/Cumulative_distribution_function) (CDF) $F_X: \text{cod}(X) \rightarrow \mathbb{R}_+$:
+For a discrete real-valued random variable, the latter notation defines the [cumulative distribution function](https://en.wikipedia.org/wiki/Cumulative_distribution_function) (CDF) $F_X:\mathbb R\rightarrow[0,1]$, using the usual order on $\mathbb R$:
 
-$$F_X(x) = \mathbb{P}(X \leq x) = \sum_{y \in X(\Omega):y<x} p_X(y)$$
+$$F_X(x) = \mathbb{P}(X \leq x) = \sum_{y \in X(\Omega):y\leq x} p_X(y)$$
 
-The PMF (and by extension the CDF) is *parameterized* in terms of the information necessary to define their outputs for all possible inputs $x \in X(\Omega)$. This parameterization allows us to talk about *families of distributions*, which all share a functional form (modulo the values of the parameters). We'll see a few examples of this below.  
+The PMF and CDF may be *parameterized* in terms of the information necessary to define their outputs. This parameterization allows us to talk about *families of distributions*, which all share a functional form modulo the values of the parameters. We'll see a few examples below.
 
 In `scipy`, discrete distributions are implemented using [`scipy.rv_discrete`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.rv_discrete.html), either by direct instantiation or subclassing.
 
@@ -28,7 +45,7 @@ from scipy.stats import rv_discrete
 
 ## Finite distributions
 
-When there are a finite number of values that the random variables can take, as in the example of $V$ above, the probability of each possibility can simply be listed. One such distribution—or really family of distributions—that we will make extensive use of—indeed, the distribution that our vowel random variable $V$ from above has—is the [categorical distribution](https://en.wikipedia.org/wiki/Categorical_distribution). (It is common to talk about *the* categorical distribution, when we really mean *the family of* categorical distributions.)  This distribution is parameterized by a list of probabilities $\boldsymbol\theta$, where $\theta_i$ gives $p_V(i) = \mathbb{P}(V = i) = \mathbb{P}(\{\omega \in \Omega \mid V(\omega) = i\}) = \theta_i$ and $\sum_{i \in V(\Omega)} \theta_i$.
+When there are a finite number of values that the random variables can take, as in the example of $V$ above, the probability of each possibility can simply be listed. One such distribution—or really family of distributions—that we will make extensive use of—indeed, the distribution that our vowel random variable $V$ from above has—is the [categorical distribution](https://en.wikipedia.org/wiki/Categorical_distribution). (It is common to talk about *the* categorical distribution, when we really mean *the family of* categorical distributions.)  This distribution is parameterized by a list of probabilities $\boldsymbol\theta$, where $\theta_i$ gives $p_V(i) = \mathbb{P}(V = i) = \mathbb{P}(\{\omega \in \Omega \mid V(\omega) = i\}) = \theta_i$ and $\sum_{i \in V(\Omega)} \theta_i=1$.
 
 ```{python}
 import numpy as np
@@ -36,7 +53,7 @@ import numpy as np
 vowels = ('e', 'i', 'o', 'u', 'æ', 'ɑ', 'ɔ', 'ə', 'ɛ', 'ɪ', 'ʊ')
 
 # this theta is totally made up
-idx = np.arange(11)
+idx = np.arange(1, 12)
 theta = (0.05, 0.1, 0.1, 0.05, 0.05, 0.25, 0.15, 0.1, 0.075, 0.025, 0.05)
 categorical = rv_discrete(name='categorical', values=(idx, theta))
 ```
@@ -63,11 +80,10 @@ from scipy.stats import bernoulli
 
 bern = bernoulli(0.25)
 
-# annoyingly, `bernoulli.pmf` seems to be implemented
-# to treat `p` as as the probability of 0
+# scipy uses `p` as the probability of 1
 fig, ax = plt.subplots(1, 1)
-ax.plot([1, 0], categorical.pmf([0, 1]), 'ro', ms=12, mec='r')
-ax.vlines([1, 0], 0, categorical.pmf([0, 1]), colors='r', lw=4)
+ax.plot([1, 0], bern.pmf([1, 0]), 'ro', ms=12, mec='r')
+ax.vlines([1, 0], 0, bern.pmf([1, 0]), colors='r', lw=4)
 plt.show()
 ```
 
@@ -92,7 +108,7 @@ $$X \sim \text{Bern}(\pi)$$
 
 It's sometimes useful to write the PMF for the categorical and Bernoulli distributions as:
 
-$$\text{Cat}(x; \boldsymbol\theta) = \prod_{i \in V(\Omega)} \theta_i^{1_{\{x\}}[i]}$$
+$$\text{Cat}(x; \boldsymbol\theta) = \prod_{i \in X(\Omega)} \theta_i^{1_{\{i\}}[x]}$$
 
 $$\text{Bern}(x; \pi) = \pi^{x}(1-\pi)^{1-x}$$
 
@@ -100,9 +116,7 @@ where
 
 $$1_A[x] = \begin{cases}1 & \text{if } x \in A\\ 0 & \text{otherwise}\\ \end{cases}$$
 
-In an abuse of notation, I will sometimes write:
-
-$$\text{Cat}(x; \boldsymbol\theta) = \prod_{i \in V(\Omega)} \theta_i^{1_{x}[i]}$$
+These product forms use the convention $0^0=1$: an inactive category contributes a multiplicative factor of one even if its parameter is zero. The active category has exponent one and contributes its own probability.
 
 Categorical and Bernoulli distributions won't be the only finite distributions we work with, but they will be the most common.
 
@@ -117,12 +131,25 @@ One example of such a series is a geometric series, such as $\sum_{k=1}^\infty \
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/', height: 265}
 #| outputId: 66ed0e1f-c34e-4fe7-b0b9-639b53625081
-class parameterless_geometric_gen(rv_discrete):
-    "A special case of the geometric distribution without parameters"
-    def _pmf(self, k):
-        return 2.0 ** -(k+1)
+class ParameterlessGeometric(rv_discrete):
+    """A special case of the geometric distribution without parameters."""
 
-parameterless_geometric = parameterless_geometric_gen(name="parameterless_geometric")
+    def _pmf(
+        self,
+        k: int | np.ndarray,
+    ) -> float | np.ndarray:
+        k = np.asarray(k)
+        in_support = (k >= 0) & (k == np.floor(k))
+        return np.where(in_support, 2.0 ** -(k + 1), 0.0)
+
+parameterless_geometric = ParameterlessGeometric(name="parameterless_geometric")
+
+assert parameterless_geometric._pmf(-1) == 0
+assert parameterless_geometric._pmf(0.5) == 0
+assert np.isclose(
+    sum(parameterless_geometric._pmf(j) for j in range(100)),
+    1.0,
+)
 
 k = np.arange(10)
 
@@ -134,7 +161,19 @@ plt.show()
 
 As it stands, this distribution has no parameters, meaning that we have no control over how quickly the probabilities drop off. The geometric distribution provides us this control using a parameter to $\pi \in (0, 1]$:
 
-$$\text{Geom}(x; \pi) = (1-\pi)^k\pi$$
+$$\text{Geom}(k; \pi) = (1-\pi)^k\pi$$
+
+We should verify that this formula defines a PMF on $\mathbb{N}$. Fix an arbitrary $\pi\in(0,1]$ and set $q=1-\pi$. Every term $q^k\pi$ is nonnegative. For $0<\pi<1$, the geometric-series identity gives
+
+$$
+\sum_{k=0}^{\infty}\operatorname{Geom}(k;\pi)
+=\pi\sum_{k=0}^{\infty}q^k
+=\pi\frac{1}{1-q}
+=\pi\frac{1}{\pi}
+=1.
+$$
+
+When $\pi=1$, the term for $k=0$ is $1$ and every later term is $0$, so the same normalization conclusion holds. Thus, the proposed masses are nonnegative and sum to one for every permitted parameter value.
 
 When $\pi = \frac{1}{2}$, we get exactly the distribution above.
 
@@ -179,28 +218,90 @@ plt.show()
 
 At this point, it's useful to pause for a moment to think about what exactly a parameter like $\pi$ is. I said above that random variables and probability distributions together provide a way of classifying probability spaces: in saying that $p_X(k) = (1-\pi)^k\pi$ we are *describing* $\mathbb{P}: \mathcal{F} \rightarrow \mathbb{R}_+$ by using $X$ to abstract across whatever the underlying measurable space $\langle \Omega, \mathcal{F} \rangle$ is. The distribution gives you the form of that description; the parameter $\pi$ gives the content of the description. Because the use of $X$ is always implied, unless it really matters, I'm going to start dropping $X$ from $p_X$ unless I'm emphasizing the random variable in some way.
 
-The $\pi$ parameter of a geometric distribution allows us to describe distributions that have a very particular shape–namely, ones where $\forall k \in \mathbb{N}: p(k) > p(k + 1)$. But this isn't always a good way of describing a particular distribution. For instance, for our string-length variable $L$, it's probably a pretty bad description regardless of what particular distribution on string lengths (type or token) we're describing because 1 grapheme/phoneme words just aren't more frequent than two grapheme/phoneme words. This point can be seen if we look at the distribution of word lengths at the type level in the [CMU Pronouncing Dictionary](http://www.speech.cs.cmu.edu/cgi-bin/cmudict), which contains phonemic transcriptions of English words and which we'll use extensively in Module 2.
+For $0<\pi<1$, the geometric distribution has the particular shape $p(k)>p(k+1)$ for every $k\in\mathbb N$. At $\pi=1$, it is instead a point mass at zero. This shape is probably a poor description of the string-length variable $L$ regardless of whether we count word types or tokens: one-phoneme words are not more frequent than two-phoneme words. We can see the type-level pattern in the [CMU Pronouncing Dictionary](http://www.speech.cs.cmu.edu/cgi-bin/cmudict), which contains phonemic transcriptions of English words and which we'll use extensively in Module 2.
 
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/', height: 265}
 #| outputId: c3a41fd7-2c21-4684-bbf4-84964b8c90a5
-from urllib.request import urlopen
+from pathlib import Path
+from urllib.request import urlretrieve
 
-cmudict_url = "http://svn.code.sf.net/p/cmusphinx/code/trunk/cmudict/cmudict-0.7b"
+cmudict_path = Path("cmudict-0.7b")
+cmudict_url = "https://raw.githubusercontent.com/Alexir/CMUdict/master/cmudict-0.7b"
 
-with urlopen(cmudict_url) as cmudict:
-  words = [
-      line.split()[1:] for line in cmudict if line[0] != 59
-  ]
+if not cmudict_path.exists():
+    urlretrieve(cmudict_url, cmudict_path)
+
+with cmudict_path.open(encoding="ISO-8859-1") as cmudict:
+    words: list[list[str]] = [
+        line.split()[1:]
+        for line in cmudict
+        if not line.startswith(";;;")
+    ]
 
 _ = plt.hist([len(w) for w in words], bins=32)
 ```
 
-One such distribution that give us more flexibility in this respect is the [negative binomial distribution](https://en.wikipedia.org/wiki/Negative_binomial_distribution), which is a very useful for [modeling token frequency in text](https://doi.org/10.1017/S1351324900000139) [@church_poisson_1995]. This distribution effectively generalizes the geometric by allowing us to control the exponent on $\pi$ with a new parameter $r$.
+One distribution that gives us more flexibility in this respect is the [negative binomial distribution](https://en.wikipedia.org/wiki/Negative_binomial_distribution), which is useful for [modeling token frequency in text](https://doi.org/10.1017/S1351324900000139) [@church_poisson_1995]. This distribution generalizes the geometric by adding a positive shape parameter $r$.
 
-$$\text{NegBin}(k; \pi, r) = {k+r-1 \choose r-1}(1-\pi)^{k}\pi^{r}$$
+$$\text{NegBin}(k; \pi, r) = {k+r-1 \choose k}(1-\pi)^{k}\pi^{r}$$
 
-This added flexibility in turn requires us to add an additional term ${k+r-1 \choose r-1} = \frac{(k+r-1)!}{(r-1)!\,(k)!}$ that ensures that the series $\sum_{k=0}^\infty \text{NegBin}(k; \pi, r)$ converges to $1$. The pieces of this term that do not include the value we're computing the probability of–i.e. $\frac{1}{(r-1)!}$–are often called the *normalizing constant*. We will make extensive use of this concept as the course moves forward.
+When $r$ is a positive integer, this PMF describes the number $k$ of failures before the $r^{\text{th}}$ success. The final trial must be a success. Among the preceding $k+r-1$ trials, we choose the positions of the $k$ failures, which gives ${k+r-1\choose k}$. Equivalently, we may choose the other $r-1$ successes. Thus, the coefficient is a $k$-dependent count, not an arbitrary constant.
+
+But why do these masses sum to one? To see this, we need the **negative-binomial series** used to normalize the PMF. The case $r=1$ is the geometric identity
+
+$$
+(1-z)^{-1}=\sum_{k=0}^{\infty}z^k,
+\qquad |z|<1.
+$$
+
+This power series has radius of convergence $1$. The power-series differentiation theorem permits termwise differentiation at every $|z|<1$, and the differentiated series retains that radius. One derivative gives the $r=2$ case:
+
+$$
+(1-z)^{-2}
+=\sum_{k=1}^{\infty}kz^{k-1}
+=\sum_{k=0}^{\infty}(k+1)z^k
+=\sum_{k=0}^{\infty}{k+1\choose1}z^k.
+$$
+
+Differentiating once more and dividing by $2$ gives the $r=3$ case:
+
+$$
+(1-z)^{-3}
+=\sum_{k=0}^{\infty}\frac{(k+2)(k+1)}{2}z^k
+=\sum_{k=0}^{\infty}{k+2\choose2}z^k.
+$$
+
+Repeating this step, or proving it by induction on $r$, yields
+
+$$
+(1-z)^{-r}
+=\sum_{k=0}^{\infty}{k+r-1\choose r-1}z^k,
+\qquad |z|<1.
+$$
+
+The combinatorial derivation assumes integer $r$, but the fitted model below may return a real-valued shape. For any real $r>0$, define the generalized coefficient by
+
+$$
+{k+r-1\choose k}
+=\frac{\Gamma(k+r)}{\Gamma(r)\Gamma(k+1)}.
+$$
+
+The generalized binomial theorem gives the same series $(1-z)^{-r}$ with this coefficient for $|z|<1$. This Gamma-function interpretation is the one used when `scipy.stats.nbinom` receives a positive real shape parameter. The trial-count interpretation remains available when $r$ is a positive integer.
+
+Now fix any real $r>0$ and $\pi\in(0,1]$, and set $q=1-\pi$. For $0<\pi<1$, substituting $q$ for $z$ gives
+
+$$
+\begin{aligned}
+\sum_{k=0}^{\infty}\operatorname{NegBin}(k;\pi,r)
+  &=\pi^r\sum_{k=0}^{\infty}{k+r-1\choose k}q^k\\
+  &=\pi^r(1-q)^{-r}\\
+  &=\pi^r\pi^{-r}\\
+  &=1.
+\end{aligned}
+$$
+
+At $\pi=1$, only the $k=0$ term has positive mass, and that term equals $1$. Thus, the PMF is normalized for the entire parameter range. In terms of unnormalized weights ${k+r-1\choose k}q^k$, the factor $\pi^r$ is the normalizing factor; the $k$-dependent binomial coefficient is part of each weight.
 
 When $r = 1$, we of course just get the geometric distribution. As such, if we keep $r = 1$, manipulating $\pi$ will have the same effect we saw above.
 
@@ -213,8 +314,8 @@ p = 0.5
 r = 1
 
 fig, ax = plt.subplots(1, 1)
-ax.plot(k, nbinom(r, p).pmf(k+1), 'ro', ms=12, mec='r')
-ax.vlines(k, 0, nbinom(r, p).pmf(k+1), colors='r', lw=4)
+ax.plot(k, nbinom(r, p).pmf(k), 'ro', ms=12, mec='r')
+ax.vlines(k, 0, nbinom(r, p).pmf(k), colors='r', lw=4)
 plt.show()
 ```
 
@@ -227,8 +328,8 @@ p = 0.5
 r = 5
 
 fig, ax = plt.subplots(1, 1)
-ax.plot(k, nbinom(r, p).pmf(k+1), 'ro', ms=12, mec='r')
-ax.vlines(k, 0, nbinom(r, p).pmf(k+1), colors='r', lw=4)
+ax.plot(k, nbinom(r, p).pmf(k), 'ro', ms=12, mec='r')
+ax.vlines(k, 0, nbinom(r, p).pmf(k), colors='r', lw=4)
 plt.show()
 ```
 
@@ -241,8 +342,8 @@ p = 0.1
 r = 5
 
 fig, ax = plt.subplots(1, 1)
-ax.plot(k, nbinom(r, p).pmf(k+1), 'ro', ms=12, mec='r')
-ax.vlines(k, 0, nbinom(r, p).pmf(k+1), colors='r', lw=4)
+ax.plot(k, nbinom(r, p).pmf(k), 'ro', ms=12, mec='r')
+ax.vlines(k, 0, nbinom(r, p).pmf(k), colors='r', lw=4)
 plt.show()
 ```
 
@@ -255,8 +356,8 @@ p = 0.9
 r = 5
 
 fig, ax = plt.subplots(1, 1)
-ax.plot(k, nbinom(r, p).pmf(k+1), 'ro', ms=12, mec='r')
-ax.vlines(k, 0, nbinom(r, p).pmf(k+1), colors='r', lw=4)
+ax.plot(k, nbinom(r, p).pmf(k), 'ro', ms=12, mec='r')
+ax.vlines(k, 0, nbinom(r, p).pmf(k), colors='r', lw=4)
 plt.show()
 ```
 
@@ -267,12 +368,30 @@ p = 0.9
 r = 40
 
 fig, ax = plt.subplots(1, 1)
-ax.plot(k, nbinom(r, p).pmf(k+1), 'ro', ms=12, mec='r')
-ax.vlines(k, 0, nbinom(r, p).pmf(k+1), colors='r', lw=4)
+ax.plot(k, nbinom(r, p).pmf(k), 'ro', ms=12, mec='r')
+ax.vlines(k, 0, nbinom(r, p).pmf(k), colors='r', lw=4)
 plt.show()
 ```
 
-We won't talk about how to fit a distribution to some data until later, when we talk about parameter estimation; but the negative binomial distribution can provide a reasonably good description of the [empirical distribution](https://en.wikipedia.org/wiki/Empirical_distribution_function) of word lengths. One way to visualize this is to compare the empirical CDF with the CDF of the best fitting negative binomial.
+We won't talk about how to fit a distribution to some data until later, when we talk about parameter estimation; but the negative binomial distribution can provide a reasonably good description of the [empirical distribution](https://en.wikipedia.org/wiki/Empirical_distribution_function) of word lengths. One way to visualize this is to compare the empirical CDF with the CDF of the fitted negative binomial.
+
+The fitting and plotting libraries use different parameterizations. The default *statsmodels* negative-binomial model is NB2, whose intercept-only mean and variance are
+
+$$
+\mu=\exp(\beta_0),
+\qquad
+\mathbb V[X]=\mu+\alpha\mu^2.
+$$
+
+For the SciPy parameterization $\operatorname{NegBin}(r,p)$, which counts failures before $r$ successes,
+
+$$
+\mathbb E[X]=\frac{r(1-p)}p,
+\qquad
+\mathbb V[X]=\frac{r(1-p)}{p^2}.
+$$
+
+Set $r=1/\alpha$ and solve the mean equation for $p$, obtaining $p=1/(1+\alpha\mu)$. Substitution into the SciPy variance gives $\mu+\alpha\mu^2$, so this conversion matches both NB2 moments.
 
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/', height: 404}
@@ -281,10 +400,20 @@ from statsmodels.distributions.empirical_distribution import ECDF
 from statsmodels.discrete.discrete_model import NegativeBinomial
 
 ecdf = ECDF([len(w) for w in words])
-negbin_fit = NegativeBinomial([len(w) for w in words], np.ones(len(words))).fit()
+negbin_fit = NegativeBinomial(
+    [len(w) for w in words],
+    np.ones(len(words)),
+).fit(disp=False)
 
-p = 1/np.exp(1+negbin_fit.params[0]*negbin_fit.params[1])
-r = np.exp(negbin_fit.params[0])*p/(1-p)
+beta0 = negbin_fit.params[0]
+alpha = negbin_fit.params[-1]
+mu = np.exp(beta0)
+r = 1 / alpha
+p = 1 / (1 + alpha * mu)
+
+assert alpha > 0
+assert np.isclose(nbinom.mean(r, p), mu)
+assert np.isclose(nbinom.var(r, p), mu + alpha * mu**2)
 
 print(f"p = {np.round(p, 2)}, r = {np.round(r, 2)}")
 
@@ -300,12 +429,71 @@ A [limiting case](https://en.wikipedia.org/wiki/Negative_binomial_distribution#P
 
 $$\text{Pois}(k; \lambda) = \frac{\lambda^k\exp(-\lambda)}{k!}$$
 
-The Poisson distribution arises as $\text{Pois}(k; \lambda) = \lim_{r \rightarrow \infty} \text{NegBin}
-\left(k; r, \frac{\lambda}{r + \lambda}\right)$.
+Why is the Poisson distribution a limiting case of this parameterization? Fix $k$ and $\lambda>0$, and set
+
+$$
+\pi_r=\frac{r}{r+\lambda}
+\qquad\text{and}\qquad
+1-\pi_r=\frac{\lambda}{r+\lambda}.
+$$
+
+We need to show that $\lim_{r\to\infty}\operatorname{NegBin}(k;\pi_r,r)=\operatorname{Pois}(k;\lambda)$. Begin by expanding two factors in the negative-binomial mass.
+
+For integer $k\geq0$ and real $r>0$, the Gamma recurrence gives
+
+$$
+{k+r-1\choose k}
+=\frac{\Gamma(r+k)}{\Gamma(r)\Gamma(k+1)}
+=\frac{1}{k!}\prod_{j=0}^{k-1}(r+j)
+=\frac{r^k}{k!}\prod_{j=0}^{k-1}\left(1+\frac{j}{r}\right).
+$$
+
+For $k=0$, the product is empty and has value $1$. Also,
+
+$$
+\left(\frac{\lambda}{r+\lambda}\right)^k
+=\frac{\lambda^k}{r^k}
+ \left(1+\frac{\lambda}{r}\right)^{-k}.
+$$
+
+Substituting these two identities gives
+
+$$
+\begin{aligned}
+\operatorname{NegBin}(k;\pi_r,r)
+&={k+r-1\choose k}
+  \left(\frac{\lambda}{r+\lambda}\right)^k
+  \left(\frac{r}{r+\lambda}\right)^r\\
+&=\frac{\lambda^k}{k!}
+  \left[\prod_{j=0}^{k-1}\left(1+\frac{j}{r}\right)\right]
+  \left(1+\frac{\lambda}{r}\right)^{-k}
+  \left(1+\frac{\lambda}{r}\right)^{-r}.
+\end{aligned}
+$$
+
+We now take the limits factor by factor. The value of $k$ is fixed, so the finite product contains exactly $k$ factors. Each factor $1+j/r$ tends to $1$; hence their product tends to $1$. The factor $(1+\lambda/r)^{-k}$ also tends to $1$.
+
+For the remaining factor, take logarithms:
+
+$$
+\log\left[\left(1+\frac{\lambda}{r}\right)^{-r}\right]
+=-r\log\left(1+\frac{\lambda}{r}\right)
+=-\lambda
+  \frac{\log(1+\lambda/r)}{\lambda/r}.
+$$
+
+The ratio $\log(1+x)/x$ tends to $1$ as $x\to0$, so the displayed logarithm tends to $-\lambda$. Continuity of the exponential function then gives $(1+\lambda/r)^{-r}\to e^{-\lambda}$. Combining these limits with the constant factor $\lambda^k/k!$ yields
+
+$$
+\lim_{r\to\infty}\operatorname{NegBin}(k;\pi_r,r)
+=\frac{\lambda^ke^{-\lambda}}{k!}
+=\operatorname{Pois}(k;\lambda).
+$$
+
+The pointwise limit also fixes which negative-binomial parameter must approach $1$: under the convention used here, $\pi_r=r/(r+\lambda)$.
 
 # Continuous probability distributions
 
-Continuous random variables—those whose range is uncountable, like formant values—require a different tool: a [probability density function](https://en.wikipedia.org/wiki/Probability_density_function) (PDF) rather than a PMF. The key difference is that a PDF does not give you the probability of a particular value (which is always zero for a continuous random variable); rather, the probability that the variable falls in some interval is the integral of the PDF over that interval. Common continuous distributions include the [uniform](https://en.wikipedia.org/wiki/Continuous_uniform_distribution), [beta](https://en.wikipedia.org/wiki/Beta_distribution), and [Gaussian (normal)](https://en.wikipedia.org/wiki/Normal_distribution) distributions.
+The absolutely continuous random variables used for measurements such as formant values require a different tool: a [probability density function](https://en.wikipedia.org/wiki/Probability_density_function) (PDF) rather than a PMF. For an absolutely continuous distribution, the PDF does not give the probability of a particular value, which is zero; the probability that the variable falls in an interval is the integral of the PDF over that interval. Common continuous distributions include the [uniform](https://en.wikipedia.org/wiki/Continuous_uniform_distribution), [beta](https://en.wikipedia.org/wiki/Beta_distribution), and [Gaussian (normal)](https://en.wikipedia.org/wiki/Normal_distribution) distributions.
 
 Since the language models we'll work with in this course operate over discrete symbol sequences, we won't need continuous distributions here. But they will come up later—for instance, when we discuss parameter estimation—and the Wikipedia articles linked above are a good starting point if you want to read ahead.
-

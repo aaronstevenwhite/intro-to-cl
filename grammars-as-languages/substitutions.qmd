@@ -9,12 +9,12 @@ So far, we've used regular expressions to *recognize* and *extract from* strings
 #| code-fold: true
 #| code-summary: Load IPA representation of CMU Pronouncing Dictionary
 
-with open("cmudict-ipa") as f:
-    entries: list[tuple[str, str]] = [
-        l.strip().split(",") for l in f
+with open("cmudict-ipa", encoding="utf-8") as f:
+    entry_rows: list[list[str]] = [
+        line.strip().split(",", maxsplit=1) for line in f
     ]
     entries: dict[str, list[str]] = {
-        w: ipa.split() for w, ipa in entries
+        word: ipa.split() for word, ipa in entry_rows
     }
 ```
 
@@ -41,7 +41,7 @@ for w in test_words:
             print(f"{joined:20s} → (no /t/ restored)    ({w})")
 ```
 
-The backreference `\1` preserves whatever the stem was, and `\2` preserves the suffix /ʃən/. Words like *accreditation* (where the suffix is /eɪʃən/) and *fashion* (where /ʃən/ isn't a suffix at all) are left alone.
+The backreference `\1` preserves whatever precedes /ʃən/, and `\2` preserves /ʃən/. The negative lookbehind leaves *accreditation* alone because its suffix is /eɪʃən/. But the pattern has no access to morphological structure, so it overapplies to monomorphemic words such as *fashion* and *passion* that merely end in the same phone sequence.
 
 ## Going forward: verb → noun
 
@@ -70,7 +70,7 @@ for w, ipa in entries.items():
         break
 ```
 
-The substitution `re.sub(r'(.+)t$', r'\1ʃən', stem)` is doing exactly what the morphophonological rule says: it captures everything before the final /t/, drops the /t/, and appends /ʃən/. And because we check whether the predicted noun form actually exists in the CMU dictionary, we're verifying that the rule is producing real words.
+The substitution `re.sub(r'(.+)t$', r'\1ʃən', stem)` is doing exactly what the morphophonological rule says: it captures everything before the final /t/, drops the /t/, and appends /ʃən/. And because we check whether the predicted noun form actually exists in the CMU dictionary, we're verifying that the rule produces an attested pronunciation. This check alone does not establish that the matched noun is morphologically related to the verb; homophones can create false positives.
 
 ## Substitution with functions
 
@@ -81,12 +81,12 @@ We noted in the previous section that some verbs form their /-tion/ noun with /e
 ```{python}
 consonants = 'bcdfghjklmnŋpɹstvwzðθʃʒ'
 
-def nominalize(m: re.Match) -> str:
+def nominalize(m: re.Match[str]) -> str:
     """Derive a -tion noun from a verb stem.
 
     Parameters
     ----------
-    m : re.Match
+    m : re.Match[str]
         The match object from the verb pattern.
 
     Returns
@@ -97,8 +97,10 @@ def nominalize(m: re.Match) -> str:
     stem = m.group(1)
     final_cluster = m.group(2)
 
+    retained_cluster = final_cluster[:-1]
+
     if len(final_cluster) > 1:
-        return stem + 'eɪʃən'
+        return stem + retained_cluster + 'eɪʃən'
     else:
         return stem + 'ʃən'
 
@@ -136,7 +138,7 @@ $$\text{t} \rightarrow \emptyset / C\_\#$$
 
 where $C$ is any consonant and $\#$ is a word boundary. In `re.sub` terms, this is `re.sub(r'([consonants])t$', r'\1', string)`.
 
-As we'll see in the [phonological patterns module](../phonological-patterns/phonological-rules-as-fsas/finite-state-transducers.qmd), every SPE-style rule of this form can be compiled into a *finite state transducer*—a machine that reads an input string and produces an output string. The pattern in `re.sub` defines when the rule applies; the replacement defines what it does. When both the pattern and the replacement are regular, the resulting transformation is a *regular relation*—exactly the class of relations computable by finite state transducers. We'll formalize this connection when we get to transducers, but I want to flag it now because `re.sub` is where most people first encounter this idea, even if they don't realize it at the time.
+As we'll see in the [phonological patterns module](../phonological-patterns/phonological-rules-as-fsas/finite-state-transducers.qmd), rewrite rules with regular targets and contexts can be compiled into *finite-state transducers* under the application modes developed there. The pattern in `re.sub` defines when the rule applies; the replacement defines what it does. The particular substitutions on this page copy a matched stem and add or remove a fixed string, so they can be represented by regular relations. Python's full regular-expression and replacement syntax also includes backreferences and other features that fall outside this finite-state result.
 
 ## `re.subn`
 

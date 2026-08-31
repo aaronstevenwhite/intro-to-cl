@@ -11,9 +11,9 @@ That is, every event $E$ in the codomain space $\mathcal{G} \subseteq 2^A$ must 
 
 I'm using $\langle \Omega, \mathcal{F} \rangle$ for the domain space to signal that the domain of a random variable is always the sample and event space of some probability space, which means that there will always be some probability space $\langle \Omega, \mathcal{F}, \mathbb{P} \rangle$ implicit in a random variable $X$.
 
-For our purposes, the codomain $A$ of $X$ will almost always be the real numbers $\mathbb{R}$ and $\mathcal{G}$ will be almost always be the [Borel $\sigma$-algebra](https://en.wikipedia.org/wiki/Borel_set) on $\mathbb{R}$. As I mentioned above, knowing the fine details of what a Borel $\sigma$-algebra is is not going to be necessary: all you really need to know is that it's got every real interval, so $E \in \mathcal{G}$ will always be an interval (and crucially, not just a single real number).
+For our purposes, the codomain $A$ of $X$ will often be the real numbers $\mathbb{R}$ and $\mathcal{G}$ will often be the [Borel $\sigma$-algebra](https://en.wikipedia.org/wiki/Borel_set) on $\mathbb{R}$. We will not need its full construction. We will use the fact that it contains every open or closed interval and is closed under complements and countable unions. Its events are not limited to intervals; singleton sets and countable sets are Borel as well.
 
-To ground this out, we can consider our running example of English vowels again, where $\Omega = \{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\}$. So $X(\omega)$, where $\omega$ is some vowel, will be a real number. It's important to note that $X$ is being applied to directly to a vowel (rather than a set of vowels in the event space) and resulting in a single real number (rather than an interval in the Borel $\sigma$-algebra on the reals). I'm pointing this out because of the way we defined a random variable: in terms of the pre-image $X^{-1}(E)$ of $E$ under $X$ (relativized to $\sigma$-algebras $\mathcal{F}$ and $\mathcal{G}$). $X^{-1}(E)$ is a pre-image, not the value of an inverse, which will be important when we discuss discrete v. continuous random variables.  
+To ground this out, we can consider our running example of English vowels again, where $\Omega = \{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\}$. So $X(\omega)$, where $\omega$ is some vowel, will be a real number. The function applies to a vowel, not to an event, and returns a number, not a Borel set. Measurability is stated using $X^{-1}(E)$ because a codomain event $E$ determines the domain event containing exactly the outcomes that $X$ maps into $E$. This is a preimage; it does not require $X$ to have an inverse function.
 
 One possible (arbitrarily ordered) random variable is:
 
@@ -27,16 +27,29 @@ An important distinction among random variables is whether they are *discrete* o
 
 ## Discrete random variables
 
-A discrete random variable is one whose range $X(\Omega)$—i.e. the image of its domain—is countable. The random variable given above is thus countable, since $V(\Omega) = \{1, ..., 11\}$ is finite and therefore countable.
+A discrete random variable is one whose range $X(\Omega)$—i.e. the image of its domain—is countable. The random variable given above is thus countable, since $V(\Omega) = \{1, ..., 11\}$ is finite and hence countable.
 
 A discrete random variable need not be finite. For instance, sample spaces consisting of all strings $\Sigma^*$ of phonemes $\Sigma$ in a language are not finite. In this case, we might be concerned with modeling the length of a string, and so we we might define a random variable $L: \Sigma^* \rightarrow \mathbb{R}$ that maps a string $\omega$ to its length $L(\omega)$. Unlike $V$, $L$ has an infinite but countable range (assuming lengths are isomorphic with the natural numbers); and unlike $V$, $L$ is not [injective](https://en.wikipedia.org/wiki/Injective_function): if $L(\omega_1) = L(\omega_2)$, it is *not* guaranteed that $\omega_1 = \omega_2$, since many strings share a length with other strings.
 
+The event spaces still matter. The length map is a random variable only if $L^{-1}(E)\in\mathcal F$ for every measurable codomain event $E$. With $2^{\Sigma^*}$ on the domain and the discrete $\sigma$-algebra $2^{\mathbb N}$ on the range, this condition holds automatically. More generally, because $\mathbb N$ is countable, it is enough that every fiber $L^{-1}(\{k\})$ belongs to $\mathcal F$: the preimage of any $E\subseteq\mathbb N$ is then the countable union $\bigcup_{k\in E}L^{-1}(\{k\})$.
+
 ## Continuous random variables
 
-A continuous random variable is a random variable whose range is uncountable. An example of a continuous random variables is one where $\Omega$ is the set of all pairs of first and second formant values. As I said above, I'll briefly review what a formant is in a few weeks; but in this case, we'll assume that $\Omega$ is just all pairs of possitive real numbers $\mathbb{R}_+^2$.
+A countable range is sufficient for a random variable to be discrete. The corresponding definition on the continuous side concerns the induced probability distribution, not merely the size of the function's range. A real-valued random variable is *absolutely continuous* when its distribution can be represented by a probability density with respect to Lebesgue measure. An uncountable range alone does not establish this property, because the underlying probability measure might still concentrate all of its mass on countably many values.
 
-(The event space for $\Omega = \mathbb{R}_+^2$ is analogous to the Borel $\sigma$-algebra for $\mathbb{R}$. Basically, it contains all pairs of real intervals. The technical details aren't really going to be important for our purposes beyond knowing that $\mathbb{R}_+^2$ is going to act like $\mathbb{R}$ in the ways we care about.)
+Consider a pair of formant measurements. Let both the domain and codomain measurable spaces be $\langle\mathbb{R}_+^2,\mathcal{B}(\mathbb{R}_+^2)\rangle$, where $\mathcal{B}(\mathbb{R}_+^2)$ is the Borel $\sigma$-algebra restricted to pairs of positive reals. Define $F:\mathbb{R}_+^2\rightarrow\mathbb{R}_+^2$ by $F(\mathbf{x})=\mathbf{x}$. We first verify measurability. Fix an arbitrary Borel event $E\in\mathcal{B}(\mathbb{R}_+^2)$. Because $F$ is the identity,
 
-If we assume that the random variable $F: \mathbb{R}_+^2 \rightarrow \mathbb{R}^2$ is the identity function $F(\mathbf{x}) = \mathbf{x}$, we get that $F$ is a continuous random variable, since $\mathbb{R}$ is uncountable and $F^{-1}(E) = E \in \mathcal{F}$.
+$$
+F^{-1}(E)
+=\{\mathbf{x}\in\mathbb{R}_+^2\mid F(\mathbf{x})\in E\}
+=\{\mathbf{x}\in\mathbb{R}_+^2\mid\mathbf{x}\in E\}
+=E.
+$$
+
+The last set belongs to the domain $\sigma$-algebra by the choice of $E$. Since $E$ was arbitrary, every codomain event has a measurable preimage, and $F$ is a random variable.
+
+We thus have measurability, but not yet absolute continuity. For that conclusion, we must also specify a probability measure on the domain that has a density with respect to two-dimensional Lebesgue measure. Under that additional assumption, the distribution induced by the identity map has the same density and is absolutely continuous.
+
+Discrete and absolutely continuous distributions do not exhaust the possibilities. A real-valued distribution may be **singular continuous**, as in the Cantor distribution: it has no point masses but is concentrated on a set of Lebesgue measure zero, so it has no Lebesgue density. A distribution may also mix discrete, absolutely continuous, and singular-continuous components. Thus, the contrast below is a contrast between the two cases used most often in these notes, not a complete classification.
 
 Continuous random variables won't be our focus going forward. The language models we'll work with in this course operate over sequences of discrete symbols—phones, words—and so the random variables we'll need will be discrete. I also want to note that, while all the examples here have used $\mathbb{R}$ (or $\mathbb{R}^2$) as the codomain, a random variable's codomain can be any measurable space. We'll make use of this fact when we define random variables whose codomain is a finite alphabet $\Sigma$ rather than $\mathbb{R}$.

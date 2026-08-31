@@ -1,681 +1,223 @@
 ---
-title: Probabilistic Context-Free Grammars for Morphological Analysis
+title: Probabilistic context-free grammars
 bibliography: ../references.bib
+jupyter: python3
+execute:
+  eval: false
 ---
 
-## Introduction to Probabilistic Context-Free Grammars
+::: {.callout-tip}
+## Reading
 
-So far, we've explored context-free grammars (CFGs) as powerful tools for modeling hierarchical structures in language. In this section, we'll extend our framework to [*probabilistic* context-free grammars](https://en.wikipedia.org/wiki/Probabilistic_context-free_grammar) (PCFGs), which augment CFGs with probabilities associated with each rule [@baker_trainable_1979]. This probabilistic extension allows us to:
+@jurafsky_speech_2023[Ch. 18] on probabilistic context-free grammars and the inside algorithm.
+:::
 
-1. Model the likelihood of different grammatical structures
-2. Disambiguate between multiple possible analyses
-3. Learn grammars from data in an unsupervised or semi-supervised manner
-4. Quantify the well-formedness of novel word formations
+A context-free grammar determines which trees are possible. But how can it rank two possible trees, or two words with different sets of trees? A **probabilistic context-free grammar** (PCFG) additionally specifies how probability mass is divided among the rules with the same left side.
 
-PCFGs are particularly useful for morphological analysis, where we often want to determine not just whether a word can be derived according to a grammar, but also how likely that derivation is compared to alternatives.
+## Rule, tree, and string probabilities
 
-## Formal Definition of PCFGs
-
-A probabilistic context-free grammar is a 5-tuple $G = (V, \Sigma, R, S, P)$ where:
-
-1. $V$ is a finite set of variables (non-terminals)
-2. $\Sigma$ is a finite set of terminals (the alphabet)
-3. $R$ is a finite set of rules of the form $A \rightarrow \alpha$ where $A \in V$ and $\alpha \in (V \cup \Sigma)^*$
-4. $S \in V$ is the start variable
-5. $P$ is a probability function that assigns a probability $P(A \rightarrow \alpha)$ to each rule, such that for each $A \in V$:
-   $$\sum_{\alpha : (A \rightarrow \alpha) \in R} P(A \rightarrow \alpha) = 1$$
-
-In other words, the probabilities of all rules with the same left-hand side must sum to 1, forming a conditional probability distribution $P(\alpha | A)$.
-
-### The Probabilistic Rule Class
-
-Let's extend our existing `Rule` class to incorporate probabilities. For computational convenience, we'll work with log probabilities rather than raw probabilities:
-
-```python
-class ProbabilisticRule(Rule):
-    """A probabilistic context-free grammar rule.
-
-    Parameters
-    ----------
-    left_side : str
-        The left-hand side variable.
-    *right_side : str
-        The right-hand side sequence of variables and terminals.
-    logprob : float | None, default None
-        The log probability of the rule.
-
-    Attributes
-    ----------
-    left_side : str
-        The left-hand side variable.
-    right_side : tuple[str, ...]
-        The right-hand side symbols.
-    logprob : float | None
-        The log probability of the rule.
-    """
-
-    def __init__(self, left_side: str, *right_side: str, logprob: float | None = None):
-        super().__init__(left_side, *right_side)
-        self._logprob = logprob
-
-    def __repr__(self) -> str:
-        """Return a string representation including the log probability."""
-        rule = self._left_side + ' -> ' + ' '.join(self._right_side)
-
-        if self._logprob is None:
-            return rule
-        else:
-            return rule + ' [' + f"{self._logprob:.4f}" + ']'
-
-    @property
-    def logprob(self) -> float | None:
-        """The log probability of the rule."""
-        return self._logprob
-
-    @logprob.setter
-    def logprob(self, value: float) -> None:
-        self._logprob = value
-```
-
-### The Probabilistic Context-Free Grammar Class
-
-Now, let's define our `ProbabilisticContextFreeGrammar` class, extending the basic `ContextFreeGrammar`:
-
-```python
-import numpy as np
-from scipy.special import logsumexp
-
-class ProbabilisticContextFreeGrammar:
-    """A probabilistic context-free grammar in Chomsky Normal Form.
-
-    Parameters
-    ----------
-    alphabet : set[str]
-        The set of terminal symbols.
-    variables : set[str]
-        The set of non-terminal symbols.
-    rules : set[ProbabilisticRule]
-        The set of production rules with associated probabilities.
-    start_variable : str
-        The start symbol of the grammar.
-
-    Attributes
-    ----------
-    alphabet : set[str]
-        The set of terminal symbols.
-    variables : set[str]
-        The set of non-terminal symbols.
-    rules : set[ProbabilisticRule]
-        The production rules.
-    start_variable : str
-        The start symbol.
-    """
-
-    def __init__(self, alphabet: set[str], variables: set[str],
-                 rules: set[ProbabilisticRule], start_variable: str):
-        self._alphabet = alphabet
-        self._variables = variables
-        self._rules = rules
-        self._start_variable = start_variable
-
-        self._validate_variables()
-        self._validate_rules()
-
-        self._parser = CKYParser(self)
-
-    def __call__(self, string: list[str] | str, mode: str = "recognize"):
-        """Parse or recognize a string.
-
-        Parameters
-        ----------
-        string : list[str] | str
-            The input to process.
-        mode : str, default "recognize"
-            Either "recognize" or "parse".
-
-        Returns
-        -------
-        float | list[tuple]
-            Log probability (recognize) or list of parse trees (parse).
-        """
-        return self._parser(string, mode)
-
-    def _validate_variables(self) -> None:
-        """Check that alphabet and variables are disjoint and start variable is valid."""
-        if self._alphabet & self._variables:
-            raise ValueError('alphabet and variables must not share elements')
-
-        if self._start_variable not in self._variables:
-            raise ValueError('start variable must be in set of variables')
-
-    def _validate_rules(self) -> None:
-        """Validate rule well-formedness and probability distributions."""
-        for r in self._rules:
-            r.validate(self._alphabet, self._variables)
-
-        # Group log probabilities by left-hand side
-        log_probs: dict[str, list[float]] = {}
-        for r in self._rules:
-            if r.left_side not in log_probs:
-                log_probs[r.left_side] = []
-            log_probs[r.left_side].append(r.logprob)
-
-        # Each nonterminal's rule probabilities must sum to 1
-        for nt, lps in log_probs.items():
-            sum_prob = np.exp(logsumexp(lps))
-            if not np.isclose(sum_prob, 1.0, rtol=1e-5):
-                raise ValueError(f'Rules for {nt} sum to {sum_prob}, not 1.0')
-
-    @property
-    def alphabet(self) -> set[str]:
-        """The set of terminal symbols."""
-        return self._alphabet
-
-    @property
-    def variables(self) -> set[str]:
-        """The set of non-terminal symbols."""
-        return self._variables
-
-    @property
-    def rules(self) -> set[ProbabilisticRule]:
-        """The production rules."""
-        return self._rules
-
-    @property
-    def start_variable(self) -> str:
-        """The start symbol."""
-        return self._start_variable
-
-    def reduce(self, *right_side: str) -> set[tuple[str, float]]:
-        """Find nonterminals that rewrite as the given right side, with log probabilities.
-
-        Parameters
-        ----------
-        *right_side : str
-            The right-hand side symbols to match.
-
-        Returns
-        -------
-        set[tuple[str, float]]
-            Pairs of (nonterminal, log probability).
-        """
-        return {(r.left_side, r.logprob) for r in self._rules
-                if r.right_side == tuple(right_side)}
-```
-
-## The Inside Algorithm for Computing String Probabilities
-
-In a PCFG, each parse tree has a probability, which is the product of the probabilities of all rules used in the derivation. The probability of a string in the language is the sum of the probabilities of all possible parse trees for that string.
-
-To compute this efficiently, we use the [inside algorithm](https://en.wikipedia.org/wiki/Inside%E2%80%93outside_algorithm) [@baker_trainable_1979; @lari_estimation_1990], which is a dynamic programming algorithm similar to the CKY algorithm. The inside algorithm computes what are called "inside probabilities" $\alpha_{i,j}(A)$, which represent the probability that non-terminal $A$ derives the substring $w_i...w_{j-1}$.
-
-For a grammar in Chomsky Normal Form, the inside probabilities are defined recursively:
+Let $p(A\rightarrow\alpha)$ be the probability of a rule. For every $A\in V$,
 
 $$
-\alpha_{i,j}(A) = \begin{cases}
-P(A \rightarrow w_i) & \text{if } j = i + 1 \\
-\sum_{k=i+1}^{j-1} \sum_{B,C \in V} P(A \rightarrow B C) \cdot \alpha_{i,k}(B) \cdot \alpha_{k,j}(C) & \text{if } j > i + 1
-\end{cases}
+\sum_{A\rightarrow\alpha\in R}p(A\rightarrow\alpha)=1.
 $$
 
-The probability of the whole string $w$ according to the grammar is then $\alpha_{0,n}(S)$, where $n$ is the length of $w$ and $S$ is the start symbol.
+This local normalization is necessary, but it does not by itself guarantee that the grammar eventually reaches terminals with probability one. A grammar that can expand forever may place some mass on infinite derivations. We call a PCFG **consistent** when the probabilities of its finite terminal strings sum to one. The recurrences below compute probabilities of finite trees whether or not the grammar is consistent. When we interpret those values as a probability distribution over strings, we assume consistency.
 
-### Implementation of the Inside Algorithm
+The probability of a parse tree $t$ is the product of its rule probabilities:
 
-Let's implement the Inside algorithm as part of our CKY parser:
+$$
+p(t)=\prod_{r\in t}p(r),
+$$
 
-```python
-class CKYChart:
-    """A chart for a CKY parser.
+where repeated uses of a rule contribute repeated factors. The probability of a terminal string sums over its parses:
 
-    Parameters
-    ----------
-    input_size : int
-        The length of the input string.
-    """
+$$
+p(\boldsymbol\sigma)=
+\sum_{t\,:\,\operatorname{yield}(t)=\boldsymbol\sigma}p(t).
+$$
 
-    def __init__(self, input_size: int):
-        self._input_size = input_size
+This distinction matters whenever the grammar is ambiguous. A Viterbi parser returns the highest-probability tree; the inside algorithm returns the total probability of the string.
 
-        self._chart: list[list[set]] = [
-            [set() for _ in range(input_size + 1)]
-            for _ in range(input_size + 1)
-        ]
+::: {.callout-caution}
+## Question
 
-    def __getitem__(self, index: tuple[int, int]) -> set:
-        """Retrieve the chart cell at the given span."""
-        i, j = index
-        self._validate_index(i, j)
-        return self._chart[i][j]
+A word has two parses with probabilities $.12$ and $.08$. What does a Viterbi parser return, and what probability does the PCFG assign to the word?
+:::
 
-    def __setitem__(self, key: tuple[int, int], item: set) -> None:
-        """Set the chart cell at the given span."""
-        i, j = key
-        self._chart[i][j] = item
+::: {.callout-tip collapse=true}
+## Answer
 
-    def _validate_index(self, i: int, j: int) -> None:
-        """Raise ValueError if the index is out of bounds or in the lower triangle."""
-        if i >= j:
-            raise ValueError("cannot index into the lower triangle of the chart")
+Viterbi returns the first parse with probability $.12$. The string probability is $.12+.08=.20$.
+:::
 
-        try:
-            self._chart[i]
-        except IndexError:
-            raise ValueError("row index is too large")
+## Supervised estimation
 
-        try:
-            self._chart[i][j]
-        except IndexError:
-            raise ValueError("column index is too large")
+If the training data contain parse trees, the maximum-likelihood estimate is the relative frequency of a rule among rules with the same left side:
 
-    @property
-    def input_size(self) -> int:
-        """The length of the input string."""
-        return self._input_size
+$$
+\widehat p(A\rightarrow\alpha)
+=\frac{c(A\rightarrow\alpha)}
+       {\sum_{A\rightarrow\beta}c(A\rightarrow\beta)}.
+$$
 
-class CKYChartEntry:
-    """A chart entry for a CKY chart.
+The numerator counts *occurrences*, not merely whether a tree contains the rule. Our CELEX tree class thus exposes `rule_occurrences` in addition to the set-valued `rules` property used for display.
 
-    Parameters
-    ----------
-    symbol : str
-        The non-terminal symbol.
-    logprob : float
-        The log probability.
-    *backpointers : CKYChartEntry
-        Pointers to child entries (for parsing).
-    """
+```{python}
+from collections import Counter
+from collections.abc import Iterable
 
-    def __init__(self, symbol: str, logprob: float, *backpointers: 'CKYChartEntry'):
-        self._symbol = symbol
-        self._logprob = logprob
-        self._backpointers = backpointers
+import sys
+sys.path.insert(0, "_code")
+from celex import MorphTree
+from grammar import Rule
 
-    def __hash__(self) -> int:
-        return hash((self._symbol, self._backpointers))
+type RuleProbabilities = dict[Rule, float]
 
-    def __eq__(self, other: 'CKYChartEntry') -> bool:
-        return (self._symbol == other._symbol and
-                self._backpointers == other._backpointers)
 
-    def __repr__(self) -> str:
-        """Return a string representation with symbol, probability, and children."""
-        if self._backpointers:
-            return f"{self._symbol}[{self._logprob:.4f}] -> {' '.join(bp.symbol for bp in self._backpointers)}"
-        else:
-            return f"{self._symbol}[{self._logprob:.4f}]"
+def estimate_rule_probabilities(
+    trees: Iterable[MorphTree],
+) -> RuleProbabilities:
+    """Estimate PCFG rule probabilities from parsed trees."""
+    rule_counts: Counter[Rule] = Counter()
+    for tree in trees:
+        rule_counts.update(tree.rule_occurrences)
 
-    @property
-    def symbol(self) -> str:
-        """The non-terminal symbol."""
-        return self._symbol
+    left_side_counts: Counter[str] = Counter()
+    for rule, count in rule_counts.items():
+        left_side_counts[rule.left_side] += count
 
-    @property
-    def logprob(self) -> float:
-        """The log probability."""
-        return self._logprob
-
-    @property
-    def backpointers(self) -> tuple['CKYChartEntry', ...]:
-        """Pointers to child entries."""
-        return self._backpointers
-
-class CKYParser:
-    """A CKY parser for probabilistic context-free grammars.
-
-    Parameters
-    ----------
-    grammar : ProbabilisticContextFreeGrammar
-        The grammar to parse with.
-    """
-
-    def __init__(self, grammar: ProbabilisticContextFreeGrammar):
-        self._grammar = grammar
-
-    def __call__(self, string: list[str] | str, mode: str = "recognize"):
-        """Parse or recognize a string.
-
-        Parameters
-        ----------
-        string : list[str] | str
-            The input to process.
-        mode : str, default "recognize"
-            Either "recognize" or "parse".
-
-        Returns
-        -------
-        float | list[tuple]
-            Log probability (recognize) or list of parse trees (parse).
-        """
-        if mode == "recognize":
-            return self._recognize(string)
-        elif mode == "parse":
-            return self._parse(string)
-        else:
-            raise ValueError('mode must be "parse" or "recognize"')
-
-    def _fill_chart(self, string: list[str], keep_backtraces: bool = True) -> CKYChart:
-        """Fill the CKY chart using the inside algorithm.
-
-        Parameters
-        ----------
-        string : list[str]
-            The input string.
-        keep_backtraces : bool, default True
-            Whether to keep backtraces for parsing.
-
-        Returns
-        -------
-        CKYChart
-            The filled chart.
-        """
-        input_size = len(string)
-        chart = CKYChart(input_size)
-        
-        # Base case: fill in chart[i,i+1] for each terminal
-        for j in range(1, input_size+1):
-            i = j - 1
-            # Get all non-terminals that can derive this terminal
-            for symbol, logprob in self._grammar.reduce(string[i]):
-                chart[i, j].add(CKYChartEntry(symbol, logprob, CKYChartEntry(string[i], 0.0)))
-
-        # Recursive case: fill in chart[i,j] for j-i > 1
-        for length in range(2, input_size+1):
-            for i in range(input_size - length + 1):
-                j = i + length
-                
-                # For each possible split point k
-                for k in range(i+1, j):
-                    # For each pair of non-terminals B, C where B derives w[i:k] and C derives w[k:j]
-                    for left_entry in chart[i, k]:
-                        for right_entry in chart[k, j]:
-                            # Find all non-terminals A such that A -> B C
-                            for parent, rule_logprob in self._grammar.reduce(left_entry.symbol, right_entry.symbol):
-                                # Compute the probability of this derivation
-                                entry_logprob = rule_logprob + left_entry.logprob + right_entry.logprob
-                                
-                                if keep_backtraces:
-                                    # Create a new chart entry with backpointers
-                                    new_entry = CKYChartEntry(parent, entry_logprob, left_entry, right_entry)
-                                    chart[i, j].add(new_entry)
-                                else:
-                                    # Update the aggregate probability for this non-terminal
-                                    existing_entries = [e for e in chart[i, j] if e.symbol == parent]
-                                    if existing_entries:
-                                        # Combine probabilities using logsumexp for numerical stability
-                                        old_logprob = existing_entries[0].logprob
-                                        new_logprob = logsumexp([old_logprob, entry_logprob])
-                                        chart[i, j].remove(existing_entries[0])
-                                        chart[i, j].add(CKYChartEntry(parent, new_logprob))
-                                    else:
-                                        chart[i, j].add(CKYChartEntry(parent, entry_logprob))
-
-        return chart
-
-    def _parse(self, string: list[str] | str) -> list[tuple]:
-        """Parse a string to find all possible parse trees.
-
-        Parameters
-        ----------
-        string : list[str] | str
-            The string to parse.
-
-        Returns
-        -------
-        list[tuple[Tree, float]]
-            Parse trees paired with their log probabilities.
-        """
-        if isinstance(string, str):
-            string = string.split()
-
-        chart = self._fill_chart(string)
-
-        parses = []
-        for entry in chart[0, len(string)]:
-            if entry.symbol == self._grammar.start_variable:
-                parse_tree = self._build_tree(entry)
-                parses.append((parse_tree, entry.logprob))
-
-        return parses
-
-    def _build_tree(self, entry: CKYChartEntry):
-        """Build a parse tree from a chart entry.
-
-        Parameters
-        ----------
-        entry : CKYChartEntry
-            The chart entry to convert.
-
-        Returns
-        -------
-        Tree
-            The parse tree rooted at this entry.
-        """
-        if not entry.backpointers:
-            return Tree(entry.symbol, [])
-        else:
-            children = [self._build_tree(bp) for bp in entry.backpointers]
-            return Tree(entry.symbol, children)
-
-    def _recognize(self, string: list[str] | str) -> float:
-        """Compute the log probability of a string under the grammar.
-
-        Parameters
-        ----------
-        string : list[str] | str
-            The string to recognize.
-
-        Returns
-        -------
-        float
-            The log probability, or -inf if the string is not in the language.
-        """
-        # Ensure input is a list of tokens
-        if isinstance(string, str):
-            string = string.split()
-        
-        chart = self._fill_chart(string, keep_backtraces=False)
-        
-        # Find the probability of the string by looking for the start symbol in the root of the chart
-        logprobs = [entry.logprob for entry in chart[0, len(string)] 
-                  if entry.symbol == self._grammar.start_variable]
-        
-        if logprobs:
-            # If there are multiple parse trees, sum their probabilities
-            return logsumexp(logprobs)
-        else:
-            # String is not in the language
-            return float('-inf')
+    return {
+        rule: count / left_side_counts[rule.left_side]
+        for rule, count in rule_counts.items()
+    }
 ```
 
-## Application to Morphological Analysis with CELEX
+This estimator assigns zero probability to every unseen rule. Smoothing PCFG rules is possible, but it requires deciding which unobserved rules belong to the event space. We will keep the unsmoothed estimator and report when a word cannot be parsed.
 
-Now let's apply our PCFG framework to morphological analysis using the CELEX database. CELEX provides morphological parses for thousands of English words, which we can use to estimate a PCFG for morphological analysis.
+## The inside algorithm
 
-### Example: Analyzing "unhappiness"
+For a CNF grammar, let $\alpha_A(i,j)$ be the total probability that $A$ derives the substring spanning $[i,j]$. The lexical case is
 
-Let's work through a detailed example of how to use our PCFG framework to analyze the morphological structure of a word like "unhappiness":
+$$
+\alpha_A(i,i+1)=p(A\rightarrow\sigma_i).
+$$
 
-```python
-# First, let's load CELEX data
-import pyparsing
+For a longer span,
 
-LPAR = pyparsing.Suppress('(')
-RPAR = pyparsing.Suppress(')')
-LBRAC = pyparsing.Suppress('[')
-RBRAC = pyparsing.Suppress(']')
+$$
+\alpha_A(i,j)
+=\sum_{A\rightarrow BC}
+  \sum_{k=i+1}^{j-1}
+  p(A\rightarrow BC)\alpha_B(i,k)\alpha_C(k,j).
+$$
 
-tag = pyparsing.Regex(r'[^\(\)\[\]]+')
-morpheme = pyparsing.Regex(r'[a-z]+')
+Thus, $p(\boldsymbol\sigma)=\alpha_S(0,n)$. This is the probabilistic version of the CKY recurrence: set insertion becomes addition, and combining two children multiplies their probabilities.
 
-exp = pyparsing.Forward()
-tree = pyparsing.Group(LPAR + pyparsing.delimitedList(exp) + RPAR + LBRAC + tag + RBRAC)
-exp <<= morpheme | tree
+## Why the inside recurrence sums every parse once
 
-class ParsedWord:
-    """A morphological parse tree node.
+Why does the inside recurrence sum every parse without counting any parse twice? Fix a variable $A$ and a span $[i,j]$. Partition the parse trees rooted at $A$ by two properties of their root: the binary rule $A\rightarrow BC$ and the split point $k$ between its children.
 
-    Parameters
-    ----------
-    data : str
-        The category label at this node.
-    word : str | None, default None
-        The surface word (only present at the root).
-    children : list[ParsedWord] | None, default None
-        The child nodes.
+Once those properties are fixed, a complete tree consists of three independent choices under the PCFG model:
 
-    Attributes
-    ----------
-    data : str
-        The category label.
-    word : str | None
-        The surface word.
-    children : list[ParsedWord]
-        The child nodes.
-    """
+1. use the root rule, with probability $p(A\rightarrow BC)$;
+2. choose a $B$ tree over $[i,k]$, whose total probability is $\alpha_B(i,k)$; and
+3. choose a $C$ tree over $[k,j]$, whose total probability is $\alpha_C(k,j)$.
 
-    PARSER = exp
+Multiplying the three terms gives the total probability of all trees in that part of the partition. Summing over rules and split points then covers every possible $A$ tree. It does not count a tree twice: a binary parse tree has one root rule and one boundary between its two root children.
 
-    def __init__(self, data: str, word: str | None = None,
-                 children: list['ParsedWord'] | None = None):
-        self.word = word
-        self.data = data
-        self.children = children or []
+For a length-one span, the only possible CNF tree is a lexical rule $A\rightarrow\sigma_i$, which gives the base case. Induction on span length thus shows that $\alpha_A(i,j)$ is exactly the sum of the probabilities of all $A$-rooted trees over that span. Setting $A=S$, $i=0$, and $j=n$ proves $p(\boldsymbol\sigma)=\alpha_S(0,n)$.
 
-    @classmethod
-    def from_string(cls, word: str, tree: str) -> 'ParsedWord':
-        """Parse a CELEX tree string into a ParsedWord.
+```{python}
+from collections import defaultdict
+from collections.abc import Mapping, Sequence
 
-        Parameters
-        ----------
-        word : str
-            The surface form.
-        tree : str
-            The CELEX bracket notation.
+type InsideCell = dict[str, float]
+type InsideChart = list[list[InsideCell]]
 
-        Returns
-        -------
-        ParsedWord
-            The parsed tree.
-        """
-        treelist = cls.PARSER.parseString(tree)[0]
-        return cls.from_list(treelist, word)
 
-    @classmethod
-    def from_list(cls, treelist, word: str | None = None) -> 'ParsedWord':
-        """Build a ParsedWord from a nested list representation.
+def inside_probability(
+    tokens: Sequence[str],
+    start_variable: str,
+    rule_probabilities: Mapping[Rule, float],
+) -> float:
+    """Return the total PCFG probability of ``tokens``."""
+    if not tokens:
+        return rule_probabilities.get(Rule(start_variable), 0.0)
 
-        Parameters
-        ----------
-        treelist : list
-            The nested list from the parser.
-        word : str | None, default None
-            The surface form (only at the root).
+    lexical_index: defaultdict[
+        str, list[tuple[str, float]]
+    ] = defaultdict(list)
+    binary_index: defaultdict[
+        tuple[str, str], list[tuple[str, float]]
+    ] = defaultdict(list)
 
-        Returns
-        -------
-        ParsedWord
-            The parsed tree.
-        """
-        if all(isinstance(x, str) for x in treelist):
-            return cls(treelist[1], word, [cls(treelist[0])])
-        else:
-            return cls(treelist[-1], word,
-                       [cls.from_list(l) for l in treelist[:-1]])
+    for rule, probability in rule_probabilities.items():
+        if len(rule.right_side) == 1:
+            lexical_index[rule.right_side[0]].append(
+                (rule.left_side, probability)
+            )
+        elif len(rule.right_side) == 2:
+            binary_index[rule.right_side].append(
+                (rule.left_side, probability)
+            )
 
-    def flatten(self) -> list[tuple[str, str]]:
-        """Return a flat list of (category, morpheme) pairs.
+    size = len(tokens)
+    chart: InsideChart = [
+        [{} for _ in range(size + 1)] for _ in range(size + 1)
+    ]
 
-        Returns
-        -------
-        list[tuple[str, str]]
-            The morphemes with their categories.
-        """
-        if len(self.children) > 1:
-            return [morph for child in self.children for morph in child.flatten()]
-        else:
-            return [(self.data, self.children[0].data)]
+    for left, token in enumerate(tokens):
+        for variable, probability in lexical_index[token]:
+            chart[left][left + 1][variable] = (
+                chart[left][left + 1].get(variable, 0.0) + probability
+            )
 
-    @property
-    def rules(self) -> list:
-        """Extract CFG rules from this parsed word.
+    for span_length in range(2, size + 1):
+        for left in range(size - span_length + 1):
+            right = left + span_length
+            for split in range(left + 1, right):
+                for left_variable, left_probability in chart[left][
+                    split
+                ].items():
+                    for right_variable, right_probability in chart[
+                        split
+                    ][right].items():
+                        for parent, rule_probability in binary_index[
+                            (left_variable, right_variable)
+                        ]:
+                            contribution = (
+                                rule_probability
+                                * left_probability
+                                * right_probability
+                            )
+                            chart[left][right][parent] = (
+                                chart[left][right].get(parent, 0.0)
+                                + contribution
+                            )
 
-        Returns
-        -------
-        list[Rule]
-            The production rules implied by the tree.
-        """
-        if self.children:
-            rule = Rule(self.data, *[c.data for c in self.children], logprob=None)
-            child_rules = [r for c in self.children for r in c.rules]
-
-            return [rule] + child_rules
-
-        else:
-            return []
-
-# Let's parse a specific example from CELEX
-unhappiness_tree = "(((un)[Prefix] (happy)[Adj])[Adj] (ness)[Suffix])[N]"
-unhappiness = ParsedWord.from_string('unhappiness', unhappiness_tree)
-
-# Extract the rules from this parse
-rules = unhappiness.rules
-for rule in rules:
-    print(rule)
-
-# Now let's estimate a PCFG from a treebank of CELEX parses
-# Assuming we have a list of parsed words:
-parsed_words = [unhappiness]  # In reality, this would be many more examples
-
-# Estimate the grammar
-pcfg_estimator = PCFGEstimator()
-pcfg = pcfg_estimator.fit(parsed_words)
-
-# Let's compute the probability of "unhappiness"
-morphemes = ['un', 'happy', 'ness']
-log_prob = pcfg(morphemes)
-print(f"Log probability of 'unhappiness': {log_prob}")
-
-# We can also get the most likely parse
-parses = pcfg(morphemes, mode="parse")
-best_parse, best_logprob = max(parses, key=lambda x: x[1])
-print(f"Best parse: {best_parse}")
-print(f"Best parse log probability: {best_logprob}")
+    return chart[0][size].get(start_variable, 0.0)
 ```
 
-### Evaluating Novel Morphological Forms
+For a large grammar, these products may underflow. An implementation used for estimation should work in log space and replace addition with `logsumexp`. The probability-space version makes the recurrence easier to inspect.
 
-One of the key applications of PCFGs in morphology is evaluating the well-formedness of novel word formations. For example, we can compare the probabilities of attested and unattested forms:
+## Estimating from CELEX
 
-```python
-# Attested forms
-attested = [
-    ['un', 'happy', 'ness'],
-    ['re', 'consider', 'ation'],
-    ['dis', 'agree', 'ment']
-]
+The supervised pipeline has three stages:
 
-# Unattested but well-formed forms
-well_formed_unattested = [
-    ['un', 'belief', 'able', 'ness'],
-    ['re', 'present', 'ative', 'ness'],
-    ['anti', 'establish', 'ment', 'arian', 'ism']
-]
+1. parse each usable `StrucLab` value into a `MorphTree`;
+2. count its rule occurrences and estimate rule probabilities; and
+3. convert the resulting grammar to CNF, carrying the probabilities through the added administrative rules.
 
-# Ill-formed examples
-ill_formed = [
-    ['ness', 'un', 'happy'],  # Wrong order
-    ['un', 'ness', 'happy'],  # Wrong order
-    ['un', 'ly', 'happy']     # Incompatible affixes
-]
+The third stage requires care. CNF conversion preserves strings, but adding probability-one administrative rules and redistributing probability across eliminated rules must also preserve tree probability. For this reason, it is often simpler to normalize the grammar before estimating its probabilities or to use an Earley-style inside algorithm that accepts the original rules.
 
-# Compute log probabilities for each group
-attested_probs = [pcfg(word) for word in attested]
-well_formed_probs = [pcfg(word) for word in well_formed_unattested]
-ill_formed_probs = [pcfg(word) for word in ill_formed]
+## Scoring acceptability
 
-# Print average log probabilities
-print(f"Average log probability of attested forms: {np.mean(attested_probs)}")
-print(f"Average log probability of well-formed but unattested forms: {np.mean(well_formed_probs)}")
-print(f"Average log probability of ill-formed examples: {np.mean(ill_formed_probs)}")
-```
+Given a segmented trial word, the inside score supplies one predictor of its mean acceptability. Raw string probabilities are strongly affected by length, so we will use mean log probability per morpheme or include morpheme count as a separate predictor:
+
+$$
+\operatorname{score}(\boldsymbol\sigma)
+=\frac{\log p(\boldsymbol\sigma)}{|\boldsymbol\sigma|}.
+$$
+
+This score tests whether rule combinations that are probable under the CELEX trees also tend to receive higher ratings. It does not isolate hierarchy by itself, because the supervised grammar has access to both gold segmentation and gold trees. The next section removes the gold trees and treats them as latent structure.

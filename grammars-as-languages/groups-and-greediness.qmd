@@ -9,12 +9,12 @@ One of the major uses for regular expressions is for extracting substrings from 
 #| code-fold: true
 #| code-summary: Load IPA representation of CMU Pronouncing Dictionary
 
-with open("cmudict-ipa") as f:
-    entries: list[tuple[str, str]] = [
-        l.strip().split(",") for l in f
+with open("cmudict-ipa", encoding="utf-8") as f:
+    entry_rows: list[list[str]] = [
+        line.strip().split(",", maxsplit=1) for line in f
     ]
     entries: dict[str, list[str]] = {
-        w: ipa.split() for w, ipa in entries
+        word: ipa.split() for word, ipa in entry_rows
     }
 ```
 
@@ -156,7 +156,7 @@ for w1, ipa1 in entries.items():
         break
 ```
 
-There's still some wonky stuff in here–e.g. *ancient* coming from *ain't* and *ashen* coming from *at*–but we're getting closer. We can't really deal with cases like *ashen* coming from *at*, but we can deal with *ancient* coming from *ain't*, which reveals a behavior of `re.findall`: it functions like `re.match`, rather than `re.fullmatch`, in that it matches the beginning of a string. If we want it to match the entire string, we have to explicitly specify that in the regular expression. To do this, we can use a `$`, which means "end of string".^[The dual of `$` for the beginning of the string is `^`. Note that this looks like the negation symbol we saw earlier. It is different in that that symbol must be preceded by `[` to be interpreted as negation. Anywhere else `^` means the beginning of a string. That in turn means that putting a bare `^` anywhere besides the beginning of a regular expression is going to result in a regular expression that evaluates to the empty set.] 
+There's still some wonky stuff in here–e.g. *ancient* coming from *ain't* and *ashen* coming from *at*–but we're getting closer. We can't really deal with cases like *ashen* coming from *at*, but we can deal with *ancient* coming from *ain't*. The issue is that `re.findall` searches for matching substrings, whereas `re.fullmatch` requires the entire string to match. If we want the suffix pattern to extend to the end of the string, we have to say so explicitly with `$`, which means "end of string".^[The dual of `$` is `^`, which asserts the beginning of a string. Inside a character class, a `^` immediately after `[` instead marks negation.]
 
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/'}
@@ -191,4 +191,3 @@ for w1, ipa1 in entries.items():
 ```
 
 To get much better than this, we'd need to start matching on the orthographic representation as well–e.g. matching the *ion* at the end of the orthographic representation of the word, thus filtering things like /æt/ + /ʃən/ = /æʃən/. One thing we'll still miss are cases like *adoration*, where there is a vowel quality change (which is consequently why we get *adder* + *ion* = *adoration* currently). To handle those cases, we would need to account for the conditions under which vowel quality changes, which we could do in principle using regular expressions but which I won't do here.
-

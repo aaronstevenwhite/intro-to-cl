@@ -4,15 +4,17 @@ bibliography: ../references.bib
 jupyter: python3
 ---
 
-In the phonological-patterns module, we saw that phonological constraints on stringsets—the kinds of sound sequences a language allows—tend to fall into the lower levels of the subregular hierarchy: Strictly Local, Strictly Piecewise, or Tier-based Strictly Local. These are proper subclasses of the regular languages, and the finite state automata that recognize them have correspondingly restricted structure.
+::: {.callout-tip}
+## Reading
 
-@chandlee2014strictly showed that a similar picture holds for morphological *maps*—the input-output transformations that relate underlying forms to surface forms in morphology. Most morphological processes—prefixation, suffixation, and local infixation—turn out to be *subsequential functions*, a proper subclass of the regular relations (the relations computable by finite state transducers). In other words, morphological transformations are, like phonological constraints, computationally simple in a precise sense.
+@Chandlee2017 on the complexity of morphological maps and @jurafsky_speech_2023 on context-free grammars and parsing.
+:::
 
-But there is an important exception. Total reduplication—the process by which a word $w$ is mapped to $ww$, as in Indonesian *orang* → *orang-orang* (people)—is not a regular relation. We proved a version of this in the [section on the pumping lemma](../phonological-patterns/generative-capacity/pumping-lemma.qmd): the language $\{ww \mid w \in \Sigma^+\}$ is not regular, which means no finite state automaton can recognize it, and no finite state transducer can compute the map $w \mapsto ww$.
+The previous module separated two kinds of finite state object: FSAs describe languages of strings, while FSTs describe relations between strings. Many morphological maps—including prefixation, suffixation, and bounded copying—are subsequential or otherwise finite state [@Chandlee2017]. Unrestricted total reduplication is not. So what do we need beyond a finite-state map?
 
-This is one of the motivations for moving beyond finite state methods. In this module, we'll use two complementary families of models for morphology. For *segmentation*—finding where the morpheme boundaries are—we'll use sequence labeling models like [HMMs](../uncertainty-about-languages/beyond-ngrams.qmd) and [CRFs](segmentation-with-structured-prediction.qmd), which operate on flat character sequences (just as HMMs operate on phone sequences for phonotactics). For *parsing*—determining the hierarchical structure of how morphemes compose—we'll use [context-free grammars](operations.qmd) and their [probabilistic extensions](probabilistic-context-free-grammars.qmd). Segmentation feeds into parsing: once we know the morpheme boundaries, we can ask how those morphemes are structured.
+That boundary does not, by itself, motivate the formalism we use in this module. Our immediate problem is **morphological constituency**: morphemes form nested units, and different nestings may correspond to different interpretations. The word *unlockable*, for instance, permits both $[\text{un}[\text{lock-able}]]$ and $[[\text{un-lock}]\text{-able}]$. A flat segmentation identifies the same three morphemes in both analyses but does not distinguish their structures.
 
-Morphological structure exhibits *hierarchical nesting* that regular grammars cannot capture. Consider the word *unlockable*: it has two possible structures—$[\text{un}[\text{lock-able}]]$ (not able to be locked) and $[[\text{un-lock}]\text{-able}]$ (able to be unlocked)—and distinguishing between them requires tracking nested constituency, not just sequences of symbols.
+We will treat segmentation and parsing as separate tasks. A *segmenter* finds the morpheme-like units in a word; a *parser* determines how those units compose. Sequence models such as HMMs and CRFs will handle the first task. Context-free grammars and their probabilistic extensions will handle the second. We start with the second task so that we can say exactly what kind of structure the parser must recover.
 
 The formalism we'll use for this is the *context-free grammar* (CFG). A context-free grammar is a 4-tuple $G = (V, \Sigma, R, S)$ where:
 
@@ -21,7 +23,7 @@ The formalism we'll use for this is the *context-free grammar* (CFG). A context-
 3. $R \subseteq V \times (V \cup \Sigma)^*$ is a finite set of *rules* (or *productions*) of the form $A \rightarrow \alpha$, where $A \in V$ and $\alpha \in (V \cup \Sigma)^*$
 4. $S \in V$ is the *start variable*
 
-The key property of context-free grammars is that each rule's application depends only on the variable being expanded, not on what surrounds it. This is what "context-free" means: the rule $A \rightarrow \alpha$ applies wherever $A$ appears, regardless of context.
+The left side of every rule contains exactly one variable. Thus, whether $A \rightarrow \alpha$ may apply depends on $A$, not on the symbols surrounding it. This is the sense in which the grammar is *context-free*.
 
 ```{python}
 #| code-fold: true
@@ -63,19 +65,6 @@ for rule in sorted(grammar.rules(), key=lambda r: str(r)):
     print(rule)
 ```
 
-This grammar generates words like *unkind*, *kindness*, *unkindly*, and *unhappiness*, each with a hierarchical structure that reflects its morphological composition.
+This grammar can assign hierarchical analyses to *unkind*, *kindness*, and *unkindly*. It also illustrates a point that will recur: the alphabet contains the observed units, while the variables name the categories and constituents that the analysis posits.
 
-In the following sections, we'll develop the tools needed to work with these grammars. We'll start with the formal machinery: operations on CFGs (union, concatenation, Kleene closure), normal forms (especially Chomsky Normal Form, which enables efficient algorithms), and two parsing algorithms—CKY (bottom-up) and Earley (top-down)—for recovering the structure of a word given a grammar. With that machinery in hand, we'll turn to the empirical question of morphological well-formedness: we'll look at gradient acceptability judgments for morphologically complex nonwords, explore methods for segmenting words into morphemes, and then train probabilistic context-free grammars—both from labeled data and from scratch—to predict how acceptable a given morphological structure is.
-
-### Choosing a model
-
-The table below summarizes when each model type is appropriate. The key distinctions are whether the task requires flat (sequential) or hierarchical structure, and whether labeled training data is available.
-
-| Model | Structure | Training data | Best for |
-|-------|-----------|---------------|----------|
-| $N$-gram | Sequential | Unlabeled corpus | Phonotactic well-formedness; quick baseline |
-| HMM | Sequential (latent states) | Labeled sequences | Segmentation when features are simple |
-| CRF | Sequential (discriminative) | Labeled sequences | Segmentation when rich features matter |
-| BPE | Sequential (compression) | Unlabeled corpus | Subword tokenization; morpheme-like units without supervision |
-| CFG/PCFG (supervised) | Hierarchical | Labeled parse trees | Parsing when gold-standard trees are available |
-| PCFG (unsupervised, EM) | Hierarchical | Segmented strings only | Learning structure when no labeled trees exist |
+So the module proceeds in three steps. We first work out how CFGs behave and how CKY and Earley recover their structures. We then look at the acceptability data and CELEX analyses. With those pieces in place, we compare sequence-based segmentation, supervised probabilistic grammars, and inside-outside estimation without gold parse trees.

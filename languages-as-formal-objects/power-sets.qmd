@@ -11,7 +11,7 @@ For example, for the set $\{\text{i}, \text{u}, \text{ə}\}$, we have:
 
 $$\mathcal{P}(\{\text{i},\text{u},\text{ə}\}) = 2^{\{\text{i},\text{u},\text{ə}\}} = \{\emptyset, \{\text{i}\}, \{\text{u}\}, \{\text{ə}\}, \{\text{i}, \text{u}\}, \{\text{u},\text{ə}\}, \{\text{i},\text{ə}\}, \{\text{i}, \text{u}, \text{ə}\}\}$$
 
-To obtain the power set of some set, we can loop through all possible subset cardinalities, and use the `itertools.combinations` function to obtain all subsets of our set of interest (the high vowels) of a particular cardinality. To do this, we need a second loop over the output of `itertools.combinations` at each cardinality is necessary to flatten the sets.
+To obtain the power set of some set, we can loop through all possible subset cardinalities and use `itertools.combinations` to obtain every subset of each cardinality. The second loop below flattens those groups of combinations into one set.
 
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/'}
@@ -47,24 +47,26 @@ So if we wanted to be able to take the power set of anything we can represent in
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 267, status: ok, timestamp: 1673979085882, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
 #| outputId: fd4e1f31-e6b9-4a6f-984c-c9e51ff60274
-def powerset(x: set) -> set[frozenset]:
-  """Compute the power set of a finite set.
+from collections.abc import Hashable
+
+def powerset[T: Hashable](x: set[T]) -> set[frozenset[T]]:
+    """Compute the power set of a finite set.
 
   Parameters
   ----------
-  x : set
-      The set to take the power set of.
+    x : set[T]
+        The set to take the power set of.
 
   Returns
   -------
-  set[frozenset]
-      All subsets of the input as frozensets.
-  """
-  return {
-      frozenset(subset)
-      for cardinality in range(len(x)+1)
-      for subset in combinations(x, cardinality)
-  }
+    set[frozenset[T]]
+        All subsets of the input as frozensets.
+    """
+    return {
+        frozenset(subset)
+        for cardinality in range(len(x) + 1)
+        for subset in combinations(x, cardinality)
+    }
 
 powerset(high_vowels)
 ```
@@ -75,12 +77,12 @@ Alternatively, we can use the following [`itertools` recipe](https://docs.python
 #| colab: {base_uri: 'https://localhost:8080/', height: 201}
 #| executionInfo: {elapsed: 144, status: error, timestamp: 1674064543080, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
 #| outputId: 6eef178b-8a66-443f-d540-bdbc9c552f5a
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
 from itertools import chain
 
-def powerset(iterable: Iterable) -> chain:
+def powerset[T](iterable: Iterable[T]) -> Iterator[tuple[T, ...]]:
     s = list(iterable)
-    return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
+    return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
 
 powerset(high_vowels)
 ```
@@ -102,10 +104,7 @@ And if I pass this generator (an iterable) to `powerset`, it will hang.
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 5, status: ok, timestamp: 1674064831667, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
 #| outputId: d6421ab4-3ce2-4890-b759-368d6690bbc3
-from collections.abc import Generator
-from multiprocessing import Process
-
-def natural_numbers() -> int:
+def natural_numbers() -> Iterator[int]:
     """Yield the natural numbers starting from 0.
 
     Yields
@@ -119,25 +118,21 @@ def natural_numbers() -> int:
         i += 1
 
 # initialize a generator of the natural numbers
-N: Generator[int] = natural_numbers()
+naturals: Iterator[int] = natural_numbers()
 
 # this will hang
 # powerset(N)
 ```
 
-If we want to be able to generate elements of the power set of an infinite set, we will have to do it in a slightly smarter way.
+If we want to generate the *finite* subsets of an infinite set, we can do it incrementally. This qualification matters: the power set of a countably infinite set is uncountable, so no generator indexed by the natural numbers can enumerate all of it. The diagonal argument in [the section on languages](languages.qmd) establishes exactly this limitation.
 
 ```{python}
 #| executionInfo: {elapsed: 4, status: ok, timestamp: 1674495161559, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
-from collections.abc import Iterable
-
-emptyset = frozenset()
-
-def powerset[T](iterable: Iterable[T]) -> set[T]:
+def powerset[T: Hashable](iterable: Iterable[T]) -> Iterator[frozenset[T]]:
     """Generate power set elements incrementally.
 
-    Works for both finite and infinite iterables by yielding
-    subsets as new elements arrive.
+    For a finite iterable, yields its full power set. For an infinite
+    iterable, yields exactly its finite subsets.
 
     Parameters
     ----------
@@ -149,18 +144,28 @@ def powerset[T](iterable: Iterable[T]) -> set[T]:
     frozenset[T]
         Subsets of elements seen so far.
     """
+    emptyset: frozenset[T] = frozenset()
     yield emptyset
 
-    seen = {emptyset}
+    seen_subsets = {emptyset}
+    seen_elements: set[T] = set()
 
     for r in iterable:
-        new = {s | frozenset({r}) for s in seen}
-        for n in new:
-            yield n
-            seen.add(n)
+        if r in seen_elements:
+            continue
+
+        new = {s | frozenset({r}) for s in seen_subsets}
+        seen_elements.add(r)
+        seen_subsets |= new
+
+        yield from new
 ```
 
-This will still get us the correct result for finite sets.
+So how do we know this generator gets exactly the subsets we want? The main thing to keep track of is what happens after the loop consumes a finite prefix of the input. At that point, `seen_elements` is the set of distinct values in the prefix, and `seen_subsets` should be exactly its power set. This is our **stage invariant**.
+
+Start with the empty prefix. `seen_elements` is empty, and `seen_subsets` contains only `emptyset`, so the invariant holds. Now suppose it holds for an arbitrary prefix. If the next value $r$ has appeared before, skipping it leaves both sets unchanged, as required. Otherwise, every subset of the enlarged value set falls into exactly one of two cases: (i) it excludes $r$ and is already in `seen_subsets`; or (ii) it includes $r$ and can be written uniquely as $s\cup\{r\}$ for some old subset $s$. The set comprehension called `new` constructs exactly the second group. Thus, the update preserves the invariant even when the input iterable contains duplicates.
+
+If the input is finite, the loop eventually consumes every element. At that point the invariant says that `seen_subsets` is the full power set, so this gets us the correct result for finite sets.
 
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/'}
@@ -169,18 +174,30 @@ This will still get us the correct result for finite sets.
 {s for s in powerset(high_vowels)}
 ```
 
-And it will also work for infinite sets.
+The duplicate case is a useful regression test: the iterable `['a', 'a', 'b']` denotes the same finite set as `['a', 'b']`, so it must yield four subsets exactly once.
+
+```{python}
+duplicate_test = list(powerset(['a', 'a', 'b']))
+assert len(duplicate_test) == 4
+assert set(duplicate_test) == {
+    frozenset(), frozenset({'a'}),
+    frozenset({'b'}), frozenset({'a', 'b'}),
+}
+```
+
+For an infinite input, the same invariant yields a more limited conclusion. Fix an arbitrary finite subset $T$ of the input. Every member of $T$ occurs after some finite number of iterations, so once the last of them has arrived, the construction yields $T$. Conversely, every yielded subset was constructed at a finite stage and is thus finite. Thus, the generator enumerates exactly the finite subsets.
+
+It cannot yield an infinite subset such as the even natural numbers: no finite stage has seen all of that subset's members. The code below thus illustrates an enumeration of the finite subsets of $\mathbb{N}$, not of all $2^{\mathbb{N}}$.
 
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 263, status: ok, timestamp: 1673982368798, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
 #| outputId: fdc622c5-6591-4442-a63b-325691f736aa
-N = natural_numbers()
+naturals = natural_numbers()
 
-for i, s in enumerate(powerset(N)):
-  if i < 100:
-    print(s)
-  else:
-    break
+for i, s in enumerate(powerset(naturals)):
+    if i < 100:
+        print(s)
+    else:
+        break
 ```
-

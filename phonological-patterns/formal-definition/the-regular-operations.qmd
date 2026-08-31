@@ -5,42 +5,72 @@ bibliography: ../../references.bib
 
 ## Union
 
+Suppose one NFA accepts only `a` and another accepts only `b`. How could one new machine accept either string? It can begin at a fresh state, take an $\epsilon$-transition into either old machine, and then follow that machine's path. The general union construction does exactly this.
+
 Given NFAs $M_1 = \langle Q_1, \Sigma_1, \delta_1, q_1, F_1 \rangle$ recognizing $A = \mathbb{L}(M_1)$ and $M_2 = \langle Q_2, \Sigma_2, \delta_2, q_2, F_2 \rangle$ recognizing $B = \mathbb{L}(M_2)$, we construct $M = \text{union}(M_1, M_2) = \langle Q, \Sigma, \delta, q_0, F \rangle$ recognizing $A \cup B = \mathbb{L}(M) = \mathbb{L}(\text{union}(M_1, M_2))$:
 
-1. Relabel $Q_1$ and $Q_2$ so they are mutually exclusive and do not contain $q_0$; $Q = Q'_1 \cup Q'_2 \cup \{q_0\}$ and $\Sigma = \Sigma_1 \cup \Sigma_2$
+1. Relabel $Q_1$ and $Q_2$ as disjoint sets $Q'_1$ and $Q'_2$, with corresponding initial states $q'_1$ and $q'_2$, and choose $q_0\notin Q'_1\cup Q'_2$. Set $Q=Q'_1\cup Q'_2\cup\{q_0\}$ and $\Sigma=\Sigma_1\cup\Sigma_2$.
 2. Define $$\delta(q, \sigma) = \begin{cases}
-\{q_1, q_2\} & \text{if } q=q_0 \land \sigma=\epsilon \\
-\delta_1(q, \sigma) & \text{if } q\in Q_1 \\
-\delta_2(q, \sigma) & \text{if } q\in Q_2 \\
+\{q'_1, q'_2\} & \text{if } q=q_0 \land \sigma=\epsilon \\
+\delta'_1(q, \sigma) & \text{if } q\in Q'_1 \\
+\delta'_2(q, \sigma) & \text{if } q\in Q'_2 \\
 \text{undefined} & \text{otherwise} \\
 \end{cases}$$
-3. Define $F = F_1 \cup F_2$
+3. Define $F=F'_1\cup F'_2$, using the relabeled final states.
+
+Why does the new machine accept exactly the strings in $A\cup B$? We again use [double inclusion](../../languages-as-formal-objects/set-relations.qmd#equality-by-double-inclusion), as we did for the [regular-expression evaluator](../../grammars-as-languages/evaluating-regular-expressions.qmd) and the [lookaround construction](../../grammars-as-languages/lookarounds.qmd#formal-perspective). Suppose first that $w\in A\cup B$. If $w\in A$, take an accepting path for $w$ in $M_1$, precede it with the new $\epsilon$-transition from $q_0$ to $q_1$, and obtain an accepting path in $M$. The same construction through $q_2$ works when $w\in B$. Thus, $A\cup B\subseteq\mathbb{L}(M)$.
+
+Conversely, suppose $M$ accepts $w$. Its accepting path must leave the new initial state by taking one of the two $\epsilon$-transitions. Since the relabeled state sets are disjoint and there are no later transitions between them, the remainder of the path lies entirely in either $M_1$ or $M_2$. It thus witnesses $w\in A$ or $w\in B$. Hence $\mathbb{L}(M)\subseteq A\cup B$, and $\mathbb{L}(M)=A\cup B$.
 
 ```{python}
-from copy import copy, deepcopy
+from __future__ import annotations
+
+from copy import deepcopy
 
 class FiniteStateAutomaton:
-    """A finite state automaton
+    """A small executable epsilon-NFA used for the constructions below."""
 
-    Parameters
-    ----------
-    alphabet
-    states
-    initial_state
-    final states
-    transition_graph
-    """
+    def __init__(
+        self,
+        alphabet: set[str],
+        states: set[str],
+        initial_state: str,
+        final_states: set[str],
+        transition_graph: dict[tuple[str, str], set[str]],
+    ) -> None:
+        if initial_state not in states:
+            raise ValueError('initial state must belong to states')
+        if not final_states <= states:
+            raise ValueError('final states must be a subset of states')
 
-    def __or__(self, other):
+        self._alphabet = set(alphabet) - {''}
+        self._states = set(states)
+        self._initial_state = initial_state
+        self._final_states = set(final_states)
+        self._transition_graph = {
+            key: set(targets) for key, targets in transition_graph.items()
+        }
+
+    def __or__(self, other: FiniteStateAutomaton) -> FiniteStateAutomaton:
         return self.union(other)
 
-    def _deepcopy(self):
-        fsa = copy(self)
-        del fsa._generator
+    def _deepcopy(self) -> FiniteStateAutomaton:
+        return deepcopy(self)
 
-        return deepcopy(fsa)
+    @staticmethod
+    def _merge_graphs(
+        *graphs: dict[tuple[str, str], set[str]],
+    ) -> dict[tuple[str, str], set[str]]:
+        merged: dict[tuple[str, str], set[str]] = {}
+        for graph in graphs:
+            for key, targets in graph.items():
+                merged.setdefault(key, set()).update(targets)
+        return merged
         
-    def _relabel_fsas(self, other):
+    def _relabel_fsas(
+        self,
+        other: FiniteStateAutomaton,
+    ) -> tuple[FiniteStateAutomaton, FiniteStateAutomaton]:
         """
         append tag to the input/ouput states throughout two FSAs
 
@@ -49,12 +79,12 @@ class FiniteStateAutomaton:
         other : FiniteStateAutomaton
         """
 
-        fsa1 = self._deepcopy()._relabel_states(str(id(self)))
-        fsa2 = other._deepcopy()._relabel_states(str(id(other)))
+        fsa1 = self._deepcopy()._relabel_states('left')
+        fsa2 = other._deepcopy()._relabel_states('right')
 
         return fsa1, fsa2
 
-    def _relabel_states(self, tag):
+    def _relabel_states(self, tag: str) -> FiniteStateAutomaton:
         """
         append tag to the input/ouput states throughout the FSA
 
@@ -63,18 +93,19 @@ class FiniteStateAutomaton:
         tag : str
         """
 
-        state_map = {s: s+'_'+tag for s in self._states}
+        state_map = {s: f'{tag}:{len(s)}:{s}' for s in self._states}
         
         self._states = {state_map[s] for s in self._states}    
-        self._initial_state += '_'+tag
+        self._initial_state = state_map[self._initial_state]
         self._final_states = {state_map[s] for s in self._final_states}
-
-        self._transition_function = self._transition_function
-        self._transition_function.relabel_states(state_map)
+        self._transition_graph = {
+            (state_map[state], symbol): {state_map[t] for t in targets}
+            for (state, symbol), targets in self._transition_graph.items()
+        }
         
         return self
 
-    def union(self, other: 'FiniteStateAutomaton') -> 'FiniteStateAutomaton':
+    def union(self, other: FiniteStateAutomaton) -> FiniteStateAutomaton:
         """
         union this FSA with another
 
@@ -86,21 +117,44 @@ class FiniteStateAutomaton:
         -------
         FiniteStateAutomaton
         """
-        msg = "you still need to implement FiniteStateAutomaton.union"
-        raise NotImplementedError(msg)
+        left, right = self._relabel_fsas(other)
+        states = left._states | right._states
+        new_start = 'union:start'
+        while new_start in states:
+            new_start += ':'
+
+        graph = self._merge_graphs(
+            left._transition_graph, right._transition_graph,
+        )
+        graph[(new_start, '')] = {
+            left._initial_state, right._initial_state,
+        }
+        return FiniteStateAutomaton(
+            left._alphabet | right._alphabet,
+            states | {new_start},
+            new_start,
+            left._final_states | right._final_states,
+            graph,
+        )
 ```
 
 ## Concatenation
 
+Now suppose the first machine accepts only `a` and the second accepts only `b`. To accept `ab`, the new machine should finish the first path and then enter the second machine without consuming another symbol. This suggests an $\epsilon$-transition from every old final state in the first machine to the initial state of the second.
+
 Given NFAs $M_1 = \langle Q_1, \Sigma_1, \delta_1, q_1, F_1 \rangle$ recognizing $A = \mathbb{L}(M_1)$ and $M_2 = \langle Q_2, \Sigma_2, \delta_2, q_2, F_2 \rangle$ recognizing $B = \mathbb{L}(M_2)$, we construct $M = \text{concatenate}(M_1, M_2) = \langle Q, \Sigma, \delta, q_1, F_2 \rangle$ recognizing $A \circ B = \mathbb{L}(M) = \mathbb{L}(\text{concatenate}(M_1, M_2))$:
 
-1. Relabel $Q_1$ and $Q_2$ so they are mutually exclusive; $Q = Q'_1 \cup Q'_2$ and $\Sigma = \Sigma_1 \cup \Sigma_2$
+1. Relabel the machines so their state sets are disjoint, writing the resulting components with primes. Set $Q=Q'_1\cup Q'_2$ and $\Sigma=\Sigma_1\cup\Sigma_2$.
 2. Define $$\delta(q, \sigma) = \begin{cases}
-\delta_1(q, \sigma) & \text{if } q\in Q_1 \land q\not\in F_1 \\
-\delta_1(q, \sigma) & \text{if } q\in F_1 \land \sigma \neq \epsilon \\
-\delta_1(q, \sigma) \cup \{q_2\} & \text{if } q\in F_1 \land \sigma = \epsilon \\
-\delta_2(q, \sigma)& \text{if } q\in Q_2 \\
+\delta'_1(q, \sigma) & \text{if } q\in Q'_1 \land q\not\in F'_1 \\
+\delta'_1(q, \sigma) & \text{if } q\in F'_1 \land \sigma \neq \epsilon \\
+\delta'_1(q, \sigma) \cup \{q'_2\} & \text{if } q\in F'_1 \land \sigma = \epsilon \\
+\delta'_2(q, \sigma)& \text{if } q\in Q'_2 \\
 \end{cases}$$
+
+Again, we need to check both directions. Suppose first that $w\in A\circ B$. By the definition of language concatenation, there are strings $x\in A$ and $y\in B$ with $w=xy$. Follow an accepting $M_1$ path labeled $x$, take the added $\epsilon$-transition from its final state to $q_2$, and then follow an accepting $M_2$ path labeled $y$. The resulting path accepts $w$ in $M$.
+
+Conversely, take any accepting path for $w$ in $M$. It begins in the $M_1$ state set and ends in the $M_2$ state set, since only states in $F_2$ are final. Because the state sets are disjoint, the path must cross from a state in $F_1$ to $q_2$ on one of the added $\epsilon$-transitions. Let $x$ be the input consumed before that crossing and $y$ the input consumed after it. The first subpath shows $x\in A$, the second shows $y\in B$, and the crossing consumes nothing, so $w=xy$. Thus, $w\in A\circ B$, and $\mathbb{L}(M)=A\circ B$.
 
 ```{python}
 class FiniteStateAutomaton(FiniteStateAutomaton):
@@ -115,13 +169,13 @@ class FiniteStateAutomaton(FiniteStateAutomaton):
     transition_graph
     """
         
-    def __add__(self, other):
+    def __add__(self, other: FiniteStateAutomaton) -> FiniteStateAutomaton:
         return self.concatenate(other)
 
-    def __pow__(self, k):
+    def __pow__(self, k: int) -> FiniteStateAutomaton:
         return self.exponentiate(k)
 
-    def concatenate(self, other: 'FiniteStateAutomaton'):
+    def concatenate(self, other: FiniteStateAutomaton) -> FiniteStateAutomaton:
         """
         concatenate this FSA with another
 
@@ -133,26 +187,47 @@ class FiniteStateAutomaton(FiniteStateAutomaton):
         -------
         FiniteStateAutomaton
         """
-        msg = "you still need to implement FiniteStateAutomaton.concatenate"
-        raise NotImplementedError(msg)
+        left, right = self._relabel_fsas(other)
+        graph = self._merge_graphs(
+            left._transition_graph, right._transition_graph,
+        )
+        for state in left._final_states:
+            graph.setdefault((state, ''), set()).add(right._initial_state)
 
-    def exponentiate(self, k: int) -> 'FiniteStateAutomaton':
+        return FiniteStateAutomaton(
+            left._alphabet | right._alphabet,
+            left._states | right._states,
+            left._initial_state,
+            right._final_states,
+            graph,
+        )
+
+    def exponentiate(self, k: int) -> FiniteStateAutomaton:
         """
         concatenate this FSA k times
 
         Parameters
         ----------
         k : int
-            the number of times to repeat; must be >1
+            the number of times to repeat; must be nonnegative
 
         Returns
         -------
         FiniteStateAutomaton
         """
-        if k <= 1:
-            raise ValueError("must be >1")
+        if k < 0:
+            raise ValueError("must be nonnegative")
 
-        new = self
+        if k == 0:
+            return FiniteStateAutomaton(
+                self._alphabet, {'power:zero'},
+                'power:zero', {'power:zero'}, {},
+            )
+
+        if k == 1:
+            return self._deepcopy()
+
+        new = self._deepcopy()
 
         for i in range(1,k):
             new += self
@@ -163,18 +238,24 @@ class FiniteStateAutomaton(FiniteStateAutomaton):
 
 ## Kleene Closure
 
+What changes if we want to repeat one machine any finite number of times? We need to accept zero repetitions, which means accepting $\epsilon$, and we need a way to restart the old machine after each positive repetition. The Kleene construction adds one state and the necessary restart transitions.
+
 Given an NFA $M = \langle Q, \Sigma, \delta, q_0, F \rangle$ recognizing $A = \mathbb{L}(M)$, the NFA $N = \text{kleene}(M) = \langle Q \cup \{q'_0\}, \Sigma, \delta', q'_0\not\in Q, F' \rangle$ recognizing $A^* = \mathbb{L}(N) = \mathbb{L}(\text{kleene}(M))$:
 
-1. Define $F' = \{q'_0\}$ (so that $\epsilon \in A^*$)
+1. Define $F' = F\cup\{q'_0\}$ (the new final state accepts $\epsilon$, while the old final states let the machine stop after any positive number of repetitions)
 2. Define $$\delta'(q, \sigma) = \begin{cases}
 \{q_0\} & \text{if } q = q'_0 \land \sigma = \epsilon \\
 \delta(q, \sigma) \cup \{q_0\} & \text{if } q \in F \land \sigma = \epsilon \\
 \delta(q, \sigma) & \text{otherwise} \\
 \end{cases}$$
 
+The new machine accepts exactly the strings in $A^*$. Suppose first that $w\in A^*$. If $w=\epsilon$, the zero-transition path stays at the new initial and final state $q'_0$. Otherwise, $w=x_1\cdots x_k$ for some $k>0$ and $x_i\in A$. Take the new $\epsilon$-transition into $q_0$, follow an accepting $M$ path for $x_1$, take the restart transition back to $q_0$, and continue in the same way through $x_k$. The last $M$ path ends in an old final state, which belongs to $F'$. Thus, $N$ accepts every string in $A^*$.
+
+Conversely, take any accepting path in $N$. If it never leaves $q'_0$, its label is $\epsilon\in A^*$. Otherwise, cut the path at every added restart transition from an old final state to $q_0$. Each resulting segment starts at $q_0$, ends in a state of $F$, and uses only transitions of $M$, so its label belongs to $A$. A segment may be the length-zero accepting path when $q_0\in F$, in which case its label is $\epsilon\in A$. The full path label is the concatenation of these segment labels and thus belongs to $A^*$. So $N$ recognizes exactly $A^*$.
+
 
 ```{python}
-class FiniteStateAutomaton:
+class FiniteStateAutomaton(FiniteStateAutomaton):
     """A finite state automaton
 
     Parameters
@@ -186,7 +267,7 @@ class FiniteStateAutomaton:
     transition_graph
     """
 
-    def kleene_star(self)  -> 'FiniteStateAutomaton':
+    def kleene_star(self) -> FiniteStateAutomaton:
         """
         construct the kleene closure machine
 
@@ -202,12 +283,15 @@ class FiniteStateAutomaton:
             new_start += '_'
 
         new_states = fsa._states | {new_start}
-        new_final_states = {new_start}
+        new_final_states = fsa._final_states | {new_start}
 
         # Build new transitions: merge epsilon transitions from final
         # states back to the original start state, preserving any
         # existing epsilon transitions
-        new_graph = dict(fsa._transition_function.transition_graph)
+        new_graph = {
+            key: set(targets)
+            for key, targets in fsa._transition_graph.items()
+        }
 
         # New start state epsilon-transitions to the original start
         new_graph[(new_start, '')] = {fsa._initial_state}
@@ -224,4 +308,45 @@ class FiniteStateAutomaton:
         return FiniteStateAutomaton(fsa._alphabet - {''}, new_states,
                                     new_start, new_final_states,
                                     new_graph)
+```
+
+The tests below check zero powers, relabeling across machines, concatenation, and Kleene restart transitions.
+
+```{python}
+def accepts(machine: FiniteStateAutomaton, word: str) -> bool:
+    def epsilon_closure(states: set[str]) -> set[str]:
+        closure = set(states)
+        worklist = list(states)
+        while worklist:
+            state = worklist.pop()
+            for target in machine._transition_graph.get((state, ''), set()):
+                if target not in closure:
+                    closure.add(target)
+                    worklist.append(target)
+        return closure
+
+    current = epsilon_closure({machine._initial_state})
+    for symbol in word:
+        current = epsilon_closure({
+            target
+            for state in current
+            for target in machine._transition_graph.get((state, symbol), set())
+        })
+    return bool(current & machine._final_states)
+
+
+a_machine = FiniteStateAutomaton(
+    {'a'}, {'q0', 'q1'}, 'q0', {'q1'}, {('q0', 'a'): {'q1'}},
+)
+b_machine = FiniteStateAutomaton(
+    {'b'}, {'q0', 'q1'}, 'q0', {'q1'}, {('q0', 'b'): {'q1'}},
+)
+
+assert accepts(a_machine | b_machine, 'a')
+assert accepts(a_machine | b_machine, 'b')
+assert accepts(a_machine + b_machine, 'ab')
+assert not accepts(a_machine + b_machine, 'a')
+assert accepts(a_machine ** 0, '')
+assert accepts(a_machine.kleene_star(), '')
+assert accepts(a_machine.kleene_star(), 'aaa')
 ```

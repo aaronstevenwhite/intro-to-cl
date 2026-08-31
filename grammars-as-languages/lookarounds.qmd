@@ -9,12 +9,12 @@ In the previous section, we used groups and greediness to extract stems from wor
 #| code-fold: true
 #| code-summary: Load IPA representation of CMU Pronouncing Dictionary
 
-with open("cmudict-ipa") as f:
-    entries: list[tuple[str, str]] = [
-        l.strip().split(",") for l in f
+with open("cmudict-ipa", encoding="utf-8") as f:
+    entry_rows: list[list[str]] = [
+        line.strip().split(",", maxsplit=1) for line in f
     ]
     entries: dict[str, list[str]] = {
-        w: ipa.split() for w, ipa in entries
+        word: ipa.split() for word, ipa in entry_rows
     }
 ```
 
@@ -40,7 +40,7 @@ for w, ipa in entries.items():
             break
 ```
 
-The `(?=(?:eɪ)?ʃən$)` checks that what follows the current position is (optionally /eɪ/ and then) /ʃən/ at the end of the string—but it doesn't consume those characters. The capturing group `(.+?)` therefore gets exactly the stem, with none of the suffix leaking in. Compare this to the greediness-based approach from the previous section, where we had to think carefully about whether `.+` would swallow /eɪ/.
+The `(?=(?:eɪ)?ʃən$)` checks that what follows the current position is (optionally /eɪ/ and then) /ʃən/ at the end of the string—but it doesn't consume those characters. The capturing group `(.+?)` thus gets exactly the stem, with none of the suffix leaking in. Compare this to the greediness-based approach from the previous section, where we had to think carefully about whether `.+` would swallow /eɪ/.
 
 ## Negative lookahead
 
@@ -64,7 +64,7 @@ for w, ipa in entries.items():
             break
 ```
 
-These are words where /ʃ/ appears in contexts other than the /-ʃən/ suffix: initial /ʃ/ (as in *she*), medial /ʃ/ before other vowels (as in *fashion*), etc. The negative lookahead expresses the constraint "not followed by /ən/" directly. Without it, we would need to enumerate all the things /ʃ/ *can* be followed by, which is tedious and error-prone.
+These are words where /ʃ/ appears in contexts other than the /-ʃən/ suffix: initial /ʃ/ (as in *she*), medial /ʃ/ before other vowels (as in *machine*), etc. The negative lookahead expresses the constraint "not followed by /ən/" directly. Without it, we would need to enumerate all the things /ʃ/ *can* be followed by, which is tedious and error-prone.
 
 ## Lookbehind
 
@@ -103,15 +103,22 @@ The lookbehind checks the preceding context without consuming it, so we don't ne
 You can stack multiple lookarounds at the same position to express conjunctive constraints. Suppose we want to find all VCCV sequences in the lexicon—a vowel followed by two consonants and then another vowel. These sequences are relevant for syllabification, since the question of where the syllable boundary falls between the two consonants depends on properties like their relative sonority.
 
 ```{python}
-vowels = 'æəɑɔɛɝɪiʊu'
-consonants = 'bcdfghjklmnŋpɹstvwzðθʃʒ'
+vowels = {'ɑ', 'æ', 'ə', 'ʌ', 'ɔ', 'aʊ', 'aɪ', 'ɛ', 'ɝ', 'eɪ',
+          'ɪ', 'i', 'oʊ', 'ɔɪ', 'ʊ', 'u'}
+consonants = {'b', 'tʃ', 'd', 'ð', 'f', 'g', 'h', 'dʒ', 'k', 'l', 'm',
+              'n', 'ŋ', 'p', 'ɹ', 's', 'ʃ', 't', 'θ', 'v', 'w', 'j', 'z', 'ʒ'}
 
-regex_vccv = f'[{vowels}][{consonants}]{{2}}[{vowels}]'
+vowel_pattern = '(?:' + '|'.join(map(re.escape, sorted(vowels))) + ')'
+consonant_pattern = '(?:' + '|'.join(map(re.escape, sorted(consonants))) + ')'
+regex_vccv = (
+    f'{vowel_pattern} {consonant_pattern} '
+    f'{consonant_pattern} {vowel_pattern}'
+)
 
 n_matches = 0
 
 for w, ipa in entries.items():
-    joined = "".join(ipa)
+    joined = " ".join(ipa)
     matches = list(re.finditer(regex_vccv, joined))
     if matches:
         if n_matches < 10:
@@ -126,14 +133,18 @@ for w, ipa in entries.items():
 We can refine this with a lookahead: suppose we want only VCCV sequences where the second consonant is a stop (/p t k b d g/).
 
 ```{python}
-stops = 'ptkbdg'
+stops = {'p', 't', 'k', 'b', 'd', 'g'}
+stop_pattern = '(?:' + '|'.join(map(re.escape, sorted(stops))) + ')'
 
-regex_vcsv = f'[{vowels}][{consonants}](?=[{stops}][{vowels}])[{stops}][{vowels}]'
+regex_vcsv = (
+    f'{vowel_pattern} {consonant_pattern} '
+    f'(?={stop_pattern} {vowel_pattern}){stop_pattern} {vowel_pattern}'
+)
 
 n_matches = 0
 
 for w, ipa in entries.items():
-    joined = "".join(ipa)
+    joined = " ".join(ipa)
     matches = list(re.finditer(regex_vcsv, joined))
     if matches:
         if n_matches < 10:
@@ -146,4 +157,22 @@ for w, ipa in entries.items():
 
 ## Formal perspective
 
-I'm spending time on lookarounds partly because they're useful and partly because they're formally interesting: they don't increase the expressive power of regular expressions. A positive lookahead `(?=\rho)` at some position is equivalent to requiring that the remaining substring is in $\text{eval}(\rho) \circ \Sigma^*$—that is, it starts with something in $\text{eval}(\rho)$. A negative lookahead `(?!\rho)` requires the opposite. Since the regular languages are closed under intersection and complement (as we'll see when we study finite state automata), these positional assertions can always be expressed—much less compactly—using just the basic operations we defined at the beginning of this module, together with intersection and complement. Lookarounds, like quantifiers and character classes before them, are notational conveniences that don't extend the class of languages we can describe.
+So do lookarounds let us describe languages that ordinary regular expressions cannot? They do not. We can make this claim precise with a **split-point construction** (SPC).
+
+Fix arbitrary regular expressions $\alpha$, $\rho$, and $\beta$. We consider anchored, full-string matching of $\alpha(?=\rho)\beta$: $\alpha$ consumes a prefix, the assertion is checked at that split, and $\beta$ consumes the entire remainder. Write $A=\operatorname{eval}(\alpha)$, $R=\operatorname{eval}(\rho)$, and $B=\operatorname{eval}(\beta)$. A positive lookahead succeeds exactly when the unconsumed suffix begins with a member of $R$, that is, when the suffix belongs to $R\circ\Sigma^*$. The whole pattern thus describes
+
+$$A\circ\bigl(B\cap(R\circ\Sigma^*)\bigr).$$
+
+This is another use of [double inclusion](../languages-as-formal-objects/set-relations.qmd#equality-by-double-inclusion), which we used earlier to prove the correctness of the [regular-expression evaluator](evaluating-regular-expressions.qmd). The left side and right side of the displayed equation are both languages, so they are sets of strings. We prove that the languages are equal by showing that every string described by either side is also described by the other.
+
+For the first inclusion, suppose $w$ matches the lookahead pattern. Then there is a split $w=xy$ such that $x\in A$, $y\in B$, and the assertion guarantees $y\in R\circ\Sigma^*$. Hence $y$ belongs to the intersection and $w$ belongs to the displayed language. For the reverse inclusion, suppose $w$ belongs to the displayed language. Then $w=xy$ for some $x\in A$ and $y\in B\cap(R\circ\Sigma^*)$. The membership $y\in R\circ\Sigma^*$ says that $\rho$ matches a prefix of the suffix at the split, so the lookahead succeeds without consuming material; $\beta$ then consumes $y$. Thus, the original pattern matches $w$.
+
+Consider $\alpha=a^*$, $\rho=bc$, and $\beta=b\Sigma$, corresponding to the pattern `a*(?=bc)b.`. The string `aabc` has the split $\text{aa}\mid\text{bc}$: `aa` belongs to $A$, `bc` belongs to $B$, and `bc` belongs to $R\circ\Sigma^*$. The assertion succeeds and the full string is accepted. In contrast, `aabd` has the only full-match split $\text{aa}\mid\text{bd}$. The suffix `bd` belongs to $B$ but not to $bc\circ\Sigma^*$, so the assertion fails and the string is rejected.
+
+A negative lookahead reverses only the assertion. Its language is
+
+$$A\circ\bigl(B\cap\overline{R\circ\Sigma^*}\bigr),$$
+
+where the complement is taken relative to $\Sigma^*$. Positive lookbehind is symmetric: requiring the consumed prefix to end in $R$ replaces $A$ with $A\cap(\Sigma^*\circ R)$, and negative lookbehind uses the complement of that suffix condition.
+
+Regular languages are closed under concatenation, intersection, and complement. Every language in these constructions is thus regular. The SPC proves that lookarounds, like quantifiers and character classes before them, are notational conveniences rather than extensions of expressive power. For unanchored search, the construction must additionally allow arbitrary material before and after the matched span; the displayed equality itself is scoped to full matching.^[This formalization abstracts away from engine-specific features such as backreferences inside assertions, which need not remain regular.]

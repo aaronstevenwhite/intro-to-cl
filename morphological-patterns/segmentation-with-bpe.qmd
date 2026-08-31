@@ -6,168 +6,234 @@ execute:
   eval: false
 ---
 
-Before we can parse the morphological structure of a word, we need to know where the morpheme boundaries are. This is the *segmentation* problem: given a word like *unhappiness*, identify that it decomposes into *un*, *happi*, and *ness*.^[The alternation between *happy* and *happi* is a regular phonological process—one of the cases where morphology and phonology interact.]
+::: {.callout-tip}
+## Reading
 
-In this section, we'll look at [byte pair encoding](https://en.wikipedia.org/wiki/Byte_pair_encoding) (BPE), which was originally developed for data compression by @gage_new_1994 and later adapted for subword tokenization in NLP by @sennrich2016neural. Most modern large language models use BPE or a close relative to tokenize their input.
+@gage_new_1994 on byte pair encoding and @sennrich2016neural on its use for subword tokenization.
+:::
 
-## The BPE algorithm
+Before parsing a word, we need a sequence of terminals. How might we get that sequence without already knowing the morphemes? The **segmentation problem** takes a character string such as *unhappiness* and proposes a sequence such as $\langle\text{un},\text{happi},\text{ness}\rangle$.
 
-The intuition behind BPE is that frequently co-occurring characters should be merged into a single unit. If the characters *i*, *n*, and *g* appear together very often in the training data, BPE will eventually merge them into the single token *ing*—which, not coincidentally, is a productive English suffix. The algorithm doesn't know anything about morphology; it just tracks co-occurrence frequencies. But because morphemes are, by definition, recurrent meaningful units, frequency-based merging tends to recover morpheme-like chunks.
+Byte pair encoding (BPE) gives us an unsupervised baseline. It was introduced as a compression algorithm [@gage_new_1994] and later adapted to subword tokenization [@sennrich2016neural]. BPE has no representation of morphemes; it simply merges character sequences that recur in the training vocabulary.
 
-More precisely, BPE works by iteratively merging the most frequent pair of adjacent symbols. Starting from a vocabulary of individual characters, the algorithm repeatedly:
+## Learning merge rules
 
-1. Counts all pairs of adjacent symbols in the training data
-2. Merges the most frequent pair into a new symbol
-3. Repeats until a target vocabulary size is reached
-
-When applied to a morphological lexicon, the merges tend to recover morpheme-like units: frequent morphemes get merged early, while rare or compositional forms are left as sequences of smaller units.
+We begin with one symbol per character plus an end-of-word marker. At each iteration, we count adjacent symbol pairs, merge the most frequent pair, and update the vocabulary. The ordered merge list is the learned model.
 
 ```{python}
-#| code-fold: true
-#| code-summary: Learn BPE from a word list
-
 import re
 from collections import Counter
+from collections.abc import Collection, Sequence
 
-def learn_bpe(words: list[str], num_merges: int = 1000) -> list[tuple[str, str]]:
-    """Learn BPE merge operations from a word list.
+type Merge = tuple[str, str]
 
-    Parameters
-    ----------
-    words : list[str]
-        The training vocabulary.
-    num_merges : int, default 1000
-        The number of merge operations to learn.
+END_OF_WORD = "</w>"
 
-    Returns
-    -------
-    list[tuple[str, str]]
-        The learned merge pairs in order of application.
-    """
-    # Initialize vocabulary as character sequences
-    vocab = {}
-    for word in words:
-        chars = ' '.join(list(word)) + ' </w>'
-        vocab[chars] = vocab.get(chars, 0) + 1
 
-    merges = []
+def _validate_symbol_string(value: str, name: str) -> str:
+    """Require a nonempty string without whitespace."""
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a string")
+    if not value:
+        raise ValueError(f"{name} must be nonempty")
+    if any(character.isspace() for character in value):
+        raise ValueError(f"{name} must not contain whitespace")
+    return value
 
-    for i in range(num_merges):
-        # Count pairs
-        pairs = Counter()
-        for word, freq in vocab.items():
-            symbols = word.split()
-            for j in range(len(symbols) - 1):
-                pairs[(symbols[j], symbols[j+1])] += freq
 
-        if not pairs:
+def _validate_merge(merge: Merge) -> Merge:
+    """Validate one pair in a BPE merge sequence."""
+    if not isinstance(merge, tuple) or len(merge) != 2:
+        raise TypeError("each merge must be a pair of strings")
+    left, right = merge
+    return (
+        _validate_symbol_string(left, "left merge symbol"),
+        _validate_symbol_string(right, "right merge symbol"),
+    )
+
+
+def _validate_word(word: str) -> str:
+    """Require a word that cannot collide with the end marker."""
+    word = _validate_symbol_string(word, "word")
+    if END_OF_WORD in word:
+        raise ValueError(f"word must not contain {END_OF_WORD!r}")
+    return word
+
+
+def learn_bpe(
+    words: Collection[str],
+    number_of_merges: int = 1_000,
+) -> list[Merge]:
+    """Learn merges from a finite collection of whitespace-free words."""
+    if isinstance(words, (str, bytes)) or not isinstance(words, Collection):
+        raise TypeError("words must be a finite collection of strings")
+    if (
+        isinstance(number_of_merges, bool)
+        or not isinstance(number_of_merges, int)
+        or number_of_merges < 0
+    ):
+        raise ValueError("number_of_merges must be a nonnegative integer")
+
+    validated_words = [_validate_word(word) for word in words]
+    vocabulary: Counter[str] = Counter(
+        " ".join((*word, END_OF_WORD)) for word in validated_words
+    )
+    merges: list[Merge] = []
+
+    for _ in range(number_of_merges):
+        pair_counts: Counter[Merge] = Counter()
+        for encoded_word, frequency in vocabulary.items():
+            symbols = encoded_word.split()
+            for pair in zip(symbols, symbols[1:], strict=False):
+                pair_counts[pair] += frequency
+
+        if not pair_counts:
             break
 
-        # Find most frequent pair
-        best = max(pairs, key=pairs.get)
-        merges.append(best)
-
-        # Merge
-        new_vocab = {}
-        pattern = re.escape(' '.join(best))
-        replacement = ''.join(best)
-
-        for word, freq in vocab.items():
-            new_word = re.sub(pattern, replacement, word)
-            new_vocab[new_word] = freq
-
-        vocab = new_vocab
+        highest_count = max(pair_counts.values())
+        best_pair = min(
+            pair
+            for pair, count in pair_counts.items()
+            if count == highest_count
+        )
+        merges.append(best_pair)
+        pattern = re.compile(rf"(?<!\S){re.escape(' '.join(best_pair))}(?!\S)")
+        replacement = "".join(best_pair)
+        updated_vocabulary: Counter[str] = Counter()
+        for encoded_word, frequency in vocabulary.items():
+            updated = pattern.sub(replacement, encoded_word)
+            updated_vocabulary[updated] += frequency
+        vocabulary = updated_vocabulary
 
     return merges
 
 
-def apply_bpe(word: str, merges: list[tuple[str, str]]) -> list[str]:
-    """Segment a word using learned BPE merges.
+def apply_bpe(word: str, merges: Sequence[Merge]) -> list[str]:
+    """Apply ``merges`` to one word and return its segments."""
+    word = _validate_word(word)
+    if isinstance(merges, (str, bytes)) or not isinstance(merges, Sequence):
+        raise TypeError("merges must be a finite sequence of symbol pairs")
 
-    Parameters
-    ----------
-    word : str
-        The word to segment.
-    merges : list[tuple[str, str]]
-        The merge pairs to apply.
+    symbols = [*word, END_OF_WORD]
 
-    Returns
-    -------
-    list[str]
-        The subword segments.
-    """
-    symbols = list(word) + ['</w>']
-
-    for a, b in merges:
-        i = 0
-        while i < len(symbols) - 1:
-            if symbols[i] == a and symbols[i+1] == b:
-                symbols[i:i+2] = [a + b]
+    for merge in merges:
+        left_symbol, right_symbol = _validate_merge(merge)
+        index = 0
+        while index < len(symbols) - 1:
+            if symbols[index:index + 2] == [left_symbol, right_symbol]:
+                symbols[index:index + 2] = [left_symbol + right_symbol]
             else:
-                i += 1
+                index += 1
 
-    # Remove end-of-word marker
-    if symbols[-1] == '</w>':
-        symbols = symbols[:-1]
-    elif symbols[-1].endswith('</w>'):
-        symbols[-1] = symbols[-1][:-4]
-
+    if symbols[-1] == END_OF_WORD:
+        symbols.pop()
+    elif symbols[-1].endswith(END_OF_WORD):
+        symbols[-1] = symbols[-1].removesuffix(END_OF_WORD)
     return symbols
 ```
 
-## Training on a lexicon
-
-We train BPE on the CELEX lexicon (or any word list) to learn morpheme-like segmentation rules.
+The implementation uses spaces as delimiters in its internal serialization and reserves `</w>` as its end marker. Its **input contract** thus requires a finite, materialized collection of nonempty words containing neither whitespace nor that marker. `apply_bpe` takes a finite sequence of merges obeying the same symbol convention. Training and application call the same validators. A structured vocabulary of symbol tuples would be preferable if whitespace or `</w>` itself needed to be a symbol.
 
 ```{python}
-import pandas as pd
+try:
+    learn_bpe((word for word in ["cat", "cats"]))
+except TypeError:
+    pass
+else:
+    raise AssertionError("a possibly unbounded iterable must be rejected")
 
-# Load CELEX word list (or use a fallback)
-celex = pd.read_csv(
-    'celex/english/eml/eml.cd', sep='\\', header=None,
-    names=['IdNum', 'Head', 'MorphStatus', 'MorphCnt', 'StrucLab',
-           'MorphOp', 'StrucAllo', 'StrucLabAdj'],
-    encoding='latin-1'
-)
+for operation in (
+    lambda: learn_bpe(["two words"]),
+    lambda: learn_bpe(["</w>"]),
+    lambda: apply_bpe("two words", []),
+    lambda: apply_bpe("</w>", []),
+    lambda: apply_bpe("word", [("w ", "o")]),
+):
+    try:
+        operation()
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("invalid words and symbols must be rejected")
 
-words = celex.Head.dropna().unique().tolist()
-merges = learn_bpe(words, num_merges=5000)
-
-# Segment some test words
-test_words = ['unhappiness', 'unlockable', 'decoratorship', 'depublicize']
-
-for w in test_words:
-    segments = apply_bpe(w, merges)
-    print(f"{w:20s} → {' + '.join(segments)}")
+try:
+    learn_bpe(["word"], True)
+except ValueError:
+    pass
+else:
+    raise AssertionError("a Boolean is not a merge count")
 ```
 
-## Evaluation
+## Why ordered merging is correct
 
-To evaluate segmentation quality, we can compare the BPE output against the gold-standard morpheme boundaries in CELEX using the Jaccard similarity between the predicted and gold boundary sets.
+Why does `apply_bpe` return a segmentation of the original word rather than some new string? We need to establish two properties: it preserves the input word, and it applies each learned merge everywhere it can apply before proceeding to the next merge. The order matters because a later rule may mention a symbol created by an earlier one.
+
+Take a word and append `</w>`. At every merge stage, the **concatenation invariant** says that concatenating the current symbol list and removing the final end marker produces the original word. It holds initially because the list contains the characters of the word in order followed by `</w>`. One replacement changes adjacent symbols `left_symbol`, `right_symbol` into their concatenation `left_symbol + right_symbol`. Concatenating the whole list before and after this operation gives the same character sequence. Thus, every replacement preserves the invariant, and the returned segments concatenate to the input word.
+
+Now take one merge $(x,y)$. The inner loop maintains a **scan invariant**: before an iteration at `index`, every occurrence of the pair $(x,y)$ that began strictly to the left of `index` has been merged, and the symbols at or to the right of `index` retain their relative order. If the current pair matches, replacing its two symbols processes the leftmost remaining occurrence. The list becomes shorter, so rechecking the same index cannot skip a pair exposed at its right boundary. Nor can the replacement create a new occurrence at the left boundary: all symbols are nonempty, so the concatenation $xy$ equals neither $x$ nor $y$. If the pair does not match, advancing by one is safe because no occurrence begins at the old index. When the loop reaches the end, no unprocessed occurrence remains.
+
+This also proves termination. A successful iteration shortens the symbol list by one, while an unsuccessful iteration increases `index`; neither can happen indefinitely for a finite list. The outer loop contains finitely many learned merges. Hence, `apply_bpe` terminates after realizing the merge list in its specified order.
+
+Consider the word *unhappiness* and the illustrative merge list
+
+$$
+(u,n),\ (n,e),\ (ne,s),\ (nes,s).
+$$
+
+The symbol states are
+
+```text
+u n h a p p i n e s s </w>
+un  h a p p i n e s s </w>
+un  h a p p i ne  s s </w>
+un  h a p p i nes   s </w>
+un  h a p p i ness    </w>
+```
+
+The trace shows both invariants: no character changes position or disappears, and `ne`, `nes`, and `ness` become available only after the rules that construct their left-hand symbols have applied.
+
+Overlap supplies one boundary case. In `a a a`, the pair `(a, a)` begins at positions zero and one, but those occurrences share the middle symbol and cannot both be replaced in one pass. The left-to-right scan merges the first occurrence and produces `aa a`; this is the same leftmost, nonoverlapping replacement used when the rule is learned.
+
+The learning loop terminates for the same basic reason. If `pair_counts` is nonempty, the selected pair occurs at least once, and replacing it decreases the total number of symbols in the encoded vocabulary. If no adjacent pair remains, the explicit `break` stops learning; the requested merge bound supplies a second finite stopping condition.
+
+## Training on CELEX
+
+The model needs only a word-type vocabulary, not morphological annotations. CELEX contains both multiword lemmas and multiple lemma analyses for some spellings. Our BPE implementation treats whitespace as a boundary between training items, so we remove the multiword lemmas. We then collapse the remaining headwords to unique lowercase types. This prevents a homograph from receiving extra weight merely because CELEX assigns it several analyses. The implementation above recomputes the pair counts after every merge so that each step remains visible. We use 500 merges here to keep that pedagogical implementation runnable on the full CELEX vocabulary.
+
+```{python}
+import sys
+
+sys.path.insert(0, "_code")
+from celex import load_celex_entries
+
+entries = load_celex_entries("celex/english/eml/eml.cd")
+single_word_lemmas = [
+    entry.head.lower()
+    for entry in entries
+    if not any(character.isspace() for character in entry.head)
+]
+words = sorted(set(single_word_lemmas))
+merges = learn_bpe(words, 500)
+
+print(
+    f"Retained {len(words):,} unique word types from "
+    f"{len(single_word_lemmas):,} single-word CELEX analyses."
+)
+
+for word in ["unhappiness", "unlockable", "decoratorship"]:
+    print(f"{word:20s} → {' + '.join(apply_bpe(word, merges))}")
+```
+
+## Evaluating boundaries
+
+A segmentation of a word with $n$ characters can be represented as a subset of the $n-1$ internal boundary positions. We compare predicted and gold boundary sets with Jaccard similarity.
 
 ```{python}
 def boundary_jaccard(predicted: set[int], gold: set[int]) -> float:
-    """Compute Jaccard similarity between two sets of boundary positions.
-
-    Parameters
-    ----------
-    predicted : set[int]
-        The predicted boundary positions.
-    gold : set[int]
-        The gold-standard boundary positions.
-
-    Returns
-    -------
-    float
-        The Jaccard similarity (1.0 if both sets are empty).
-    """
-    pred_set = set(predicted)
-    gold_set = set(gold)
-    if not pred_set and not gold_set:
+    """Return Jaccard similarity between two boundary sets."""
+    if not predicted and not gold:
         return 1.0
-    return len(pred_set & gold_set) / len(pred_set | gold_set)
+    return len(predicted & gold) / len(predicted | gold)
 ```
 
-## Limitations
-
-BPE is frequency-based and greedy. It cannot capture hierarchical structure—it produces a flat sequence of subword units, not a parse tree. It also makes no use of linguistic knowledge: it treats morpheme boundaries the same as any other character boundary. For these reasons, BPE is best understood as a practical baseline. In the next section, we'll look at structured prediction methods that can incorporate richer features, and in the sections after that, we'll return to the context-free grammars developed earlier in this module to model hierarchical structure directly.
+BPE tends to recover frequent substrings, some of which coincide with morphemes. But its objective is compression, not morphological accuracy, and it produces a flat segmentation rather than a tree. The next model uses gold boundaries during training and predicts them jointly across the word.

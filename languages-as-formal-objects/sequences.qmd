@@ -21,9 +21,17 @@ $$\begin{Bmatrix}
 205 & \rightarrow & \text{d}\\
 \end{Bmatrix}$$
 
-We will generally assume that our sequences map the first $|S^{-1}(\Sigma)|$ natural numbers to $\Sigma$, because these "gappy" sequences can always be mapped to one where $S^{-1}(\Sigma) = \{0, ..., |S^{-1}(\Sigma)|-1\}$. But there are cases—one discussed below—where we don't necessarily want our sequences to start at 0.
+We will generally assume that a finite sequence maps the first $|S^{-1}(\Sigma)|$ natural numbers to $\Sigma$. But why can we close the gaps without losing the original order? Every finite "gappy" sequence has an order-preserving reindexing with domain $\{0,\ldots,|S^{-1}(\Sigma)|-1\}$.
 
-Functions can be represented as sets of pairs and therefore sequences can be too.
+To construct this reindexing, start with a finite sequence $S$ and list its domain in increasing order:
+
+$$S^{-1}(\Sigma)=\{n_0<n_1<\cdots<n_{k-1}\}.$$
+
+Define the **gap-closing map** $r:\{0,\ldots,k-1\}\to S^{-1}(\Sigma)$ by $r(i)=n_i$, and define $S'=S\circ r$. The map $r$ is injective because two positions in the increasing list cannot name the same natural number. It is surjective because every member of the domain occurs somewhere in that list. Thus, $r$ is a bijection. And for every $i<k$, $S'(i)=S(n_i)$, so $S'$ retains the values of $S$ in their original order.
+
+For the gappy sequence above, $r(0)=0$, $r(1)=1$, and $r(2)=205$. The reindexed sequence is thus $\langle\text{d},\text{u},\text{d}\rangle$. This construction justifies the no-gaps convention for finite sequences. But there are cases—one discussed below—where we don't necessarily want our sequences to start at 0.
+
+Functions can be represented as sets of pairs, and thus sequences can be too.
 
 $$S = \{\langle 0, \text{d} \rangle, \langle 1, \text{u} \rangle, \langle 2, \text{d} \rangle\} \subseteq \mathbb{N}\times \Sigma$$
 
@@ -31,13 +39,25 @@ We often denote the $i^{th}$ element of a sequence using a subscript rather than
 
 $$s_i \equiv S(i)$$
 
-This notation should remind you of the notation we use for indexing tuples. This is no coincidence: we can always map a sequence $S$ to a $|S^{-1}(\Sigma)|$-tuple $\mathbf{s}$ without losing any information. That is, we can map sequences to elements of $\Sigma^{|S^{-1}(\Sigma)|}$.
+This notation should remind you of the notation we use for indexing tuples. This is no coincidence. So how do we turn a finite sequence $S$ into a $|S^{-1}(\Sigma)|$-tuple $\mathbf{s}$ without losing any information? We map finite sequences to elements of $\Sigma^{|S^{-1}(\Sigma)|}$.
 
-$$\mathrm{func2tuple}(S, i) = \begin{cases}\langle S(i), \mathrm{func2tuple}(S, i+1) \rangle & \text{if } i + 1 \in S^{-1}(\Sigma) \\
-S(i) & \text{otherwise}
-           \end{cases}$$
+For a gapless sequence with domain $\{0,\ldots,k-1\}$, define
+
+$$
+\operatorname{func2tuple}(S,i,k)=
+\begin{cases}
+\langle\rangle & \text{if }i=k,\\
+\langle S(i)\rangle & \text{if }i=k-1,\\
+\langle S(i),\operatorname{func2tuple}(S,i+1,k)\rangle
+& \text{if }i<k-1.
+\end{cases}
+$$
+
+The conversion is $\operatorname{func2tuple}(S,0,k)$. In particular, when $k=0$, it returns the empty tuple without attempting to evaluate the undefined value $S(0)$.
 
 And as we saw, we can always flatten these elements of $\Sigma^{|S^{-1}(\Sigma)|}$ to $|S^{-1}(\Sigma)|$-tuples. Because of this, we (often) implement sequences in Python using `list`s and `tuple`s, though we can implement them using `dict`s as well.
+
+The information-preservation claim has two directions. First, fix an arbitrary gapless sequence $S$ with domain $\{0,\ldots,k-1\}$. The tuple $\langle S(0),\ldots,S(k-1)\rangle$ records the value of $S$ at every point in its domain, so two distinct sequences cannot produce the same tuple. This also covers $k=0$: there is one empty function and it maps to the one empty tuple. Second, fix an arbitrary tuple $\mathbf{s}=\langle s_0,\ldots,s_{k-1}\rangle\in\Sigma^k$. Define $S_{\mathbf{s}}(i)=s_i$ for each $i<k$. This is a sequence with the required domain, and converting it back to a tuple returns $\mathbf{s}$. Thus, the conversion is both injective and surjective. Finite gapless sequences on $\Sigma$ and tuples in $\Sigma^k$ are two representations of the same ordered information.
 
 ```{python}
 x = ["d", "u", "d"]
@@ -46,4 +66,3 @@ z = {0: "d",
      1: "u",
      2: "d"}
 ```
-

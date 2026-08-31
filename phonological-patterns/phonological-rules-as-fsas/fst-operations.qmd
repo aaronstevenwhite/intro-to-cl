@@ -1,143 +1,124 @@
 ---
-title: Operations on Finite State Transducers
+title: Operations on finite state transducers
 bibliography: ../../references.bib
 ---
 
-## Operations on FSTs
+Which FSA operations still work for FSTs, and which new operations do two-tape paths make possible? Union, concatenation, and Kleene closure combine paths much as they do for FSAs. Projection, inversion, and composition instead use the fact that every path has two labels.
 
-As with finite state automata, finite state transducers support various operations that allow us to build complex transducers from simpler ones. These operations are fundamental for implementing phonological rules and their interactions. However, the algebraic properties of FSTs differ in important ways from those of FSAs.
+## The regular operations
 
-### Basic Operations
+Suppose that $T_1$ and $T_2$ describe relations $R_1 \subseteq \Sigma_1^* \times \Gamma_1^*$ and $R_2 \subseteq \Sigma_2^* \times \Gamma_2^*$.
 
-FSTs support several operations that parallel those available for FSAs:
+The **union** $T_1 \cup T_2$ describes $R_1 \cup R_2$. As with FSAs, we relabel the states to make the two state sets disjoint, add a new initial state, and connect it to the two old initial states with $\epsilon:\epsilon$ transitions.
 
-1. **Union**: Given two FSTs $T_1 = \langle Q_1, \Sigma_1, \Gamma_1, \delta_1, q_1, F_1 \rangle$ and $T_2 = \langle Q_2, \Sigma_2, \Gamma_2, \delta_2, q_2, F_2 \rangle$, we can construct an FST $T = T_1 \cup T_2$ that recognizes the union of the relations recognized by $T_1$ and $T_2$. The construction is similar to the one for FSAs:
+The **concatenation** $T_1T_2$ describes the relation
 
-   - Create a new initial state $q_0$
-   - Add epsilon transitions from $q_0$ to the initial states of both $T_1$ and $T_2$
-   - The resulting FST recognizes the relation $\mathbb{R}(T_1) \cup \mathbb{R}(T_2)$
+$$
+R_1R_2 = \{\langle x_1x_2,y_1y_2\rangle \mid
+  \langle x_1,y_1\rangle \in R_1 \land
+  \langle x_2,y_2\rangle \in R_2\}.
+$$
 
-2. **Concatenation**: Given two FSTs $T_1$ and $T_2$, we can construct an FST $T = T_1 \circ T_2$ that recognizes the concatenation of the relations recognized by $T_1$ and $T_2$. The construction involves:
+We construct it by connecting each final state of $T_1$ to the initial state of $T_2$ with an $\epsilon:\epsilon$ transition. The **Kleene closure** $T^*$ then describes any finite concatenation of pairs from $\mathbb{R}(T)$, including $\langle\epsilon,\epsilon\rangle$.
 
-   - Adding epsilon transitions from all final states of $T_1$ to the initial state of $T_2$
-   - The resulting FST recognizes pairs $(xy, uv)$ where $(x, u) \in \mathbb{R}(T_1)$ and $(y, v) \in \mathbb{R}(T_2)$
+Thus, the rational relations are closed under union, concatenation, and Kleene closure. This is why the class is called *rational*: it is obtained by applying the regular operations to finite sets of string pairs [@kaplan1994regular].
 
-3. **Kleene Star**: Given an FST $T$, we can construct an FST $T^*$ that recognizes the Kleene star of the relation recognized by $T$. The construction involves:
+## Projection and inversion
 
-   - Creating a new initial state $q_0$ that is also a final state
-   - Adding epsilon transitions from $q_0$ to the initial state of $T$
-   - Adding epsilon transitions from all final states of $T$ to $q_0$
-   - The resulting FST recognizes pairs $(x_1...x_n, y_1...y_n)$ where each $(x_i, y_i) \in \mathbb{R}(T)$
+The **input projection** $\pi_1(T)$ removes the output labels from $T$; the **output projection** $\pi_2(T)$ removes the input labels. Each projection is an FSA.
 
-### Projection Operations
+$$
+\begin{aligned}
+\mathbb{L}(\pi_1(T)) &= \{x \mid \exists y\;\langle x,y\rangle \in \mathbb{R}(T)\} \\
+\mathbb{L}(\pi_2(T)) &= \{y \mid \exists x\;\langle x,y\rangle \in \mathbb{R}(T)\}
+\end{aligned}
+$$
 
-A unique operation for FSTs is projection, which allows us to extract the input or output language of a transducer:
+Both languages are thus regular. Projection gives us a useful test: if a proposed transduction has a nonregular input or output projection, no FST can describe it [@kaplan1994regular].
 
-1. **Input Projection**: Given an FST $T$, the input projection $\pi_1(T)$ is an FSA that recognizes the set of all input strings that appear in the relation $\mathbb{R}(T)$:
-   
-   $$\mathbb{L}(\pi_1(T)) = \{x \mid \exists y: (x, y) \in \mathbb{R}(T)\}$$
+The projection claim follows directly from paths. Take any accepting path in $T$. Erasing the output label on each transition leaves a path through the same states whose label is the path's input string. Thus, every input paired by $T$ is accepted by $\pi_1(T)$. Conversely, every accepting path in $\pi_1(T)$ came from a path in $T$; restoring its output labels supplies some paired output string. These two directions prove the first equality above. The proof for $\pi_2(T)$ is identical with the tapes reversed.
 
-2. **Output Projection**: Similarly, the output projection $\pi_2(T)$ is an FSA that recognizes the set of all output strings:
-   
-   $$\mathbb{L}(\pi_2(T)) = \{y \mid \exists x: (x, y) \in \mathbb{R}(T)\}$$
+The **inverse** $T^{-1}$ swaps the labels on every transition.
 
-The projection operations are useful for analyzing the input and output languages of a transducer independently.
+$$
+\mathbb{R}(T^{-1}) = \{\langle y,x\rangle \mid \langle x,y\rangle \in \mathbb{R}(T)\}
+$$
 
-### Limitations and Special Cases
+If $T$ maps underlying forms to surface forms, $T^{-1}$ relates those surface forms to their possible underlying analyses. Inversion preserves rationality, though the inverse of a functional transducer need not be functional [@kaplan1994regular].
 
-Unlike FSAs, FSTs are not closed under all operations. In particular:
+Here too the proof is path by path. A path labeled $x:y$ in $T$ has the same sequence of states and is labeled $y:x$ after every transition label is swapped. Swapping twice restores the original path, so the correspondence works in both directions.
 
-1. **Complement**: FSTs are not closed under complement. Given an FST $T$, there is no general construction for an FST that recognizes the complement of the relation $\mathbb{R}(T)$.
+## Composition
 
-2. **Intersection**: FSTs are not closed under intersection. Given FSTs $T_1$ and $T_2$, there is no general construction for an FST that recognizes the intersection of the relations $\mathbb{R}(T_1)$ and $\mathbb{R}(T_2)$.
+Concatenation places two input-output pairs next to one another. **Composition** instead feeds the output of one relation into the input of another. If
 
-These limitations have important implications for phonological modeling, as they constrain the ways in which we can combine transducers to express complex rules.
+$$
+R_1 \subseteq \Sigma^* \times \Gamma^*
+\qquad\text{and}\qquad
+R_2 \subseteq \Gamma^* \times \Delta^*,
+$$
 
-## Composition of FSTs
+then
 
-One of the most powerful operations on FSTs is composition, which allows us to chain transductions together. Given FSTs $T_1: \Sigma^* \rightarrow \Gamma^*$ and $T_2: \Gamma^* \rightarrow \Delta^*$, we can construct the composition $T = T_1 \circ T_2: \Sigma^* \rightarrow \Delta^*$.
+$$
+R_2 \circ R_1 = \{\langle x,z\rangle \mid
+  \exists y\;[\langle x,y\rangle \in R_1 \land
+             \langle y,z\rangle \in R_2]\}.
+$$
 
-### Formal Definition
+The notation follows ordinary function composition: $R_1$ applies first and $R_2$ applies second. A transducer for $R_2 \circ R_1$ has product states $Q_1 \times Q_2$. Its transitions pair a transition in $T_1$ with a transition in $T_2$ whenever the output label of the first matches the input label of the second [@kaplan1994regular; @mohri_weighted_2002].
 
-The composition of two relations $R_1 \subseteq A \times B$ and $R_2 \subseteq B \times C$ is defined as:
+Why does the product construction work? First suppose there are no epsilon labels. The **product-state invariant** is:
 
-$$R_1 \circ R_2 = \{(a, c) \mid \exists b \in B: (a, b) \in R_1 \land (b, c) \in R_2\}$$
+> After reaching $(q_1,q_2)$, the first transducer has read some $x$ and produced some $y$, while the second has read that same $y$ and produced some $z$.
 
-For FSTs, this means that the relation recognized by $T_1 \circ T_2$ is:
+The initial pair satisfies the invariant with three empty strings. A product transition may advance only when the intermediate labels match, so it extends both copies of $y$ by the same symbol. It also appends the first transition's input to $x$ and the second transition's output to $z$. Thus, every transition preserves the invariant.
 
-$$\mathbb{R}(T_1 \circ T_2) = \{(x, z) \mid \exists y: (x, y) \in \mathbb{R}(T_1) \land (y, z) \in \mathbb{R}(T_2)\}$$
+If the product reaches a pair of final states, it has found paths $x:y$ in $T_1$ and $y:z$ in $T_2$, so $\langle x,z\rangle\in R_2\circ R_1$. This proves soundness. Conversely, suppose such paths exist. Pair their first transitions, then their second transitions, and so on. Their intermediate strings are identical, so every required product transition exists, and the product accepts $x:z$. This proves completeness for the epsilon-free case.
 
-### Construction Algorithm
+Epsilon labels make this construction less direct. One transducer may need to advance while the other remains in place, and an implementation must avoid generating the same composed path by arbitrarily many interleavings of epsilon transitions. Epsilon transitions thus require special handling [@mohri_weighted_2002]. Standard composition algorithms handle the interleavings with an epsilon filter [@gorman_finite-state_2021].
 
-To construct the composition of two FSTs $T_1 = \langle Q_1, \Sigma, \Gamma, \delta_1, q_1, F_1 \rangle$ and $T_2 = \langle Q_2, \Gamma, \Delta, \delta_2, q_2, F_2 \rangle$, we create a new FST $T = \langle Q, \Sigma, \Delta, \delta, q_0, F \rangle$ where:
+::: {.callout-caution}
+## Question
 
-1. $Q = Q_1 \times Q_2$ (the Cartesian product of the state sets)
-2. $q_0 = (q_1, q_2)$ (the pair of initial states)
-3. $F = F_1 \times F_2$ (pairs of final states)
-4. $\delta$ is defined as follows:
-   
-   $$\delta((p_1, p_2), \sigma) = \{((q_1, q_2), \gamma) \mid \exists \tau \in \Gamma \cup \{\epsilon\}: (q_1, \tau) \in \delta_1(p_1, \sigma) \land (q_2, \gamma) \in \delta_2(p_2, \tau)\}$$
+Let $T_1$ map /kæt+z/ to /kætz/, and let $T_2$ map /tz/ to [ts]. Which composition maps /kæt+z/ to [kæts]?
+:::
 
-This construction effectively runs the two transducers in series, feeding the output of the first transducer as input to the second.
+::: {.callout-tip collapse=true}
+## Answer
 
-### Handling Epsilon Transitions
+$T_2 \circ T_1$. The intermediate string /kætz/ is the output of $T_1$ and the input of $T_2$.
+:::
 
-The handling of epsilon transitions in composition requires special care. There are four cases to consider:
+## Operations that do not preserve rationality
 
-1. Input symbol $\sigma \neq \epsilon$, intermediate symbol $\tau \neq \epsilon$: $T_1$ reads $\sigma$ and outputs $\tau$; $T_2$ reads $\tau$ and outputs $\gamma$.
-2. Input symbol $\sigma \neq \epsilon$, intermediate symbol $\tau = \epsilon$: $T_1$ reads $\sigma$ and outputs $\epsilon$; $T_2$ does not advance.
-3. Input symbol $\sigma = \epsilon$, intermediate symbol $\tau \neq \epsilon$: $T_1$ outputs $\tau$ without reading input; $T_2$ reads $\tau$.
-4. Input symbol $\sigma = \epsilon$, intermediate symbol $\tau = \epsilon$: both $T_1$ and $T_2$ take epsilon transitions. This case requires an *epsilon filter* [@mohri2009weighted] to prevent infinite loops—without it, both transducers could cycle through epsilon transitions indefinitely. The standard approach introduces a three-valued filter state that tracks which transducer is "allowed" to take an epsilon transition, ensuring that the two transducers alternate their epsilon moves.
+Rational relations are not closed under intersection or complement. This is an important difference between FSTs and FSAs [@kaplan1994regular].
 
-The composition algorithm must account for all four cases to ensure that the resulting transducer correctly implements the composed relation.
+We prove the intersection result with two concrete relations:
 
-### Example: Composing Phonological Rules
+$$
+\begin{aligned}
+R_1 &= \{\langle a^n,b^nc^m\rangle\mid n,m\geq0\},\\
+R_2 &= \{\langle a^n,b^mc^n\rangle\mid n,m\geq0\}.
+\end{aligned}
+$$
 
-In phonology, composition is especially useful for modeling ordered rule application. For example, given two phonological rules represented as FSTs:
+Both are rational. A transducer for $R_1$ loops on $a:b$ and then on $\epsilon:c$. A transducer for $R_2$ first loops on $\epsilon:b$ and then on $a:c$.
 
-1. $T_1$: Implement vowel harmony (e.g., Turkish)
-2. $T_2$: Implement consonant alternation (e.g., Turkish k → ğ between vowels)
+Now fix a pair in their intersection. Its input must be $a^n$ in both relations. In $R_1$, this forces exactly $n$ copies of $b$ in the output. In $R_2$, it forces exactly $n$ copies of $c$. Thus,
 
-We can compose them to create an FST that applies both rules in sequence:
+$$
+R_1\cap R_2=\{\langle a^n,b^nc^n\rangle\mid n\geq0\}.
+$$
 
-$$T = T_1 \circ T_2$$
+The output projection is $\{b^nc^n\mid n\geq0\}$, which is nonregular by the pumping-lemma argument from the preceding section. If the intersection were rational, that projection would have to be regular. We have reached a contradiction, so rational relations are not closed under intersection.
 
-For example, applying this to "çiçek+E" (flower+DAT) would first apply vowel harmony to yield "çiçek+e", then apply consonant alternation to yield "çiçeğe".
+The complement result now follows from this one. Suppose rational relations were closed under complement relative to the universal relation over the fixed input and output alphabets. They are already closed under union. De Morgan's law would then give
 
-## Inversion of FSTs
+$$
+R_1\cap R_2=\overline{\overline{R_1}\cup\overline{R_2}},
+$$
 
-Another important operation on FSTs is inversion, which swaps the input and output labels on all transitions.
+making them closed under intersection. The explicit counterexample shows that this consequence is false. Thus, complement cannot be a general FST operation either.
 
-### Formal Definition
-
-Given an FST $T$ that recognizes a relation $\mathbb{R}(T) \subseteq \Sigma^* \times \Gamma^*$, the inverse transducer $T^{-1}$ recognizes the relation:
-
-$$\mathbb{R}(T^{-1}) = \{(y, x) \mid (x, y) \in \mathbb{R}(T)\}$$
-
-### Construction Algorithm
-
-To construct the inverse of an FST $T = \langle Q, \Sigma, \Gamma, \delta, q_0, F \rangle$, we create a new FST $T^{-1} = \langle Q, \Gamma, \Sigma, \delta^{-1}, q_0, F \rangle$ where:
-
-$$\delta^{-1}(q, \gamma) = \{(p, \sigma) \mid (p, \gamma) \in \delta(q, \sigma)\}$$
-
-This simply swaps the input and output labels on all transitions.
-
-### Applications in Phonology
-
-Inversion is particularly useful in phonology for:
-
-1. **Bidirectional Analysis**: Converting a generation FST (UR → SR) into an analysis FST (SR → UR)
-2. **Rule Interaction**: Finding the inverse image of a surface form under a set of phonological rules
-3. **Testing**: Verifying the correctness of a phonological analysis by checking if $T \circ T^{-1} \circ T = T$
-
-## Conclusions and Practical Considerations
-
-The operations on FSTs provide a powerful toolkit for computational phonology. By combining these operations, we can:
-
-1. Build complex phonological grammars from simple rules
-2. Model rule ordering and interactions
-3. Analyze the properties of phonological systems
-
-However, some operations on FSTs can lead to significant increases in size and complexity. In particular, composition can cause "state explosion" when the intermediate language is complex. Advanced techniques such as lazy evaluation and minimization are often necessary to make these operations practical for real-world phonological analyses.
-
-In the next section, we'll explore algorithms for parsing and transduction with FSTs, which provide the computational foundation for applying these transducers to linguistic data.
+These nonclosure results apply to arbitrary rational relations. Tighter subclasses must be considered separately. For instance, $p$-subsequential transductions are closed under composition and union [@mohri_fst_1997]. We will keep the general case separate from such special cases.

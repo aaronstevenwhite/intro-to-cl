@@ -1,872 +1,252 @@
 ---
 title: Top-down parsing with Earley
 bibliography: ../references.bib
+jupyter: python3
 ---
 
-In the previous section, we explored the CKY algorithm, a bottom-up parsing approach for context-free grammars. Now, we'll examine the [Earley algorithm](https://en.wikipedia.org/wiki/Earley_parser) [@earley_efficient_1970], which is a top-down parsing method that combines the advantages of both top-down and bottom-up approaches.
+::: {.callout-tip}
+## Reading
 
-Unlike CKY, which requires the grammar to be in Chomsky Normal Form, the Earley algorithm can work with any context-free grammar. This flexibility makes it particularly useful for morphological analysis, where the natural expression of morphological rules might not conform to CNF.
+@earley_efficient_1970 and @jurafsky_speech_2023[Ch. 18] on Earley parsing.
+:::
 
-## Top-Down vs. Bottom-Up Parsing
+CKY begins with the terminals and builds larger constituents. But what if we do not want to convert the grammar to Chomsky Normal Form first? The **Earley algorithm** combines bottom-up evidence with top-down predictions about which rules may apply, and it operates directly on rules of arbitrary length.
 
-Before diving into the Earley algorithm, let's briefly compare top-down and bottom-up parsing approaches:
+## Dotted rules
 
-**Bottom-Up Parsing (e.g., CKY):**
-- Starts with the input and builds larger constituents
-- Works well with grammars in normal forms
-- Typically more efficient for highly ambiguous grammars
-- May do unnecessary work on strings not in the language
+An Earley item has the form
 
-**Top-Down Parsing:**
-- Starts with the start symbol and tries to derive the input
-- More intuitive for tracing the derivation process
-- Can incorporate contextual constraints more easily
-- May get stuck in loops with left-recursive grammars
+$$[A\rightarrow\alpha\bullet\beta,i,j].$$
 
-The Earley algorithm combines the strengths of both approaches by using a top-down prediction strategy but avoiding redundant work through dynamic programming techniques similar to those used in CKY. Like CKY, Earley runs in $O(n^3)$ time in the worst case (for arbitrary CFGs). But for *unambiguous* grammars—grammars where each string has at most one parse tree—it runs in $O(n^2)$, and for many practically useful grammar classes it is effectively linear. This makes it a good choice when the grammar is not in CNF and ambiguity is moderate.
+It states that the parser began expanding $A$ at position $i$, has recognized $\alpha$ through position $j$, and still expects $\beta$. The dot records progress through the rule.
 
-## Dotted Rules
+For instance,
 
-The key concept in the Earley algorithm is the "dotted rule" (also called an "Earley item"). A dotted rule is a context-free rule with a dot (•) inserted somewhere on the right-hand side to indicate how much of the rule has been recognized so far.
+$$[N\rightarrow \text{Prefix}\;\bullet\;\text{Adjective}\;\text{Suffix},0,1]$$
 
-For example, if we have the rule `N -> Adj Suffix`, we can have the following dotted rules:
-- `N -> • Adj Suffix` (nothing recognized yet)
-- `N -> Adj • Suffix` (Adj recognized, Suffix expected)
-- `N -> Adj Suffix •` (everything recognized)
+states that a `Prefix` spanning $[0,1]$ has been recognized and that an `Adjective` followed by a `Suffix` is still required.
 
-Dotted rules also track their span (the portion of the input they cover) and any backpointers needed for reconstructing the parse tree.
+We can represent the item directly. Python's `typing.Self` type marks `advance` as returning an instance of the same class.
 
-### Earley Algorithm Pseudocode
+```{python}
+from dataclasses import dataclass
+from typing import Self
 
-```
-function Earley(grammar, input):
-    n = length(input)
-    
-    # Initialize the chart (n+1 sets of dotted rules)
-    chart = new Array[n+1]
-    for i = 0 to n:
-        chart[i] = new Set()
-    
-    # Initialize chart[0] with dotted rules for the start symbol
-    for each rule S -> γ in grammar (where S is the start symbol):
-        add (S -> • γ, 0) to chart[0]
-    
-    # Fill in the chart
-    for i = 0 to n:
-        for each state (A -> α • β, j) in chart[i]:
-            if β is not empty:
-                if β starts with a terminal symbol a:
-                    if i < n and input[i] = a:  # Scan
-                        add (A -> α a • β', j) to chart[i+1]
-                else if β starts with a non-terminal B:  # Predict
-                    for each rule B -> γ in grammar:
-                        add (B -> • γ, i) to chart[i]
-            else:  # Complete
-                for each state (C -> δ • A ζ, k) in chart[j]:
-                    add (C -> δ A • ζ, k) to chart[i]
-        
-        # Continue processing chart[i] until no more items can be added
-        repeat until chart[i] doesn't change:
-            apply Predict and Complete operations to all items in chart[i]
-    
-    # Check if the start symbol can derive the entire input
-    return any item (S -> γ •, 0) in chart[n] where S is the start symbol
-```
 
-## Implementation Classes
+@dataclass(frozen=True, slots=True)
+class EarleyItem:
+    """A dotted CFG rule over one input span."""
 
-Let's define the key classes for our Earley parser:
-
-```python
-class DottedRule(Rule):
-    """A rule with a dot indicating parsing progress (an Earley item).
-
-    Parameters
-    ----------
-    rule : Rule
-        The underlying grammar rule.
-    span : SpanIndices
-        The (start, end) positions in the input.
-    dot : int, default 0
-        The position of the dot in the right-hand side.
-
-    Attributes
-    ----------
-    span : SpanIndices
-        The (start, end) positions.
-    dot : int
-        The dot position.
-    is_complete : bool
-        Whether the dot is at the end.
-    left_side : str
-        The left-hand side of the underlying rule.
-    """
-
-    def __init__(self, rule: Rule, span: SpanIndices, dot: int = 0):
-        self._rule = rule
-        self._left_side = rule.left_side
-        self._right_side = rule.right_side
-
-        self._span = span
-        self._dot = dot
-
-    def to_tuple(self) -> tuple[Rule, SpanIndices, int]:
-        """Return a hashable tuple representation.
-
-        Returns
-        -------
-        tuple[Rule, SpanIndices, int]
-            The rule, span, and dot position.
-        """
-        return self._rule, self._span, self._dot
-
-    def __hash__(self) -> int:
-        return hash(self.to_tuple())
-
-    def __eq__(self, other: 'DottedRule') -> bool:
-        return self.to_tuple() == other.to_tuple()
-
-    def __repr__(self) -> str:
-        """Return a string showing the dot position and span."""
-        return (self._left_side + ' -> ' +
-                ' '.join(self._right_side[:self._dot]) +
-                ' . ' +
-                ' '.join(self._right_side[self._dot:]) +
-                ' [' + str(self._span[0]) + ', ' + str(self._span[1]) + ']')
-
-    def complete(self, new_left_edge: int) -> 'DottedRule':
-        """Advance the dot past the next symbol.
-
-        Parameters
-        ----------
-        new_left_edge : int
-            The new right edge of the span.
-
-        Returns
-        -------
-        DottedRule
-            A new dotted rule with the dot advanced.
-        """
-        dot = self._dot + 1
-        span = (self._span[0], new_left_edge)
-
-        return DottedRule(self._rule, span, dot)
+    left_side: str
+    right_side: tuple[str, ...]
+    dot: int
+    origin: int
+    position: int
 
     @property
-    def next_symbol(self) -> str:
-        """The symbol immediately after the dot.
+    def is_complete(self) -> bool:
+        """Whether the dot follows the entire right side."""
+        return self.dot == len(self.right_side)
 
-        Raises
-        ------
-        AttributeError
-            If the dotted rule is already complete.
-        """
+    @property
+    def next_symbol(self) -> str | None:
+        """The symbol after the dot, if one remains."""
         if self.is_complete:
-            raise AttributeError('dotted rule is already complete')
-        else:
-            return self._right_side[self._dot]
+            return None
+        return self.right_side[self.dot]
 
-    @property
-    def dot(self) -> int:
-        """The dot position in the right-hand side."""
-        return self._dot
-
-    @property
-    def span(self) -> SpanIndices:
-        """The (start, end) positions in the input."""
-        return self._span
-
-    @property
-    def is_complete(self) -> bool:
-        """Whether the dot has reached the end of the right-hand side."""
-        return self._dot == len(self._right_side)
-
-    @property
-    def left_side(self) -> str:
-        """The left-hand side of the underlying rule."""
-        return self._rule.left_side
+    def advance(self, position: int) -> Self:
+        """Return an item with the dot advanced by one symbol."""
+        if self.is_complete:
+            raise ValueError("cannot advance a complete item")
+        return type(self)(
+            left_side=self.left_side,
+            right_side=self.right_side,
+            dot=self.dot + 1,
+            origin=self.origin,
+            position=position,
+        )
 ```
 
-```python
-type EarleyBackPointer = tuple[str, int]
+## Predict, scan, and complete
 
-class EarleyChartEntry(ChartEntry):
-    """A chart entry for an Earley chart.
+Earley parsing repeatedly applies three operations.
 
-    Parameters
-    ----------
-    dotted_rule : DottedRule
-        The dotted rule for this entry.
-    *backpointers : EarleyBackPointer
-        Pairs of (symbol, position) for reconstructing parses.
+**Predict** expands a variable after the dot. If $B$ is next, then every rule with $B$ on the left may begin at the current position.
 
-    Attributes
-    ----------
-    dotted_rule : DottedRule
-        The dotted rule.
-    backpointers : tuple[EarleyBackPointer, ...]
-        The backpointers.
-    span : SpanIndices
-        The span of input covered.
-    is_complete : bool
-        Whether the dotted rule is complete.
-    """
+$$
+\frac{[A\rightarrow\alpha\bullet B\beta,i,j]}
+     {[B\rightarrow\bullet\gamma,j,j]}
+\quad B\rightarrow\gamma\in R
+$$
 
-    def __init__(self, dotted_rule: DottedRule, *backpointers: EarleyBackPointer):
-        self._dotted_rule = dotted_rule
-        self._backpointers = backpointers
+**Scan** matches a terminal after the dot against the next input symbol.
 
-    def to_tuple(self) -> tuple[DottedRule, tuple[EarleyBackPointer, ...]]:
-        """Return a hashable tuple representation.
+$$
+\frac{[A\rightarrow\alpha\bullet a\beta,i,j]}
+     {[A\rightarrow\alpha a\bullet\beta,i,j+1]}
+\quad a=\sigma_j
+$$
 
-        Returns
-        -------
-        tuple[DottedRule, tuple[EarleyBackPointer, ...]]
-            The dotted rule and backpointers.
-        """
-        return self._dotted_rule, self._backpointers
+**Complete** uses a finished constituent to advance every item that was waiting for it at the constituent's origin.
 
-    def __hash__(self) -> int:
-        return hash(self.to_tuple())
+$$
+\frac{[A\rightarrow\alpha\bullet B\beta,i,j]
+      \qquad[B\rightarrow\gamma\bullet,j,k]}
+     {[A\rightarrow\alpha B\bullet\beta,i,k]}
+$$
 
-    def __eq__(self, other: 'EarleyChartEntry') -> bool:
-        return self.to_tuple() == other.to_tuple()
+Prediction and completion add items to the same chart position. Scanning is the only operation that consumes input.
 
-    def __repr__(self) -> str:
-        return self._dotted_rule.__repr__()
+## Why the three operations are sufficient
 
-    def __str__(self) -> str:
-        return self.__repr__()
+Why are prediction, scanning, and completion enough? An Earley item has two linked claims. First, its recognized-prefix claim is
 
-    @property
-    def backpointers(self) -> tuple[EarleyBackPointer, ...]:
-        """The backpointers for parse reconstruction."""
-        return self._backpointers
+$$
+\alpha\Rightarrow^*\sigma_i\cdots\sigma_{j-1}.
+$$
 
-    @property
-    def dotted_rule(self) -> DottedRule:
-        """The dotted rule for this entry."""
-        return self._dotted_rule
+Second, its context claim is that the parser reached this occurrence of $A$ from the artificial start item through predictions and completed constituents. The first claim says that the material left of the dot matches the stated input span. The second prevents the parser from accepting a complete rule that was never licensed by a possible start-symbol derivation.
 
-    @property
-    def next_symbol(self) -> str:
-        """The next expected symbol after the dot."""
-        return self._dotted_rule.next_symbol
+### Soundness
 
-    @property
-    def span(self) -> SpanIndices:
-        """The span of input covered by this entry."""
-        return self._dotted_rule.span
+We check the seed and then each operation.
 
-    @property
-    def is_complete(self) -> bool:
-        """Whether the dotted rule is complete."""
-        return self._dotted_rule.is_complete
+1. The seed $[S'\rightarrow\bullet S,0,0]$ has an empty recognized prefix and is the root of the context relation.
+2. **Predict** adds $[B\rightarrow\bullet\gamma,j,j]$. Its recognized prefix is empty, so it derives the empty substring $[j,j]$. The waiting item supplies its context.
+3. **Scan** advances over terminal $a$ only when $a=\sigma_j$. If $\alpha$ derived the substring over $[i,j]$, then $\alpha a$ derives the substring over $[i,j+1]$. The item's context does not change.
+4. **Complete** combines a waiting item whose recognized prefix spans $[i,j]$ with a completed $B$ spanning $[j,k]$. Their derivations concatenate, so $\alpha B$ derives the substring over $[i,k]$. The completed child was predicted in a licensed context, so advancing the waiting item also preserves the context claim.
 
-    def complete(self, entry: 'EarleyChartEntry', new_left_edge: int) -> 'EarleyChartEntry':
-        """Advance the dot by incorporating a completed constituent.
+Every inferred item thus satisfies both claims. If the goal $[S'\rightarrow S\bullet,0,n]$ is present, its recognized-prefix claim gives $S\Rightarrow^*\sigma_0\cdots\sigma_{n-1}$. Acceptance is sound.
 
-        Parameters
-        ----------
-        entry : EarleyChartEntry
-            The completed entry.
-        new_left_edge : int
-            The new right edge of the span.
+### Completeness
 
-        Returns
-        -------
-        EarleyChartEntry
-            A new entry with the dot advanced.
-        """
-        new_dotted_rule = self._dotted_rule.complete(new_left_edge)
+Suppose instead that the grammar has a parse tree for the input. We show that Earley can trace that tree from left to right.
 
-        bp = (self._dotted_rule.next_symbol, self._dotted_rule.span[1])
-        backpointers = self._backpointers + (bp,)
+The seed waits for the root $S$, so prediction adds the rule used at the root of the chosen tree with its dot at the beginning. Consider any predicted rule $A\rightarrow X_1\cdots X_m$ whose tree node begins at position $i$. We prove by induction on $r$ that Earley constructs the item with the dot after $X_r$ at the position where the first $r$ children end.
 
-        return EarleyChartEntry(new_dotted_rule, *backpointers)
+The case $r=0$ is the predicted item. For the next child, there are two cases.
 
-    def is_completion_of(self, other: 'EarleyChartEntry') -> bool:
-        """Check whether this completed entry satisfies another entry's expectation.
+- If $X_{r+1}$ is a terminal, the parse tree says that it is the next input token. Scan thus advances the dot.
+- If $X_{r+1}$ is a nonterminal, predict adds the rule used by that child. Applying the same argument recursively to the child eventually produces its complete item. Complete then advances the parent dot across $X_{r+1}$.
 
-        Parameters
-        ----------
-        other : EarleyChartEntry
-            The entry waiting for a constituent.
+After all $m$ children have been handled, the item for $A$ is complete over exactly the span of its parse-tree node. Applying this reasoning upward from the leaves completes the root item $[S\rightarrow\gamma\bullet,0,n]$, which in turn completes the artificial start item. Thus, every grammatical input reaches the goal.
 
-        Returns
-        -------
-        bool
-            True if this entry's left side matches the other's next symbol.
-        """
-        return self._dotted_rule.left_side == other.dotted_rule.next_symbol
-```
+Soundness and completeness together establish that the three operations recognize exactly the CFG language. Epsilon rules cause a child to begin and end at the same position; the repeated prediction-completion closure at each chart position handles that case without changing the argument.
 
-```python
-class EarleyChart(Chart):
-    """A chart for an Earley parser.
+## Filling the chart
 
-    Parameters
-    ----------
-    input_size : int
-        The number of tokens in the input.
-    start_variable : str, default 'S'
-        The start symbol of the grammar.
+We add an artificial rule $S'\rightarrow S$ and seed chart position 0 with $[S'\rightarrow\bullet S,0,0]$. At each position, we close the item set under prediction and completion, then scan matching terminals into the next position.
 
-    Attributes
-    ----------
-    parses : set[Tree]
-        The parse trees extracted from the chart.
-    input_size : int
-        The number of tokens in the input.
-    """
+```{python}
+import sys
+from collections.abc import Sequence
 
-    def __init__(self, input_size: int, start_variable: str = 'S'):
-        self._start_variable = start_variable
+sys.path.insert(0, "_code")
+from grammar import ContextFreeGrammar
 
-        self._chart: list[set[EarleyChartEntry]] = [
-            set() for _ in range(input_size + 1)
-        ]
+type EarleyChart = list[set[EarleyItem]]
 
-    def __getitem__(self, index: int) -> set[EarleyChartEntry]:
-        """Retrieve the chart set at the given position."""
-        return self._chart[index]
 
-    def __setitem__(self, key: int, item: set[EarleyChartEntry]) -> None:
-        """Set the chart set at the given position."""
-        self._chart[key] = item
+def earley_start_symbol(grammar: ContextFreeGrammar) -> str:
+    """Return an artificial start symbol absent from ``grammar``."""
+    symbol = "EARLEY_START"
+    while symbol in grammar.variables or symbol in grammar.alphabet:
+        symbol += "_"
+    return symbol
 
-    @property
-    def parses(self) -> set:
-        """The parse trees for completed derivations spanning the full input."""
-        try:
-            return self._parses
-        except AttributeError:
-            self._parses = set()
 
-            for entry in self._chart[-1]:
-                is_start = entry.dotted_rule.left_side == self._start_variable
-                covers_string = entry.dotted_rule.span == (0, self.input_size)
-                is_complete = entry.dotted_rule.is_complete
+def fill_earley_chart(
+    grammar: ContextFreeGrammar,
+    tokens: Sequence[str],
+) -> EarleyChart:
+    """Return the Earley recognition chart for ``tokens``."""
+    chart: EarleyChart = [set() for _ in range(len(tokens) + 1)]
+    goal_symbol = earley_start_symbol(grammar)
 
-                if is_start and covers_string and is_complete:
-                    self._parses.add(self._construct_parses(entry))
+    start_item = EarleyItem(
+        left_side=goal_symbol,
+        right_side=(grammar.start_variable,),
+        dot=0,
+        origin=0,
+        position=0,
+    )
+    chart[0].add(start_item)
 
-            return self._parses
+    for position in range(len(tokens) + 1):
+        changed = True
+        while changed:
+            changed = False
+            for item in tuple(chart[position]):
+                symbol = item.next_symbol
 
-    @property
-    def input_size(self) -> int:
-        """The number of tokens in the input."""
-        return len(self._chart) - 1
-```
+                if symbol in grammar.variables:
+                    predicted = {
+                        EarleyItem(
+                            left_side=rule.left_side,
+                            right_side=rule.right_side,
+                            dot=0,
+                            origin=position,
+                            position=position,
+                        )
+                        for rule in grammar.rules(symbol)
+                    }
+                    old_size = len(chart[position])
+                    chart[position].update(predicted)
+                    changed |= len(chart[position]) > old_size
 
-```python
-class EarleyParser(ContextFreeGrammarParser):
-    """An Earley parser for arbitrary context-free grammars.
+                elif item.is_complete:
+                    completed = {
+                        waiting.advance(position)
+                        for waiting in chart[item.origin]
+                        if waiting.next_symbol == item.left_side
+                    }
+                    old_size = len(chart[position])
+                    chart[position].update(completed)
+                    changed |= len(chart[position]) > old_size
 
-    Parameters
-    ----------
-    grammar : ContextFreeGrammar
-        The grammar to parse with.
-    """
+        if position == len(tokens):
+            continue
 
-    normal_form = None
+        for item in chart[position]:
+            if item.next_symbol == tokens[position]:
+                chart[position + 1].add(item.advance(position + 1))
 
-    def _predict(self, chart: EarleyChart, entry: EarleyChartEntry, position: int) -> None:
-        """Add new dotted rules for each expansion of the expected nonterminal.
-
-        Parameters
-        ----------
-        chart : EarleyChart
-            The chart to update.
-        entry : EarleyChartEntry
-            The entry whose next symbol triggers prediction.
-        position : int
-            The current position in the input.
-        """
-        for rule in self._grammar.rules(entry.next_symbol):
-            span = (position, position)
-            dotted_rule = DottedRule(rule, span)
-            new_entry = EarleyChartEntry(dotted_rule)
-            
-            chart[position].add(new_entry)
-     
-    def _scan(self, chart: EarleyChart, entry: EarleyChartEntry, position: int) -> None:
-        """Advance the dot by matching the next terminal in the input.
-
-        Parameters
-        ----------
-        chart : EarleyChart
-            The chart to update.
-        entry : EarleyChartEntry
-            The entry expecting a terminal.
-        position : int
-            The current position in the input.
-        """
-        word = self._string[position]
-        expected = entry.next_symbol
-        
-        if word == expected:
-            # Create a rule for the terminal
-            rule = Rule(expected, word)
-            span = (position, position+1)
-            dotted_rule = DottedRule(rule, span, dot=1)
-            
-            # Add a completed entry for the terminal
-            terminal_entry = EarleyChartEntry(dotted_rule)
-            chart[position+1].add(terminal_entry)
-            
-            # Add a completed entry for the entry that was waiting for this terminal
-            completed_entry = entry.complete(terminal_entry, position+1)
-            chart[position+1].add(completed_entry)
-        
-    def _complete(self, chart: EarleyChart, entry: EarleyChartEntry, position: int) -> None:
-        """Advance the dot in entries that were waiting for this completed constituent.
-
-        Parameters
-        ----------
-        chart : EarleyChart
-            The chart to update.
-        entry : EarleyChartEntry
-            The completed entry.
-        position : int
-            The current position in the input.
-        """
-        start, end = entry.span
-        
-        for prev_entry in chart[start]:
-            if not prev_entry.is_complete and entry.is_completion_of(prev_entry):
-                completed_entry = prev_entry.complete(entry, end)
-                
-                chart[position].add(completed_entry)
-        
-    def _parse(self, string: str | list[str]) -> set:
-        """Parse a string to find all possible parse trees.
-
-        Parameters
-        ----------
-        string : str | list[str]
-            The string to parse.
-
-        Returns
-        -------
-        set[Tree]
-            The set of all possible parse trees.
-        """
-        # Ensure the input is a list of tokens
-        if isinstance(string, str):
-            string = string.split()
-        
-        # Fill the chart
-        chart = self._fill_chart(string)
-        
-        # Return all possible parses
-        return chart.parses
-
-    def _recognize(self, string: str | list[str]) -> bool:
-        """Recognize whether a string is in the language.
-
-        Parameters
-        ----------
-        string : str | list[str]
-            The string to recognize.
-
-        Returns
-        -------
-        bool
-            True if the string is in the language.
-        """
-        # Ensure the input is a list of tokens
-        if isinstance(string, str):
-            string = string.split()
-        
-        # Fill the chart
-        chart = self._fill_chart(string)
-        
-        # Check if the start symbol appears in the final position with a complete rule
-        # that spans the entire input
-        for entry in chart[-1]:
-            is_start = entry.dotted_rule.left_side == self._grammar.start_variable
-            covers_string = entry.dotted_rule.span == (0, len(string))
-            is_complete = entry.dotted_rule.is_complete
-            
-            if is_start and covers_string and is_complete:
-                return True
-            
-        return False
-```
-
-### Implementations to Complete (Assignment)
-
-The following three methods need to be implemented as part of your assignment:
-
-1. The `_fill_chart` method:
-
-```
-function _fill_chart(string):
-    # Store the string for use in the scan operation
-    self._string = string
-    
-    # Initialize the chart
-    chart = new EarleyChart(length(string), self._grammar.start_variable)
-    
-    # Initialize chart[0] with dotted rules for the start symbol
-    for each rule S → γ where S is the start symbol:
-        add a dotted rule S → • γ at position 0 to chart[0]
-    
-    # Fill each position in the chart
-    for i = 0 to length(string):
-        # Process all entries at this position until no new entries are added
-        repeat until chart[i] doesn't change:
-            for each entry in chart[i]:
-                if entry is not complete:
-                    if next symbol is a non-terminal:
-                        apply Predict operation
-                    else if next symbol is a terminal and i < length(string):
-                        apply Scan operation
-                else:
-                    apply Complete operation
-    
     return chart
+
+
+def earley_recognize(
+    grammar: ContextFreeGrammar,
+    tokens: Sequence[str],
+) -> bool:
+    """Whether ``tokens`` belongs to the language of ``grammar``."""
+    chart = fill_earley_chart(grammar, tokens)
+    goal = EarleyItem(
+        left_side=earley_start_symbol(grammar),
+        right_side=(grammar.start_variable,),
+        dot=1,
+        origin=0,
+        position=len(tokens),
+    )
+    return goal in chart[-1]
 ```
 
-2. The `_construct_parses` method:
+The recognizer above keeps sets of items, so a left-recursive or epsilon-producing grammar cannot add the same item indefinitely. An agenda-based Earley recognizer with suitable indexes has cubic worst-case time in the input length for a fixed grammar, and particular grammar classes permit tighter bounds. The compact implementation above repeatedly scans item sets to compute closure, so it is intended to exhibit the inference rules rather than to realize the tight cubic bound.
 
-```
-function _construct_parses(entry):
-    # Create a node for this entry
-    node = new Tree(entry.dotted_rule.left_side)
-    
-    # If the entry has backpointers, recursively construct the children
-    if entry has backpointers:
-        for each backpointer (symbol, position) in entry.backpointers:
-            # Find the completed entry in the chart at position that matches the symbol
-            for each potential_child in chart[position]:
-                if potential_child.left_side == symbol and potential_child.is_complete:
-                    # Recursively construct the child's parse tree
-                    child = _construct_parses(potential_child)
-                    add child to node.children
-                    break
-    
-    return node
-```
+::: {.callout-caution}
+## Question
 
-3. The `_predict_next_word` method:
+Why can Earley parse a rule such as $N\rightarrow\text{Prefix}\;\text{Adjective}\;\text{Suffix}$ without first binarizing it?
+:::
 
-```
-function _predict_next_word(prefix):
-    # Fill the chart for the prefix
-    chart = _fill_chart(prefix)
-    
-    # Find all incomplete entries in the final position
-    incomplete_entries = {all entries in chart[length(prefix)] where entry is not complete}
-    
-    # Group by next expected symbol
-    next_symbols = {}
-    for each entry in incomplete_entries:
-        next_symbol = entry.next_symbol
-        
-        # If the next symbol is a terminal, add it directly
-        if next_symbol is a terminal:
-            add next_symbol to next_symbols[next_symbol]
-        
-        # If the next symbol is a non-terminal, find terminals it can derive
-        else if next_symbol is a non-terminal:
-            for each rule with left_side = next_symbol:
-                if rule directly derives a terminal:
-                    add the terminal to next_symbols[next_symbol]
-    
-    return next_symbols
-```
+::: {.callout-tip collapse=true}
+## Answer
 
-## Detailed Example: Parsing "unhappiness"
+The dot can occupy each of the four positions in that rule. Each successful prediction, scan, or completion advances it by one symbol, so the item records partial progress through a right side of any finite length.
+:::
 
-Let's walk through a detailed example of the Earley algorithm parsing the word "unhappiness" with the segmentation `["un", "happy", "ness"]` using our simplified grammar:
+## Recovering trees and predictions
 
-```python
-grammar = ContextFreeGrammar(
-    alphabet={'un', 'happy', 'ness'},
-    variables={'Word', 'Adj', 'N', 'Prefix', 'Suffix'},
-    rules={
-        Rule('Adj', 'happy'),
-        Rule('Prefix', 'un'),
-        Rule('Suffix', 'ness'),
-        Rule('Adj', 'Prefix', 'Adj'),
-        Rule('N', 'Adj', 'Suffix'),
-        Rule('Word', 'N')
-    },
-    start_variable='Word'
-)
+As with CKY, recognition items must be augmented with backpointers to recover parse trees. A completed Earley item records which waiting item and which completed child licensed it. Following those backpointers reconstructs the derivation without enumerating trees during chart filling.
 
-# Set the parser class
-ContextFreeGrammar.parser_class = EarleyParser
-
-# Parse the word
-parses = grammar(['un', 'happy', 'ness'], mode="parse")
-```
-
-### Step-by-Step Chart Filling
-
-Let's trace the Earley algorithm as it fills the chart for "unhappiness":
-
-#### Chart[0]: Initial State
-
-First, we initialize chart[0] with a dotted rule for the start symbol `Word`:
-
-1. Add `Word -> • N [0,0]` (from start symbol rule)
-2. Apply predict:
-   - For `Word -> • N`:
-     - Add `N -> • Adj Suffix [0,0]`
-3. Apply predict again:
-   - For `N -> • Adj Suffix`:
-     - Add `Adj -> • happy [0,0]`
-     - Add `Adj -> • Prefix Adj [0,0]`
-4. Apply predict again:
-   - For `Adj -> • Prefix Adj`:
-     - Add `Prefix -> • un [0,0]`
-
-Chart[0] now looks like:
-```
-Word -> • N [0,0]
-N -> • Adj Suffix [0,0]
-Adj -> • happy [0,0]
-Adj -> • Prefix Adj [0,0]
-Prefix -> • un [0,0]
-```
-
-#### Chart[1]: After Processing "un"
-
-Now we process the first input symbol "un":
-
-1. Apply scan:
-   - For `Prefix -> • un [0,0]`:
-     - Add `Prefix -> un • [0,1]` (complete)
-2. Apply complete:
-   - For `Prefix -> un • [0,1]` (complete):
-     - Find `Adj -> • Prefix Adj [0,0]` waiting for Prefix
-     - Add `Adj -> Prefix • Adj [0,1]`
-3. Apply predict:
-   - For `Adj -> Prefix • Adj [0,1]`:
-     - Add `Adj -> • happy [1,1]`
-     - Add `Adj -> • Prefix Adj [1,1]`
-4. Apply predict again:
-   - For `Adj -> • Prefix Adj [1,1]`:
-     - Add `Prefix -> • un [1,1]`
-
-Chart[1] now looks like:
-```
-Prefix -> un • [0,1]
-Adj -> Prefix • Adj [0,1]
-Adj -> • happy [1,1]
-Adj -> • Prefix Adj [1,1]
-Prefix -> • un [1,1]
-```
-
-#### Chart[2]: After Processing "happy"
-
-Now we process the second input symbol "happy":
-
-1. Apply scan:
-   - For `Adj -> • happy [1,1]`:
-     - Add `Adj -> happy • [1,2]` (complete)
-2. Apply complete:
-   - For `Adj -> happy • [1,2]` (complete):
-     - Find `Adj -> Prefix • Adj [0,1]` waiting for Adj
-     - Add `Adj -> Prefix Adj • [0,2]` (complete)
-3. Apply complete again:
-   - For `Adj -> Prefix Adj • [0,2]` (complete):
-     - Find `N -> • Adj Suffix [0,0]` waiting for Adj
-     - Add `N -> Adj • Suffix [0,2]`
-4. Apply predict:
-   - For `N -> Adj • Suffix [0,2]`:
-     - Add `Suffix -> • ness [2,2]`
-
-Chart[2] now looks like:
-```
-Adj -> happy • [1,2]
-Adj -> Prefix Adj • [0,2]
-N -> Adj • Suffix [0,2]
-Suffix -> • ness [2,2]
-```
-
-#### Chart[3]: After Processing "ness"
-
-Finally, we process the third input symbol "ness":
-
-1. Apply scan:
-   - For `Suffix -> • ness [2,2]`:
-     - Add `Suffix -> ness • [2,3]` (complete)
-2. Apply complete:
-   - For `Suffix -> ness • [2,3]` (complete):
-     - Find `N -> Adj • Suffix [0,2]` waiting for Suffix
-     - Add `N -> Adj Suffix • [0,3]` (complete)
-3. Apply complete again:
-   - For `N -> Adj Suffix • [0,3]` (complete):
-     - Find `Word -> • N [0,0]` waiting for N
-     - Add `Word -> N • [0,3]` (complete)
-
-Chart[3] now looks like:
-```
-Suffix -> ness • [2,3]
-N -> Adj Suffix • [0,3]
-Word -> N • [0,3]
-```
-
-Since there's a completed dotted rule for the start symbol `Word` that spans the entire input (0 to 3), the word "unhappiness" is in the language defined by our grammar.
-
-### Visualizing the Chart State
-
-We can visualize the entire chart as follows:
-
-```
-|-----------------------|--------------------------|--------------------------|--------------------------|
-|      Chart[0]         |        Chart[1]          |        Chart[2]          |        Chart[3]          |
-|-----------------------|--------------------------|--------------------------|--------------------------|
-| Word -> • N [0,0]     | Prefix -> un • [0,1]     | Adj -> happy • [1,2]     | Suffix -> ness • [2,3]   |
-| N -> • Adj Suffix [0,0]| Adj -> Prefix • Adj [0,1]| Adj -> Prefix Adj • [0,2]| N -> Adj Suffix • [0,3]  |
-| Adj -> • happy [0,0]  | Adj -> • happy [1,1]     | N -> Adj • Suffix [0,2]  | Word -> N • [0,3]        |
-| Adj -> • Prefix Adj [0,0]| Adj -> • Prefix Adj [1,1]| Suffix -> • ness [2,2]   |                        |
-| Prefix -> • un [0,0]  | Prefix -> • un [1,1]     |                         |                        |
-|-----------------------|--------------------------|--------------------------|--------------------------|
-```
-
-### Reconstructing the Parse Tree
-
-From the completed dotted rule `Word -> N • [0,3]` in Chart[3], we can reconstruct the parse tree by following the backpointers:
-
-1. Start with `Word -> N • [0,3]` in Chart[3]
-2. Follow the backpointer to `N -> Adj Suffix • [0,3]` in Chart[3]
-3. Follow the backpointer to `Adj -> Prefix Adj • [0,2]` in Chart[2]
-4. Follow the backpointer to `Prefix -> un • [0,1]` in Chart[1]
-5. Follow the backpointer to `Adj -> happy • [1,2]` in Chart[2]
-6. Follow the backpointer to `Suffix -> ness • [2,3]` in Chart[3]
-
-This gives us the parse tree:
-
-```
-       Word
-        |
-        N
-       / \
-     Adj  Suffix
-    /  \    |
-Prefix Adj  ness
-   |    |
-  un  happy
-```
-
-This tree correctly captures the structure `((un+happy)+ness)`.
-
-## Handling Ambiguity: The "unlockable" Example
-
-Let's revisit the ambiguous word "unlockable", which has two possible interpretations:
-
-1. `un + (lock + able)` = "not able to be locked"
-2. `(un + lock) + able` = "able to be unlocked"
-
-With the Earley algorithm, we can handle this ambiguity naturally. Let's create a grammar that captures both interpretations:
-
-```python
-ambiguous_grammar = ContextFreeGrammar(
-    alphabet={'un', 'lock', 'able'},
-    variables={'Word', 'V', 'Adj', 'Prefix', 'Suffix'},
-    rules={
-        Rule('V', 'lock'),
-        Rule('Prefix', 'un'),
-        Rule('Suffix', 'able'),
-        Rule('V', 'Prefix', 'V'),    # un + lock -> unlock
-        Rule('Adj', 'V', 'Suffix'),  # lock + able -> lockable OR unlock + able -> unlockable
-        Rule('Adj', 'Prefix', 'Adj'), # un + lockable -> unlockable
-        Rule('Word', 'Adj')
-    },
-    start_variable='Word'
-)
-```
-
-When we parse "unlockable" with Earley, we'll end up with two completed dotted rules in the final chart:
-
-1. `Word -> Adj • [0,3]` where Adj comes from `Adj -> Prefix Adj • [0,3]` (un + lockable)
-2. `Word -> Adj • [0,3]` where Adj comes from `Adj -> V Suffix • [0,3]` (unlock + able)
-
-Both of these analyses derive `Word`, resulting in two different parse trees:
-
-Parse Tree 1 (un + lockable):
-```
-    Word
-     |
-    Adj
-   /   \
-Prefix  Adj
-  |    /  \
- un    V  Suffix
-       |    |
-     lock  able
-```
-
-Parse Tree 2 (unlock + able):
-```
-    Word
-     |
-    Adj
-   /   \
-  V    Suffix
- / \     |
-Prefix V able
-  |   |
- un lock
-```
-
-The Earley algorithm finds all possible parses, which is essential for accurately analyzing structurally ambiguous words.
-
-## The Three Operations of Earley
-
-The Earley algorithm consists of three main operations:
-
-1. **Predict**: For each dotted rule where the dot precedes a non-terminal, add new dotted rules for all possible expansions of that non-terminal. This operation looks ahead to determine what might come next.
-
-2. **Scan**: For each dotted rule where the dot precedes a terminal that matches the current input symbol, advance the dot past that terminal. This operation represents recognizing an input symbol.
-
-3. **Complete**: For each dotted rule where the dot is at the end (indicating a completed constituent), go back to the chart position where the constituent began and advance the dot in all dotted rules that were waiting for this constituent.
-
-These operations work together to efficiently parse the input while avoiding redundant work.
-
-## Advantages of Earley for Morphological Analysis
-
-The Earley algorithm offers several advantages for morphological analysis:
-
-1. **Any CFG**: Unlike CKY, Earley works with any context-free grammar, including those with ε-rules (empty productions), unary rules, and arbitrary rule lengths. This allows for more natural expression of morphological patterns.
-
-2. **Incremental processing**: Earley processes the input left-to-right, which can be useful for interactive applications or streaming inputs.
-
-3. **Left recursion**: Earley handles left-recursive rules without modification, which is important for certain morphological patterns.
-
-4. **Explicit predictions**: The predict operation explicitly lists all the possible continuations at each position, which can be useful for generating suggestions in applications like spelling correction or auto-completion.
-
-5. **Efficiency**: While the worst-case complexity is O(n³), for many practical grammars Earley performs better, especially for unambiguous or nearly unambiguous grammars.
-
-## Real-World Example: CELEX Data
-
-Let's revisit our "unbelievably" example from CELEX:
-
-```
-((((un)[Prefix] (believe)[V])[V] (able)[Suffix])[Adj] (ly)[Suffix])[Adv]
-```
-
-With the Earley algorithm, we can parse this complex structure without converting to CNF:
-
-```python
-# Extract grammar from CELEX
-celex_grammar = ContextFreeGrammar.from_treebank(celex_parses)
-
-# Parse a specific word
-parses = celex_grammar(['un', 'believe', 'able', 'ly'], mode="parse")
-for parse in parses:
-    print(parse)
-```
-
-We can also predict what might follow partial words:
-
-```python
-# Predict what could follow "un believe"
-predictions = celex_grammar.parser._predict_next_word(['un', 'believe'])
-print(predictions)  # Might output {'Suffix': {'able', 'er', 'ing', ...}}
-```
+An unfinished item also has predictive content. If chart position $j$ contains an item whose next symbol is a part of speech, the grammar predicts the words licensed by that part of speech at position $j$. This observation underlies the next-word prediction task in the homework: Earley items describe not only analyses of the observed prefix but also the continuations that the grammar still permits.

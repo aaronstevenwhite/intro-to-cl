@@ -1,138 +1,73 @@
 ---
-title: Parsing and Transduction Algorithms
+title: Parsing and transduction
 bibliography: ../../references.bib
 ---
 
-While the rule formalism provides a way to express phonological rules, we need algorithms to apply these rules to linguistic data. This section formalizes the parsing and transduction algorithms for Finite State Transducers (FSTs).
+Suppose we have an FST and an input-output pair. We will distinguish three problems. We can ask whether the pair belongs to the relation, which we will call **recognition**. We can instead ask which successful paths support the pair, which we will call **parsing**. Or we can fix only the input and ask which outputs the machine can produce, which we will call **transduction**. This last problem is ordinary FST application [@kaplan1994regular; @mohri_fst_1997].
 
-## The Transduction Problem
+## Three problems
 
-The *transduction problem* for FSTs can be defined as:
+Let $T = \langle Q, \Sigma, \Gamma, \delta, q_0, F\rangle$ be an FST.
 
-- **Input**: A finite state transducer $T = \langle Q, \Sigma, \Gamma, \delta, q_0, F \rangle$ and a string $\boldsymbol\sigma \in \Sigma^*$
-- **Output**: The set of all strings $\boldsymbol\gamma \in \Gamma^*$ such that $(\boldsymbol\sigma, \boldsymbol\gamma) \in \mathbb{R}(T)$, where $\mathbb{R}(T)$ is the relation defined by $T$
+The **pair-recognition problem** takes $x \in \Sigma^*$ and $y \in \Gamma^*$ as input and returns whether $\langle x,y\rangle \in \mathbb{R}(T)$.
 
-In phonological terms, given an underlying representation (input string), we want to find all possible surface representations (output strings) that can be produced by applying the phonological rules encoded in the transducer.
+The **pair-parsing problem** takes the same inputs and returns the successful paths whose input label is $x$ and whose output label is $y$. Multiple paths may support the same pair.
 
-## Parsing with FSTs
+The **transduction problem** fixes only $x$ and returns
 
-Similar to parsing with FSAs, parsing with FSTs involves finding all possible paths through the transducer that accept the input string. However, for FSTs, we also need to keep track of the output symbols produced along each path.
+$$
+T(x) = \{y \in \Gamma^* \mid \langle x,y\rangle \in \mathbb{R}(T)\}.
+$$
 
-Let's define a path through an FST as a sequence of transition tuples, where each tuple represents a transition in the transducer. Formally, a path is represented as:
+Pair recognition is thus a yes-or-no question, while parsing and transduction return sets of objects.
 
-$$\langle (\sigma_1, \gamma_1, q_1), (\sigma_2, \gamma_2, q_2), \ldots, (\sigma_n, \gamma_n, q_n) \rangle$$
+## Configurations
 
-where $q_i \in Q$, $\sigma_i \in \Sigma \cup \{\epsilon\}$, $\gamma_i \in \Gamma \cup \{\epsilon\}$, and $(q_i, \gamma_i) \in \delta(q_{i-1}, \sigma_i)$ for all $1 \leq i \leq n$, with $q_0$ being the initial state.
+How can one search procedure keep the two tapes synchronized? We can adapt the FSA parsing algorithm by recording two string positions. A configuration for pair recognition is a triple $\langle q,i,j\rangle$, where $q$ is the current state, $i$ is the number of input symbols consumed, and $j$ is the number of output symbols consumed.
 
-Each tuple $(\sigma_i, \gamma_i, q_i)$ indicates that the input symbol $\sigma_i$ was read, the output symbol $\gamma_i$ was produced, and the transducer moved to state $q_i$.
+Write $x=x_1\ldots x_n$ and $y=y_1\ldots y_m$, using one-based string indices, while $i$ and $j$ record how many symbols have already been consumed. Suppose the machine contains a transition $q\xrightarrow{a:b}q'$. Its successor is determined by four cases:
 
-## Transduction Algorithm
+1. If $a\neq\epsilon$ and $b\neq\epsilon$, require $i<n$, $j<m$, $a=x_{i+1}$, and $b=y_{j+1}$; then move to $\langle q',i+1,j+1\rangle$.
+2. If $a\neq\epsilon$ and $b=\epsilon$, require $i<n$ and $a=x_{i+1}$; then move to $\langle q',i+1,j\rangle$.
+3. If $a=\epsilon$ and $b\neq\epsilon$, require $j<m$ and $b=y_{j+1}$; then move to $\langle q',i,j+1\rangle$.
+4. If $a=b=\epsilon$, move to $\langle q',i,j\rangle$ without a symbol check.
 
-To perform transduction, we need to extend our parsing algorithm to collect the output symbols along each path. We'll define a function $\text{transduce}(T, \boldsymbol\sigma)$ that returns the set of all possible output strings if $\boldsymbol\sigma$ can be transduced by $T$, and the empty set otherwise.
+A transition is unavailable when its required bound or symbol check fails. Thus, no search edge reads beyond either string or consumes a mismatching symbol.
 
-First, we need a helper function to handle epsilon transitions. Let's define $\text{epsilon-paths}(q)$ as the set of all paths from state $q$ to any other state using only epsilon input transitions:
+The initial configuration is $\langle q_0,0,0\rangle$. A configuration is accepting just in case it has the form $\langle q,|x|,|y|\rangle$ with $q \in F$. We can search the finite graph of configurations with the same depth-first or breadth-first procedures we used for FSAs. Backpointers recover the paths.
 
-$$\text{epsilon-paths}(q) = \{\langle (\epsilon, \gamma_1, q_1), (\epsilon, \gamma_2, q_2), \ldots, (\epsilon, \gamma_n, q_n) \rangle \mid q_1, \ldots, q_n \in Q \text{ and there is a path from } q \text{ to } q_n \text{ using only } \epsilon \text{ input transitions}\}$$
+Why is this search correct? A configuration $\langle q,i,j\rangle$ should be reachable if and only if $T$ has a path from $q_0$ to $q$ whose input label is $x_1\ldots x_i$ and whose output label is $y_1\ldots y_j$. This is the **configuration invariant**. The initial configuration satisfies it using the length-zero path. Each search edge follows one FST transition, checks any non-epsilon label against the next symbol on the corresponding tape, and advances exactly the indices whose symbols were consumed. So every configuration added by the search has a witnessing path. Conversely, the next transition on any path with the required labels passes those same checks, so the search includes it. Induction on path length gives both directions.
 
-We'll define a transduction function $\text{transduce-from}(T, \boldsymbol\sigma, P)$ where $P$ is a set of partial paths:
+At an accepting configuration, the invariant says that the corresponding path has consumed all of $x$ and all of $y$ and ends in a final state. This is exactly the definition of $\langle x,y\rangle\in\mathbb{R}(T)$. Thus, reaching an accepting configuration is sound and complete for pair recognition.
 
-$$\text{transduce-from}(T, \boldsymbol\sigma, P) = \begin{cases}
-\text{collect-outputs}(\text{find-accepting-paths}(P)) & \text{if } \boldsymbol\sigma = \epsilon \\
-\text{transduce-from}(T, \sigma_2\ldots\sigma_n, P') & \text{if } \boldsymbol\sigma = \sigma_1\sigma_2\ldots\sigma_n \\
-\emptyset & \text{otherwise}
-\end{cases}$$
+There are at most $|Q|(|x|+1)(|y|+1)$ configurations. Even when the transducer has epsilon cycles, memoizing visited triples thus makes the recognition search finite. Backpointers can compactly record multiple successful paths; as with FSA parsing, explicitly enumerating paths may still be infinite when a cycle can be traversed arbitrarily many times.
 
-where:
-- $\text{find-accepting-paths}(P)$ returns the set of paths from $P$ that end in an accepting state, or $\emptyset$ if no such paths exist
-- $\text{collect-outputs}(P)$ extracts the output strings from a set of paths
-- $P' = \{p \circ \langle (\sigma_1, \gamma, q') \rangle \circ \epsilon\text{-path} \mid p \in P, \text{last-state}(p) = q, (q', \gamma) \in \delta(q, \sigma_1), \epsilon\text{-path} \in \text{epsilon-paths}(q')\}$
+For transduction, we do not know $y$ in advance, but every transition must still match the fixed input $x$. A configuration instead records the output produced so far:
 
-The function $\text{last-state}(p)$ returns the state at the end of path $p$.
+$$\langle q,i,u\rangle,$$
 
-To initialize the transduction, we need to consider all possible paths from the initial state via epsilon transitions:
+where $u \in \Gamma^*$. From $\langle q,i,u\rangle$, a transition $q\xrightarrow{a:b}q'$ is available only if either (i) $a=\epsilon$, or (ii) $i<|x|$ and $a=x_{i+1}$. In the first case set $i'=i$; in the second set $i'=i+1$. Set $u'=u$ when $b=\epsilon$ and $u'=ub$ otherwise, and move to $\langle q',i',u'\rangle$. Every accepting configuration with $i=|x|$ contributes its $u$ to $T(x)$. These checks ensure that each reported output is paired with the requested input rather than with some other path label.
 
-$$\text{transduce}(T, \boldsymbol\sigma) = \text{transduce-from}(T, \boldsymbol\sigma, \{\langle \rangle \circ \epsilon\text{-path} \mid \epsilon\text{-path} \in \text{epsilon-paths}(q_0)\})$$
+## Epsilon cycles
 
-After reading the entire input string, we must also consider any epsilon transitions that can be taken from the final states:
+The transduction search need not be finite. If a reachable cycle consumes no input but produces output, a fixed input may have infinitely many outputs. Even an $\epsilon:\epsilon$ cycle can cause a naive path enumerator to revisit the same configuration forever.
 
-$$\text{find-accepting-paths}(P) = \{p \circ \epsilon\text{-path} \mid p \in P, \epsilon\text{-path} \in \text{epsilon-paths}(\text{last-state}(p)), \text{last-state}(\epsilon\text{-path}) \in F\}$$
+So a terminating implementation must handle two cases. First, both searches maintain a visited set of complete configurations. For pair recognition, the key is $\langle q,i,j\rangle$; for transduction, it is $\langle q,i,u\rangle$. Memoization makes an $\epsilon:\epsilon$ self-loop harmless because it reproduces a configuration that has already been processed.
 
-Finally, to extract the output strings from a set of paths, we concatenate the output symbols along each path:
+Second, memoization alone does not terminate every transduction. A cycle labeled $\epsilon:a$, for instance, reaches the distinct configurations $\langle q,i,a\rangle$, $\langle q,i,aa\rangle$, and so on. The bounded homework API thus imposes the **input-epsilon acyclicity condition** (IEAC): no cycle that is reachable from the initial state and can reach a final state may consist entirely of transitions whose input label is $\epsilon$. This condition excludes both productive $\epsilon:a$ cycles and nonproductive $\epsilon:\epsilon$ cycles; the visited set remains necessary as a defensive check for repeated configurations. An unrestricted implementation must instead bound output length or return a symbolic representation of the infinite output language.
 
-$$\text{collect-outputs}(P) = \{\gamma_1\gamma_2\ldots\gamma_n \mid \langle (\sigma_1, \gamma_1, q_1), (\sigma_2, \gamma_2, q_2), \ldots, (\sigma_n, \gamma_n, q_n) \rangle \in P\}$$
+Two one-state machines expose the distinction. An $\epsilon:\epsilon$ self-loop makes a naive path search diverge but produces only the repeated configuration $\langle q,0,\epsilon\rangle$, which memoization suppresses. An $\epsilon:a$ self-loop produces $a^r$ for every $r\geq0$, so no finite explicit enumeration can return all outputs; IEAC rejects that transducer for the bounded API.
 
-## Ambiguity in Transduction
+::: {.callout-caution}
+## Question
 
-Just as with FSA parsing, ambiguity is an important consideration in FST transduction. A single input string may be transduced to multiple output strings if the transducer is nondeterministic. In such cases, the transduction algorithm returns the set of all valid output strings.
+Can a functional FST have more than one successful path for the same input?
+:::
 
-For example, consider an FST that implements optional vowel harmony. The input string "ev+DE" might be transduced to both "evde" (with harmony) and "evda" (without harmony) if the transducer allows both possibilities.
+::: {.callout-tip collapse=true}
+## Answer
 
-Handling ambiguity is particularly important in phonological analysis, where different transductions may correspond to different phonological processes or dialectal variations.
+Yes. Functionality constrains outputs, not paths. Several paths may consume the same input as long as they all produce the same output.
+:::
 
-## Weighted Transduction
-
-In many phonological applications, we want to find not just any valid transduction, but the most likely or optimal one according to some criterion. This can be achieved using weighted FSTs, where each transition is associated with a weight (e.g., a probability or a cost).
-
-For weighted FSTs, the transduction algorithm needs to be modified to keep track of the weights along each path and to return the output string(s) with the optimal weight.
-
-Let's define a weighted path as:
-
-$$\langle (\sigma_1, \gamma_1, q_1, w_1), (\sigma_2, \gamma_2, q_2, w_2), \ldots, (\sigma_n, \gamma_n, q_n, w_n) \rangle$$
-
-where $w_i$ is the weight associated with the transition from $q_{i-1}$ to $q_i$ on input $\sigma_i$ and output $\gamma_i$.
-
-The weight of a path is computed by combining the weights of its transitions using an appropriate operation (e.g., multiplication for probabilities, addition for costs):
-
-$$\text{weight}(p) = w_1 \otimes w_2 \otimes \ldots \otimes w_n$$
-
-where $\otimes$ is the weight combination operation.
-
-The weighted transduction algorithm returns the output string(s) with the optimal weight:
-
-$$\text{best-transduce}(T, \boldsymbol\sigma) = \{\gamma \mid \gamma \in \text{transduce}(T, \boldsymbol\sigma) \text{ and } \text{weight}(\gamma) \text{ is optimal}\}$$
-
-In practice, efficient algorithms like the Viterbi algorithm can be used to find the best transduction without explicitly enumerating all possible paths.
-
-## Applications in Phonology
-
-The parsing and transduction algorithms for FSTs have several important applications in phonology:
-
-### 1. Phonological Rule Application
-
-Transduction can model how phonological rules transform underlying representations into surface forms.
-
-For example, transducing the underlying form /kæt+z/ through an FST implementing English plural formation rules would produce the surface form [kæts], showing how the plural morpheme /-z/ undergoes devoicing after the voiceless consonant /t/.
-
-### 2. Morphophonological Analysis
-
-Parsing with FSTs can reveal the morphophonological structure of words by identifying the specific path through the transducer that accepts the input.
-
-For instance, parsing the Turkish word "evde" through a vowel harmony FST would show that the locative suffix "-de" has the front vowel "e" because it follows the front vowel "e" in the stem "ev".
-
-### 3. Bidirectional Analysis
-
-FSTs can be used for both generation (UR → SR) and analysis (SR → UR), making them powerful tools for bidirectional phonological modeling.
-
-For example, the same FST that transduces /kæt+z/ to [kæts] can be inverted to analyze [kæts] as /kæt+z/, revealing the underlying morphological structure.
-
-### 4. Optimality Theory Implementation
-
-While FSTs are traditionally associated with rule-based phonology, they can also be used to implement constraint-based approaches like Optimality Theory (OT) [@prince1993optimality]. This is typically done by:
-
-1. Using a weighted FST to generate all possible candidates
-2. Using weighted constraints to assign violation marks to candidates
-3. Finding the optimal candidate(s) using the weighted transduction algorithm
-
-This approach has been successfully used to implement OT analyses of various phonological phenomena [@karttunen1998finite].
-
-## Conclusion
-
-The parsing and transduction algorithms for FSTs provide a formal and computational foundation for applying phonological rules to linguistic data. By formalizing these algorithms, we can:
-
-1. Ensure that rule application is consistent and well-defined
-2. Handle complex cases like ambiguity and optionality
-3. Implement efficient computational tools for phonological analysis
-
-These algorithms bridge the gap between formal rule notation and practical application, allowing phonologists to test their analyses on real data and to develop computational models of phonological processes.
-
-In combination with the rule formalism discussed in the previous section, these algorithms provide a complete framework for expressing and applying phonological rules using finite state methods. 
+The unweighted algorithms treat every successful path alike. In [weighted automata](weighted-fsas-and-hmms.qmd), the forward algorithm sums over those paths, while the Viterbi algorithm finds the least-cost or highest-probability one [@rabiner_tutorial_1989].

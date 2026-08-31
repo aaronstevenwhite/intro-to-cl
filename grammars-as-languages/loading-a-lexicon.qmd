@@ -6,18 +6,20 @@ jupyter: python3
 One use case for regular expressions in the context of computational linguistics is querying a lexicon. To look at this use case, we will use the lexicon of word forms found in the [CMU Pronouncing Dictionary](https://web.archive.org/web/20210216211828/http://www.speech.cs.cmu.edu/cgi-bin/cmudict).
 
 ```{python}
-import urllib.request
-import os
+from pathlib import Path
+from urllib.request import urlretrieve
 
-if not os.path.exists("cmudict-0.7b"):
-    urllib.request.urlretrieve(
+cmudict_path = Path("cmudict-0.7b")
+
+if not cmudict_path.exists():
+    urlretrieve(
         "https://raw.githubusercontent.com/Alexir/CMUdict/master/cmudict-0.7b",
-        "cmudict-0.7b"
+        cmudict_path,
     )
 ```
 
 ```{python}
-with open("cmudict-0.7b") as f:
+with cmudict_path.open(encoding="ISO-8859-1") as f:
     for i, line in enumerate(f):
         if i >= 200:
             break
@@ -28,9 +30,13 @@ with open("cmudict-0.7b") as f:
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 1816, status: ok, timestamp: 1675099880695, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
 #| outputId: 62f854bc-6bab-4061-f274-77038c46c107
-with open('cmudict-0.7b', encoding = "ISO-8859-1") as f:
-    cmudict = [l.split() for l in f if l[:3] != ";;;"]
-    cmudict = {w[0].lower(): w[1:] for w in cmudict}
+with cmudict_path.open(encoding="ISO-8859-1") as f:
+    cmudict_rows: list[list[str]] = [
+        line.split() for line in f if not line.startswith(";;;")
+    ]
+    cmudict: dict[str, list[str]] = {
+        row[0].lower(): row[1:] for row in cmudict_rows
+    }
     
 cmudict["abstraction"]
 ```
@@ -38,7 +44,7 @@ cmudict["abstraction"]
 This dictionary uses what's known as the [ARPABET](https://en.wikipedia.org/wiki/ARPABET) and represents stress using numeric indicators: 0 for no stress, 1 for primary stress, and 2 for secondary stress. The ARPABET maps to more recognizable IPA representations in the following way.
 
 ```{python}
-arpabet_to_phoneme = {'AA': 'ɑ', 
+arpabet_to_phoneme: dict[str, str] = {'AA': 'ɑ',
                       'AE': 'æ', 
                       'AH': 'ə', 
                       'AO': 'ɔ', 
@@ -84,13 +90,19 @@ We'll use this mapping to construct the IPA representation from the ARPABET repr
 ```{python}
 import re
 
+def arpabet_phone_to_ipa(phone: str) -> str:
+    """Convert one stress-marked ARPABET phone to IPA."""
+    if phone == "AH0":
+        return "ə"
+    return arpabet_to_phoneme[re.sub(r"\d", "", phone)]
+
+
 entries: dict[str, list[str]] = {
-    w: [arpabet_to_phoneme[''.join(re.findall('[A-z]', phoneme))]
-        for phoneme in transcription]
+    w: [arpabet_phone_to_ipa(phoneme) for phoneme in transcription]
         for w, transcription in cmudict.items()
-        if len({c for c in w})>1
-        if len(transcription)>1 
-        if not re.findall('[^A-z]', w[0])
+        if len(set(w)) > 1
+        if len(transcription) > 1
+        if w[0].isalpha()
 }
 ```
 
@@ -104,9 +116,8 @@ entries["abstraction"]
 #| code-fold: true
 #| code-summary: Dump IPA representation to file
 
-with open("cmudict-ipa", "w") as f:
+with Path("cmudict-ipa").open("w", encoding="utf-8") as f:
     for w, ipa in entries.items():
         ipa = " ".join(ipa)
         f.write(f"{w},{ipa}\n")
 ```
-

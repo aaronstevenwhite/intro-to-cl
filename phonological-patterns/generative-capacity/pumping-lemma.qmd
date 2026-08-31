@@ -1,68 +1,98 @@
 ---
-title: The Pumping Lemma for Regular Languages
+title: The pumping lemma
 bibliography: ../../references.bib
 ---
 
-The pumping lemma essentially states that all sufficiently long strings in a regular language can be "pumped" - meaning a portion of the string can be repeated any number of times while still producing a string in the language. This property follows directly from the finite nature of FSAs.
+Every sufficiently long string accepted by an FSA must take the machine through some state at least twice. The part of the path between those two visits is a cycle. Traversing that cycle a different number of times yields a different accepted string. This repeated-state argument appears in the classical development of finite automata [@rabin_finite_1959].
 
-## Formal Definition
+The **pumping lemma** turns this observation into a necessary property of every regular language.
 
-Let's state the pumping lemma formally:
+## Statement of the lemma
 
-**Pumping Lemma for Regular Languages**: For any regular language $L$, there exists a constant $p > 0$ (called the "pumping length") such that for any string $w \in L$ with $|w| \geq p$, there exists a decomposition $w = xyz$ such that:
+If $L$ is regular, then there is some pumping length $p>0$ such that every $w\in L$ with $|w|\geq p$ can be written as $w=xyz$ with the following properties:
 
-1. $|y| > 0$ (y is non-empty)
-2. $|xy| \leq p$ (x and y together are no longer than p)
-3. For all $i \geq 0$, $xy^iz \in L$ (the string with y repeated i times is in the language)
+1. $|y|>0$;
+2. $|xy|\leq p$; and
+3. $xy^iz\in L$ for every $i\geq0$.
 
-Here, $y$ is the substring that can be "pumped" (repeated any number of times), while $x$ and $z$ remain fixed.
+What does the decomposition represent? The substring $y$ labels a nonempty cycle among the first $p$ transitions of an accepting path. Setting $i=0$ removes that cycle; setting $i>1$ repeats it.
 
-## Intuitive Explanation
+## Why the lemma is true
 
-To understand why this lemma holds, consider what happens when a DFA processes a long string. Since a DFA has a finite number of states (let's say $p$ states), if we input a string longer than $p$, the DFA must visit at least one state more than once by the pigeonhole principle.
+Let $L$ be regular. Then some deterministic finite-state automaton $M$ recognizes $L$. Suppose $M$ has $m$ states, and set the pumping length to $p=m$.
 
-This creates a cycle in the computation path. If we let:
-- $x$ be the prefix that gets us to the repeated state for the first time
-- $y$ be the substring that takes us from the repeated state back to itself
-- $z$ be the remainder of the string
+Now fix an arbitrary $w\in L$ with $|w|\geq p$. Because $M$ accepts $w$, there is an accepting run
 
-Then we can repeat the cycle (the $y$ part) any number of times and still end up in an accepting state, because we'll still follow the same path through the remainder of the string.
+$$
+q_0\xrightarrow{\sigma_1}q_1
+\xrightarrow{\sigma_2}\cdots
+\xrightarrow{\sigma_{|w|}}q_{|w|}.
+$$
 
-## Using the Pumping Lemma to Prove Non-Regularity
+Look only at the first $p+1$ visited states:
 
-To prove a language $L$ is not regular using the pumping lemma, we use proof by contradiction:
+$$q_0,q_1,\ldots,q_p.$$
 
-1. Assume $L$ is regular
-2. Then the pumping lemma must hold for $L$ with some pumping length $p$
-3. Find a string $w \in L$ with $|w| \geq p$
-4. Show that for any decomposition $w = xyz$ satisfying conditions 1 and 2, there exists some $i$ where $xy^iz \not\in L$
-5. This contradicts the pumping lemma, so $L$ cannot be regular
+There are $p+1$ positions on this list but only $p$ states in the automaton. Thus, two positions must contain the same state. Choose positions $r<s\leq p$ such that $q_r=q_s$.
 
-## Classic Example: $a^nb^n$
+Split $w$ at those two positions:
 
-The canonical example of a non-regular language is $L = \{a^nb^n \mid n \geq 0\}$, which consists of strings with an equal number of $a$'s followed by an equal number of $b$'s.
+$$
+\underbrace{\sigma_1\cdots\sigma_r}_{x}
+\underbrace{\sigma_{r+1}\cdots\sigma_s}_{y}
+\underbrace{\sigma_{s+1}\cdots\sigma_{|w|}}_{z}.
+$$
 
-Let's prove that $L$ is not regular using the pumping lemma:
+Now check the three required properties one at a time. First, $s>r$, so $y$ is nonempty. Second, $s\leq p$, so $|xy|\leq p$. Third, reading $y$ takes the automaton from $q_r$ back to that same state, since $q_r=q_s$. The automaton may thus traverse this loop zero times, once, or any larger number of times before continuing along the path labeled $z$. Every string $xy^iz$ follows a path to the same accepting state as $w$.
 
-1. Assume $L$ is regular
-2. Then there exists a pumping length $p > 0$
-3. Consider the string $w = a^pb^p \in L$
-4. By the pumping lemma, $w$ can be written as $w = xyz$ where:
-   - $|y| > 0$
-   - $|xy| \leq p$
-   - For all $i \geq 0$, $xy^iz \in L$
+We began with an arbitrary sufficiently long $w\in L$, so the argument supplies an appropriate decomposition for every such string. This proves the lemma. Rabin and Scott prove essentially this loop property as their Lemma 8. They then use it to give another proof that $\{0^n10^n\mid n\geq0\}$ cannot be defined by a finite automaton [@rabin_finite_1959].
 
-5. Since $|xy| \leq p$, both $x$ and $y$ consist only of $a$'s (they're within the first $p$ characters)
-6. Let's say $y = a^k$ for some $k > 0$
-7. Now consider $xy^2z$ (pumping $y$ once more)
-8. This gives us $a^{p+k}b^p$, which has more $a$'s than $b$'s
-9. Therefore, $xy^2z \not\in L$, which contradicts the pumping lemma
-10. Thus, $L$ is not regular
+::: {.callout-caution}
+## Quantifier order
 
-This example demonstrates why a language that requires "counting" or "matching" cannot be modeled by a finite state machine - the machine would need to remember exactly how many $a$'s it has seen to ensure an equal number of $b$'s follow, but FSAs have limited memory (determined by their finite number of states).
+To show that a language $L$ is not regular, we must argue as follows:
 
-## Why This Matters
+$$
+\forall p\;\exists w\;\forall(x,y,z)\;\exists i
+$$
 
-Understanding the limitations of regular languages is crucial for computational linguistics. While many patterns in natural language can be modeled using finite state machines, others require more computational power.
+where $|w|\geq p$, $w=xyz$, $|y|>0$, $|xy|\leq p$, and $xy^iz\notin L$. We choose $w$ after the proposed pumping length is given, but an adversary chooses the decomposition. Thus, exhibiting one decomposition that fails is not enough.
+:::
 
-In the next section, we'll explore specific examples from morphology and phonology that demonstrate these computational boundaries, particularly focusing on reduplication processes that have been shown to exceed the power of regular languages.
+## Proving that $\{a^nb^n\mid n\geq0\}$ is not regular
+
+Let
+
+$$L=\{a^nb^n\mid n\geq0\}.$$
+
+Assume for contradiction that $L$ is regular. We proceed in the order required by the quantifiers.
+
+1. The pumping lemma supplies some pumping length $p$.
+2. We respond with $w=a^pb^p$. This string belongs to $L$, and its length is at least $p$.
+3. Now let an adversary choose any permitted decomposition $w=xyz$. We do not choose this decomposition.
+4. Because $|xy|\leq p$, both $x$ and $y$ end within the first block of $p$ copies of $a$. Because $|y|>0$, we must have $y=a^k$ for some $1\leq k\leq p$.
+5. We choose $i=0$, which removes the adversary's substring $y$.
+
+The resulting string is
+
+$$xz=a^{p-k}b^p.$$
+
+It contains $p-k$ copies of $a$ and $p$ copies of $b$. Since $k>0$, these counts differ, so $xz\notin L$.
+
+The same response $i=0$ defeats every permitted decomposition: the only value that changes is the positive integer $k$. Thus, the proposed $p$ cannot be a pumping length. This contradicts the consequence of our regularity assumption, so $L$ is not regular.
+
+The proof identifies the **unbounded matching requirement**: the language must retain an arbitrarily large count across the boundary between the $a$s and the $b$s. A finite set of states cannot store that count.
+
+::: {.callout-caution}
+## Question
+
+Does every language that satisfies the conclusion of the pumping lemma have to be regular?
+:::
+
+::: {.callout-tip collapse=true}
+## Answer
+
+No. The pumping property is necessary for regularity, not sufficient. The lemma can prove that some languages are nonregular, but it cannot certify that a language is regular.
+:::
+
+The same proof strategy will let us diagnose unbounded copying. We will keep that problem separate from hierarchical constituency, which motivates context-free grammars for a different reason.

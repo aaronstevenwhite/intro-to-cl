@@ -33,7 +33,7 @@ else:
 
 
 
-All other sets of a subset are *proper subsets*.
+All other subsets of a set are *proper subsets*.
 
 $$\{\text{i}\} \subset \{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\}$$
 
@@ -48,6 +48,26 @@ if vowels < vowels:
 else:
     print(f"{vowels} ⊄ {vowels}")
 ```
+
+## Equality by double inclusion
+
+How can we prove that two sets $A$ and $B$ are equal? One option is to prove two subset claims:
+
+$$
+A = B
+\quad\Longleftrightarrow\quad
+A\subseteq B \text{ and } B\subseteq A.
+$$
+
+This proof pattern is called **double inclusion** (or **mutual inclusion**); [Proposition 1.18 in Oxford's open *Introduction to University Mathematics* notes](https://courses.maths.ox.ac.uk/mod/page/view.php?id=65661) gives the same result and a worked set-identity proof.
+
+Why is it valid? Suppose first that $A\subseteq B$ and $B\subseteq A$. Fix an arbitrary object $x$. If $x\in A$, the first inclusion gives $x\in B$. If $x\in B$, the second gives $x\in A$. Thus,
+
+$$x\in A \quad\Longleftrightarrow\quad x\in B.$$
+
+The two sets have exactly the same elements, so they are equal. The converse is immediate: if $A=B$, every element of either set is also an element of the other, so both inclusions hold.
+
+We will reuse this argument for languages, since a language is a set of strings. To prove $L_1=L_2$, we can show that every string in $L_1$ is in $L_2$ and that every string in $L_2$ is in $L_1$. Later, when we compare grammar formalisms, the objects on the two sides will be *sets of languages*, but the reason double inclusion works will be exactly the same.
 
 
 ## Supersets 
@@ -72,7 +92,7 @@ The empty set $\emptyset$ is a set containing no elements.
 $$\emptyset \equiv \{\}$$
 
 ```{python}
-emptyset: set = set()
+emptyset: frozenset[object] = frozenset()
 ```
 
 
@@ -95,8 +115,8 @@ $$\emptyset \not\in \{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\}$$
 $$\emptyset \in \{\emptyset, \text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\}$$
 
 ```{python}
-vowels_with_empty: set[str] = set(vowels)
-vowels_with_empty.add(frozenset(emptyset))
+vowels_with_empty: set[str | frozenset[object]] = set(vowels)
+vowels_with_empty.add(emptyset)
 
 if emptyset in vowels:
     print(f"∅ ∈ {vowels}")
@@ -146,7 +166,7 @@ print(f"{high_vowels} ∩ {mid_back_vowels} = {high_vowels & mid_back_vowels}")
 
 ## Union
 
-The *union* of two sets is the set of elements in both. For instance, if we take the union of the set of high vowels with the set of back vowels, we get the set of high and/or back vowels.
+The *union* of two sets is the set of elements in at least one of them. For instance, if we take the union of the set of high vowels with the set of back vowels, we get the set of high and/or back vowels.
 
 $$\{\text{i, u, ɪ, ʊ}\} \cup \{\text{u, ʊ, o, ɔ, ɑ}\} = \{\text{i, ɪ, u, ʊ, o, ɔ, ɑ}\}$$
 
@@ -188,10 +208,10 @@ Set-builder notation can be implemented using set comprehensions.
 vowels: set[str] = {"e", "i", "o", "u", "æ", "ɑ", "ɔ", "ə", "ɛ", "ɪ", "ʊ"}
 
 def is_high(x: str) -> bool:
-  return x in {"i", "u", "ɪ", "ʊ"}
+    return x in {"i", "u", "ɪ", "ʊ"}
 
 def is_front(x: str) -> bool:
-  return x in {"i", "ɪ", "e", "æ", "ɛ"}
+    return x in {"i", "ɪ", "e", "æ", "ɛ"}
 
 {v for v in vowels if is_high(v) and is_front(v)}
 ```
@@ -234,4 +254,3 @@ $$\{\text{i, u, ɪ, ʊ}\} - \{\text{u, ʊ}\} = \{\text{i, ɪ}\}$$
 ```{python}
 print(f"{high_vowels} - {high_back_vowels} = {high_vowels - high_back_vowels}")
 ```
-

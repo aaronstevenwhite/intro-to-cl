@@ -90,10 +90,11 @@ project:
   - syntactic-patterns/deductive-parsing.qmd
   - syntactic-patterns/mildly-context-sensitive/index.qmd
   - syntactic-patterns/mildly-context-sensitive/tree-adjoining-grammars.qmd
+  - syntactic-patterns/mildly-context-sensitive/mcfgs-and-lcfrs.qmd
   - syntactic-patterns/mildly-context-sensitive/type-logical-grammars.qmd
   - syntactic-patterns/mildly-context-sensitive/combinatory-categorial-grammars.qmd
-  - syntactic-patterns/mildly-context-sensitive/mcfgs-and-lcfrs.qmd
   - syntactic-patterns/mildly-context-sensitive/minimalist-grammars.qmd
+  - syntactic-patterns/mildly-context-sensitive/proving-equivalences.qmd
   - assignments/assignments-1-and-2.ipynb
   - assignments/assignments-3-and-4.ipynb
   - assignments/assignments-5-and-6.ipynb
@@ -103,6 +104,7 @@ project:
 
 website:
   title: "Introduction to Computational Linguistics"
+  site-url: "https://aaronstevenwhite.io/intro-to-cl"
   page-navigation: true
   sidebar:
     style: docked
@@ -199,16 +201,26 @@ website:
       - section: "The nature of morphological patterns"
         contents:
         - morphological-patterns/index.qmd
-        - morphological-patterns/operations.qmd
-        - morphological-patterns/normal-forms.qmd
-        - morphological-patterns/cky-parsing.qmd
-        - morphological-patterns/earley-parsing.qmd
-        - morphological-patterns/morphological-wellformedness.qmd
-        - morphological-patterns/loading-celex.qmd
-        - morphological-patterns/segmentation-with-bpe.qmd
-        - morphological-patterns/segmentation-with-structured-prediction.qmd
-        - morphological-patterns/probabilistic-context-free-grammars.qmd
-        - morphological-patterns/unsupervised-grammar-learning.qmd
+        - section: "Context-free grammars"
+          contents:
+          - morphological-patterns/operations.qmd
+          - morphological-patterns/normal-forms.qmd
+        - section: "Parsing"
+          contents:
+          - morphological-patterns/cky-parsing.qmd
+          - morphological-patterns/earley-parsing.qmd
+        - section: "Data and modeling targets"
+          contents:
+          - morphological-patterns/morphological-wellformedness.qmd
+          - morphological-patterns/loading-celex.qmd
+        - section: "Segmentation"
+          contents:
+          - morphological-patterns/segmentation-with-bpe.qmd
+          - morphological-patterns/segmentation-with-structured-prediction.qmd
+        - section: "Probabilistic grammars"
+          contents:
+          - morphological-patterns/probabilistic-context-free-grammars.qmd
+          - morphological-patterns/unsupervised-grammar-learning.qmd
       - section: "The nature of syntactic patterns"
         contents:
         - syntactic-patterns/index.qmd
@@ -218,10 +230,11 @@ website:
           contents:
           - syntactic-patterns/mildly-context-sensitive/index.qmd
           - syntactic-patterns/mildly-context-sensitive/tree-adjoining-grammars.qmd
+          - syntactic-patterns/mildly-context-sensitive/mcfgs-and-lcfrs.qmd
           - syntactic-patterns/mildly-context-sensitive/type-logical-grammars.qmd
           - syntactic-patterns/mildly-context-sensitive/combinatory-categorial-grammars.qmd
-          - syntactic-patterns/mildly-context-sensitive/mcfgs-and-lcfrs.qmd
           - syntactic-patterns/mildly-context-sensitive/minimalist-grammars.qmd
+          - syntactic-patterns/mildly-context-sensitive/proving-equivalences.qmd
       - section: "Assignments"
         contents:
         - assignments/assignments-1-and-2.ipynb
@@ -256,6 +269,3 @@ filters:
 comments:
   giscus: 
     repo: aaronstevenwhite/intro-to-cl
-
-
-

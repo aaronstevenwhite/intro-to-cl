@@ -1,197 +1,82 @@
 ---
-title: Phonological Rule Formalism
+title: Phonological rewrite rules
 bibliography: ../../references.bib
 ---
 
-One influential formalism for stating phonological rules comes from Chomsky and Halle's "The Sound Pattern of English" (SPE) [@chomsky1968sound]. In this formalism, rules have the general form:
+The rewrite rules introduced in *The Sound Pattern of English* [@chomsky1968sound] have the following form:
 
-$$A \rightarrow B / C\_D$$
+$$A \rightarrow B\;/\;C\_D$$
 
-Where:
-- $A$ is the target (what changes)
-- $B$ is the structural change (what $A$ changes to)
-- $C$ is the left context
-- $D$ is the right context
+The rule replaces a target $A$ with $B$ when $A$ occurs after the left context $C$ and before the right context $D$. The target, replacement, and contexts may each denote a set of strings rather than a single string.
 
-This can be read as "$A$ becomes $B$ when it occurs between $C$ and $D$."
+## Rules as relations
 
-The rule applies whenever the sequence $CAD$ is found in the input string, transforming it to $CBD$ in the output.
+What should a rewrite rule do to a complete string? It does not merely recognize strings containing $CAD$. It defines a relation between a complete input string and a complete output string. For a mandatory rule, every eligible occurrence of $A$ must be replaced, while every symbol outside the target must be copied.
 
-## Converting Rules to FSTs
+We will call this relation the **context-dependent replacement relation** (CDR relation). If $\rho$, $\phi$, $\lambda$, and $\omega$ denote the target, replacement, left context, and right context, respectively, we write it as
 
-To convert a phonological rule $A \rightarrow B / C\_D$ into an FST, we need to:
+$$\operatorname{CDR}(\rho \rightarrow \phi\;/\;\lambda\_\omega).$$
 
-1. Create an FST that recognizes the pattern $CAD$ in the input
-2. Ensure that when this pattern is recognized, $A$ is replaced by $B$ in the output
-3. Ensure that all other segments are copied unchanged from input to output
+The basic result is that the CDR relation is rational when $\rho$, $\phi$, $\lambda$, and $\omega$ are regular and the rule uses one of the noncyclic application modes covered by the compilation scheme. Thus, it can be represented by an FST [@kaplan1994regular]. This scope restriction matters: unrestricted cyclic reapplication may let a rule repeatedly rewrite material created on an earlier pass, producing a nonregular relation [@kaplan1994regular].
 
-The algorithm developed by @kaplan1994regular and refined by @mohri1997finite provides a systematic way to do this.
+This result does not say that the compilation is as simple as finding $\lambda\rho\omega$ and substituting $\phi$. The transducer must decide where a match begins, preserve the contexts without rewriting them, handle overlapping matches, and specify whether application proceeds from left to right or from right to left. These choices are part of the rule definition.
 
-### The Replace Operator
+## Compiling a rule
 
-The core of the Kaplan and Kay algorithm is the "replace" operator, which can be defined as:
+Kaplan and Kay's construction uses temporary boundary markers to separate the contexts from the target [@kaplan1994regular]. At a high level, compilation proceeds in four steps:
 
-$$\text{replace}(A, B, C, D) = \{(x, y) \mid y \text{ is the result of replacing all instances of } A \text{ with } B \text{ in } x \text{ when } A \text{ occurs between } C \text{ and } D\}$$
+1. mark positions that satisfy the right-context condition;
+2. retain only markers that also satisfy the left-context condition;
+3. replace the material between the surviving markers; and
+4. remove the markers.
 
-This operator defines a regular relation that can be implemented as an FST.
+Each step is a rational relation, so their composition is also a rational relation. Mohri and Sproat refine this strategy by factoring the marker and filter machines so that the resulting compiler handles directionality and overlapping applications more efficiently [@mohri1997finite]. The full construction is beyond what we need here; the point for current purposes is that rule compilation is an application of composition, not a new formal operation.
 
-## The Formal Algorithm
+How does the four-stage construction preserve the rule's conditions? After the first stage, a candidate marker occurs at every position from which the right context $\omega$ can begin. Because $\omega$ is regular, a finite automaton can track exactly this condition. The second stage retains a candidate only when the material before the target satisfies the regular left context $\lambda$. So the **marker invariant** is:
 
-The formal algorithm for converting a rule $A \rightarrow B / C\_D$ into an FST involves several sophisticated steps. Here we follow the improved algorithm by @mohri1997finite, which fixed issues in the original @kaplan1994regular construction.
+> A target boundary survives the two filters exactly when that occurrence of $\rho$ has both the required left context and the required right context.
 
-### Preliminaries
+The replacement stage changes only material delimited by surviving markers. Thus, every replacement it makes is licensed by the rule, while the copy transitions preserve all material outside a licensed target. The final stage erases only the administrative markers. This proves soundness: every input-output pair in the compiled relation is a legal application of the rule.
 
-First, we define some basic concepts:
+Now check completeness. Take any legal application of the rule and one of its replaced targets. The target has the stated right context, so the first machine marks it. It also has the stated left context, so the second machine retains that marker. The replacement machine includes the corresponding $\rho:\phi$ path, and the cleanup machine removes its markers. Repeating this reasoning for every replaced target gives the legal input-output pair. The compiled relation thus contains every legal application. Since each stage is rational and rational relations are closed under composition, the sound and complete result is rational.
 
-1. Let $\Sigma$ be the input/output alphabet
-2. Let $A, B, C, D$ be regular expressions over $\Sigma$
-3. Define the "context language" $L = C \circ A \circ D$, which represents all strings that match the rule context
-4. Define auxiliary FSAs for these languages:
-   - $M_A$ recognizes language $A$
-   - $M_B$ recognizes language $B$
-   - $M_C$ recognizes language $C$
-   - $M_D$ recognizes language $D$
-   - $M_L$ recognizes language $L$
+Directionality and overlap conventions determine which markers count as a jointly legal application. They change the filter relation, but not this proof structure.
 
-### Marker Symbols
+::: {.callout-caution}
+## Question
 
-To handle rule application correctly, we introduce special marker symbols:
-- $\#_1, \#_2, \#_3, \#_4$ (not in $\Sigma$) to mark boundaries
-- $\sigma = \#_1, \tau = \#_2, \rho = \#_3, \eta = \#_4$
+Why do we need temporary markers? Why not build an FST that replaces $A$ whenever it has just read $C$?
+:::
 
-### Construction Components
+::: {.callout-tip collapse=true}
+## Answer
 
-The algorithm constructs several intermediate transducers:
+The left context alone is not enough. The machine must also know that the material after $A$ belongs to $D$, and it may need to delay the replacement decision until that right context has been checked. Markers let separate finite state machines record and filter candidate boundaries before the replacement is made.
+:::
 
-#### 1. Boundary Marking Transducer ($T_{\text{Mark}}$)
+## Final devoicing
 
-This transducer identifies potential rule application sites and adds boundary markers:
+Let $D=\{b,d,g,v,z,\text{ʒ}\}$ be the voiced obstruents and let $\operatorname{devoice}$ map each member of $D$ to its voiceless counterpart. German final devoicing can be stated schematically as
 
-$$T_{\text{Mark}} = \{(x, x') \mid x' \text{ is } x \text{ with } \sigma, \tau, \rho, \eta \text{ marking the boundaries of all occurrences of } L \text{ in } x\}$$
+$$D \rightarrow \operatorname{devoice}(D)\;/\;\_\#.$$
 
-Where occurrences of $L$ are marked as:
-- $\sigma$ at the start of $C$
-- $\tau$ at the boundary between $C$ and $A$
-- $\rho$ at the boundary between $A$ and $D$
-- $\eta$ at the end of $D$
+An FST compiled from this rule copies every segment except a voiced obstruent immediately before the word boundary. Thus, an input ending in /d/ is paired with an output ending in [t], while a medial /d/ is copied.
 
-Formally, $T_{\text{Mark}}$ is constructed as:
+## Vowel harmony
 
-$$T_{\text{Mark}} = \text{Id}(\Sigma^*) \circ T_{\sigma} \circ \text{Id}(\Sigma^*) \circ T_{\tau} \circ \text{Id}(\Sigma^*) \circ T_{\rho} \circ \text{Id}(\Sigma^*) \circ T_{\eta} \circ \text{Id}(\Sigma^*)$$
+Suppose that $E$ is an underspecified suffix vowel, $V_f=\{e,i,ö,ü\}$ is the set of front vowels, $V_b=\{a,ı,o,u\}$ is the set of back vowels, and $C$ is the consonant inventory. A two-way backness harmony can be stated with two rules:
 
-Where:
-- $\text{Id}(L)$ is the identity transducer for language $L$
-- $T_{\sigma}, T_{\tau}, T_{\rho}, T_{\eta}$ insert the respective boundary markers at appropriate positions
+$$
+\begin{aligned}
+E &\rightarrow e\;/\;V_fC^*\_ \\
+E &\rightarrow a\;/\;V_bC^*\_.
+\end{aligned}
+$$
 
-#### 2. Replacement Transducer ($T_{\text{Replace}}$)
+The regular expressions in the left contexts allow the transducer to find the most recent vowel before the suffix. The union of the two compiled relations handles the two harmonic classes only after each relation is restricted to inputs in its stated harmonic domain. Without that restriction, the relation for the inapplicable rule could contribute an identity output for $E$. Equivalently, a compiler can combine the two context-replacement alternatives into one mandatory relation.
 
-This transducer performs the actual replacement between $\tau$ and $\rho$ markers:
+## Ordering rules
 
-$$T_{\text{Replace}} = \text{Id}((\Sigma \cup \{\sigma, \tau, \rho, \eta\})^* \circ \{\sigma\}) \circ \text{Id}((\Sigma \cup \{\sigma, \tau, \rho, \eta\})^* \circ \{\tau\}) \circ T_{A \rightarrow B} \circ \text{Id}(\{\rho\} \circ (\Sigma \cup \{\sigma, \tau, \rho, \eta\})^* \circ \{\eta\}) \circ \text{Id}((\Sigma \cup \{\sigma, \tau, \rho, \eta\})^*)$$
+If $T_1$ compiles the first rule in a derivation and $T_2$ compiles the second, the ordered grammar is $T_2 \circ T_1$. The output of $T_1$ is an intermediate representation that serves as the input to $T_2$.
 
-Where $T_{A \rightarrow B}$ maps strings in $A$ to their corresponding strings in $B$.
-
-#### 3. Marker Removal Transducer ($T_{\text{Unmark}}$)
-
-This transducer removes all marker symbols:
-
-$$T_{\text{Unmark}} = \{(x, y) \mid y \text{ is } x \text{ with all occurrences of } \sigma, \tau, \rho, \eta \text{ removed}\}$$
-
-### The Complete Algorithm
-
-The complete rule transducer is constructed by composing these components:
-
-$$T_{\text{Rule}} = T_{\text{Mark}} \circ T_{\text{Replace}} \circ T_{\text{Unmark}}$$
-
-### Mohri's Improvements
-
-@mohri1997finite introduced three key improvements to the original Kaplan and Kay algorithm:
-
-1. **Factorization**: The replace operation is factored into simpler components, making it more efficient
-2. **Filter Transducers**: Special filter transducers are used to ensure correct applications in the presence of overlapping potential matches
-3. **Determinization**: The algorithm ensures that the resulting transducer can be determinized, which is crucial for efficiency
-
-#### Filter Transducers
-
-The filter transducers include:
-
-1. **Left-to-right filter** ($T_{\text{LTR}}$):
-   $$T_{\text{LTR}} = \{(x, x) \mid \text{no marker in } x \text{ is followed by a marker of lower index}\}$$
-
-2. **Containment filter** ($T_{\text{Contain}}$):
-   $$T_{\text{Contain}} = \{(x, x) \mid \text{every } \sigma \text{ in } x \text{ is matched with } \eta, \text{ and same for } \tau \text{ and } \rho\}$$
-
-With these filters, the improved marker transducer is:
-
-$$T_{\text{Mark}}' = T_{\text{Mark}} \circ T_{\text{LTR}} \circ T_{\text{Contain}}$$
-
-### Epsilon Handling
-
-A critical aspect of the algorithm is the handling of epsilon transitions. Mohri's approach uses special epsilon filters to ensure correct behavior when rules involve empty strings. These filters prevent the improper application of rules and ensure termination of the algorithm.
-
-### The CDRewrite Function
-
-The complete algorithm is often implemented through a function called CDRewrite, which is formally defined as:
-
-$$\text{CDRewrite}(A, B, C, D, \Sigma) = T$$
-
-where:
-- $A$ is a regular expression representing the target pattern
-- $B$ is a regular expression representing the replacement pattern
-- $C$ is a regular expression representing the left context
-- $D$ is a regular expression representing the right context
-- $\Sigma$ is the alphabet of the language
-- $T$ is the resulting finite state transducer
-
-The CDRewrite function constructs $T$ using the improved marker transducer $T_{\text{Mark}}'$ (which includes the filters from above):
-
-$$\text{CDRewrite}(A, B, C, D, \Sigma) = T_{\text{Mark}}' \circ T_{\text{Replace}} \circ T_{\text{Unmark}}$$
-
-where:
-
-$$T_{\text{Mark}}' = \text{Id}(\Sigma^*) \circ T_{\sigma} \circ \text{Id}(\Sigma^*) \circ T_{\tau} \circ \text{Id}(\Sigma^*) \circ T_{\rho} \circ \text{Id}(\Sigma^*) \circ T_{\eta} \circ \text{Id}(\Sigma^*) \circ T_{\text{LTR}} \circ T_{\text{Contain}}$$
-
-$$T_{\text{Replace}} = \text{Id}((\Sigma \cup M)^* \sigma (\Sigma \cup M)^* \tau) \circ T_{A \rightarrow B} \circ \text{Id}(\rho (\Sigma \cup M)^* \eta (\Sigma \cup M)^*)$$
-
-$$T_{\text{Unmark}} = \{(x, y) \mid y \text{ is } x \text{ with all occurrences of } \sigma, \tau, \rho, \eta \text{ removed}\}$$
-
-where:
-- $M = \{\sigma, \tau, \rho, \eta\}$ is the set of marker symbols
-- $T_{\sigma}, T_{\tau}, T_{\rho}, T_{\eta}$ are transducers that insert the respective markers at appropriate positions
-- $T_{A \rightarrow B}$ is a transducer that replaces strings matching $A$ with their corresponding strings in $B$
-- $T_{\text{LTR}}$ is the left-to-right filter that ensures proper marker ordering
-- $T_{\text{Contain}}$ is the containment filter that ensures proper marker matching
-
-This function encapsulates all the complexity of the algorithm, providing a simple interface for phonological rule implementation.
-
-## Example: German Final Devoicing
-
-For German final devoicing, we can express the rule as:
-
-$$\text{CDRewrite}(\{b \rightarrow p, d \rightarrow t, g \rightarrow k, v \rightarrow f, z \rightarrow s, \text{ʒ} \rightarrow \text{ʃ}\}, \epsilon, \#, \Sigma^*)$$
-
-This creates an FST that implements the rule:
-
-$$[+\text{obstruent}, +\text{voice}] \rightarrow [-\text{voice}] / \_ \#$$
-
-## Example: Turkish Vowel Harmony
-
-For Turkish vowel harmony, we need to track the backness of the last vowel in the stem:
-
-$$\text{CDRewrite}(E \rightarrow e, \{e, i, ö, ü\}C^*, \epsilon, \Sigma^*) \cup \text{CDRewrite}(E \rightarrow a, \{a, ı, o, u\}C^*, \epsilon, \Sigma^*)$$
-
-This creates an FST that implements the rule:
-
-$$E \rightarrow [αback] / [αback]C^*\_$$
-
-Where $E$ is an abstract vowel that takes on the backness of the preceding vowel.
-
-## Composition of Rules
-
-One of the powerful aspects of the FST approach is that multiple rules can be composed into a single FST. If we have two rules represented as FSTs $T_1$ and $T_2$, we can create a new FST $T = T_1 \circ T_2$ that applies both rules in sequence.
-
-For example, if we have a rule for German final devoicing and another rule for German schwa epenthesis, we can compose them to create a single FST that applies both rules:
-
-$$T = T_{\text{final-devoicing}} \circ T_{\text{schwa-epenthesis}}$$
-
-This is particularly useful for modeling rule ordering in phonology, where the order in which rules apply can affect the final output.
+This use of composition is important. Compiling each rule separately preserves the generalization stated by that rule; composing a finite ordered sequence of rule relations yields one rational relation for the grammar as a whole [@kaplan1994regular]. We turn next to cases in which the intermediate representation differs in a consequential way from the surface form.

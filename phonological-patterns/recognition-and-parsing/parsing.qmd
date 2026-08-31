@@ -5,73 +5,85 @@ bibliography: ../../references.bib
 
 ## Parsing with Finite State Automata
 
-While recognition simply determines whether a string belongs to a language, parsing goes further by assigning structure to the string. For regular languages, parsing typically involves identifying the specific path through the automaton that accepts the string.
+Recognition gives us a boolean. But suppose the answer is `True` and we want to know *how* the machine accepted the string. For regular languages, that means recovering the particular path or paths through the automaton.
 
 ### The Parsing Problem
 
 The *parsing problem* for FSAs can be defined as:
 
 - **Input**: A finite state automaton $G = \langle Q, \Sigma, \delta, q_0, F \rangle$ and a string $\boldsymbol\sigma \in \Sigma^*$
-- **Output**: If $\boldsymbol\sigma \in \mathbb{L}(G)$, a path through $G$ that accepts $\boldsymbol\sigma$; otherwise, an indication that no such path exists
+- **Output**: The set of all paths through $G$ that accept $\boldsymbol\sigma$; the empty set indicates that no such path exists
 
 Note that we'll focus on nondeterministic finite automata (NFAs) throughout this discussion. This is sufficient because any deterministic finite automaton (DFA) can be represented as an NFA with exactly the same states and transitions, but without any nondeterministic choices or epsilon transitions.
 
 ### Parsing Algorithm
 
-To extend our recognition algorithm to a parsing algorithm, we need to keep track of the paths taken through the automaton. Similar to recognition, we'll define this recursively.
+How can we extend the recognition algorithm? Instead of storing only the current states, we'll store the paths that reached them. We can define this recursively.
 
-First, let's define a path as a sequence of symbol-state pairs, where each pair represents a transition in the automaton. For a path $p$, we denote the last state in the path as $\text{last-state}(p)$.
+First, define an **anchored path** as a start state followed by a sequence of symbol-state pairs:
 
-We need a helper function to handle epsilon transitions. Let's define $\text{epsilon-paths}(q)$ as the set of all paths from state $q$ to any other state using only epsilon transitions:
+$$p=\langle q,(a_1,q_1),\ldots,(a_m,q_m)\rangle.$$
 
-$$
-\text{epsilon-paths}(q) = \{\langle (\epsilon, q_1), (\epsilon, q_2), \ldots, (\epsilon, q_n) \rangle \mid q_1, \ldots, q_n \in Q \text{ and there is a path from } q \text{ to } q_n \text{ using only } \epsilon \text{ transitions}\}
-$$
+Each pair represents a transition from the preceding state. Define $\operatorname{last\text{-}state}(p)=q_m$ when $m>0$ and $\operatorname{last\text{-}state}(\langle q\rangle)=q$. The explicit anchor makes the length-zero path well-defined.
 
-Note that this set always includes the empty path $\langle \rangle$ from a state to itself via zero epsilon transitions.
-
-We can now define a recursive parsing function $\text{parse-from}_G(\boldsymbol\sigma, P)$ where $P$ is a set of partial paths:
+We need a helper function to handle epsilon transitions. Let $\operatorname{epsilon\text{-}extensions}(q)$ be the set of transition sequences that start at $q$ and use only epsilon transitions:
 
 $$
-\text{parse-from}_G(\boldsymbol\sigma, P) = \begin{cases}
-\{p \in P \mid \text{last-state}(p) \in F\} & \text{if } \boldsymbol\sigma = \epsilon \\
-\text{parse-from}_G(\sigma_2\ldots\sigma_n, P') & \text{if } \boldsymbol\sigma = \sigma_1\sigma_2\ldots\sigma_n \\
+\operatorname{epsilon\text{-}extensions}(q)
+=\{\langle(\epsilon,q_1),\ldots,(\epsilon,q_m)\rangle
+\mid q\xrightarrow{\epsilon}q_1\xrightarrow{\epsilon}\cdots\xrightarrow{\epsilon}q_m\}.
+$$
+
+This set includes the empty transition sequence $\langle\rangle$, which leaves the anchored path's last state at $q$.
+
+We can now define a recursive parsing function $\operatorname{parse\text{-}from}_G(\boldsymbol\sigma, P)$ where $P$ is a set of partial paths:
+
+$$
+\operatorname{parse\text{-}from}_G(\boldsymbol\sigma, P) = \begin{cases}
+\{p \in P \mid \operatorname{last\text{-}state}(p) \in F\} & \text{if } \boldsymbol\sigma = \epsilon \\
+\operatorname{parse\text{-}from}_G(\sigma_2\ldots\sigma_n, P') & \text{if } \boldsymbol\sigma = \sigma_1\sigma_2\ldots\sigma_n \\
 \emptyset & \text{otherwise}
 \end{cases}
 $$
 
 where:
-$$P' = \bigcup_{p \in P} \bigcup_{q' \in \delta(\text{last-state}(p), \sigma_1)} \bigcup_{e \in \text{epsilon-paths}(q')} \{p \circ \langle (\sigma_1, q') \rangle \circ e\}$$
+$$P' = \bigcup_{p \in P} \bigcup_{q' \in \delta(\operatorname{last\text{-}state}(p), \sigma_1)} \bigcup_{e \in \operatorname{epsilon\text{-}extensions}(q')} \{p \circ \langle (\sigma_1, q') \rangle \circ e\}$$
 
 Here, $\circ$ represents path concatenation. The set $P'$ contains all possible extensions of paths in $P$ after reading symbol $\sigma_1$, including any subsequent epsilon transitions.
 
 The full parsing function is then:
 
 $$
-\text{parse}_G(\boldsymbol\sigma) = \text{parse-from}_G(\boldsymbol\sigma, \bigcup_{e \in \text{epsilon-paths}(q_0)} \{\langle \rangle \circ e\})
+\operatorname{parse}_G(\boldsymbol\sigma) = \operatorname{parse\text{-}from}_G(\boldsymbol\sigma, \{\langle q_0\rangle \circ e\mid e\in\operatorname{epsilon\text{-}extensions}(q_0)\})
 $$
 
-This algorithm not only determines whether the string is accepted but also provides all possible paths through the automaton that lead to acceptance. If the result is an empty set, then the string is not in the language of the automaton.
+Assume first that the relevant epsilon-path sets are finite. This holds, for instance, when the epsilon-transition subgraph is acyclic. What should $P$ contain after $i$ input symbols? It should contain exactly the paths from $q_0$ that consume $\sigma_1\ldots\sigma_i$ and then take any available sequence of epsilon transitions. This is the **partial-path invariant**.
+
+Start with $i=0$. Initialization enumerates exactly the epsilon-only paths from $q_0$, so the invariant holds. Now fix an arbitrary path in $P$. The update takes each transition from its last state labeled $\sigma_{i+1}$ and appends every epsilon-only continuation from the transition's destination. Every constructed path thus consumes the next symbol legally. Conversely, any path consuming $\sigma_1\ldots\sigma_{i+1}$ has a prefix that consumes the first $i$ symbols, followed by a $\sigma_{i+1}$-transition and an epsilon-only suffix. The inductive hypothesis places the prefix in $P$, and the update reconstructs the remaining two parts. Thus, $P'$ contains every and only path licensed by the longer prefix.
+
+When the input is exhausted, the method keeps only paths whose last state is in $F$. By the invariant, these are exactly the accepting paths. Under the finiteness assumption, the parser thus returns every accepting path and no other path. Its result is empty exactly when the string is not in the language.
+
+An epsilon cycle changes what can be returned explicitly. If an accepting path can traverse such a cycle any number of times, one input may have infinitely many distinct paths. A terminating implementation can memoize configurations of the form $\langle q,i\rangle$ and return a finite backpointer graph, but enumerating every cyclic path from that graph may still be infinite. Thus, the displayed set-valued algorithm is an explicit all-path parser only when the relevant path set is finite; in the general case, its finite counterpart is a packed representation of those paths.
 
 For deterministic finite automata (DFAs), the algorithm simplifies because there are no epsilon transitions and each state has at most one transition on each symbol. In this case, there is at most one valid parse for any accepted string.
 
 ### Ambiguity in Parsing
 
-An important consideration in parsing with FSAs is ambiguity. A string may have multiple valid parses if the automaton is nondeterministic. In such cases, the parsing algorithm returns the set of all valid parses.
+What if the automaton has more than one accepting path for the same string? This is **ambiguity**. For an NFA, the parsing algorithm returns all of those paths.
 
-For example, consider an NFA that recognizes the language $(a|b)^*a(a|b)^*$. The string "aba" has multiple valid parses, as the middle "a" could be the one required by the pattern, or one of the outer "a"s could be. The parsing algorithm would return all these possibilities as distinct paths through the automaton.
+For instance, consider an NFA that recognizes the language $(a|b)^*a(a|b)^*$. The string `aba` has multiple valid parses: either the first `a` or the final `a` can satisfy the required middle expression. The parsing algorithm returns these choices as distinct paths through the automaton.
 
-Handling ambiguity is particularly important in linguistic applications, where different parses may correspond to different linguistic analyses.
+These paths can correspond to different linguistic analyses, so recognition alone would discard information we may need.
 
 ## Applications in Phonology
 
-In phonological analysis, parsing algorithms for FSAs have several important applications:
+What might an accepting path record in a phonological analysis? Here are three possibilities:
 
 ### 1. Morphological Decomposition
 
 Parsing can identify the morphological structure of words by tracing the path through an FSA that represents morphological rules.
 
-For example, parsing the word "unhappiness" through an appropriate FSA might yield a path that identifies the prefix "un-", the root "happy", and the suffix "-ness", along with the rules that combine them.
+For instance, parsing the word "unhappiness" through an appropriate FSA might yield a path that identifies the prefix "un-", the root "happy", and the suffix "-ness", along with the rules that combine them.
 
 ### 2. Phonological Rule Application
 
@@ -83,11 +95,11 @@ For instance, parsing the word "cats" (/kæts/) might show how the plural morphe
 
 Parsing can determine the syllable structure of words by identifying the specific path through a syllable structure FSA.
 
-For example, parsing "strength" through the English syllable FSA would identify it as a single syllable with a complex onset /str/ and a complex coda /ŋθ/.
+For instance, parsing "strength" through the English syllable FSA would identify it as a single syllable with a complex onset /str/ and a complex coda /ŋθ/.
 
 ## Extending Parsing for Richer Analyses
 
-While basic FSA parsing provides valuable information about the structure of strings, linguistic applications often require richer analyses. Several extensions to basic parsing can provide more detailed linguistic information:
+An unweighted FSA path records only the transitions taken. If we need more information, we can extend that basic representation in several ways:
 
 ### Weighted Parsing
 
@@ -95,7 +107,7 @@ By assigning weights to transitions in the FSA, we can implement weighted parsin
 
 ### Feature-Based Parsing
 
-We can extend FSAs to carry feature information along transitions, allowing for more detailed linguistic analyses. For example, transitions might carry information about phonological features, morphological categories, or syntactic properties.
+We can extend FSAs to carry feature information along transitions, allowing for more detailed linguistic analyses. For instance, transitions might carry information about phonological features, morphological categories, or syntactic properties.
 
 ### Transducer-Based Parsing
 

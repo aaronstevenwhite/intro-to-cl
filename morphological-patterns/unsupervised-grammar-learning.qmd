@@ -1,733 +1,218 @@
 ---
-title: Unsupervised morphological grammar learning
+title: Learning with latent trees
 bibliography: ../references.bib
 jupyter: python3
 execute:
   eval: false
 ---
 
-In the previous section on [probabilistic context-free grammars](probabilistic-context-free-grammars.qmd), we estimated rule probabilities from the CELEX database—a supervised approach that requires gold-standard morphological parses. But gold-standard parses are expensive to produce and are not available for most languages. This raises a natural question: can we learn a morphological grammar from raw data, without labeled parses?
+::: {.callout-tip}
+## Reading
 
-It can be done, at least in principle, using the [*expectation-maximization*](https://en.wikipedia.org/wiki/Expectation%E2%80%93maximization_algorithm) (EM) algorithm [@dempster_maximum_1977] applied to probabilistic context-free grammars. The idea is to alternate between two steps: (i) use the current grammar to compute the expected counts of each rule across all possible parses of the training data (the E step); and (ii) use those expected counts to re-estimate the rule probabilities (the M step). This is the same basic strategy as EM for Gaussian mixture models or HMMs, but applied to the more complex structure of context-free grammars.
+@baker_trainable_1979 and @lari_estimation_1990 on inside-outside estimation; @dempster_maximum_1977 on expectation-maximization more generally.
+:::
 
-## The inside-outside algorithm
+The supervised PCFG estimator observes a tree for every training word. What can we learn if we remove those trees? The terminals remain observed, but their hierarchical analysis is latent. We will call this the **tree-latent learning problem**.
 
-The [inside-outside algorithm](https://en.wikipedia.org/wiki/Inside%E2%80%93outside_algorithm) [@baker_trainable_1979; @lari_estimation_1990] provides the machinery for the E step. To perform it, we need to compute, for each rule $A \rightarrow B\; C$ and each span $(i, j)$ in a training string, the *expected number of times* that rule is used to derive the substring from position $i$ to position $j$. This requires two quantities:
+This terminology is deliberate. If the terminal sequences come from gold CELEX boundaries or from a CRF trained on those boundaries, the procedure is not fully unsupervised: segmentation is supervised even though constituency is not. BPE segments yield a less supervised comparison because they are learned without morphological boundary labels.
 
-- The *inside probability* $\alpha_A(i, j)$: the probability that nonterminal $A$ generates the substring $w_i \ldots w_j$ under the current grammar. We already computed this in the previous section—it's the quantity filled in by the probabilistic CKY algorithm.
+## Expectation-maximization
 
-- The *outside probability* $\beta_A(i, j)$: the probability of everything *except* the substring $w_i \ldots w_j$, given that $A$ is responsible for that substring. This is the new quantity we need.
+We begin with a grammar skeleton whose rules specify the possible trees and with initial probabilities for those rules. The expectation-maximization (EM) algorithm then alternates two steps [@dempster_maximum_1977]:
 
-The outside probability is defined recursively. The base case is:
+1. **Expectation:** compute the expected number of times each rule occurs across the possible parses under the current parameters.
+2. **Maximization:** renormalize those expected counts by left side to obtain new rule probabilities.
 
-$$\beta_S(1, n) = 1$$
+The E step replaces the observed counts used by the supervised estimator with posterior expected counts. The M step is otherwise the same relative-frequency calculation.
 
-That is, the outside probability of the start symbol spanning the entire string is 1 (there is nothing "outside" it).
+## Inside and outside probabilities
 
-For all other cases, the outside probability of $A$ spanning $(i, j)$ is computed by considering every way that $A$ could be a child of some parent nonterminal $B$:
+The inside probability $\alpha_A(i,j)$ measures the probability that $A$ derives the observed substring over $[i,j]$. We computed it in the previous section.
 
-$$\beta_A(i, j) = \sum_{B \rightarrow A\; C} \sum_{k=j+1}^{n} p(B \rightarrow A\; C) \cdot \beta_B(i, k) \cdot \alpha_C(j+1, k) + \sum_{B \rightarrow C\; A} \sum_{k=1}^{i-1} p(B \rightarrow C\; A) \cdot \beta_B(k, j) \cdot \alpha_C(k, i-1)$$
+The **outside probability** $\beta_A(i,j)$ measures the probability of generating the rest of the string while treating $A$ over $[i,j]$ as a fixed constituent. Its base case is
 
-The first sum covers cases where $A$ is the left child of $B$, and the second covers cases where $A$ is the right child. In each case, the outside probability of the parent $B$ is multiplied by the inside probability of the sibling $C$.
+$$\beta_S(0,n)=1.$$
 
-Once we have both inside and outside probabilities, the expected count of a rule $A \rightarrow B\; C$ applied at span $(i, j)$ with the split at position $k$ is:
+The remaining outside values are computed top-down. Whenever $A$ occurs as one child of a binary rule, the update multiplies three terms: the outside probability of the parent, the probability of the rule, and the inside probability of the sibling.
 
-$$\text{count}(A \rightarrow B\; C, i, k, j) = \frac{\beta_A(i, j) \cdot p(A \rightarrow B\; C) \cdot \alpha_B(i, k) \cdot \alpha_C(k+1, j)}{\alpha_S(1, n)}$$
+For a binary rule $r=A\rightarrow BC$ used over $[i,j]$ with split point $k$, the posterior expected count contributed by one string is
 
-The denominator $\alpha_S(1, n)$ is the total probability of the string under the current grammar—the inside probability of the start symbol spanning the whole string. Dividing by it normalizes the expected count so that it represents a posterior expectation.
+$$
+\mathbb{E}[c(r,i,k,j)]
+=\frac{
+  \beta_A(i,j)\,p(r)\,
+  \alpha_B(i,k)\,\alpha_C(k,j)
+}{
+  \alpha_S(0,n)
+}.
+$$
 
-### A worked example
+The denominator is the total probability of the observed string. Summing this expression over spans, split points, and training strings gives the expected count of $r$. Lexical rules use the analogous expression over length-one spans.
 
-To make this concrete, consider a tiny grammar with start symbol $W$, nonterminals $\{W, M\}$, terminals $\{un, lock, able\}$, and rules:
+## Deriving the expected-count formula
 
-| Rule | Probability |
-|------|-------------|
-| $W \rightarrow M\; M$ | 0.6 |
-| $W \rightarrow M\; W$ | 0.4 |
-| $M \rightarrow \text{un}$ | 0.3 |
-| $M \rightarrow \text{lock}$ | 0.5 |
-| $M \rightarrow \text{able}$ | 0.2 |
+Fix the event that rule $r=A\rightarrow BC$ is used over $[i,j]$ with split $k$. Every parse containing this event separates into four pieces:
 
-We want to compute inside and outside probabilities for the string $\text{un lock able}$ (3 terminals, positions 1–3).
+1. the structure outside the $A$ constituent, with total weight $\beta_A(i,j)$;
+2. the rule choice, with weight $p(r)$;
+3. a $B$ subtree over $[i,k]$, with total weight $\alpha_B(i,k)$; and
+4. a $C$ subtree over $[k,j]$, with total weight $\alpha_C(k,j)$.
 
-**Inside probabilities (bottom-up).** Start with the terminals. For each single-position span:
+Their product is the joint probability of the observed string and this local rule event. Dividing by the string probability $\alpha_S(0,n)$ gives the posterior probability of the event conditional on the observed string. Because an indicator variable has expectation equal to the probability that it is one, this posterior probability is the event's expected count. Summing the indicators over all possible spans and splits gives the expected number of uses of $r$.
 
-- $\alpha_M(1,1) = p(M \rightarrow \text{un}) = 0.3$
-- $\alpha_M(2,2) = p(M \rightarrow \text{lock}) = 0.5$
-- $\alpha_M(3,3) = p(M \rightarrow \text{able}) = 0.2$
+::: {.callout-caution}
+## Question
 
-For length-2 spans, we look for rules $A \rightarrow B\;C$ where $B$ covers one position and $C$ covers the other:
+If a training word has exactly two parses with posterior probabilities $.7$ and $.3$, and a rule occurs once in the first parse but not in the second, what expected count does that word contribute for the rule?
+:::
 
-- $\alpha_W(1,2) = p(W \rightarrow M\;M) \cdot \alpha_M(1,1) \cdot \alpha_M(2,2) = 0.6 \times 0.3 \times 0.5 = 0.09$
-- $\alpha_W(2,3) = p(W \rightarrow M\;M) \cdot \alpha_M(2,2) \cdot \alpha_M(3,3) = 0.6 \times 0.5 \times 0.2 = 0.06$
+::: {.callout-tip collapse=true}
+## Answer
 
-For the full span (1,3), there are two possible split points ($k = 1$ and $k = 2$) and two rules:
+$.7$. Expected counts weight each parse's rule count by that parse's posterior probability.
+:::
 
-$$\alpha_W(1,3) = \underbrace{p(W \rightarrow M\;M) \cdot \alpha_M(1,1) \cdot \alpha_M(2,3)}_{\text{split at }k=1,\text{ but } \alpha_M(2,3) = 0} + \underbrace{p(W \rightarrow M\;W) \cdot \alpha_M(1,1) \cdot \alpha_W(2,3)}_{\text{split at }k=1} + \underbrace{p(W \rightarrow M\;M) \cdot \alpha_M(1,2) \cdot \alpha_M(3,3)}_{\alpha_M(1,2) = 0} + \underbrace{p(W \rightarrow M\;W) \cdot \alpha_M(1,2) \cdot \alpha_W(3,3)}_{\alpha_W(3,3) = 0}$$
+## The maximization step
 
-Only the second term survives (the others involve nonterminals that can't generate the required substrings): $\alpha_W(1,3) = 0.4 \times 0.3 \times 0.06 = 0.0072$. But we also need the split at $k=2$:
+Let $\widetilde c(r)$ be the expected count of rule $r$. The updated probability is
 
-$$\alpha_W(1,3) \mathrel{+}= p(W \rightarrow M\;M) \cdot \alpha_M(1,2) \cdot \alpha_M(3,3) + p(W \rightarrow M\;W) \cdot \alpha_M(1,2) \cdot \alpha_W(3,3)$$
+$$
+p(A\rightarrow\alpha)
+=\frac{\widetilde c(A\rightarrow\alpha)}
+       {\sum_{A\rightarrow\gamma}\widetilde c(A\rightarrow\gamma)}.
+$$
 
-Since $M$ has no binary rules, $\alpha_M(1,2) = 0$ and $\alpha_W(3,3) = 0$, so nothing is added. We also need the $W \rightarrow M\;W$ rule at split $k=2$: $\alpha_W(1,2) \cdot \alpha_?(3,3)$ — but this reads the wrong way (left child $=W$, not $M$). So: $\alpha_W(1,3) = 0.0072$.
+We can derive this normalization rather than assume it. For one left side $A$, the part of the expected complete-data log likelihood that depends on its rule probabilities is
 
-**Outside probabilities (top-down).** Start with the root:
+$$
+Q_A=\sum_{r:\operatorname{lhs}(r)=A}
+\widetilde c(r)\log p(r),
+$$
 
-- $\beta_W(1,3) = 1$ (base case)
+subject to $\sum_rp(r)=1$. Introduce a Lagrange multiplier $\lambda$ and differentiate:
 
-For the right child at span (2,3) under rule $W \rightarrow M\;W$ with parent spanning (1,3) and left sibling $M$ at (1,1):
+$$
+\frac{\partial}{\partial p(r)}
+\left[
+\sum_r\widetilde c(r)\log p(r)
++\lambda\left(1-\sum_rp(r)\right)
+\right]
+=\frac{\widetilde c(r)}{p(r)}-\lambda.
+$$
 
-$$\beta_W(2,3) = p(W \rightarrow M\;W) \cdot \beta_W(1,3) \cdot \alpha_M(1,1) = 0.4 \times 1 \times 0.3 = 0.12$$
-
-This says: the "context" for $W$ spanning positions 2–3 (i.e., everything outside *lock able*) has probability 0.12 under the current grammar.
-
-**Expected counts.** The expected count of the rule $W \rightarrow M\;W$ at span (1,3) with split at $k=1$ is:
-
-$$\frac{\beta_W(1,3) \cdot p(W \rightarrow M\;W) \cdot \alpha_M(1,1) \cdot \alpha_W(2,3)}{\alpha_W(1,3)} = \frac{1 \times 0.4 \times 0.3 \times 0.06}{0.0072} = 1.0$$
-
-In this tiny example, the expected count is 1 because there is only one parse of the string, and it uses $W \rightarrow M\;W$ exactly once. With a more ambiguous grammar, the expected counts would be fractional, distributed across the competing parses.
-
-## The M step
-
-Given the expected counts from the E step, the M step is straightforward. For each nonterminal $A$, we re-estimate the probability of each rule $A \rightarrow \alpha$ as the proportion of expected uses of that rule among all rules with $A$ on the left-hand side:
-
-$$p(A \rightarrow \alpha) = \frac{\sum_{\text{spans}} \text{count}(A \rightarrow \alpha, \text{span})}{\sum_{\alpha'} \sum_{\text{spans}} \text{count}(A \rightarrow \alpha', \text{span})}$$
-
-This is the maximum likelihood estimate given the expected counts—the same formula we used for supervised estimation, but with fractional (expected) counts rather than hard counts.
-
-## Implementation
-
-The full EM algorithm for PCFGs alternates E and M steps until convergence (measured by the change in total log-likelihood of the training data). Here is an outline of the implementation:
+At the optimum, this derivative is zero, so $p(r)=\widetilde c(r)/\lambda$. Summing over the rules with left side $A$ and using the normalization constraint gives $\lambda=\sum_r\widetilde c(r)$. Substitution yields the displayed update.
 
 ```{python}
-#| code-fold: true
-#| code-summary: Unsupervised PCFG learning via EM
-
-import numpy as np
-from collections import defaultdict
+from collections import Counter
+from collections.abc import Mapping
+from math import isfinite
 
 import sys
-sys.path.insert(0, '_code')
+sys.path.insert(0, "_code")
 from grammar import Rule
 
 
-class UnsupervisedPCFG:
-    """A PCFG trained by expectation-maximization.
+def maximize_rule_probabilities(
+    expected_counts: Mapping[Rule, float],
+) -> dict[Rule, float]:
+    """Normalize expected rule counts within each left side."""
+    left_side_totals: Counter[str] = Counter()
+    for rule, count in expected_counts.items():
+        left_side_totals[rule.left_side] += count
 
-    Parameters
-    ----------
-    variables : set[str]
-        The nonterminal symbols.
-    alphabet : set[str]
-        The terminal symbols.
-    rules : list[Rule]
-        The production rules.
-    start_variable : str
-        The start symbol.
-    max_iter : int, default 50
-        Maximum number of EM iterations.
-    tol : float, default 1e-4
-        Convergence tolerance for log-likelihood improvement.
-    """
-
-    def __init__(self, variables: set[str], alphabet: set[str],
-                 rules: list[Rule], start_variable: str,
-                 max_iter: int = 50, tol: float = 1e-4):
-        self._variables = variables
-        self._alphabet = alphabet
-        self._rules = rules
-        self._start = start_variable
-        self._max_iter = max_iter
-        self._tol = tol
-
-        # Initialize rule probabilities uniformly
-        self._probs: dict[tuple, float] = {}
-        for var in variables:
-            var_rules = [r for r in rules if r.left_side == var]
-            for r in var_rules:
-                self._probs[r.to_tuple()] = 1.0 / len(var_rules)
-
-    def _inside(self, words: list[str]) -> dict[tuple, float]:
-        """Compute inside probabilities for a sequence of terminals.
-
-        Parameters
-        ----------
-        words : list[str]
-            The terminal sequence.
-
-        Returns
-        -------
-        dict[tuple, float]
-            Mapping from (nonterminal, start, end) to probability.
-        """
-        n = len(words)
-        alpha = defaultdict(float)
-
-        # Base case: unary rules
-        for i in range(n):
-            for r in self._rules:
-                if r.is_unary and r.right_side[0] == words[i]:
-                    alpha[(r.left_side, i, i)] = self._probs[r.to_tuple()]
-
-        # Fill chart bottom-up
-        for span in range(1, n):
-            for i in range(n - span):
-                j = i + span
-                for k in range(i, j):
-                    for r in self._rules:
-                        if r.is_binary:
-                            B, C = r.right_side
-                            prob = (self._probs[r.to_tuple()]
-                                    * alpha.get((B, i, k), 0)
-                                    * alpha.get((C, k+1, j), 0))
-                            alpha[(r.left_side, i, j)] += prob
-
-        return alpha
-
-    def _outside(self, words: list[str], alpha: dict[tuple, float]) -> dict[tuple, float]:
-        """Compute outside probabilities.
-
-        Parameters
-        ----------
-        words : list[str]
-            The terminal sequence.
-        alpha : dict[tuple, float]
-            The inside probabilities.
-
-        Returns
-        -------
-        dict[tuple, float]
-            Mapping from (nonterminal, start, end) to outside probability.
-        """
-        n = len(words)
-        beta = defaultdict(float)
-
-        # Base case
-        beta[(self._start, 0, n-1)] = 1.0
-
-        # Fill chart top-down
-        for span in range(n-1, -1, -1):
-            for i in range(n - span):
-                j = i + span
-                for r in self._rules:
-                    if r.is_binary:
-                        A = r.left_side
-                        B, C = r.right_side
-
-                        # B is left child of A
-                        for k in range(j+1, n):
-                            beta[(B, i, j)] += (
-                                beta.get((A, i, k), 0)
-                                * self._probs[r.to_tuple()]
-                                * alpha.get((C, j+1, k), 0)
-                            )
-
-                        # C is right child of A
-                        for k in range(0, i):
-                            beta[(C, i, j)] += (
-                                beta.get((A, k, j), 0)
-                                * self._probs[r.to_tuple()]
-                                * alpha.get((B, k, i-1), 0)
-                            )
-
-        return beta
-
-    def fit(self, data: list[list[str]]) -> list[float]:
-        """Train the grammar on a list of word sequences using EM.
-
-        Parameters
-        ----------
-        data : list[list[str]]
-            Training data as lists of terminal sequences.
-
-        Returns
-        -------
-        list[float]
-            The log-likelihood after each iteration.
-        """
-        log_likelihoods = []
-
-        for iteration in range(self._max_iter):
-            expected_counts = defaultdict(float)
-            total_ll = 0.0
-
-            # E step
-            for words in data:
-                n = len(words)
-                alpha = self._inside(words)
-                beta = self._outside(words, alpha)
-
-                string_prob = alpha.get((self._start, 0, n-1), 0)
-                if string_prob <= 0:
-                    continue
-
-                total_ll += np.log(string_prob)
-
-                # Accumulate expected counts
-                for r in self._rules:
-                    if r.is_unary:
-                        for i in range(n):
-                            if r.right_side[0] == words[i]:
-                                count = (beta.get((r.left_side, i, i), 0)
-                                         * self._probs[r.to_tuple()]
-                                         / string_prob)
-                                expected_counts[r.to_tuple()] += count
-
-                    elif r.is_binary:
-                        B, C = r.right_side
-                        for i in range(n):
-                            for j in range(i, n):
-                                for k in range(i, j):
-                                    count = (
-                                        beta.get((r.left_side, i, j), 0)
-                                        * self._probs[r.to_tuple()]
-                                        * alpha.get((B, i, k), 0)
-                                        * alpha.get((C, k+1, j), 0)
-                                        / string_prob
-                                    )
-                                    expected_counts[r.to_tuple()] += count
-
-            # M step
-            for var in self._variables:
-                var_rules = [r for r in self._rules if r.left_side == var]
-                total = sum(expected_counts[r.to_tuple()] for r in var_rules)
-                if total > 0:
-                    for r in var_rules:
-                        self._probs[r.to_tuple()] = (
-                            expected_counts[r.to_tuple()] / total
-                        )
-
-            log_likelihoods.append(total_ll)
-
-            if len(log_likelihoods) > 1:
-                improvement = log_likelihoods[-1] - log_likelihoods[-2]
-                if abs(improvement) < self._tol:
-                    break
-
-        return log_likelihoods
-```
-
-## Segmenting the test words
-
-To train the unsupervised PCFG, we need segmented words—sequences of morpheme-like units—but we don't need (and, in the unsupervised setting, don't have) the hierarchical parse trees that CELEX provides. The question is where the segmentations come from. We could use BPE, but we already have something better: in the [structured prediction section](segmentation-with-structured-prediction.qmd), we trained a CRF segmenter on CELEX's gold-standard morpheme boundaries. That segmenter learned to predict B/I tags based on character-level features, and it does a much better job of finding linguistically meaningful boundaries than BPE's frequency-based merging.
-
-I want to be precise about what information each model has access to, because that's the whole point of the comparison we're building toward. The *supervised* PCFG (from the [previous section](probabilistic-context-free-grammars.qmd)) has access to the full CELEX parse trees—both the segmentation *and* the hierarchical structure. The *unsupervised* PCFG we're training here has access to segmentations from the CRF (which was trained on CELEX boundaries) but *not* the tree structure. The EM algorithm has to discover the tree structure on its own. So the gap between the two models tells us how much of what makes a morphological structure well-formed is captured by the segmentation alone versus how much depends on knowing which morphemes compose with which, and in what order.
-
-```{python}
-import os
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import sklearn_crfsuite
-
-# --- CRF segmenter (from the structured prediction section) ---
-
-def word_to_bio(word, morphemes):
-    """Convert a word and its morphemes to BIO tags."""
-    tags = []
-    for morph in morphemes:
-        tags.append('B')
-        tags.extend(['I'] * (len(morph) - 1))
-    return tags
-
-def char_features(word, i):
-    """Extract character-level features for position i."""
-    features = {
-        'char': word[i],
-        'is_vowel': word[i] in 'aeiou',
-        'is_first': i == 0,
-        'is_last': i == len(word) - 1,
-        'position': i / len(word),
+    return {
+        rule: count / left_side_totals[rule.left_side]
+        for rule, count in expected_counts.items()
+        if left_side_totals[rule.left_side] > 0.0
     }
-
-    # Character context window of ±3
-    for offset in range(-3, 4):
-        j = i + offset
-        if 0 <= j < len(word):
-            features[f'char[{offset}]'] = word[j]
-        else:
-            features[f'char[{offset}]'] = '<PAD>'
-
-    # Bigrams and trigrams centered on this position
-    if i > 0:
-        features['bigram[-1,0]'] = word[i-1:i+1]
-    if i < len(word) - 1:
-        features['bigram[0,+1]'] = word[i:i+2]
-    if i > 0 and i < len(word) - 1:
-        features['trigram'] = word[i-1:i+2]
-    if i > 1:
-        features['trigram_left'] = word[i-2:i+1]
-    if i < len(word) - 2:
-        features['trigram_right'] = word[i:i+3]
-
-    # Suffix of remaining string and prefix of consumed string,
-    # at multiple lengths—these help the CRF learn that common
-    # suffixes like -tion, -ness, -able start at boundaries
-    remaining = word[i:]
-    for k in [2, 3, 4, 5]:
-        if len(remaining) >= k:
-            features[f'suffix_{k}'] = remaining[:k]
-
-    consumed = word[:i]
-    for k in [2, 3, 4]:
-        if len(consumed) >= k:
-            features[f'prefix_{k}'] = consumed[-k:]
-
-    return features
-
-def word_to_features(word):
-    return [char_features(word, i) for i in range(len(word))]
-
-def tags_to_segments(word, tags):
-    """Convert BIO tags back to a list of morpheme strings."""
-    segments = []
-    current = ''
-    for ch, tag in zip(word, tags):
-        if tag == 'B' and current:
-            segments.append(current)
-            current = ch
-        else:
-            current += ch
-    if current:
-        segments.append(current)
-    return segments
-
-def align_morphemes_to_surface(word, morphemes):
-    """Find morpheme boundary positions in the surface word.
-
-    The underlying morphemes (from StrucLab) may not concatenate
-    to the surface form due to allomorphic alternations—e.g.
-    'happy' surfaces as 'happi' before '-ness'.  We use edit
-    distance alignment to map each morpheme's start position in
-    the underlying string to a position in the surface string.
-
-    Parameters
-    ----------
-    word : str
-        The surface form.
-    morphemes : list[str]
-        The underlying morpheme strings.
-
-    Returns
-    -------
-    list[int] | None
-        Boundary character indices (0-indexed), or None on failure.
-    """
-    underlying = ''.join(morphemes)
-
-    if underlying == word:
-        boundaries, pos = [], 0
-        for m in morphemes:
-            boundaries.append(pos)
-            pos += len(m)
-        return boundaries
-
-    result = edlib.align(underlying, word, mode='NW', task='path')
-    cigar = result['cigar']
-
-    # Map underlying positions to surface positions via CIGAR
-    u_pos, s_pos = 0, 0
-    u_to_s = {}
-
-    for length, op in re.findall(r'(\d+)([=XDIS])', cigar):
-        for _ in range(int(length)):
-            if op in ('=', 'X'):
-                u_to_s[u_pos] = s_pos
-                u_pos += 1
-                s_pos += 1
-            elif op == 'D':
-                u_pos += 1
-            elif op == 'I':
-                s_pos += 1
-
-    boundaries, u_boundary = [], 0
-    for m in morphemes:
-        if u_boundary in u_to_s:
-            boundaries.append(u_to_s[u_boundary])
-        u_boundary += len(m)
-
-    return boundaries if len(boundaries) == len(morphemes) else None
 ```
 
-Now we train the CRF on CELEX's gold-standard segmentations and use it to segment the trial words from @oseki2020modeling. The StrucLab field gives underlying morpheme forms (`happy`, `beauty`), which don't always match the surface spelling (`happi-ness`, `beauti-ful`). We use edit-distance alignment to find where each morpheme's boundary falls in the actual word, which gives us correct B/I tags even in the presence of allomorphic alternations.
+A complete implementation alternates the inside-outside E step with `maximize_rule_probabilities` until the change in corpus log likelihood falls below a threshold.
 
-```{python}
-import re
-import edlib
-
-# --- Load CELEX and extract gold segmentations ---
-#
-# The eml.cd file has 25 backslash-separated fields per line.
-# Field 1 is the word; field 21 is StrucLab.
-
-celex_words = []
-celex_struclabs = []
-
-with open('celex/english/eml/eml.cd', encoding='latin-1') as f:
-    for line in f:
-        fields = line.strip().split('\\')
-        if len(fields) >= 22:
-            celex_words.append(fields[1])
-            celex_struclabs.append(fields[21])
-
-celex = pd.DataFrame({'Head': celex_words, 'StrucLab': celex_struclabs})
-print(f"Loaded {len(celex)} CELEX entries")
-
-def extract_morphemes(struclab):
-    """Pull leaf morpheme strings out of a CELEX StrucLab field.
-
-    The StrucLab notation nests constituents in parentheses with
-    category labels in brackets: ((un)[A],(happy)[A])[A].  We
-    extract only the leaves—the innermost (morpheme)[Category]
-    pairs—where the morpheme contains only alphabetic characters.
-    """
-    if not struclab or struclab == 'N':
-        return None
-    morphs = re.findall(r'\(([a-zA-Z]+)\)\[[^\]]+\]', struclab)
-    if morphs:
-        return [m.lower() for m in morphs]
-    return None
-
-celex['morphemes'] = celex.StrucLab.apply(extract_morphemes)
-celex_seg = celex[celex.morphemes.notna()].copy()
-
-# Build training data for the CRF by aligning underlying
-# morphemes to surface forms
-X_train, y_train = [], []
-
-for _, row in celex_seg.iterrows():
-    word = row.Head.lower()
-    morphemes = row.morphemes
-    boundaries = align_morphemes_to_surface(word, morphemes)
-
-    if boundaries is None:
-        continue
-
-    # Convert boundary positions to BIO tags
-    tags = ['I'] * len(word)
-    for b in boundaries:
-        if b < len(word):
-            tags[b] = 'B'
-
-    X_train.append(word_to_features(word))
-    y_train.append(tags)
-
-print(f"CRF training examples: {len(X_train)}")
+```text
+initialize rule probabilities
+repeat:
+    expected_counts = inside_outside(training_strings, probabilities)
+    probabilities = maximize_rule_probabilities(expected_counts)
+until the log-likelihood change is small
 ```
 
-```{python}
-# Train the CRF
-crf = sklearn_crfsuite.CRF(algorithm='lbfgs', max_iterations=200,
-                           c1=0.01, c2=0.01)
-crf.fit(X_train, y_train)
+## Why an EM iteration does not lower likelihood
 
-# --- Segment the trial words ---
+Why should alternating these two steps improve the fit? Let $q(t)$ be the posterior probability of latent tree $t$ under the current parameters $\theta^{old}$. Terms with $q(t)=0$ contribute nothing, so the sums below range over trees in the support of $q$. For one observed string $w$,
 
-trials = pd.read_csv('data/trials.csv')
-trial_words = trials.word.unique().tolist()
+$$
+\begin{aligned}
+\log p_\theta(w)
+&=\log\sum_t p_\theta(w,t)\\
+&=\log\sum_t q(t)\frac{p_\theta(w,t)}{q(t)}\\
+&\geq\sum_tq(t)\log\frac{p_\theta(w,t)}{q(t)}.
+\end{aligned}
+$$
 
-segmented = {}
+Call the right side $F(\theta,q)$. The last step is Jensen's inequality, so $\log p_\theta(w)\geq F(\theta,q)$ for any new parameter value $\theta$. At $\theta=\theta^{old}$, the bound is tight because $q$ is the old posterior:
 
-for w in trial_words:
-    features = word_to_features(w)
-    tags = crf.predict_single(features)
-    segmented[w] = tags_to_segments(w, tags)
+$$
+F(\theta^{old},q)=\log p_{\theta^{old}}(w).
+$$
 
-for w in list(segmented)[:10]:
-    print(f"{w:25s} → {' + '.join(segmented[w])}")
-```
+The E step computes the expectations under this fixed $q$. The M step chooses $\theta^{new}$ to maximize the parameter-dependent part of $F$, so
 
-The CRF produces segmentations that look like real morphological decompositions—prefixes, stems, and suffixes—because it was trained on CELEX boundaries. But it doesn't know anything about how those morphemes compose hierarchically. That's what the unsupervised PCFG will learn.
+$$
+F(\theta^{new},q)\geq F(\theta^{old},q).
+$$
 
-## Setting up the grammar
+Putting the two inequalities and the equality together gives
 
-The grammar we give to EM is deliberately uninformative about English morphology. It has a start symbol `Word` that can expand into a single morpheme or a binary split into `Left` and `Right`, each of which can itself split further or terminate as a `Morph`. Every morpheme in the segmented data gets a unary rule. This is the minimal binary-branching grammar—it doesn't encode any linguistic knowledge about which morphemes are prefixes, which are suffixes, or which categories combine with which. All of that structure has to be discovered by EM from the distribution of morphemes across words.
+$$
+\log p_{\theta^{new}}(w)
+\geq F(\theta^{new},q)
+\geq F(\theta^{old},q)
+=\log p_{\theta^{old}}(w).
+$$
 
-```{python}
-# Collect the alphabet from the segmented data
-alphabet = {seg for segs in segmented.values() for seg in segs}
+This is the promised monotonicity result: one exact EM iteration cannot lower the observed-data log likelihood.
 
-variables = {'Word', 'Left', 'Right', 'Morph'}
+This guarantee is local to each iteration. EM does not add rules to the skeleton, so every training string must have at least one parse under the initial grammar. And the procedure may converge to a local optimum or to parameters whose latent categories have no useful morphological interpretation.
 
-rules = [
-    Rule('Word', 'Left', 'Right'),
-    Rule('Left', 'Morph', 'Left'),
-    Rule('Right', 'Morph', 'Right'),
-    Rule('Left', 'Morph', 'Morph'),
-    Rule('Right', 'Morph', 'Morph'),
-]
+## Three information conditions
 
-for t in alphabet:
-    rules.append(Rule('Morph', t))
-    rules.append(Rule('Word', t))
+We can now separate three comparisons that the earlier presentation conflated:
 
-print(f"Alphabet size: {len(alphabet)}")
-print(f"Number of rules: {len(rules)}")
-print(f"Number of words to train on: {len(segmented)}")
-```
+1. A **tree-supervised PCFG** observes both CELEX morpheme boundaries and CELEX trees.
+2. A **tree-latent PCFG** observes CELEX boundaries, or predictions from a boundary-supervised CRF, but estimates the trees with inside-outside.
+3. A **boundary- and tree-latent PCFG** uses an unsupervised segmentation such as BPE and estimates the trees with inside-outside.
 
-## Training
+The first-to-second comparison estimates what is lost when trees are hidden but boundaries are held relatively constant. The second-to-third comparison changes the boundary information as well, so it cannot isolate the contribution of tree supervision.
 
-```{python}
-unsupervised = UnsupervisedPCFG(variables, alphabet, rules, 'Word',
-                                max_iter=30, tol=1e-6)
-log_likelihoods = unsupervised.fit(list(segmented.values()))
+## Evaluating the learned scores
 
-print(f"Converged after {len(log_likelihoods)} iterations")
-print(f"Final log-likelihood: {log_likelihoods[-1]:.2f}")
-```
-
-EM guarantees that the log-likelihood increases (or stays the same) at every iteration. Let's verify that.
+For each trial word, we compute a length-adjusted inside score and compare its ordering with the mean human rating. Spearman's $\rho$ is useful when we want to test a monotonic relation without assuming that differences between PCFG log probabilities are on the same scale as differences between ratings [@spearman_proof_1904].
 
 ```{python}
-fig, ax = plt.subplots(figsize=(8, 4))
-ax.plot(range(1, len(log_likelihoods) + 1), log_likelihoods,
-        marker='o', markersize=4)
-ax.set_xlabel('EM iteration')
-ax.set_ylabel('Log-likelihood')
-fig.tight_layout()
-plt.show()
-```
+from collections.abc import Mapping
 
-## Scoring the trial words
-
-We can now score each trial word under the learned grammar by computing its inside probability $\alpha_{\text{Word}}(0, n-1)$—the probability that the start symbol `Word` generates the full segmented form. Words whose morpheme combinations the grammar has seen frequently (or whose combinations resemble frequent ones) will get higher scores; words with unusual combinations will get lower ones.
-
-```{python}
-def score_words(pcfg, segmented_words):
-    """Score each word under a PCFG using the inside algorithm."""
-    scores = {}
-    for w, segs in segmented_words.items():
-        alpha = pcfg._inside(segs)
-        n = len(segs)
-        prob = alpha.get(('Word', 0, n - 1), 0)
-        scores[w] = np.log(prob) if prob > 0 else float('-inf')
-    return scores
-
-unsupervised_scores = score_words(unsupervised, segmented)
-```
-
-## Comparison with human judgments
-
-The question we've been building toward since the [morphological well-formedness section](morphological-wellformedness.qmd) is whether a grammar's scores can predict the gradient acceptability judgments that speakers give to morphologically complex nonwords. We now have the pieces to answer it—and, more interestingly, to measure how much the answer depends on having supervised parse trees versus discovering structure from scratch.
-
-We'll compare two models against the human data: the *supervised* PCFG, whose rule probabilities were estimated from the CELEX parse trees (where both the segmentation and the hierarchical structure are given), and the *unsupervised* PCFG we just trained, which had access only to segmentations (from the CRF) and had to learn the tree structure via EM. If the supervised model does much better, that tells us the hierarchical structure matters and can't easily be recovered from morpheme sequences alone. If the two are comparable, it suggests that most of the relevant information is already in the segmentation.
-
-#### Measuring association with rank correlation
-
-In the [earlier evaluation of phonotactic models](../uncertainty-about-languages/ngram-models.qmd#evaluating-a-predictor), we used cross-validated linear regression and $R^2$ to measure predictive accuracy. That approach works well when the dataset is large enough to split into folds and the relationship between predictor and response is plausibly linear. Here the situation is different: the trial set is small, and the log-probabilities from a PCFG can be very unevenly spaced—two words with similar acceptability may receive very different raw scores. We need a measure of association that is robust to monotonic but nonlinear relationships.
-
-[Spearman's rank correlation](https://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient) $\rho_s$ provides exactly this [@spearman_proof_1904]. Recall that we defined the [Pearson correlation](../uncertainty-about-languages/some-more-useful-definitions.qmd#covariance-and-correlation) $\text{corr}(X, Y) = \text{cov}(X,Y) / \sqrt{\mathbb{V}[X]\mathbb{V}[Y]}$, which measures *linear* association. Spearman's correlation is simply the Pearson correlation applied not to the raw values but to their *ranks*. Given $n$ paired observations $(x_i, y_i)$, let $R(x_i)$ be the rank of $x_i$ among $\{x_1, \ldots, x_n\}$ (i.e. 1 for the smallest, $n$ for the largest) and similarly for $R(y_i)$. Then:^[@spearman_proof_1904 introduced rank correlation in the context of measuring the association between psychological traits—another case where the raw measurements are on arbitrary scales and only the ordering is meaningful, much like our grammar scores.]
-
-$$\rho_s = \text{corr}\big(R(X), R(Y)\big)$$
-
-Because only the ranks matter, $\rho_s$ is invariant to any monotonic transformation of either variable. If we replaced log-probabilities with their exponentials, or squared them, or applied any order-preserving function, $\rho_s$ would not change. This is desirable here because we care about whether higher grammar scores correspond to higher human ratings, not about the exact functional form of the relationship.^[One could also use Kendall's $\tau$, another rank correlation measure with somewhat different statistical properties. In practice the two tend to agree on the ordering of models, though $\tau$ is typically smaller in magnitude than $\rho_s$ for the same data. See @kendall_rank_1948 for the original treatment.]
-
-#### Interpreting p-values
-
-The code below also reports a [p-value](https://en.wikipedia.org/wiki/P-value) alongside each $\rho_s$. The p-value answers a specific question: if there were truly no monotonic association between grammar scores and human judgments ($\rho_s = 0$ in the population), how often would we observe a sample correlation at least as extreme as the one we computed? A small p-value (conventionally $< 0.05$) means the observed association is unlikely to have arisen by chance under the null hypothesis of no relationship.
-
-It is important to be clear about what the p-value does *not* tell us. It does not measure the strength or importance of the association—$\rho_s$ does that. Nor does it tell us the probability that the null hypothesis is true. It only tells us whether we can distinguish the observed effect from zero given our sample size. With a large enough sample, even a tiny and uninteresting correlation will yield a small p-value; with a small sample, a substantial correlation may not reach conventional significance. The ASA's statement on p-values [@wasserstein_asa_2016] discusses these limitations at length.^[The ritual threshold of $p < 0.05$ has a long and contested history going back to @fisher_statistical_1925. The ASA's statement on p-values [@wasserstein_asa_2016] cautions against treating any fixed threshold as a bright line between "real" and "not real" effects. In our case, the correlation coefficient $\rho_s$ is the more informative quantity; the p-value serves mainly as a sanity check that we are not reading signal into noise.]
-
-```{python}
-# --- Supervised PCFG scores ---
-# We estimate a supervised PCFG from the CELEX parse trees and
-# score the trial words under it.  This requires the parse-tree
-# extraction from the PCFG section; we reuse that machinery here.
-
-from collections import Counter as Ctr
-
-# Extract rules from CELEX parses (simplified: count morpheme
-# category bigrams as binary rules, morphemes as unary rules)
-sup_rule_counts = Ctr()
-
-for _, row in celex_seg.iterrows():
-    morphemes = row.morphemes
-    if morphemes and len(morphemes) >= 2:
-        # Treat as right-branching: Word -> m1 (Word -> m2 (... mn))
-        for m in morphemes:
-            sup_rule_counts[('Morph', (m,))] += 1
-            sup_rule_counts[('Word', (m,))] += 1
-        for i in range(len(morphemes) - 1):
-            sup_rule_counts[('Word', ('Left', 'Right'))] += 1
-            sup_rule_counts[('Left', ('Morph', 'Left'))] += 1
-            sup_rule_counts[('Right', ('Morph', 'Right'))] += 1
-            sup_rule_counts[('Left', ('Morph', 'Morph'))] += 1
-            sup_rule_counts[('Right', ('Morph', 'Morph'))] += 1
-    elif morphemes and len(morphemes) == 1:
-        sup_rule_counts[('Morph', (morphemes[0],))] += 1
-        sup_rule_counts[('Word', (morphemes[0],))] += 1
-
-# Build a supervised PCFG using the same grammar skeleton
-# but with probabilities estimated from the CELEX counts
-supervised = UnsupervisedPCFG(variables, alphabet, rules, 'Word',
-                              max_iter=0)
-
-# Override uniform probabilities with supervised counts
-for var in variables:
-    var_rules = [r for r in rules if r.left_side == var]
-    total = sum(sup_rule_counts.get(r.to_tuple(), 1) for r in var_rules)
-    for r in var_rules:
-        count = sup_rule_counts.get(r.to_tuple(), 1)  # add-1 smoothing
-        supervised._probs[r.to_tuple()] = count / total
-
-supervised_scores = score_words(supervised, segmented)
-```
-
-```{python}
 from scipy.stats import spearmanr
 
-word_means = trials.groupby('word').judgment_z.mean()
 
-# Build a comparison dataframe
-score_df = pd.DataFrame({
-    'word': trial_words,
-    'unsupervised': [unsupervised_scores.get(w, float('-inf'))
-                     for w in trial_words],
-    'supervised': [supervised_scores.get(w, float('-inf'))
-                   for w in trial_words],
-})
-score_df = score_df.merge(
-    word_means.reset_index().rename(columns={'judgment_z': 'human'}),
-    on='word'
-)
-
-# Drop words neither model could parse
-score_df = score_df[
-    (score_df.unsupervised > float('-inf')) &
-    (score_df.supervised > float('-inf'))
-]
-
-rho_unsup, p_unsup = spearmanr(score_df.unsupervised, score_df.human)
-rho_sup, p_sup = spearmanr(score_df.supervised, score_df.human)
-
-print(f"Unsupervised PCFG vs. human:  ρ = {rho_unsup:.3f}  (p = {p_unsup:.2e})")
-print(f"Supervised PCFG vs. human:    ρ = {rho_sup:.3f}  (p = {p_sup:.2e})")
-print(f"Words in comparison: {len(score_df)}")
+def rank_correlation(
+    model_scores: Mapping[str, float],
+    human_scores: Mapping[str, float],
+) -> float:
+    """Return Spearman correlation over words scored by both mappings."""
+    words = sorted(model_scores.keys() & human_scores.keys())
+    if len(words) < 2:
+        raise ValueError("at least two shared words are required")
+    statistic = spearmanr(
+        [model_scores[word] for word in words],
+        [human_scores[word] for word in words],
+    ).statistic
+    correlation = float(statistic)
+    if not isfinite(correlation):
+        raise ValueError("Spearman correlation is undefined for these scores")
+    return correlation
 ```
 
-```{python}
-fig, axes = plt.subplots(1, 2, figsize=(12, 5), sharey=True)
+This evaluation should be performed on held-out words. A higher correlation for the supervised PCFG would be consistent with a contribution from annotated constituency, though it would not prove that the learned categories match speakers' representations. Differences in coverage, segmentation errors, and the grammar skeleton remain live alternative explanations.
 
-axes[0].scatter(score_df.unsupervised, score_df.human, alpha=0.4, s=15)
-axes[0].set_xlabel('Unsupervised log-probability')
-axes[0].set_ylabel('Mean z-scored human judgment')
-axes[0].set_title(f'Unsupervised PCFG  (ρ = {rho_unsup:.3f})')
-
-axes[1].scatter(score_df.supervised, score_df.human, alpha=0.4, s=15)
-axes[1].set_xlabel('Supervised log-probability')
-axes[1].set_title(f'Supervised PCFG  (ρ = {rho_sup:.3f})')
-
-fig.tight_layout()
-plt.show()
-```
-
-The supervised model should correlate more strongly with human judgments than the unsupervised one—it has access to the hierarchical parse structure that determines, for instance, that *un-* attaches to adjectives (producing *un-happy*, *un-lock-able*) rather than to nouns or suffixes. The unsupervised model, working only from flat segmentations, has to infer these attachment preferences from the distribution of morphemes across training words, and it's learning from a relatively small set of trial words rather than the full CELEX lexicon.
-
-The size of the gap between the two correlations is the interesting quantity. A large gap means that hierarchical structure—knowing not just what the morphemes are but how they compose—carries information about well-formedness that can't be recovered from morpheme sequences alone. A small gap would suggest the opposite: that the segmentation carries most of the signal and the tree structure adds little. My expectation is that the gap will be nontrivial, since many of the distinctions in the @oseki2020modeling data involve attachment ambiguities (like whether *-ize* can attach to the output of *-tion*) that are visible only in the tree.
-
-## Looking ahead
-
-The unsupervised PCFG is the most ambitious model we've built in this module: it takes raw segmented strings and discovers hierarchical morphological structure without any labeled examples. Whether it does this well enough to be practically useful is a separate question, and the answer depends heavily on the quality of the segmentation it receives as input and the expressiveness of the grammar it's working with.
-
-But the formal tools we've developed here—context-free grammars, parsing algorithms, probabilistic estimation via both supervised counting and unsupervised EM—are not specific to morphology. They apply equally well to syntax, where the strings are longer, the grammars are larger, and the ambiguity is more severe. That is where we'll turn next.
+The same inside, outside, and agenda-based ideas carry over to syntactic parsing. The next module changes the terminals from morphemes to words and then asks when context-free constituency is no longer enough.

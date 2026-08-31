@@ -3,28 +3,76 @@ title: The Generativist Conceit
 bibliography: ../references.bib
 ---
 
-Why would we want to do all this? In the first lecture, I discussed what I called the *Generativist Conceit*: that we can understand natural language by studying the class of grammars that generate all + only the classes of natural languages. Though certain strong ideas associated with the Generativist Conceit are controversial, as I have stated it (relatively weakly) here, it is relatively uncontroversial: if our aim is to provide a scientific theory that characterizes natural language (whatever that might be: a colection of actual utterances, an aspect of human psychology or some abstract object with an existence independent of human minds), we at least need some method for encoding that theory in a way that makes testable predictions. Grammars are definitionally such a method as I've described them.
+Why would we want to do all this? In the first lecture, I introduced what I called the *Generativist Conceit*: we can learn something about natural language by studying the grammars that describe possible natural languages. The strongest versions of this idea are controversial. But the weaker idea we need here is not. If we want a theory to make testable predictions about language, we need a sufficiently precise way to say what the theory allows. A grammar is one way to do that.
 
-Another relatively uncontroversial observation that drives the Generativist Conceit is that children must be able to start without a language and come to know one, and the one they come to know is determined in some important way from their environment (rather than their genetics) in a finite amount of time on the basis of a finite number of observations of actual language use. Why this observation is important is that it means that natural languages must be *learnable* from a finite number of examples. Grammars are usually finite objects that (may) describe countably infinite languages, and so they might be a useful tool for describing the process by which a child comes to know a language.
+Learning gives us a second reason to care about classes of grammars. Children receive only a finite initial portion of their eventual linguistic experience, yet they come to make judgments about strings they have not heard. We would like to know which classes of possible languages permit this sort of generalization and which do not.
 
-More formally, we may say that children have some method $c$ for mapping sequences of strings (or *texts*) $\mathbf{t} \in \Sigma^{**}$ along with some extralinguistic experience $E \in \mathcal{E}$ into a grammar $G \in \mathcal{G}$: $$c: \Sigma^{**} \times \mathcal{E} \rightarrow \mathcal{G}$$. A child's extralinguistic experience is nontrivial to represent, so to make the problem more tractable, we will often ignore that part.
+To make that question precise, we will study **identification in the limit from text** [@gold1967language]. This is an idealized learning problem. It leaves out many things that actual children know, including meaning, communicative context, and explicit structural biases. The point of the idealization is to isolate what positive strings can tell a learner.
 
-To demonstrate that the problem of learning a grammar from a text, consider the following formal model, known as [*language identification in the limit*](https://en.wikipedia.org/wiki/Language_identification_in_the_limit), due to [Gold 1964](https://www.rand.org/pubs/research_memoranda/RM4136.html). 
+What counts as the learner's input in this idealization? Let a **text** for a language $L$ be an infinite sequence
 
-We start from the idea that a *learner* should be modeled as a function $f: \Sigma^{**} \rightarrow 2^{\Sigma^*}$ that maps an *environment* $E = \langle \boldsymbol\sigma_1, \boldsymbol\sigma_2, \ldots \rangle \in \Sigma^{**}$ to a language $L$, where an environment is a sequence of strings in $L$. We will say that a learner $f$ learns a language $L$ given an *environment* (or *text*) $E \subset L^*$ if the learner outputs $L$ after seeing enough examples from the environment and that it learns a language $L$ if it learns that language in any environment. That is, $f$ learns $L$ if it doesn't matter which sequence you give it: $f \text{ learns } L \leftrightarrow \forall \mathbf{e} \in L^*: f(\mathbf{e}) = L$. A language family $\mathcal{L}$ is learnable if there exists a language learner that can learn all languages in the family: $f \text{ learns } \mathcal{L} \leftrightarrow \forall L \in \mathcal{L}: \forall \mathbf{e} \in L^*: f(\mathbf{e}) = L$.
+$$
+T=\langle w_0,w_1,w_2,\ldots\rangle
+$$
 
-[Gold (1967)](https://www.sciencedirect.com/science/article/pii/S0019995867911655) showed that, if a language family $\mathcal{L}$ contains languages $L_1, L_2, \ldots, L_\infty$, such that $L_1 \subset L_2 \subset \ldots \subset L_\infty = \bigcup_{i=1}^\infty L_i$, then it is not learnable. Here's the idea behind the proof: suppose $f$ is a learner that can learn $L_1, L_2, \ldots, L_\infty$; we'll show that it cannot learn $L_\infty$, by constructing an environment for $L_\infty$ that "tricks" $f$. 
+whose members all belong to $L$ and in which every member of $L$ eventually appears. Repetition is allowed. Write $T[:n]=\langle w_0,\ldots,w_{n-1}\rangle$ for the finite data observed by time $n$.
 
-First, we construct environments $E_1, E_2, \ldots$ such that $f(E_i) = L_i$. Next, we construct environment $E_\infty$ for $L_\infty$ inductively as follows:
+A learner does not receive the completed infinite text. At each time, it receives only a finite prefix and proposes a grammar. Gold requires this learner to be effective, so take $f$ to be a computable function:
 
-1. Present $f$ with $E_1$ until it outputs $L_{1}$.
-2. Switch to presenting $f$ with an environment that alternates the rest of $E_1$ and the entirety of $E_2$. Since $L_1 \subset L_2$, this concatenated environment is still an environment for $L_2$, so $f$ must eventually output $L_2$.
-3. Switch to presenting the rest of $E_1 \circ E_2$ and the entirety of $E_3$ alternatively. And so on for all $i$.
+$$
+f:(\Sigma^*)^{<\omega}\rightarrow\mathcal{G}.
+$$
 
-By construction, the resulting environment $E$ contains the entirety of $E_{1},E_{2},\ldots$, thus it contains $L_\infty$, so it is an environment for $L_\infty$. But since the learner always switches to $L_{i}$ for some finite $i$, it never converges to $L_{\infty}$.
+Here $(\Sigma^*)^{<\omega}$ is the set of finite sequences of strings, and $\mathcal{G}$ is the learner's hypothesis space. The learner **identifies** $L$ on a text $T$ when it eventually settles on one grammar $g$ that generates $L$:
 
-The key insight is that the problem arises from the *structure of the hypothesis space*, not from the complexity of any individual language. Any single language $L_i$ in the chain is perfectly learnable on its own. But as soon as the learner must also consider the larger languages $L_{i+1}, L_{i+2}, \ldots$ as possible hypotheses, it faces an underdetermination problem: every finite sample from $L_\infty$ is also consistent with some smaller $L_i$, and the learner has no positive evidence—no string it could observe—that would force it to move from $L_i$ to $L_\infty$.^[Gold's result assumes learning from *positive examples only*—the learner sees strings that are in the language but never sees explicit evidence that a string is *not* in the language. This is usually taken as a reasonable model of the child's input, since children are rarely told "this is not a sentence." If we allow negative examples, the picture changes considerably.]
+$$
+\exists N\;\exists g\in\mathcal{G}\;\forall n\geq N:
+f(T[:n])=g \text{ and } \mathbb{L}(g)=L.
+$$
 
-This has a direct consequence for phonology. The class of [regular languages](formal-definition/the-regular-operations.qmd)—exactly the languages recognizable by finite state automata—contains infinite containment chains. For instance, the set of languages "all strings over $\Sigma$ of length at most $n$" forms a chain $L_1 \subset L_2 \subset \ldots \subset \Sigma^*$. So the full class of regular languages is not learnable in Gold's sense.
+The learner may make any finite number of mistakes before stage $N$. It may even switch away from the right answer and later return to it. But after $N$, the *grammar name itself* must remain fixed. It is not enough to alternate forever among different grammars that happen to generate the same language. The learner identifies a class $\mathcal{L}$ when it identifies every $L\in\mathcal{L}$ on every text for $L$.
 
-The hope, and the motivation for the [subregular hierarchy](subregular-hierarchy/index.qmd) we'll study next, is that the phonological patterns of natural languages don't range over the full class of regular languages. They cluster in much smaller subclasses—[Strictly Local](subregular-hierarchy/local-languages.qmd), [Strictly Piecewise](subregular-hierarchy/piecewise-languages.qmd), Tier-based Strictly Local—that may not have the problematic containment structure. If natural languages come from a sufficiently restricted subclass, the learnability problem may dissolve: the learner doesn't need to search all of $\text{REG}$, only the much smaller set of languages in the subclass.^[@heinz2010learning shows that the Strictly Local and Strictly Piecewise classes are indeed identifiable in the limit from positive data, vindicating this hope for the lowest levels of the hierarchy. See @heinz2013learning and @jardine2016learning for extensions to other subregular classes.] This is what makes the subregular hierarchy linguistically interesting: it's not just a classification of formal languages, but a hypothesis about what makes phonological learning tractable.
+## Why positive data can be insufficient
+
+Suppose that a hypothesis class contains an infinite language
+
+$$
+L_\infty=\{w_0,w_1,w_2,\ldots\}
+$$
+
+and every finite initial portion
+
+$$
+L_i=\{w_0,\ldots,w_i\}.
+$$
+
+Thus,
+
+$$
+L_0\subset L_1\subset L_2\subset\cdots
+\qquad\text{and}\qquad
+L_\infty=\bigcup_{i=0}^{\infty}L_i.
+$$
+
+Assume for contradiction that a learner $f$ identifies every language in this collection. How could that assumption fail? We will construct a text for $L_\infty$ on which $f$ never settles. The construction proceeds in stages.
+
+1. Begin by presenting strings from $L_0$. Because $f$ must learn $L_0$ on every text for $L_0$, we can continue this presentation until $f$ proposes a grammar for $L_0$.
+2. Now introduce $w_1$ and continue with strings from $L_1$. If we were to continue this way forever, the resulting sequence would be a text for $L_1$. Because $f$ must learn $L_1$ on that text, there is a finite continuation after which it proposes a grammar for $L_1$.
+3. Introduce $w_2$ and repeat the same argument for $L_2$.
+4. Continue in this way, introducing $w_i$ at stage $i$ and waiting until the learner proposes $L_i$.
+
+Every $w_i$ appears at some finite stage, and no string outside $L_\infty$ is ever presented. The resulting infinite sequence is thus a text for $L_\infty$.
+
+But look at the hypotheses chosen at the ends of the stages. The learner proposes $L_0$, then $L_1$, then $L_2$, and so on. Since these languages are all different, its hypotheses do not stabilize on $L_\infty$. This contradicts our assumption that $f$ identifies $L_\infty$ on every text for that language.
+
+The learner is not failing because any one of these languages is especially complicated. It fails because every finite amount of positive evidence from $L_\infty$ is also compatible with a smaller finite language in the hypothesis class. Positive data never announce that more examples are still to come.
+
+Gold's **superfinite obstruction** generalizes this argument. Fix a nonempty finite alphabet $\Sigma$. A class that contains every finite subset of $\Sigma^*$ and at least one infinite language cannot be identified in the limit from arbitrary positive text [@gold1967language]. Negative evidence, a bound on the hypothesis space, or other information can change the result. The impossibility belongs to this particular learning setup.
+
+## Why this matters for phonology
+
+The regular languages contain every finite language and many infinite languages, including $\Sigma^*$. The full regular class is thus not identifiable from positive text in Gold's model.
+
+This result does not show that finite-state phonology is unlearnable. It shows that a learner cannot search the *entire* regular class under the assumptions above. A learner might instead search a restricted family, receive negative or structured evidence, or use a prior bias not represented in the text.
+
+This is one reason to study the [subregular hierarchy](subregular-hierarchy/index.qmd). Some parameter-bounded subregular families can be identified from positive data [@heinz2010learning; @jardine2016learning]. The bounds matter: fixing a finite alphabet and a locality parameter gives a restricted hypothesis space, while taking an unrestricted union over all locality parameters may reintroduce Gold's obstruction. We will keep that distinction in view as we move through the hierarchy.

@@ -7,6 +7,8 @@ jupyter: python3
 #| code-fold: true
 #| code-summary: Definition of `Tree` up to this point
 
+from __future__ import annotations
+
 class Tree:
     """A tree.
 
@@ -14,22 +16,37 @@ class Tree:
     ----------
     data : str
         The data contained in this tree.
-    children : list[Tree]
+    children : list[Tree] or tuple[Tree, ...]
         The subtrees of this tree.
     """
-    def __init__(self, data: str, children: list['Tree']=[]):
+    def __init__(
+        self,
+        data: str,
+        children: list[Tree] | tuple[Tree, ...] | None = None,
+    ) -> None:
+        if children is not None and not isinstance(children, (list, tuple)):
+            raise TypeError("children must be a finite list or tuple of trees")
         self._data = data
-        self._children = children
+        self._children = tuple(() if children is None else children)
+        self._flattened: tuple[Tree, ...] | None = None
         
         self._validate()
         
     def _validate(self) -> None:
-        try:
-            assert all(isinstance(c, Tree)
-                       for c in self._children)
-        except AssertionError:
-            msg = 'all children must be trees'
-            raise TypeError(msg)
+        """Reject non-trees, cycles, and shared subtree objects."""
+        seen = {id(self)}
+
+        def visit(node: Tree) -> None:
+            if not isinstance(node, Tree):
+                raise TypeError("all children must be trees")
+            if id(node) in seen:
+                raise ValueError("trees cannot contain cycles or shared subtrees")
+            seen.add(id(node))
+            for child in node._children:
+                visit(child)
+
+        for child in self._children:
+            visit(child)
         
     @property
     def data(self) -> str:
@@ -37,20 +54,20 @@ class Tree:
         return self._data
 
     @property
-    def children(self) -> list['Tree']:
+    def children(self) -> tuple[Tree, ...]:
         """The subtrees of this node."""
         return self._children
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self._children:
             return ' '.join(c.__str__() for c in self._children)
         else:
             return str(self._data)
         
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.to_string(0)
      
-    def to_string(self, depth: int) -> str:
+    def to_string(self, depth: int = 0) -> str:
         """Render the tree as an indented string.
 
         Parameters
@@ -85,7 +102,7 @@ class Tree:
 
 Let's return to the motivating example from the last section: suppose I’m interested in finding all sentences with a definite determiner in a subject.
 
-We know how to compute containment. The next question is: how do we find particular subtrees? The basic idea is going to be that, when searching, we want to return a subtree instead of a boolean. But it's also going to be important to know *where* that subtree is with respect to other subtrees–e.g. to figure out whether it is a subject. This is going to require a way of indexing trees.
+We know how to compute containment. The next question is: how do we find particular subtrees? A search now needs to return a subtree rather than only a boolean. But we also need to know *where* that subtree occurs with respect to the others—for instance, whether it is in subject position. So we need a way to index trees.
 
 ## Indexation by search traversal
 
@@ -95,27 +112,38 @@ One way to index trees is analogous to lists: an `int`. But what does that `int`
 #| executionInfo: {elapsed: 7, status: ok, timestamp: 1680619944133, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 class Tree(Tree):
 
-    def __getitem__(self, idx: int) -> 'Tree':
-        """Index into the pre-order linearization of the tree."""
+    def preorder_at(self, idx: int) -> Tree:
+        """Return a node from the pre-order linearization."""
         return self.flattened[idx]
 
-    def __len__(self) -> int:
-        """Return the number of nodes in the tree."""
+    @property
+    def size(self) -> int:
+        """The number of nodes in the tree."""
         return len(self.flattened)
 
     @property
-    def flattened(self) -> list['Tree']:
+    def flattened(self) -> tuple[Tree, ...]:
         """The pre-order depth-first linearization of the tree."""
-        try:
-            return self._flattened
-        except AttributeError:
-            # pre-order depth-first search
-            self._flattened = [self] +\
-                              [elem 
-                               for c in self._children
-                               for elem in c.flattened]
-            return self._flattened
+        if self._flattened is None:
+            self._flattened = (self,) + tuple(
+                elem
+                for child in self._children
+                for elem in child.flattened
+            )
+        return self._flattened
 ```
+
+### Why flattening gives pre-order indices
+
+Why does flattening give us pre-order indices? Let $F(t)$ be the value of `t.flattened`. We want $F(t)$ to contain every node of `t` exactly once, with the root first and the nodes of each child subtree immediately after it in left-to-right child order. We'll call this the **pre-order invariant**.
+
+If `t` is a leaf, the child comprehension is empty and the method returns `(t,)`, which is its complete pre-order traversal. Now take a larger tree with children $c_1,\ldots,c_m$, and suppose that $F(c_i)$ is the pre-order traversal of $c_i$ for every $i$. The expression begins with `(self,)` and then concatenates $F(c_1),\ldots,F(c_m)$. The root occurs once, every other node belongs to exactly one child subtree, and the induction hypothesis orders each of those subtrees correctly. Thus, the resulting tuple is exactly the pre-order traversal of `t`.
+
+The same argument gives the size claim. A leaf contributes one node. A nonleaf contributes its root plus the nodes in its disjoint child subtrees. So `t.size` equals the number of nodes in `t`. More precisely, for every integer $i$ with $0\leq i<|F(t)|$, `t.preorder_at(i)` returns the node visited at pre-order step $i$.
+
+Python tuples also accept negative indices. Because `preorder_at` delegates directly to `self.flattened`, `t.preorder_at(-1)` returns the final node in $F(t)$, and so on down to `t.preorder_at(-t.size)`. These are valid Python operations, but a negative number is not a pre-order visit number. Thus, the visit-step theorem is restricted to $0\leq i<|F(t)|$; code that uses an integer to represent traversal time should reject negative values explicitly.
+
+This implementation caches the traversal as a tuple. The base `Tree` also stores its children as a tuple and rejects cycles and shared subtree objects. These two parts of the **immutable-traversal contract** prevent either the tree structure or the cached result from changing through the public API; a mutable version would need to invalidate `_flattened` whenever its children change.
 
 ```{python}
 #| executionInfo: {elapsed: 7, status: ok, timestamp: 1680619944133, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
@@ -139,67 +167,64 @@ tree = Tree('S',
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 6, status: ok, timestamp: 1680619944133, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 #| outputId: 0215b906-fded-4fef-b23d-1b13c43f6a24
-tree[0]
+tree.preorder_at(0)
 ```
 
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 5, status: ok, timestamp: 1680619944133, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 #| outputId: c7324d25-cf26-428c-94e2-4fb26ac8e24a
-tree[1]
+tree.preorder_at(1)
 ```
 
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 5, status: ok, timestamp: 1680619944134, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 #| outputId: 6f58ed80-15cd-4613-e3a6-361f8f45f957
-tree[2]
+tree.preorder_at(2)
 ```
 
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 4, status: ok, timestamp: 1680619944134, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 #| outputId: 1ec86bed-5ada-4760-c528-0d0f65f88471
-tree[4]
+tree.preorder_at(4)
 ```
 
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 913, status: ok, timestamp: 1680619945043, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 #| outputId: 2ee8373f-2f44-4eb4-8499-0f31b5e15ee2
-for i in range(len(tree)):
-    print(i, tree[i].data)
+for i in range(tree.size):
+    print(i, tree.preorder_at(i).data)
 ```
 
-## Indexation by path to root
+## Indexation by path from root
 
-One issue with this indexation scheme is that it makes it a bit hard to represent relations like parenthood or sisterhood in a tree. One way to deal with this issue is to instead index using `tuple`s representing the index path to the root.
+One issue with this indexation scheme is that it makes it a bit hard to represent relations like parenthood or sisterhood in a tree. One way to deal with this issue is to instead index using `tuple`s representing the index path from the root.
 
 ```{python}
 #| executionInfo: {elapsed: 17, status: ok, timestamp: 1680619945043, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 class Tree(Tree):
 
-    def __getitem__(self, idx: tuple[int]) -> 'Tree':
+    def __getitem__(self, idx: tuple[int, ...]) -> Tree:
         """Index into the tree by path from root.
 
         Parameters
         ----------
-        idx : int or tuple[int]
-            A single child index or a tuple path from the root.
+        idx : tuple[int, ...]
+            A tuple path from the root.
 
         Returns
         -------
         Tree
             The subtree at the given path.
         """
-        idx = (idx,) if isinstance(idx, int) else idx
-
-        try:
-            assert all(isinstance(i, int) for i in idx)
-            assert all(i >= 0 for i in idx)
-        except AssertionError:
-            errmsg = 'index must be a positive int or tuple of positive ints'
-            raise IndexError(errmsg)
+        if (
+            not isinstance(idx, tuple)
+            or not all(isinstance(i, int) and i >= 0 for i in idx)
+        ):
+            raise IndexError("index must be a tuple of nonnegative integers")
         
         if not idx:
             return self
@@ -208,6 +233,18 @@ class Tree(Tree):
         else:
             return self._children[idx[0]][idx[1:]]
 ```
+
+### Why tuple paths identify subtrees
+
+A valid tuple path $(i_1,\ldots,i_k)$ tells us to take child $i_1$ of the root, then child $i_2$ of that node, and so on. Does the recursive method follow exactly those instructions? We'll call this claim the **path invariant** and check it by induction on the path length $k$.
+
+For $k=0$, the path is empty. No child step is requested, and the first branch returns `self`, so the invariant holds. For $k=1$, the second branch returns `self._children[i_1]`, exactly the child named by the sole coordinate.
+
+Now take a valid path of length $k>1$ and assume the invariant for paths of length $k-1$. The last branch first selects child $i_1$. It then recursively indexes that child with the suffix $(i_2,\ldots,i_k)$. By the induction hypothesis, the recursive call follows the remaining child steps. So the complete call follows the entire path.
+
+Conversely, every node in a structural tree has one path from the root: the root has the empty path, and the path to a node in child $i$ is $(i)$ followed by its path within that child. Distinct paths diverge at some child choice and thus name distinct nodes. This conclusion depends on the base constructor rejecting shared subtree objects; if the representation admitted sharing, one object could occur at two paths. Under the structural-tree contract, valid tuple paths and tree nodes correspond one-to-one, which makes parent and sister relations easy to express by manipulating path suffixes.
+
+The two index domains now have separate interfaces. Integer traversal positions use `preorder_at`, while `tree[path]` accepts tuples only. This prevents a single integer such as `tree[0]` from changing meaning when the path-indexing method is introduced.
 
 ```{python}
 #| executionInfo: {elapsed: 17, status: ok, timestamp: 1680619945043, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
@@ -238,7 +275,7 @@ tree[tuple()]
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 15, status: ok, timestamp: 1680619945043, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 #| outputId: eb3ba0ca-e0ee-4230-b422-d222f7b4d56e
-tree[0]
+tree[(0,)]
 ```
 
 ```{python}
@@ -266,7 +303,7 @@ tree[0,1,0]
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 13, status: ok, timestamp: 1680619945044, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 #| outputId: c1007a50-e4f3-4c8d-b783-59a56543d9d6
-tree[1]
+tree[(1,)]
 ```
 
 ```{python}
@@ -289,4 +326,3 @@ tree[1,1,0]
 #| outputId: ac58075d-d9b9-4861-f5f7-1bd0939cbaf2
 tree[1,1,0,0]
 ```
-

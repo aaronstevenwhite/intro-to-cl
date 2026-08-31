@@ -3,68 +3,45 @@ title: Trees
 jupyter: python3
 ---
 
-We're going to be working through how to load a treebank into memory, and the first thing we need to know is how to deal with the objects contained in a treebank: trees. To structure this discussion, we'll use a motivating example: suppose I’m interested in finding all sentences with a definite determiner in a subject.
+Suppose I’m interested in finding all sentences with a definite determiner in a subject. To run that search, I first need to load a treebank into memory. And to load a treebank, I need a way to represent the objects it contains: trees.
 
 ## Initial design
 
-The first question we need to ask is: what are trees in the abstract?
+The first question we need to ask is: what are trees in the abstract? We will use **labeled ordered trees**. A labeled ordered tree consists of two parts:
 
-An initial approximation is that a tree is something that is...
+1. one piece of data stored at its root; and
+2. a finite, possibly empty, ordered sequence of labeled ordered trees stored as its children.
 
-- ...empty (base case)
-- ...a nonempty sequence of trees
-
-```{python}
-#| colab: {base_uri: 'https://localhost:8080/'}
-#| executionInfo: {elapsed: 12, status: ok, timestamp: 1680619933967, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
-#| outputId: 2e7d1c1e-5fea-4f64-92fe-d14a4e4b9944
-class Tree:
-    """A tree.
-
-    Parameters
-    ----------
-    children : list[Tree]
-        The subtrees of this tree.
-    """
-    def __init__(self, children: list['Tree']=[]):
-        self._children = children
-
-Tree([Tree(), Tree()])
-```
-
-One problem is that these sorts of abstract trees aren’t super useful. So we can augment our definition. 
-
-A tree is something that is...
-  
-- ...empty (base case)
-- ...a piece of data paired with a nonempty sequence of trees
+This is a recursive definition because every child is itself a tree. The base case is a **leaf**: it still stores data, but its child sequence is empty. There is no separate empty-tree object in the representation. A nonleaf differs only in having one or more children, whose list order records left-to-right order in the tree.
 
 ```{python}
 #| executionInfo: {elapsed: 11, status: ok, timestamp: 1680619933967, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
-from typing import TypeVar
+from __future__ import annotations
 
-DataType = TypeVar("DataType")
-
-class Tree:
+class Tree[DataType]:
     """A tree.
 
     Parameters
     ----------
     data : DataType
         The data contained in this tree.
-    children : list[Tree]
+    children : list[Tree] or tuple[Tree, ...]
         The subtrees of this tree.
     """
-    def __init__(self, data: DataType, children: list['Tree']=[]):
+    def __init__(
+        self,
+        data: DataType,
+        children: list[Tree[DataType]] | tuple[Tree[DataType], ...] | None = None,
+    ) -> None:
         self._data = data
-        self._children = children
+        self._children = tuple(() if children is None else children)
 ```
 
 By convention, we shouldn't access the private attributes `_data` and `_children`, so a common thing to do is to build read-only accessors using the `@property` decorators.
 
 ```{python}
 #| executionInfo: {elapsed: 11, status: ok, timestamp: 1680619933967, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
-class Tree(Tree):
+class Tree[DataType](Tree[DataType]):
 
     @property
     def data(self) -> DataType:
@@ -72,7 +49,7 @@ class Tree(Tree):
         return self._data
 
     @property
-    def children(self) -> list['Tree']:
+    def children(self) -> tuple[Tree[DataType], ...]:
         """The subtrees of this node."""
         return self._children
 ```
@@ -81,12 +58,12 @@ class Tree(Tree):
 #| colab: {base_uri: 'https://localhost:8080/', height: 35}
 #| executionInfo: {elapsed: 11, status: ok, timestamp: 1680619933967, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 #| outputId: 4cafe3c3-6c61-4620-e183-7967b27ad2bc
-t = Tree('S', [Tree('NP', ['the', Tree('children')]), Tree('VP')])
+t = Tree('S', [Tree('NP', [Tree('the'), Tree('children')]), Tree('VP')])
 
 t.children[0].data
 ```
 
-Our class doesn't currently enforce that the children be `Tree`s. To enforce this, we can build a validator private method into the intialization.
+Our class doesn't currently enforce that the children be `Tree`s. To enforce this, we can build a private validation method into the initialization.
 
 ```{python}
 #| executionInfo: {elapsed: 11, status: ok, timestamp: 1680619933968, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
@@ -97,23 +74,49 @@ class Tree:
     ----------
     data : str
         The data contained in this tree.
-    children : list[Tree]
+    children : list[Tree] or tuple[Tree, ...]
         The subtrees of this tree.
     """
-    def __init__(self, data: str, children: list['Tree']=[]):
+    def __init__(
+        self,
+        data: str,
+        children: list[Tree] | tuple[Tree, ...] | None = None,
+    ) -> None:
+        if children is not None and not isinstance(children, (list, tuple)):
+            raise TypeError("children must be a finite list or tuple of trees")
         self._data = data
-        self._children = children
+        self._children = tuple(() if children is None else children)
 
         self._validate()
 
     def _validate(self) -> None:
-        try:
-            assert all(isinstance(c, Tree)
-                       for c in self._children)
-        except AssertionError:
-            msg = 'all children must be trees'
-            raise TypeError(msg)
+        """Reject non-trees, cycles, and shared subtree objects."""
+        seen = {id(self)}
+
+        def visit(node: Tree) -> None:
+            if not isinstance(node, Tree):
+                raise TypeError("all children must be trees")
+            if id(node) in seen:
+                raise ValueError("trees cannot contain cycles or shared subtrees")
+            seen.add(id(node))
+            for child in node._children:
+                visit(child)
+
+        for child in self._children:
+            visit(child)
+
+    @property
+    def data(self) -> str:
+        """The data at this node."""
+        return self._data
+
+    @property
+    def children(self) -> tuple[Tree, ...]:
+        """The subtrees of this node."""
+        return self._children
 ```
+
+So what does this version now guarantee? Its children form a finite ordered tuple, every child is a `Tree`, and the same object cannot occur twice below one root, either through a cycle or through shared substructure. We'll call these requirements the **structural-tree contract**. The tuple also prevents mutation through the public `children` accessor, which will matter when we cache traversals later. Direct reassignment of private attributes is outside this public contract.
 
 So now the following won't work.
 
@@ -125,6 +128,23 @@ try:
     Tree('S', ['NP', 'VP'])
 except TypeError as e:
     print("TypeError:", e)
+```
+
+The next checks cover the two less visible parts of the contract and confirm that the cumulative class retains both accessors.
+
+```{python}
+leaf = Tree("N")
+try:
+    Tree("NP", [leaf, leaf])
+except ValueError:
+    pass
+else:
+    raise AssertionError("shared subtree objects must be rejected")
+
+probe = Tree("S", [Tree("NP")])
+assert probe.data == "S"
+assert probe.children[0].data == "NP"
+assert isinstance(probe.children, tuple)
 ```
 
 But these will.
@@ -173,16 +193,16 @@ We'll have `__str__` return the yield and `__repr__` return the tree representat
 #| executionInfo: {elapsed: 9, status: ok, timestamp: 1680619933968, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 class Tree(Tree):
     
-    def __str__(self):
+    def __str__(self) -> str:
         if self._children:
             return ' '.join(c.__str__() for c in self._children)
         else:
             return str(self._data)
         
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.to_string(0)
      
-    def to_string(self, depth: int) -> str:
+    def to_string(self, depth: int = 0) -> str:
         """Render the tree as an indented string.
 
         Parameters
@@ -203,6 +223,16 @@ class Tree(Tree):
 
         return s
 ```
+
+### Why `__str__` returns the yield
+
+What should `str(t)` return for an arbitrary tree `t`? It should list the leaf data from left to right, with one space between adjacent leaves. We'll call this the **yield invariant**. We can check it slowly by structural induction on `t`.
+
+Start with a leaf `t`. It has no children, so the `else` branch returns `str(t._data)`. This is exactly the one-element yield of `t`.
+
+Now take a nonleaf `t` with children $c_1,\ldots,c_m$. Assume that `str(c_i)` already returns the left-to-right yield of each child. The `if` branch computes those strings in child order and joins them with spaces. For a two-child tree, for instance, it puts the yield of $c_1$ before the yield of $c_2$. The same reasoning extends through $c_m$. So the returned string contains every leaf below `t`, contains no other data, and preserves left-to-right order.
+
+The leaf and nonleaf cases cover every finite tree. So the yield invariant holds at the root. This is why printing `tree1` below returns the sentence rather than its nonterminal labels.
 
 So if we print a `Tree`, we get the sentence it corresponds to.
 
@@ -236,4 +266,3 @@ And if we try to evaluate the `Tree`, we get a visualization of its structure.
 #| outputId: 100b1065-0b83-4d84-ad28-8047a65b34e3
 tree1
 ```
-

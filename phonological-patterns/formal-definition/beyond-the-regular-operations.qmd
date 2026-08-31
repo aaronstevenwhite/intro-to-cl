@@ -1,225 +1,263 @@
 ---
 title: The intersection operation via complement
 bibliography: ../../references.bib
+jupyter: python3
 ---
 
-In defining phonological patterns, it can be really useful to have operations that go beyond the regular operations: union, concatenation, and kleene star. In this section, we'll see how to construct the complement of a language, and how to use the complement to construct the intersection of two languages. The reason these are going to be useful for us is that they allow us to express *constraints* against possible patterns. Remember that it was very hard to express constraints against entire strings using regular expressions. It turns out to be a lot easier using FSAs using the complement and intersection operations.
+Union, concatenation, and Kleene star build languages by adding possibilities. But phonological descriptions also need to rule possibilities out. How can an automaton reject exactly the strings that another automaton accepts? And how can it require two constraints at once? These questions lead to **complement** and **intersection**.
 
 ## Complement
 
-Given a deterministic finite automaton (DFA) $G = \langle Q, \Sigma, \delta, q_0, F \rangle$ recognizing $A = \mathbb{L}(G)$, we construct $G' = \text{complement}(G) = \langle Q, \Sigma, \delta, q_0, Q \setminus F \rangle$ recognizing $\overline{A} = \Sigma^* \setminus A = \mathbb{L}(G') = \mathbb{L}(\text{complement}(G))$:
+Let a complete deterministic finite automaton (DFA)
 
-1. The states $Q$, alphabet $\Sigma$, transition function $\delta$, and initial state $q_0$ remain the same
-2. The set of final states becomes $F' = Q \setminus F$ (the complement of $F$ with respect to $Q$)
+$$G=\langle Q,\Sigma,\delta,q_0,F\rangle$$
 
-Note that for the complement operation to work correctly, the automaton must be a complete DFA (every state has a transition for every symbol in the alphabet). If the NFA is not deterministic or not complete, it must first be converted to a complete DFA.
+recognize $A$. Its complement is
+
+$$
+\operatorname{complement}(G)
+=\langle Q,\Sigma,\delta,q_0,Q\setminus F\rangle.
+$$
+
+Nothing about a run changes. We change only which ending states count as accepting.
+
+Why must the DFA be complete? Fix an arbitrary $w\in\Sigma^*$. A complete DFA has exactly one run on $w$, and that run ends in some state $q$. If $q\in F$, the original machine accepts and the complemented machine rejects. If $q\notin F$, the original rejects and the complemented machine accepts. Thus,
+
+$$
+w\in\mathbb{L}(\operatorname{complement}(G))
+\quad\Longleftrightarrow\quad
+w\notin\mathbb{L}(G).
+$$
+
+If the transition function were partial, a run could instead get stuck. Swapping final and nonfinal states would not help: a stuck run would be rejected by both machines. So we complete the machine with a rejecting sink before swapping the final states. An NFA must also be determinized first.
+
+The following small `DFA` class makes the construction executable. It allows a partial transition table at initialization, but `complete` fills every missing transition before `complement` swaps the final states.
 
 ```{python}
-from copy import copy, deepcopy
+from __future__ import annotations
 
-class TransitionFunction:
-    """Placeholder for transition function used in intersection."""
-    def __init__(self, graph):
-        self._graph = graph
+from dataclasses import dataclass
 
-class FiniteStateAutomaton:
-    """A finite state automaton
 
-    Parameters
-    ----------
-    alphabet
-    states
-    initial_state
-    final states
-    transition_graph
-    """
+@dataclass(frozen=True, slots=True)
+class DFA:
+    """A deterministic finite-state automaton with string-valued states."""
 
-    def _deepcopy(self):
-        fsa = copy(self)
-        return deepcopy(fsa)
+    alphabet: frozenset[str]
+    states: frozenset[str]
+    initial_state: str
+    final_states: frozenset[str]
+    transitions: dict[tuple[str, str], str]
 
-    def complement(self) -> 'FiniteStateAutomaton':
-        """
-        construct the complement of this FSA
-        
-        Returns
-        -------
-        FiniteStateAutomaton
-            A new FSA that accepts the complement language
-        
-        Notes
-        -----
-        The FSA must be deterministic and complete for this operation
-        to work correctly. If not, it will be converted first.
-        """
-        # First ensure we have a complete DFA
-        fsa = self._deepcopy()
-        if not fsa.is_deterministic():
-            fsa = fsa.to_dfa()
-        
-        if not fsa.is_complete():
-            fsa = fsa.make_complete()
-            
-        # Complement the set of final states
-        new_final_states = fsa._states.difference(fsa._final_states)
-        
-        return FiniteStateAutomaton(
-            fsa._alphabet,
-            fsa._states,
-            fsa._initial_state,
-            new_final_states,
-            fsa._transition_function.transition_graph
+    def __post_init__(self) -> None:
+        if self.initial_state not in self.states:
+            raise ValueError("the initial state must belong to the state set")
+        if not self.final_states <= self.states:
+            raise ValueError("the final states must be a subset of the state set")
+        for (state, symbol), target in self.transitions.items():
+            if state not in self.states or target not in self.states:
+                raise ValueError("every transition endpoint must be a state")
+            if symbol not in self.alphabet:
+                raise ValueError("every transition symbol must be in the alphabet")
+
+    def accepts(self, word: str) -> bool:
+        """Return whether the machine accepts ``word``."""
+        state = self.initial_state
+        for symbol in word:
+            if symbol not in self.alphabet:
+                return False
+            try:
+                state = self.transitions[(state, symbol)]
+            except KeyError:
+                return False
+        return state in self.final_states
+
+    def complete(self, alphabet: frozenset[str] | None = None) -> DFA:
+        """Complete the machine over ``alphabet`` with a rejecting sink."""
+        ambient = self.alphabet if alphabet is None else alphabet
+        if not self.alphabet <= ambient:
+            raise ValueError("the ambient alphabet cannot remove old symbols")
+
+        states = set(self.states)
+        sink = "sink"
+        while sink in states:
+            sink += ":sink"
+
+        transitions = dict(self.transitions)
+        missing = [
+            (state, symbol)
+            for state in states
+            for symbol in ambient
+            if (state, symbol) not in transitions
+        ]
+        if missing:
+            states.add(sink)
+            for key in missing:
+                transitions[key] = sink
+            for symbol in ambient:
+                transitions[(sink, symbol)] = sink
+
+        return DFA(
+            ambient,
+            frozenset(states),
+            self.initial_state,
+            self.final_states,
+            transitions,
         )
+
+    def complement(self) -> DFA:
+        """Return the complement relative to this machine's alphabet."""
+        complete = self.complete()
+        return DFA(
+            complete.alphabet,
+            complete.states,
+            complete.initial_state,
+            complete.states - complete.final_states,
+            dict(complete.transitions),
+        )
+
+
+ends_in_a = DFA(
+    frozenset({'a', 'b'}),
+    frozenset({'no-a', 'a'}),
+    'no-a',
+    frozenset({'a'}),
+    {
+        ('no-a', 'a'): 'a',
+        ('no-a', 'b'): 'no-a',
+        ('a', 'a'): 'a',
+        ('a', 'b'): 'no-a',
+    },
+)
+does_not_end_in_a = ends_in_a.complement()
+
+assert ends_in_a.accepts('bba')
+assert not does_not_end_in_a.accepts('bba')
+assert does_not_end_in_a.accepts('abb')
 ```
 
 ## Intersection
 
-Given NFAs $G_1 = \langle Q_1, \Sigma_1, \delta_1, q_1, F_1 \rangle$ recognizing $A = \mathbb{L}(G_1)$ and $G_2 = \langle Q_2, \Sigma_2, \delta_2, q_2, F_2 \rangle$ recognizing $B = \mathbb{L}(G_2)$, we can construct an NFA $G = \text{intersection}(G_1, G_2)$ recognizing $A \cap B = \mathbb{L}(G) = \mathbb{L}(\text{intersection}(G_1, G_2))$ using De Morgan's laws:
+Suppose $G_1$ recognizes $A$ and $G_2$ recognizes $B$. De Morgan's law gives
 
-$$A \cap B = \overline{\overline{A} \cup \overline{B}}$$
+$$
+A\cap B=\overline{\overline{A}\cup\overline{B}}.
+$$
 
-This means we can implement intersection using the operations we already have:
+This identity gives one construction: complement both machines, take their union, and complement the result. But every complement must use the same universe. If $G_1$ uses $\Sigma_1$ and $G_2$ uses $\Sigma_2$, we first set $\Sigma=\Sigma_1\cup\Sigma_2$ and complete both machines over $\Sigma$.
 
-1. Compute $\overline{A}$ using the complement operation on $M_1$
-2. Compute $\overline{B}$ using the complement operation on $M_2$
-3. Compute $\overline{A} \cup \overline{B}$ using the union operation
-4. Compute $\overline{\overline{A} \cup \overline{B}}$ using the complement operation again
+Fix an arbitrary $w\in\Sigma^*$. Then
 
-```{python}
-class FiniteStateAutomaton:
-    """A finite state automaton
+$$
+\begin{aligned}
+w\in\overline{\overline{A}\cup\overline{B}}
+&\iff w\notin\overline{A}\cup\overline{B}\\
+&\iff w\notin\overline{A}\text{ and }w\notin\overline{B}\\
+&\iff w\in A\text{ and }w\in B\\
+&\iff w\in A\cap B.
+\end{aligned}
+$$
 
-    Parameters
-    ----------
-    alphabet
-    states
-    initial_state
-    final states
-    transition_graph
-    """
+Why do we insist on a common alphabet? Let $A=a^*$ be presented over $\{a\}$ and $B=b^*$ over $\{b\}$. Their intersection relative to $\{a,b\}^*$ is $\{\epsilon\}$. Complements taken separately over $\{a\}^*$ and $\{b\}^*$ do not describe languages in one shared universe. So the common alphabet is part of the operation, not mere bookkeeping.
 
-    def __and__(self, other):
-        return self.intersection(other)
+### Direct product construction
 
-    def intersection(self, other: 'FiniteStateAutomaton') -> 'FiniteStateAutomaton':
-        """
-        compute the intersection of this FSA with another
-        
-        Parameters
-        ----------
-        other : FiniteStateAutomaton
-            The FSA to intersect with
-            
-        Returns
-        -------
-        FiniteStateAutomaton
-            A new FSA that accepts the intersection language
-        """
-        # Using De Morgan's laws: A ∩ B = ¬(¬A ∪ ¬B)
-        not_self = self.complement()
-        not_other = other.complement()
-        union = not_self.union(not_other)
-        return union.complement()
-```
+We can compute the intersection more directly. Complete both DFAs over the common alphabet and let the new machine track a pair of states. Its components move on the same input symbol, and a pair is final only when both components are final.
 
-### Direct Product Construction
+For complete DFAs
 
-Alternatively, we can compute the intersection more efficiently using a direct product construction:
+$$
+G_1=\langle Q_1,\Sigma,\delta_1,q_1,F_1\rangle
+\quad\text{and}\quad
+G_2=\langle Q_2,\Sigma,\delta_2,q_2,F_2\rangle,
+$$
 
-Given NFAs $G_1 = \langle Q_1, \Sigma_1, \delta_1, q_1, F_1 \rangle$ and $G_2 = \langle Q_2, \Sigma_2, \delta_2, q_2, F_2 \rangle$, we construct $G = \text{direct\_intersection}(G_1, G_2) = \langle Q, \Sigma, \delta, q_0, F \rangle$ recognizing $A \cap B$:
+define the product by
 
-1. Define $Q = Q_1 \times Q_2$ (the Cartesian product of the state sets)
-2. Define $\Sigma = \Sigma_1 \cap \Sigma_2$ (the intersection of the alphabets)
-3. Define the initial state $q_0 = (q_1, q_2)$
-4. Define the set of final states $F = F_1 \times F_2$ (pairs where both components are final states)
-5. Define the transition function:
-   $$\delta((p_1, p_2), \sigma) = \{(q_1, q_2) \mid q_1 \in \delta_1(p_1, \sigma) \text{ and } q_2 \in \delta_2(p_2, \sigma)\}$$
+$$
+\begin{aligned}
+Q&=Q_1\times Q_2,\\
+q_0&=(q_1,q_2),\\
+F&=F_1\times F_2,\\
+\delta((r_1,r_2),\sigma)
+&=(\delta_1(r_1,\sigma),\delta_2(r_2,\sigma)).
+\end{aligned}
+$$
+
+What does a product state mean? The **paired-state invariant** says that after reading a prefix $x$, the product is in $(r_1,r_2)$ exactly when $G_1$ is in $r_1$ after $x$ and $G_2$ is in $r_2$ after $x$.
+
+Before any input is read, the product is $(q_1,q_2)$, so the invariant holds. Now suppose it holds after $x$ and read a symbol $\sigma$. The product transition applies the two component transitions to that same symbol. Its new state is thus exactly the pair reached by the two component machines after $x\sigma$. This proves the inductive step.
+
+After the full string $w$, the product is final exactly when both component states are final. By the invariant, that happens exactly when $w\in A$ and $w\in B$. Thus, the product recognizes $A\cap B$.
+
+The method below explores only product states reachable from the initial pair. Length-prefixed labels keep distinct state pairs distinct when we store the pairs as strings.
 
 ```{python}
-class FiniteStateAutomaton:
-    """A finite state automaton
+def pair_label(left: str, right: str) -> str:
+    """Serialize a pair of strings without delimiter collisions."""
+    return f'{len(left)}:{left}{len(right)}:{right}'
 
-    Parameters
-    ----------
-    alphabet
-    states
-    initial_state
-    final states
-    transition_graph
-    """
 
-    def direct_intersection(self, other: 'FiniteStateAutomaton') -> 'FiniteStateAutomaton':
-        """
-        compute the intersection of this FSA with another using direct product construction
-        
-        Parameters
-        ----------
-        other : FiniteStateAutomaton
-            The FSA to intersect with
-            
-        Returns
-        -------
-        FiniteStateAutomaton
-            A new FSA that accepts the intersection language
-        """
-        # Relabel states to ensure uniqueness
-        fsa1, fsa2 = self._relabel_fsas(other)
-        
-        # Common alphabet
-        new_alphabet = fsa1._alphabet.intersection(fsa2._alphabet)
-        
-        # Create the product state space
-        new_states = set()
-        new_transition_graph = {}
-        new_final_states = set()
-        
-        # Initial state is the pair of initial states
-        new_initial_state = (fsa1._initial_state, fsa2._initial_state)
-        
-        # Construct the product automaton via reachability
-        stack = [new_initial_state]
-        visited = set()
+def intersection(left: DFA, right: DFA) -> DFA:
+    """Construct the direct-product intersection of two DFAs."""
+    alphabet = left.alphabet | right.alphabet
+    left = left.complete(alphabet)
+    right = right.complete(alphabet)
 
-        while stack:
-            current_state = stack.pop()
-            if current_state in visited:
-                continue
+    initial_pair = (left.initial_state, right.initial_state)
+    pending = [initial_pair]
+    visited: set[tuple[str, str]] = set()
+    transitions: dict[tuple[str, str], str] = {}
 
-            visited.add(current_state)
-            new_states.add(current_state)
+    while pending:
+        pair = pending.pop()
+        if pair in visited:
+            continue
+        visited.add(pair)
 
-            # Check if this is a final state in the product
-            if (current_state[0] in fsa1._final_states and
-                current_state[1] in fsa2._final_states):
-                new_final_states.add(current_state)
+        for symbol in sorted(alphabet):
+            target = (
+                left.transitions[(pair[0], symbol)],
+                right.transitions[(pair[1], symbol)],
+            )
+            transitions[(pair_label(*pair), symbol)] = pair_label(*target)
+            if target not in visited:
+                pending.append(target)
 
-            # Compute transitions for each symbol
-            for symbol in new_alphabet:
-                next_states1 = fsa1._transition_function(current_state[0], symbol)
-                next_states2 = fsa2._transition_function(current_state[1], symbol)
+    final_states = frozenset(
+        pair_label(*pair)
+        for pair in visited
+        if pair[0] in left.final_states and pair[1] in right.final_states
+    )
+    return DFA(
+        frozenset(alphabet),
+        frozenset(pair_label(*pair) for pair in visited),
+        pair_label(*initial_pair),
+        final_states,
+        transitions,
+    )
 
-                # For each pair of next states
-                for q1 in next_states1:
-                    for q2 in next_states2:
-                        next_state = (q1, q2)
 
-                        key = (current_state, symbol)
-                        if key in new_transition_graph:
-                            new_transition_graph[key].add(next_state)
-                        else:
-                            new_transition_graph[key] = {next_state}
+a_star = DFA(
+    frozenset({'a'}),
+    frozenset({'q'}),
+    'q',
+    frozenset({'q'}),
+    {('q', 'a'): 'q'},
+)
+b_star = DFA(
+    frozenset({'b'}),
+    frozenset({'q'}),
+    'q',
+    frozenset({'q'}),
+    {('q', 'b'): 'q'},
+)
+only_empty = intersection(a_star, b_star)
 
-                        # Add to stack if not visited
-                        if next_state not in visited:
-                            stack.append(next_state)
-
-        return FiniteStateAutomaton(
-            new_alphabet,
-            new_states,
-            new_initial_state,
-            new_final_states,
-            new_transition_graph
-        )
+assert only_empty.accepts('')
+assert not only_empty.accepts('a')
+assert not only_empty.accepts('b')
+assert not only_empty.accepts('ab')
 ```
 
-This direct construction is more efficient than using De Morgan's laws and complementation, particularly for large automata, since it avoids multiple determinization steps which can cause exponential state growth.
+The direct product usually avoids the repeated determinization required by the De Morgan construction. Both constructions establish the same closure result: the intersection of two regular languages is regular.

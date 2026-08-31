@@ -20,9 +20,9 @@ Thus, given the $\Sigma$ above, the following are all regular expressions.
 2. b
 3. (æ $\cup$ b)
 4. (æ $\circ$ b$^*$)
-4. (æ $\circ$ b)$^*$
-5. ((æ $\circ$ b) $\cup$ b)
-6. (æ $\circ$ (b $\cup$ b))
+5. (æ $\circ$ b)$^*$
+6. ((æ $\circ$ b) $\cup$ b)
+7. (æ $\circ$ (b $\cup$ b))
 
 The following are *not* regular expressions.
 
@@ -36,9 +36,9 @@ We can generate all the regular expressions given an alphabet. Note that because
 
 ```{python}
 #| executionInfo: {elapsed: 141, status: ok, timestamp: 1675099872833, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
-from collections.abc import Iterable
+from collections.abc import Iterator
 
-def regular_expressions(sigma: set[str]) -> Iterable[str]:
+def regular_expressions(sigma: set[str]) -> Iterator[str]:
     old_regex_set = frozenset(sigma | {'∅', '𝜖'})
     
     for rho in old_regex_set:
@@ -67,6 +67,12 @@ def regular_expressions(sigma: set[str]) -> Iterable[str]:
         old_regex_set = frozenset(new_regex_set)
 ```
 
+But how do we know this generator eventually reaches every regular expression? The key is a **construction-depth invariant**. Give each atomic expression depth $0$, and give an expression formed with $*$, $\cup$, or $\circ$ depth one greater than the maximum depth of its immediate subexpressions. After round $d$, `old_regex_set` contains every regular expression of depth at most $d$.
+
+Start with the initialization: the symbols in $\Sigma\cup\{\epsilon,\emptyset\}$ are exactly the depth-$0$ expressions. Now suppose the set contains every expression of depth at most $d$. Each loop applies star to every member and union and concatenation to every ordered pair of members. It thus constructs every expression of depth $d+1$, while retaining the expressions constructed earlier. The invariant is thus preserved for the next round.
+
+Conversely, every initialized object satisfies the first clause of the definition, and every object added by the loop applies one of the three licensed constructors to expressions already in the set. Thus, the generator never constructs a non-regular expression. Since every regular expression has some finite construction depth, the invariant also guarantees that every regular expression appears after finitely many rounds. The code may yield an expression more than once, but it neither omits a well-formed expression nor introduces an ill-formed one.
+
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 3934, status: ok, timestamp: 1675099876765, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 300}
@@ -80,6 +86,5 @@ for i, r in enumerate(regular_expressions(english_phonemes)):
     print(r)
     
     if i > 100:
-      break
+        break
 ```
-

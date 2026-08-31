@@ -3,58 +3,87 @@ title: Context-free grammars for syntax
 bibliography: ../references.bib
 ---
 
-The context-free grammars we developed for morphology apply directly to syntax. Where a morphological grammar has rules like $\text{N} \rightarrow \text{Adj}\;\text{Suffix}$ (with morphemes as terminals), a syntactic grammar has rules like $\text{S} \rightarrow \text{NP}\;\text{VP}$ (with words as terminals). The formalism is the same 4-tuple $G = (V, \Sigma, R, S)$; only the alphabet and the intended interpretation change.
+A syntactic CFG differs from a morphological CFG in its intended terminals and variables, not in its formal definition. Words are terminals; categories such as $S$, $NP$, and $VP$ are variables. So what changes when we move from words to sentences? We begin with a small grammar and then ask what it can and cannot represent.
 
-## A syntactic CFG
+## A small grammar
 
-Here is a small syntactic grammar for a fragment of English:
+Consider the following fragment:
 
-$$\begin{align*}
-S &\rightarrow \text{NP}\;\text{VP} \\
-NP &\rightarrow \text{D}\;\text{N} \\
-NP &\rightarrow \text{D}\;\text{N}\;\text{PP} \\
-VP &\rightarrow \text{V}\;\text{NP} \\
-VP &\rightarrow \text{V}\;\text{NP}\;\text{PP} \\
-PP &\rightarrow \text{P}\;\text{NP} \\
-D &\rightarrow \text{the} \mid \text{a} \\
-N &\rightarrow \text{greyhound} \mid \text{man} \mid \text{telescope} \\
-V &\rightarrow \text{saw} \mid \text{loves} \\
-P &\rightarrow \text{with} \mid \text{in}
-\end{align*}$$
+$$
+\begin{aligned}
+S &\rightarrow NP\;VP \\
+NP &\rightarrow D\;N \mid D\;N\;PP \\
+VP &\rightarrow V\;NP \mid V\;NP\;PP \\
+PP &\rightarrow P\;NP \\
+D &\rightarrow \text{the}\mid\text{a} \\
+N &\rightarrow \text{greyhound}\mid\text{person}\mid\text{telescope} \\
+V &\rightarrow \text{saw}\mid\text{loved} \\
+P &\rightarrow \text{with}.
+\end{aligned}
+$$
 
-This grammar generates sentences like *the greyhound saw a man* and *a man loves the greyhound*. The CKY and Earley algorithms we developed in the morphological module work on this grammar without modification.
+The Earley parser can use these rules directly. CKY first converts the ternary rules to CNF.
 
 ## Treebanks
 
-Just as CELEX provides gold-standard morphological parses, *treebanks* provide gold-standard syntactic parses. The most widely used English treebank is the Penn Treebank [@marcus_building_1993], which contains syntactic annotations for roughly 50,000 sentences from the Wall Street Journal. Penn Treebank annotations use a CFG-like bracketing format—very similar to the CELEX StrucLab format we saw in the morphological module—with nonterminal labels like S, NP, VP, PP and functional tags for subjects, objects, and other grammatical relations.
+A *treebank* pairs sentences with syntactic analyses. The Penn Treebank, for instance, uses bracketed phrase structure with labels such as `S`, `NP`, `VP`, and `PP` [@marcus_building_1993]. These trees play the role that CELEX trees played for morphology: they supply rule occurrences for supervised PCFG estimation and reference structures for parser evaluation.
 
-Treebanks serve the same role for syntax that CELEX served for morphology: they provide training data for probabilistic grammars and evaluation data for parsers.
+This parallel should not be taken too far. Treebank labels encode an annotation scheme, and different schemes may assign different structures to the same sentence. A parser learned from a treebank models those annotation decisions along with the language.
 
 ## Ambiguity
 
-Syntactic ambiguity is far more pervasive than morphological ambiguity. Consider the sentence *I saw the man with the telescope*. This sentence has two parses:
+The grammar above allows two structures for *the greyhound saw a person with a telescope*. The `PP` may attach inside the object `NP`, in which case the person has the telescope, or it may attach to `VP`, in which case the telescope is the instrument of seeing.
 
-1. $[\text{S}\;[\text{NP}\;\text{I}]\;[\text{VP}\;[\text{V}\;\text{saw}]\;[\text{NP}\;[\text{D}\;\text{the}]\;[\text{N}\;\text{man}]\;[\text{PP}\;\text{with the telescope}]]]]$ — the man has the telescope
-2. $[\text{S}\;[\text{NP}\;\text{I}]\;[\text{VP}\;[\text{V}\;\text{saw}]\;[\text{NP}\;[\text{D}\;\text{the}]\;[\text{N}\;\text{man}]]\;[\text{PP}\;\text{with the telescope}]]]$ — I used the telescope to see
+Both analyses have the same terminal yield. Thus, recognition alone cannot distinguish them; the parser must retain backpointers, and a probabilistic model must rank or sum the resulting trees.
 
-The number of parses grows exponentially with sentence length in the worst case. Probabilistic CFGs—the same formalism we developed in the morphological module—are one way to handle this: we assign probabilities to rules, and the most probable parse (or the $k$ most probable parses) can be found efficiently.
+::: {.callout-caution}
+## Question
 
-## Limitations of CFGs for syntax
+Would adding a rule for each attachment decision remove the ambiguity from the sentence?
+:::
 
-Despite their usefulness, CFGs cannot capture certain syntactic phenomena that occur in natural languages. The most famous example is due to @shieber1985evidence, who showed that the cross-serial dependencies in Swiss German subordinate clauses cannot be generated by any context-free grammar.
+::: {.callout-tip collapse=true}
+## Answer
 
-In Swiss German, a subordinate clause can contain a sequence of noun phrases followed by a sequence of verbs, where the $i^{\text{th}}$ noun phrase is the argument of the $i^{\text{th}}$ verb:
+Only if the added categories encode information that forces one attachment in this context. Merely adding more rules usually adds analyses. A PCFG can prefer one existing analysis, but it does not remove the other unless its probability is zero.
+:::
 
-$$\text{...dass } \underbrace{\text{d'chind}}_{\text{NP}_1} \underbrace{\text{em Hans}}_{\text{NP}_2} \underbrace{\text{es huus}}_{\text{NP}_3} \underbrace{\text{lönd}}_{\text{V}_1} \underbrace{\text{hälfe}}_{\text{V}_2} \underbrace{\text{aastriiche}}_{\text{V}_3}$$
+## Two CFG limitations
 
-The dependency between $\text{NP}_i$ and $\text{V}_i$ crosses over the dependencies between $\text{NP}_j$ and $\text{V}_j$ for $j > i$. The string language $\{a^n b^m c^n d^m \mid n, m \geq 1\}$ captures the essential structure of this pattern, and it can be shown (using the pumping lemma for context-free languages) that this language is not context-free.
+Why might the small grammar still be inadequate even if it recognizes the examples we give it? We need to distinguish **weak generative capacity** from **structural adequacy**. Weak generative capacity concerns the set of terminal strings a grammar generates. Structural adequacy concerns whether the grammar states the intended dependencies and assigns the intended trees.
 
-The Swiss German case is the classic example, but it is far from the only one. @kobele2006generating argues that the fundamental issue is *copying*: many syntactic constructions involve a dependency between two positions in a sentence—a "filler" and a "gap"—where the same structural content must be tracked at both positions, even though only one is phonologically realized. Wh-movement is a familiar case: in *what did you see __?*, the wh-phrase *what* appears at the front but is interpreted as the object of *see*. The gap and the filler must agree in category and selectional properties, and the distance between them is unbounded—you can embed arbitrarily many clauses between them (*what did you think that Mary said that John believes that she saw __?*).
+Filler-gap dependencies illustrate the second problem. A CFG can thread a finite inventory of slash categories—such as $S/NP$ and $VP/NP$—through a tree. But the formalism treats each slash category as an atomic variable. The relationship between $S$ and $S/NP$ is visible to the analyst, not to the CFG definition, so the grammar repeats related rules across the category inventory.
 
-Now, to be precise, a CFG *can* handle unbounded movement—but only by encoding the information about what has been extracted into the nonterminal labels themselves. You could, for instance, have nonterminals like $\text{S/NP}$ (a sentence missing an NP), $\text{VP/NP}$ (a VP missing an NP), and so on, with rules that thread the "slash" category through the tree until it reaches the gap site. This is exactly what the GPSG tradition did. The problem is that this is a brute-force encoding: from the perspective of the CFG formalism, the nonterminals $\text{S}$, $\text{S/NP}$, and $\text{S/PP}$ are unrelated atomic symbols, just as the states of a [finite state transducer](../phonological-patterns/phonological-rules-as-fsas/finite-state-transducers.qmd) are atomic even when we as analysts name them suggestively. The internal structure of the nonterminal label is invisible to the grammar; the CFG does not "know" that $\text{S/NP}$ is an $\text{S}$ with a missing $\text{NP}$. It simply has more rules. And the number of rules you need grows multiplicatively with the number of extraction types, because you need a separate slash variant for every nonterminal that the extraction might pass through. This is a sign that the formalism is not expressing the generalization directly—it is simulating it.
+Swiss German cross-serial dependencies illustrate the first problem. In the relevant subordinate clauses, sequences of noun phrases correspond, in the same order, to sequences of verbs. Shieber showed that, after restricting the language with regular filters and applying a homomorphism, the pattern yields a known non-context-free language [@shieber1985evidence]. We will work through the **closure-transfer argument** one step at a time.
 
-Reduplication, which we already saw in the [morphological module](../morphological-patterns/index.qmd), is another instance of the copying problem: the language $\{ww \mid w \in \Sigma^+\}$ requires reproducing a string exactly, which no finite state device can do (as we [proved with the pumping lemma](../phonological-patterns/generative-capacity/pumping-lemma.qmd)). Kobele's point is that syntactic movement and morphological reduplication are both manifestations of copying, and that the [mildly context-sensitive](mildly-context-sensitive/index.qmd) formalisms provide the right way to handle them—not by encoding dependencies into atomic labels but by building the dependency-tracking mechanism into the operations of the grammar itself.
+Let $L_{SG}$ be the relevant Swiss German string language. The regular filter keeps a controlled clause shape with a block of dative noun phrases, a block of accusative noun phrases, and corresponding blocks of dative-selecting and accusative-selecting verbs. Fixed words and irrelevant alternatives are excluded. A homomorphism then erases the fixed material and maps the four relevant lexical classes to $a$, $b$, $c$, and $d$. The surviving abstract pattern has the form
 
-This situation should be contrasted with the cross-serial dependencies in Swiss German, which I described above. Unbounded filler-gap dependencies can at least be *simulated* by a CFG, even if the simulation is clumsy. Unbounded cross-serial dependencies simply cannot be handled at all—no amount of category proliferation will help, because the pumping lemma rules out the relevant string languages entirely. A CFG with slash categories can track *one* unbounded dependency (by threading a slash feature through the tree), but it cannot simultaneously track two dependencies whose paths cross, which is what cross-serial dependencies require.
+$$
+L_{cross}=\{a^mb^nc^md^n\mid m,n\geq1\}.
+$$
 
-So we have two problems with different characters. For filler-gap dependencies, the issue is not that CFGs lack the generative capacity—they don't—but that they express the generalization indirectly, through category encodings that are opaque to the formalism. For cross-serial dependencies, the issue is a limitation of generative capacity: the relevant patterns lie outside the context-free languages entirely. The [mildly context-sensitive](mildly-context-sensitive/index.qmd) formalisms we'll study next address both problems: they handle cross-serial dependencies because they are more powerful than CFGs, and they handle filler-gap dependencies natively—through operations like adjunction in TAGs, Move in [Minimalist Grammars](mildly-context-sensitive/minimalist-grammars.qmd), or multi-component yields in [MCFGs](mildly-context-sensitive/mcfgs-and-lcfrs.qmd)—rather than through category proliferation.
+The first and third block lengths match, as do the second and fourth. This is the cross-serial requirement.
+
+We first verify that $L_{cross}$ is not context-free. Assume it has context-free pumping length $p$, and choose
+
+$$w=a^pb^pc^pd^p.$$
+
+In any permitted decomposition $w=uvxyz$, the window $vxy$ has length at most $p$. It can thus touch at most two adjacent blocks. But the matched block pairs are nonadjacent: $a$ is matched with $c$, and $b$ is matched with $d$. Pumping $v$ and $y$ down changes at least one touched block while leaving its matched block unchanged. The resulting string violates either the $a$–$c$ equality or the $b$–$d$ equality. Thus, $L_{cross}$ is not context-free.
+
+Now assume for contradiction that $L_{SG}$ is context-free. Context-free languages are closed under intersection with a regular language, so applying the filter would preserve context-freeness. They are also closed under homomorphism: replace every terminal $x$ in a CFG by the fixed string $h(x)$, introducing auxiliary variables if needed, and derivations map to their homomorphic yields in both directions. Thus, the filtered and mapped language $L_{cross}$ would have to be context-free. We have just proved that it is not. The assumption that $L_{SG}$ is context-free must thus be false.
+
+This result depends on more than the presence of long dependencies. It depends on isolating two unbounded, independently varying counts and showing that a CFG would have to preserve both cross-serial equalities.
+
+::: {.callout-caution}
+## Question
+
+Can a sufficiently large but finite set of slash categories make a CFG generate a non-context-free string language?
+:::
+
+::: {.callout-tip collapse=true}
+## Answer
+
+No. Adding finitely many variables and rules still leaves us with a CFG. Slash categories may improve the analysis of dependencies whose string patterns are context-free, but they cannot change the weak generative capacity of the formalism.
+:::
+
+The next section abstracts away from the grammar formalism and asks how a parser follows from a set of inference rules. That abstraction will let us compare CFG parsing with the more expressive systems introduced afterward.

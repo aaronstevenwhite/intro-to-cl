@@ -1,76 +1,90 @@
 ---
-title: Multiple Context-Free Grammars
+title: Multiple context-free grammars
 bibliography: ../../references.bib
 ---
 
-Multiple Context-Free Grammars (MCFGs) generalize context-free grammars by allowing a nonterminal to yield a *tuple* of strings rather than a single contiguous string [@seki1991multiple]. The components of the tuple may be discontinuous—separated by material contributed by other nonterminals—and it is this discontinuity that lets MCFGs handle the cross-serial dependencies and discontinuous constituents that CFGs cannot.
+TAG uses the two sides of one foot node to represent a gap. How can we represent discontinuity directly? Multiple context-free grammars (MCFGs) allow a nonterminal to derive a tuple of strings [@seki1991multiple]. Other material may occur between those components in the final yield.
 
-MCFGs were introduced by @seki1991multiple. A closely related formalism, Linear Context-Free Rewriting Systems (LCFRS), was introduced independently by @vijayshanker1987characterizing. The two formalisms are not identical—LCFRS is defined in terms of a rewriting system that operates on tuples of strings, while MCFGs use an algebraic approach based on linear functions—but @seki1991multiple proved that they are equivalent in weak generative capacity: they generate exactly the same class of string languages. This is why the literature often treats "MCFG" and "LCFRS" as interchangeable, though strictly speaking they are different characterizations of the same class. I'll use the MCFG notation here, since it's what the [final project](../../assignments/final-project.ipynb) uses, but the parsing inference rules from @kallmeyer_linear_2013 (which you'll implement in the final project) are stated in the LCFRS framework.
+Linear context-free rewriting systems (LCFRSs) provide a closely related notation [@vijayshanker1987characterizing]. The two formalisms have the same weak generative capacity under their standard definitions, so we will use MCFG notation while drawing the parsing rules from the LCFRS literature.
 
-## Formal definition
+::: {.callout-note title="Reading"}
+Read @kallmeyer_linear_2013 through the recognition rules for binary LCFRS.
+:::
 
-An MCFG $G = \langle N, T, F, P, S \rangle$ consists of:
+## Fan-out
 
-- $N$: a finite set of nonterminals, each with an associated *fan-out* $\text{dim}(A) \in \mathbb{N}^+$
-- $T$: a finite terminal alphabet
-- $F$: a set of *linear, non-erasing* functions used in rules
-- $P$: a finite set of production rules
-- $S \in N$: the start symbol, with $\text{dim}(S) = 1$
+Each nonterminal $A$ has a positive integer *fan-out*, written $\operatorname{fo}(A)$. This is the number of string components in a value derived by $A$.
 
-The fan-out $\text{dim}(A)$ of a nonterminal $A$ is the number of string components it yields. A CFG nonterminal has fan-out 1—it yields a single contiguous string. An MCFG nonterminal with fan-out 2 yields a *pair* of strings, which may be separated by material from other nonterminals.
+- A fan-out-one nonterminal derives one contiguous string.
+- A fan-out-two nonterminal derives a pair of strings.
 
-A rule has the form:
+The start symbol has fan-out one because a complete derivation must produce one string.
 
-$$A(\alpha_1, \ldots, \alpha_{\text{dim}(A)}) \rightarrow B_1(x_1^{(1)}, \ldots, x_{\text{dim}(B_1)}^{(1)}) \cdots B_k(x_1^{(k)}, \ldots, x_{\text{dim}(B_k)}^{(k)})$$
+An MCFG rule combines the components derived by its right-hand-side nonterminals using a tuple-valued function. Under the usual *linear* and *nonerasing* restrictions, each input variable occurs exactly once in the output tuple. Linearity prevents copying; nonerasure prevents deletion.
 
-where each $\alpha_i$ is a concatenation of terminal strings and variables drawn from the right-hand side nonterminals. The constraints are:
+## A copying language
 
-- **Linearity**: each variable from the right-hand side appears exactly once on the left-hand side.
-- **Non-erasure**: every variable from the right-hand side appears somewhere on the left-hand side.
+Consider the language
 
-These constraints ensure that the rule is a *function* from the yields of the right-hand side nonterminals to the yield of the left-hand side nonterminal, and that this function is both deterministic and non-erasing.
+$$L_{copy} = \{ww \mid w\in\{a,b\}^*\}.$$
 
-## Example: Swiss German cross-serial dependencies
+It is not context-free, but a fan-out-two MCFG can generate it:
 
-Recall the [Swiss German pattern](../cfgs-for-syntax.qmd) that is not context-free: sequences of NPs followed by matching sequences of verbs. In an MCFG, we can handle this using nonterminals with fan-out 2.
+$$
+\begin{aligned}
+A(\epsilon,\epsilon) &\leftarrow \epsilon \\
+A(ax,ay) &\leftarrow A(x,y) \\
+A(bx,by) &\leftarrow A(x,y) \\
+S(xy) &\leftarrow A(x,y).
+\end{aligned}
+$$
 
-Define the nonterminals: $S$ with $\text{dim}(S) = 1$, and $\text{VP}$ with $\text{dim}(\text{VP}) = 2$—yielding a pair of strings, one for the NP part and one for the verb part.
+The two components of $A$ grow in parallel. The start rule concatenates them, producing two identical copies of the selected string.
 
-$$\begin{align*}
-S(uv) &\rightarrow \text{VP}(u, v) \\
-\text{VP}(u_1 \cdot \text{NP}_i \cdot u_2,\; v_1 \cdot \text{V}_i \cdot v_2) &\rightarrow \text{VP}(u_1 \cdot u_2,\; v_1 \cdot v_2)
-\end{align*}$$
+We prove this claim using [double inclusion](../../languages-as-formal-objects/set-relations.qmd#equality-by-double-inclusion), just as we did for [CFG closure](../../morphological-patterns/operations.qmd#why-the-constructions-work). First, every tuple derived by $A$ has the form $(w,w)$. The base rule derives $(\epsilon,\epsilon)$. If the invariant holds of $(x,y)$, the $a$ rule derives $(ax,ay)$ and the $b$ rule derives $(bx,by)$. Since $x=y$, the two new components are again identical. Induction on derivation height proves that the start rule can produce only strings $ww$.
 
-The second rule says: to build a VP that yields a pair of strings, take an existing VP pair and insert an NP into the first component and a matching verb into the second component. The first rule combines the two components of VP into a single string for $S$. Because each VP contributes to both the NP-part and the verb-part, the cross-serial dependencies are maintained.
+Conversely, fix any $w\in\{a,b\}^*$. We induct on its length. The empty string is supplied by the base rule. If $w=cv$ for $c\in\{a,b\}$, the induction hypothesis derives $A(v,v)$. Use the $a$ rule when $c=a$ or the $b$ rule when $c=b$ to derive $A(cv,cv)=A(w,w)$. The start rule then derives $ww$. Thus, the grammar generates all and only $L_{copy}$.
 
-## Example: the final project grammar
+::: {.callout-note collapse="true" title="Question"}
+Why does this grammar require fan-out two?
 
-The [final project](../../assignments/final-project.ipynb) provides an MCFG grammar for a fragment of English that includes wh-movement. For instance, the rule:
+::: {.callout-tip collapse="true" title="Answer"}
+The derivation must keep the two copies separate while extending them in parallel. A fan-out-one nonterminal supplies only one contiguous component; under the MCFG definition, fan-out-one grammars generate exactly the context-free languages.
+:::
+:::
 
-$$\text{VPwhmain}(u, v) \rightarrow \text{NPwh}(u)\;\text{Vroot}(v)$$
+## Recognition items
 
-says that a $\text{VPwhmain}$ yields *two* string components: $u$ (the wh-phrase, which may have been extracted) and $v$ (the verb). The fan-out of $\text{VPwhmain}$ is 2, reflecting the discontinuity introduced by extraction.
+A recognition item for fan-out-$m$ nonterminal $A$ has the form
 
-This is the grammar you'll implement a parser for. The notation in the final project uses `MCFGRule` and `MCFGRuleElement` classes; the mathematical content is exactly what I've described here.
+$$
+[A; (i_1,j_1),\ldots,(i_m,j_m)].
+$$
 
-## MCFG parsing
+It asserts that the $r$th component of $A$ covers the half-open span $(i_r,j_r)$. An inference rule combines antecedent items when their spans satisfy the concatenation pattern specified by an MCFG rule. The goal item for an input of length $n$ is $[S;(0,n)]$.
 
-Parsing MCFGs uses the [deductive parsing framework](../deductive-parsing.qmd) with items that track *tuples of spans* rather than single spans. An item $[A, \langle (i_1, j_1), \ldots, (i_m, j_m) \rangle]$ records that nonterminal $A$ (with fan-out $m$) yields the string components spanning positions $(i_1, j_1), \ldots, (i_m, j_m)$.
+This is the same deductive architecture used for CKY. The difference lies in the item shape and in the compatibility conditions over tuples of spans.
 
-The inference rules, as presented by @kallmeyer_linear_2013, generalize the CKY rules in a natural way. The key rule is:
+For every fixed MCFG, recognition is polynomial in the input length. The exponent depends on properties of the grammar, including its fan-out and rule rank; $O(n^{3f})$ is thus not a general complexity formula for every grammar of fan-out $f$.
 
-$$\frac{[B_1, \vec{s}_1] \quad \cdots \quad [B_k, \vec{s}_k]}{[A, f(\vec{s}_1, \ldots, \vec{s}_k)]}$$
+The polynomial bound follows from fixing the grammar before varying the input. A fan-out-$m$ item contains $2m$ endpoints, and each endpoint has at most $n+1$ values. Thus, one nonterminal has at most $(n+1)^{2m}$ possible span tuples. The grammar contains finitely many nonterminals, has a fixed maximum fan-out, and gives each inference rule a fixed number of endpoint variables. Enumerating every assignment to the variables of one fixed rule thus takes $O(n^c)$ time for some constant $c$ determined by that rule. Saturating the finite item set under the finite rule set remains polynomial in $n$.
 
-where $f$ is the function specified by the MCFG rule $A \rightarrow B_1 \cdots B_k$ and $\vec{s}_i$ is the tuple of spans for $B_i$. The function $f$ concatenates and rearranges the spans according to the rule.
+This argument does not supply one exponent for all MCFGs. Changing the grammar may change the maximum fan-out, rule rank, and number of independent endpoints, and hence changes $c$.
 
-The parsing complexity is $O(n^{3m})$ where $m$ is the maximum fan-out in the grammar. For fan-out 1 (CFGs), this is $O(n^3)$; for fan-out 2, $O(n^6)$; and so on. The exponent grows with fan-out, but for any fixed fan-out, parsing is polynomial—satisfying the MCS requirement.
+## Relative generative capacity
 
-## The fan-out hierarchy
+The first levels of the fan-out hierarchy should not be conflated:
 
-MCFGs with different maximum fan-outs form a strict hierarchy:
+$$
+\text{CFG}=\text{MCFG}(1)
+\subsetneq
+\text{TAG languages}
+\subsetneq
+\text{MCFG}.
+$$
 
-$$\text{MCFG}(1) \subset \text{MCFG}(2) \subset \text{MCFG}(3) \subset \cdots$$
+TAG languages can be represented by constrained fan-out-two LCFRSs or MCFGs. Unrestricted fan-out-two grammars already include languages outside the TAG class, and allowing larger fan-out yields further increases in capacity.
 
-$\text{MCFG}(1)$ generates exactly the same string languages as [TAGs](tree-adjoining-grammars.qmd) and [CCGs](combinatory-categorial-grammars.qmd). Higher fan-outs capture more phenomena. The full class $\text{MCFG} = \bigcup_k \text{MCFG}(k)$ is exactly the class of languages generated by LCFRS, and it properly contains the context-free languages while remaining within the class of languages parsable in polynomial time.
+The equalities and containments in this section require translations, not merely example languages. The [equivalence proofs](proving-equivalences.qmd) construct the relevant grammars in both directions and prove their yield invariants step by step.
 
-This hierarchy mirrors the [subregular hierarchy](../../phonological-patterns/subregular-hierarchy/index.qmd) from the phonological module: both stratify a larger class of languages into increasingly powerful subclasses, and in both cases natural language phenomena cluster in the lower levels.
+The [final project](../../assignments/final-project.ipynb) asks you to implement an MCFG recognizer. Its rule objects encode the same tuple-concatenation functions described here; its chart items encode tuples of input spans.

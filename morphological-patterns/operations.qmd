@@ -1,318 +1,479 @@
 ---
-title: Operations on Context-Free Grammars
+title: Operations on context-free grammars
 bibliography: ../references.bib
+jupyter: python3
 ---
 
-In the previous section, we introduced the formal definition of context-free grammars. Now we'll explore operations that can be performed on CFGs—union, concatenation, and Kleene closure—which allow us to build more complex grammars from simpler ones. This is useful for modeling morphological processes, where we often want to describe a complex word-formation system by composing smaller, more manageable grammars.
+The context-free languages are closed under union, concatenation, and Kleene closure, just as the regular languages are. So how do we construct a context-free grammar (CFG) for each result from grammars for its arguments?
+
+Throughout this section, $G_1=(V_1,\Sigma_1,R_1,S_1)$ and $G_2=(V_2,\Sigma_2,R_2,S_2)$. Each grammar satisfies $V_i\cap\Sigma_i=\varnothing$. Before combining them, we impose the **symbol-hygiene condition**: variables in either grammar are disjoint from both the variables and terminals of the other grammar. This condition may require alpha-renaming variables, which changes their names but preserves every terminal derivation. Shared terminals do not need to be renamed. The new start variable must then be absent from all four symbol sets.
 
 ## Union
 
-Given two context-free grammars $G_1 = (V_1, \Sigma_1, R_1, S_1)$ and $G_2 = (V_2, \Sigma_2, R_2, S_2)$, the union grammar $G = G_1 \cup G_2$ generates the language $L(G) = L(G_1) \cup L(G_2)$.
+To generate $L(G_1)\cup L(G_2)$, introduce a fresh start variable $S$ and let it select either component grammar:
 
-We can construct $G = (V, \Sigma, R, S)$ as follows:
+$$
+\begin{aligned}
+V &= V_1\cup V_2\cup\{S\},\\
+\Sigma &= \Sigma_1\cup\Sigma_2,\\
+R &= R_1\cup R_2\cup\{S\rightarrow S_1,S\rightarrow S_2\}.
+\end{aligned}
+$$
 
-1. Create a new start symbol $S$ not in $V_1$ or $V_2$
-2. Set $V = V_1 \cup V_2 \cup \{S\}$
-3. Set $\Sigma = \Sigma_1 \cup \Sigma_2$
-4. Set $R = R_1 \cup R_2 \cup \{S \rightarrow S_1, S \rightarrow S_2\}$
-
-(We assume throughout this section that $V_1$ and $V_2$ are disjoint—i.e. that the two grammars share no variable names. If they do, we would need to relabel one grammar's variables before combining the rule sets, since otherwise a rule from $G_1$ could interact with a variable from $G_2$ in unintended ways.)
-
-```python
-def union(self, other: 'ContextFreeGrammar') -> 'ContextFreeGrammar':
-    """Construct the union of this grammar with another.
-
-    Parameters
-    ----------
-    other : ContextFreeGrammar
-        The other grammar (must have disjoint variables).
-
-    Returns
-    -------
-    ContextFreeGrammar
-        A grammar generating L(self) | L(other).
-    """
-    new_start = "S_union"
-
-    while new_start in self.variables or new_start in other.variables:
-        new_start += "_"
-
-    variables = self.variables | other.variables | {new_start}
-    alphabet = self.alphabet | other.alphabet
-
-    rules = self.rules() | other.rules()
-
-    rules |= {
-        Rule(new_start, self.start_variable),
-        Rule(new_start, other.start_variable)
-    }
-
-    return ContextFreeGrammar(alphabet, variables, rules, new_start)
-```
-
-In morphology, union is useful for modeling alternative word formation processes. We might have one grammar for noun formation and another for adjective formation, and we can combine them into a single grammar that generates both.
+The new start rules choose a language. They do not otherwise allow the internal rules of the two grammars to interact.
 
 ## Concatenation
 
-Given two context-free grammars $G_1 = (V_1, \Sigma_1, R_1, S_1)$ and $G_2 = (V_2, \Sigma_2, R_2, S_2)$, the concatenation grammar $G = G_1 \circ G_2$ generates the language $L(G) = L(G_1) \circ L(G_2)$—all strings $w_1w_2$ where $w_1 \in L(G_1)$ and $w_2 \in L(G_2)$.
+To generate $L(G_1)L(G_2)$, introduce a fresh start variable with one binary rule:
 
-We can construct $G = (V, \Sigma, R, S)$ as follows:
+$$
+\begin{aligned}
+V &= V_1\cup V_2\cup\{S\},\\
+\Sigma &= \Sigma_1\cup\Sigma_2,\\
+R &= R_1\cup R_2\cup\{S\rightarrow S_1S_2\}.
+\end{aligned}
+$$
 
-1. Create a new start symbol $S$ not in $V_1$ or $V_2$
-2. Set $V = V_1 \cup V_2 \cup \{S\}$
-3. Set $\Sigma = \Sigma_1 \cup \Sigma_2$
-4. Set $R = R_1 \cup R_2 \cup \{S \rightarrow S_1 S_2\}$
+Every derived string thus consists of a string from $G_1$ followed by a string from $G_2$.
 
-As with union, we assume $V_1$ and $V_2$ are disjoint.
+## Kleene closure
 
-```python
-def concatenate(self, other: 'ContextFreeGrammar') -> 'ContextFreeGrammar':
-    """Construct the concatenation of this grammar with another.
+To generate $L(G)^*$, introduce a fresh start variable $S'$ with a stopping rule and a recursive rule:
 
-    Parameters
-    ----------
-    other : ContextFreeGrammar
-        The other grammar (must have disjoint variables).
+$$
+\begin{aligned}
+V' &= V\cup\{S'\},\\
+R' &= R\cup\{S'\rightarrow\epsilon,S'\rightarrow SS'\}.
+\end{aligned}
+$$
 
-    Returns
-    -------
-    ContextFreeGrammar
-        A grammar generating L(self) . L(other).
-    """
-    new_start = "S_concat"
+The epsilon rule generates zero copies. Each use of the recursive rule adds one string from $L(G)$.
 
-    while new_start in self.variables or new_start in other.variables:
-        new_start += "_"
+## Why the constructions work
 
-    variables = self.variables | other.variables | {new_start}
-    alphabet = self.alphabet | other.alphabet
+But writing down new rules is not yet enough. A closure construction must establish equality of languages. We thus use the [double-inclusion method introduced with set equality](../languages-as-formal-objects/set-relations.qmd#equality-by-double-inclusion): every string generated by the new grammar must belong to the intended language, and every string in the intended language must be generated by the new grammar. We have already used this proof pattern for the [lookaround construction](../grammars-as-languages/lookarounds.qmd#formal-perspective) and for [DFA/NFA equivalence](../phonological-patterns/formal-definition/two-equivalent-definitions.qmd#dfas-are-equivalent-to-nfas).
 
-    rules = self.rules() | other.rules()
+### Union
 
-    rules.add(Rule(new_start, self.start_variable, other.start_variable))
+Suppose first that the union grammar derives a terminal string $w$. The first derivation step must be either $S\rightarrow S_1$ or $S\rightarrow S_2$. Because the variable sets are disjoint, every remaining step uses rules from the selected grammar. Thus, $w\in L(G_1)$ in the first case and $w\in L(G_2)$ in the second. Hence, $w\in L(G_1)\cup L(G_2)$.
 
-    return ContextFreeGrammar(alphabet, variables, rules, new_start)
+For the reverse inclusion, let $w\in L(G_1)\cup L(G_2)$. If $w\in L(G_1)$, begin with $S\Rightarrow S_1$ and then follow the existing $G_1$ derivation of $w$. If $w\in L(G_2)$, use $S\Rightarrow S_2$ and the $G_2$ derivation instead. Every string in the union is thus generated by the constructed grammar.
+
+### Concatenation
+
+Suppose the concatenation grammar derives $w$. Its first step is $S\Rightarrow S_1S_2$. In the completed derivation tree, the $S_1$ subtree has some terminal yield $w_1\in L(G_1)$, and the $S_2$ subtree has some terminal yield $w_2\in L(G_2)$. Frontier order gives $w=w_1w_2$, so $w\in L(G_1)L(G_2)$.
+
+Conversely, take any $w\in L(G_1)L(G_2)$. By the definition of language concatenation, there are strings $w_1\in L(G_1)$ and $w_2\in L(G_2)$ such that $w=w_1w_2$. Start with $S\Rightarrow S_1S_2$, apply a $G_1$ derivation to the first variable and a $G_2$ derivation to the second, and obtain $w_1w_2=w$.
+
+### Kleene closure
+
+We prove the forward direction by counting uses of the recursive rule $S'\rightarrow SS'$. If it is used zero times, the stopping rule produces $\epsilon$, which is the concatenation of zero strings from $L(G)$. If it is used $k>0$ times, the derivation begins
+
+$$
+S'\Rightarrow SS'\Rightarrow SS S'\Rightarrow\cdots
+\Rightarrow S^kS'\Rightarrow S^k.
+$$
+
+Each occurrence of $S$ then derives some $w_i\in L(G)$. The complete yield is $w_1\cdots w_k$, so it belongs to $L(G)^*$.
+
+For the reverse direction, choose any $w\in L(G)^*$. By definition, $w=w_1\cdots w_k$ for some $k\geq0$ and strings $w_i\in L(G)$. Use the recursive start rule exactly $k$ times, use the stopping rule once, and derive $w_i$ from the $i$th copy of $S$. The result is $w$. Thus, the constructed grammar generates all and only the strings in $L(G)^*$.
+
+The freshness and disjointness conditions are what make the first halves of these proofs go through. Without them, a derivation could move unintentionally between the component grammars or use the new control rules inside an old derivation.
+
+::: {.callout-caution}
+## Question
+
+Why does the Kleene-closure construction use a fresh start variable instead of adding $S\rightarrow SS$ and $S\rightarrow\epsilon$ to the original grammar?
+:::
+
+::: {.callout-tip collapse=true}
+## Answer
+
+Changing the rules for the original $S$ can alter its behavior inside existing derivations. A fresh start variable adds repetition above the original grammar while leaving every old derivation intact.
+:::
+
+## Implementing the operations
+
+The three constructions differ only in their new start rules. The following methods encode them directly.
+
+```{python}
+#| code-fold: true
+#| code-summary: Load the CFG representation
+
+import sys
+
+sys.path.insert(0, "_code")
+from grammar import ContextFreeGrammar, Rule
 ```
 
-Concatenation is the bread and butter of morphological modeling—it captures how morphemes combine. We might have a grammar for prefixes and another for stems, and concatenation lets us describe how they compose to form complex words.
-
-## Kleene Closure
-
-Given a context-free grammar $G = (V, \Sigma, R, S)$, the Kleene closure grammar $G^* = (V', \Sigma, R', S')$ generates the language $L(G^*) = L(G)^*$—all strings formed by concatenating zero or more strings from $L(G)$.
-
-We can construct $G^* = (V', \Sigma, R', S')$ as follows:
-
-1. Create a new start symbol $S'$ not in $V$
-2. Set $V' = V \cup \{S'\}$
-3. Set $R' = R \cup \{S' \rightarrow \epsilon, S' \rightarrow S S'\}$
-
-```python
-def kleene_star(self) -> 'ContextFreeGrammar':
-    """Construct the Kleene closure of this grammar.
-
-    Returns
-    -------
-    ContextFreeGrammar
-        A grammar generating L(self)*.
-    """
-    new_start = "S_star"
-
-    while new_start in self.variables:
-        new_start += "_"
-
-    variables = self.variables | {new_start}
-    alphabet = self.alphabet
-
-    rules = self.rules()
-
-    rules.add(Rule(new_start, self.start_variable, new_start))  # S' -> S S' (right-recursive)
-    rules.add(Rule(new_start))  # S' -> epsilon
-
-    return ContextFreeGrammar(alphabet, variables, rules, new_start)
-```
-
-In morphology, Kleene closure is useful for modeling repetitive processes like reduplication or iterative affixation.
-
-## Intersection
-
-Context-free languages are not closed under intersection: if $L_1$ and $L_2$ are both context-free, $L_1 \cap L_2$ may not be. There is, however, an important special case—the intersection of a context-free language with a *regular* language is always context-free. This means we can use a finite state automaton to filter or constrain a CFG's output, which is useful when we want a grammar to generate only strings matching some phonological pattern (described by a regular language) while retaining the hierarchical structure the CFG provides. We won't implement intersection here, but the property is worth keeping in mind.
-
-## Complementation
-
-Context-free languages are also not closed under complementation: given a context-free language $L$, its complement $\overline{L} = \Sigma^* - L$ is not necessarily context-free. This follows from the failure of closure under intersection, since if CFLs were closed under both union and complementation, we could construct intersections via De Morgan's laws.
-
-## Example: Morphological Operations
-
-We can demonstrate these operations with a small morphological example. We'll create one grammar for adjectival morphology and another for nominal morphology, then combine them.
-
-```python
-adj_grammar = ContextFreeGrammar(
-    alphabet={'happy', 'kind', 'un', 'ly'},
-    variables={'Word', 'Adj', 'Adv', 'Prefix'},
-    rules={
-        Rule('Adj', 'happy'),
-        Rule('Adj', 'kind'),
-        Rule('Word', 'Adj'),
-        Rule('Word', 'Adv'),
-        Rule('Adj', 'Prefix', 'Adj'),  # un + happy -> unhappy
-        Rule('Adv', 'Adj', 'ly'),      # happy + ly -> happily
-        Rule('Prefix', 'un')
-    },
-    start_variable='Word'
-)
-
-noun_grammar = ContextFreeGrammar(
-    alphabet={'happy', 'kind', 'ness', 'ity'},
-    variables={'Word', 'Adj', 'N', 'Suffix'},
-    rules={
-        Rule('Adj', 'happy'),
-        Rule('Adj', 'kind'),
-        Rule('Word', 'N'),
-        Rule('N', 'Adj', 'Suffix'),    # happy + ness -> happiness
-        Rule('Suffix', 'ness'),
-        Rule('Suffix', 'ity')
-    },
-    start_variable='Word'
-)
-
-combined_grammar = adj_grammar.union(noun_grammar)
-```
-
-The combined grammar can generate bare adjectives like "happy," prefixed adjectives like "unhappy," adverbs like "happily," and derived nominals like "happiness" or "unhappiness"—all from the union of two relatively simple component grammars.
-
-## Implementing the Operations in the ContextFreeGrammar Class
-
-We can add these operations as methods (along with operator overloads for convenience) to our `ContextFreeGrammar` class.
-
-```python
+```{python}
 class ContextFreeGrammar(ContextFreeGrammar):
-    """Extended grammar with closure operations."""
+    """A context-free grammar with the regular closure operations."""
 
-    def __or__(self, other: 'ContextFreeGrammar') -> 'ContextFreeGrammar':
-        """Union via the | operator."""
+    def __or__(self, other: ContextFreeGrammar) -> ContextFreeGrammar:
+        """Return a grammar for the union language."""
         return self.union(other)
 
-    def __add__(self, other: 'ContextFreeGrammar') -> 'ContextFreeGrammar':
-        """Concatenation via the + operator."""
+    def __add__(self, other: ContextFreeGrammar) -> ContextFreeGrammar:
+        """Return a grammar for the concatenated language."""
         return self.concatenate(other)
 
-    def union(self, other: 'ContextFreeGrammar') -> 'ContextFreeGrammar':
-        """Construct the union of this grammar with another.
+    @staticmethod
+    def _fresh_symbol(base: str, forbidden: set[str]) -> str:
+        """Return a variant of ``base`` outside ``forbidden``."""
+        symbol = base
+        while symbol in forbidden:
+            symbol += "_"
+        return symbol
 
-        Parameters
-        ----------
-        other : ContextFreeGrammar
-            The other grammar (must have disjoint variables).
+    def _alpha_renamed(
+        self,
+        forbidden: set[str],
+    ) -> ContextFreeGrammar:
+        """Rename variables that collide with ``forbidden`` symbols."""
+        used = set(self.variables) | set(self.alphabet) | set(forbidden)
+        renaming: dict[str, str] = {}
+        for variable in sorted(self.variables):
+            if variable in forbidden:
+                fresh = self._fresh_symbol(variable, used)
+                renaming[variable] = fresh
+                used.add(fresh)
 
-        Returns
-        -------
-        ContextFreeGrammar
-            A grammar generating L(self) | L(other).
-        """
-        new_start = "S_union"
+        if not renaming:
+            return self
 
-        while new_start in self.variables or new_start in other.variables:
-            new_start += "_"
-
-        variables = self.variables | other.variables | {new_start}
-        alphabet = self.alphabet | other.alphabet
-
-        rules = self.rules() | other.rules()
-
-        rules |= {
-            Rule(new_start, self.start_variable),
-            Rule(new_start, other.start_variable)
+        rules = {
+            Rule(
+                renaming.get(rule.left_side, rule.left_side),
+                *(
+                    renaming.get(symbol, symbol)
+                    for symbol in rule.right_side
+                ),
+            )
+            for rule in self.rules()
         }
+        return ContextFreeGrammar(
+            alphabet=set(self.alphabet),
+            variables={
+                renaming.get(variable, variable)
+                for variable in self.variables
+            },
+            rules=rules,
+            start_variable=renaming.get(
+                self.start_variable,
+                self.start_variable,
+            ),
+        )
 
-        return ContextFreeGrammar(alphabet, variables, rules, new_start)
+    def _disjoint_components(
+        self,
+        other: ContextFreeGrammar,
+    ) -> tuple[ContextFreeGrammar, ContextFreeGrammar]:
+        """Return alpha-renamed components satisfying symbol hygiene."""
+        left = self._alpha_renamed(
+            set(other.variables) | set(other.alphabet)
+        )
+        right = other._alpha_renamed(
+            set(left.variables) | set(left.alphabet)
+        )
+        return left, right
 
-    def concatenate(self, other: 'ContextFreeGrammar') -> 'ContextFreeGrammar':
-        """Construct the concatenation of this grammar with another.
+    def _fresh_start(self, other: ContextFreeGrammar | None = None) -> str:
+        """Return a control symbol absent from variables and terminals."""
+        forbidden = set(self.variables) | set(self.alphabet)
+        if other is not None:
+            forbidden |= set(other.variables) | set(other.alphabet)
+        return self._fresh_symbol("NEW_START", forbidden)
 
-        Parameters
-        ----------
-        other : ContextFreeGrammar
-            The other grammar (must have disjoint variables).
+    def union(self, other: ContextFreeGrammar) -> ContextFreeGrammar:
+        """Return a grammar for ``L(self) | L(other)``."""
+        left, right = self._disjoint_components(other)
+        start = left._fresh_start(right)
+        rules = left.rules() | right.rules() | {
+            Rule(start, left.start_variable),
+            Rule(start, right.start_variable),
+        }
+        return ContextFreeGrammar(
+            alphabet=left.alphabet | right.alphabet,
+            variables=left.variables | right.variables | {start},
+            rules=rules,
+            start_variable=start,
+        )
 
-        Returns
-        -------
-        ContextFreeGrammar
-            A grammar generating L(self) . L(other).
-        """
-        new_start = "S_concat"
+    def concatenate(self, other: ContextFreeGrammar) -> ContextFreeGrammar:
+        """Return a grammar for ``L(self)L(other)``."""
+        left, right = self._disjoint_components(other)
+        start = left._fresh_start(right)
+        rules = left.rules() | right.rules() | {
+            Rule(start, left.start_variable, right.start_variable)
+        }
+        return ContextFreeGrammar(
+            alphabet=left.alphabet | right.alphabet,
+            variables=left.variables | right.variables | {start},
+            rules=rules,
+            start_variable=start,
+        )
 
-        while new_start in self.variables or new_start in other.variables:
-            new_start += "_"
-
-        variables = self.variables | other.variables | {new_start}
-        alphabet = self.alphabet | other.alphabet
-
-        rules = self.rules() | other.rules()
-
-        rules.add(Rule(new_start, self.start_variable, other.start_variable))
-
-        return ContextFreeGrammar(alphabet, variables, rules, new_start)
-
-    def kleene_star(self) -> 'ContextFreeGrammar':
-        """Construct the Kleene closure of this grammar.
-
-        Returns
-        -------
-        ContextFreeGrammar
-            A grammar generating L(self)*.
-        """
-        new_start = "S_star"
-
-        while new_start in self.variables:
-            new_start += "_"
-
-        variables = self.variables | {new_start}
-        alphabet = self.alphabet
-
-        rules = self.rules()
-
-        rules.add(Rule(new_start, self.start_variable, new_start))  # S' -> S S' (right-recursive)
-        rules.add(Rule(new_start))  # S' -> epsilon
-
-        return ContextFreeGrammar(alphabet, variables, rules, new_start)
+    def kleene_star(self) -> ContextFreeGrammar:
+        """Return a grammar for ``L(self)*``."""
+        start = self._fresh_start()
+        rules = self.rules() | {
+            Rule(start),
+            Rule(start, self.start_variable, start),
+        }
+        return ContextFreeGrammar(
+            alphabet=set(self.alphabet),
+            variables=self.variables | {start},
+            rules=rules,
+            start_variable=start,
+        )
 ```
 
-## Real-World Example: CELEX Morphological Data
+Alpha-renaming is a bijective replacement of variables in rule left sides, rule right sides, and the start variable. It leaves terminals fixed. Replacing each variable in a derivation by its renamed counterpart thus gives a derivation with the same terminal yield, and applying the inverse renaming gives the converse. The helper methods may thus enforce symbol hygiene without changing either component language.
 
-The CELEX database provides morphological analyses of words in English, German, and Dutch. We can extract CFG rules directly from these analyses—treating each morphological parse as a derivation tree—and then use the operations above to compose grammars for particular affixation patterns. For instance, we might extract all rules involving the prefix "un-" into one grammar and all rules involving the suffix "-ness" into another, then take their union to get a grammar that generates both types of derived forms.
+The distinction between variables and terminals matters. In the regression case below, `X` is a variable in the left grammar but a terminal in the right grammar, while `NEW_START` is also a right-grammar terminal. The construction renames `X` in the left component and selects a different control symbol.
 
-```python
-def extract_rules_from_celex(parsed_words) -> tuple[set[str], set[str], set[Rule]]:
-    """Extract a CFG from a collection of CELEX parsed words.
+```{python}
+left = ContextFreeGrammar(
+    alphabet={"a"},
+    variables={"X"},
+    rules={Rule("X", "a")},
+    start_variable="X",
+)
+right = ContextFreeGrammar(
+    alphabet={"X", "NEW_START"},
+    variables={"Y"},
+    rules={Rule("Y", "X"), Rule("Y", "NEW_START")},
+    start_variable="Y",
+)
 
-    Parameters
-    ----------
-    parsed_words : Iterable[ParsedWord]
-        The parsed word objects.
-
-    Returns
-    -------
-    tuple[set[str], set[str], set[Rule]]
-        The alphabet, variables, and rules.
-    """
-    alphabet = set()
-    variables = set()
-    rules = set()
-
-    for word in parsed_words:
-        for _, morpheme in word.flatten():
-            alphabet.add(morpheme)
-
-        for tag, _ in word.flatten():
-            variables.add(tag)
-
-        for rule in word.rules:
-            rules.add(rule)
-
-    return alphabet, variables, rules
-
-alphabet, variables, rules = extract_rules_from_celex(celex_parses.parsed_word.values)
-celex_grammar = ContextFreeGrammar(alphabet, variables, rules, "WORD")
+combined = left | right
+assert not (combined.variables & combined.alphabet)
+assert combined.start_variable not in combined.alphabet
 ```
 
-In the next section, we'll explore how to convert context-free grammars to normal forms—particularly Chomsky Normal Form—which simplifies parsing algorithms.
+## The closure boundary
+
+Context-free languages are not closed under intersection or complement. But they are closed under intersection with a regular language. A finite-state automaton can thus filter the strings generated by a CFG without pushing the resulting string language beyond the context-free class.
+
+The proofs require Chomsky Normal Form (CNF), which the [next section](normal-forms.qmd) introduces and justifies. If you are reading the module in order, leave the following checkpoint collapsed, finish this page, read the CNF section, and then return here.
+
+::: {#closure-boundary-proof .callout-note collapse=true}
+## Post-normal-form proof checkpoint
+
+This checkpoint assumes the CNF conversion theorem from the next section. We use its convention: every non-epsilon rule has the form $A\rightarrow BC$ or $A\rightarrow a$, and $S\rightarrow\epsilon$ is permitted only when the start variable does not occur on a right side.
+
+The closure claims require two different arguments.
+
+### Intersecting with a regular language
+
+Let a CFG $G$ be in CNF, and let a DFA $M$ have states $Q$, initial state $q_0$, final states $F$, and extended transition function $\delta^*$. We construct a grammar whose variables have the form
+
+$$[p,A,q],$$
+
+where $p,q\in Q$ and $A$ is a variable of $G$. For nonempty strings, the intended invariant is:
+
+> $[p,A,q]$ derives $w\in\Sigma^+$ exactly when $A\Rightarrow_G^*w$ and $\delta^*(p,w)=q$.
+
+For every lexical rule $A\rightarrow a$ and DFA transition $\delta(p,a)=q$, add
+
+$$[p,A,q]\rightarrow a.$$
+
+For every binary rule $A\rightarrow BC$ and states $p,r,q$, add
+
+$$[p,A,q]\rightarrow[p,B,r][r,C,q].$$
+
+Induct on parse-tree height, measured as the number of variable nodes on a longest root-to-terminal path, and check both directions.
+
+Start with height one, where a nonempty CNF parse uses a lexical rule $A\rightarrow a$. If the product grammar contains $[p,A,q]\rightarrow a$, its construction guarantees both the original lexical rule and the transition $\delta(p,a)=q$. Conversely, if $A\Rightarrow_G a$ and $\delta(p,a)=q$, the construction adds exactly this product rule. Thus, $[p,A,q]$ derives $a$ exactly when $A$ derives $a$ and the DFA moves from $p$ to $q$ on $a$.
+
+Now suppose a product parse has height greater than one, and assume the invariant for its two smaller child parses. Its root rule must have been introduced from some $A\rightarrow BC$ and intermediate state $r$:
+
+$$
+[p,A,q]\rightarrow[p,B,r][r,C,q].
+$$
+
+Suppose the child yields are $w_1$ and $w_2$. By the induction hypothesis, $B\Rightarrow_G^*w_1$ takes the DFA from $p$ to $r$, while $C\Rightarrow_G^*w_2$ takes it from $r$ to $q$. The original rule derives $w_1w_2$ from $A$, and composition of the two DFA runs gives $\delta^*(p,w_1w_2)=q$. Thus, every product parse yields a string derived by $G$ along the corresponding DFA run.
+
+Conversely, fix an original parse of height greater than one and suppose the invariant holds for its child parses. Its CNF root has some rule $A\rightarrow BC$, with the left child yielding $w_1$ and the right child yielding $w_2$. Now fix a starting DFA state $p$ and let
+
+$$
+r=\delta^*(p,w_1)
+\qquad\text{and}\qquad
+q=\delta^*(r,w_2).
+$$
+
+The state $r$ is unique because the automaton is deterministic. By the induction hypothesis, the product grammar derives $w_1$ from $[p,B,r]$ and $w_2$ from $[r,C,q]$. The construction includes the required parent rule, so $[p,A,q]$ derives $w_1w_2$. The reverse inclusion follows, completing the induction on parse-tree height.
+
+For a trace, take the grammar rules $S\rightarrow AB$, $A\rightarrow a$, and $B\rightarrow b$. Suppose the relevant DFA transitions are $\delta(q_0,a)=q_1$ and $\delta(q_1,b)=q_2$, with $q_2$ final. The product grammar contains
+
+$$
+\begin{aligned}
+[q_0,A,q_1]&\rightarrow a,\\
+[q_1,B,q_2]&\rightarrow b,\\
+[q_0,S,q_2]&\rightarrow[q_0,A,q_1][q_1,B,q_2],\\
+S_\cap&\rightarrow[q_0,S,q_2].
+\end{aligned}
+$$
+
+The derivation $S_\cap\Rightarrow[q_0,S,q_2]\Rightarrow[q_0,A,q_1][q_1,B,q_2]\Rightarrow ab$ records the original parse and the DFA run $q_0\xrightarrow{a}q_1\xrightarrow{b}q_2$ in the same tree.
+
+For nonempty strings, add a fresh start variable with
+
+$$S_\cap\rightarrow[q_0,S,f]$$
+
+for every $f\in F$. Epsilon requires one separate check under the adopted CNF convention. If $G$ contains $S\rightarrow\epsilon$ and $q_0\in F$, add $S_\cap\rightarrow\epsilon$; if either condition fails, do not add it. These are exactly the cases in which both $G$ and $M$ accept the empty string. The new grammar thus derives a string exactly when $G$ derives it and $M$ accepts it. Hence, context-free languages are closed under intersection with regular languages.
+
+### Why arbitrary intersection fails
+
+We will use the context-free pumping lemma. It says that if $L$ is context-free, then some $p>0$ allows every sufficiently long $w\in L$ to be decomposed as
+
+$$w=uvxyz$$
+
+with $|vy|>0$, $|vxy|\leq p$, and $uv^ixy^iz\in L$ for every $i\geq0$.
+
+### Deriving the pumping decomposition
+
+We now show slowly why a CFG supplies such a decomposition. Fix a context-free language $L$ and a CNF grammar $G$ for it, and let $m$ be the number of variables in $G$. The optional start rule $S\rightarrow\epsilon$ is irrelevant here because the pumping argument fixes strings of positive length. Set the pumping length to
+
+$$p=2^m.$$
+
+Now fix an arbitrary string $w\in L$ with $|w|\geq p$, and choose one parse tree for $w$. Because $G$ is in CNF, every internal node in a parse tree for a nonempty string either branches into two variables or introduces one terminal. A binary tree with at most $m$ variable nodes on every root-to-leaf path has fewer than $2^m$ terminal leaves. But the chosen tree has at least $2^m$ leaves, one for each symbol of $w$. Some root-to-leaf path must thus contain at least $m+1$ variable occurrences.
+
+Choose a longest such path and inspect its final $m+1$ variable occurrences. There are only $m$ variable types, so the pigeonhole principle gives two occurrences of some variable $A$. Let the upper occurrence be the one nearer the root and the lower occurrence the one nearer the leaf. The parse tree then determines three derivations:
+
+$$
+S\Rightarrow_G^*uAz,
+\qquad
+A\Rightarrow_G^*vAy,
+\qquad
+A\Rightarrow_G^*x.
+$$
+
+Substituting the latter two derivations into the first gives
+
+$$w=uvxyz.$$
+
+This factorization has the required size properties. First, the subtree rooted at the upper occurrence lies within the final $m+1$ variable levels of a longest path. No other branch below that occurrence can be deeper than the chosen suffix, since replacing the suffix with that branch would produce a longer root-to-leaf path. The subtree thus has at most $2^m=p$ terminal leaves, so $|vxy|\leq p$. Second, the two occurrences of $A$ are distinct. The path from the upper occurrence to the lower one uses at least one binary rule, whose off-path child has a nonempty terminal yield. That yield contributes to $v$ or $y$, so $|vy|>0$.
+
+Because the two repeated occurrences carry the same variable $A$, the derivation from the upper occurrence to the lower one can be repeated. This gives the **wrapping invariant**
+
+$$
+A\Rightarrow_G^*v^iAy^i
+$$
+
+for every $i\geq0$. Start with $i=0$: the zero-step derivation gives $A\Rightarrow_G^*A=v^0Ay^0$. Now suppose $A\Rightarrow_G^*v^iAy^i$. Apply $A\Rightarrow_G^*vAy$ to the remaining occurrence of $A$ to obtain
+
+$$
+A\Rightarrow_G^*v^i(vAy)y^i
+=v^{i+1}Ay^{i+1}.
+$$
+
+Thus, the wrapping invariant holds for every $i$. Combining it with $S\Rightarrow_G^*uAz$ and the lower derivation $A\Rightarrow_G^*x$ gives
+
+$$
+S\Rightarrow_G^*uAz
+\Rightarrow_G^*uv^iAy^iz
+\Rightarrow_G^*uv^ixy^iz.
+$$
+
+For $i=0$ this produces $uxz$; for $i=1$ it produces the original $uvxyz$; and for $i=2$ it produces $uvvxyyz$. Each pumped string has a derivation in $G$ and belongs to $L$. The pumping lemma follows.
+
+Now consider
+
+$$L_1=\{a^nb^nc^k\mid n,k\geq0\}$$
+
+and
+
+$$L_2=\{a^kb^nc^n\mid n,k\geq0\}.$$
+
+Each language is context-free. For $L_1$, the grammar
+
+$$
+S_1\rightarrow AC,
+\qquad
+A\rightarrow aAb\mid\epsilon,
+\qquad
+C\rightarrow cC\mid\epsilon
+$$
+
+matches the numbers of $a$s and $b$s while allowing any number of $c$s. For $L_2$, the grammar
+
+$$
+S_2\rightarrow DB,
+\qquad
+D\rightarrow aD\mid\epsilon,
+\qquad
+B\rightarrow bBc\mid\epsilon
+$$
+
+allows any number of $a$s while matching the numbers of $b$s and $c$s.
+
+Their intersection is
+
+$$L_1\cap L_2=\{a^nb^nc^n\mid n\geq0\}.$$
+
+To verify the equality, take an arbitrary string in the intersection and write its numbers of $a$s, $b$s, and $c$s as $n_a,n_b,n_c$. Membership in $L_1$ gives $n_a=n_b$, while membership in $L_2$ gives $n_b=n_c$. Hence, all three counts are equal. Conversely, any $a^nb^nc^n$ satisfies both equalities and thus belongs to both languages.
+
+We can now prove that this intersection is not context-free. Assume for contradiction that
+
+$$L=\{a^nb^nc^n\mid n\geq0\}$$
+
+is context-free. Let $p$ be its pumping length and fix
+
+$$w=a^pb^pc^p.$$
+
+The pumping lemma would supply a decomposition $w=uvxyz$ with $|vy|>0$ and $|vxy|\leq p$. Because the entire $b$ block has length $p$, a substring of length at most $p$ cannot contain an $a$, cross the complete $b$ block, and also contain a $c$. Thus, $vxy$ is confined to one block or crosses exactly one of the two block boundaries.
+
+Consider pumping down with $i=0$. Since $v$ and $y$ are not both empty, this removes at least one symbol. There are two exhaustive cases.
+
+1. If $v$ and $y$ draw symbols from only one block, that block becomes shorter while the other two retain length $p$.
+2. If they draw symbols from two adjacent blocks, at least one of those blocks becomes shorter while the untouched third block retains length $p$.
+
+In either case, the three block lengths cannot all remain equal. The pumped string $uxz$ is thus not in $L$, contradicting the lemma's requirement that $uv^ixy^iz\in L$ for every $i\geq0$. Hence, $L$ is not context-free, even though it is the intersection of the two context-free languages $L_1$ and $L_2$.
+
+Finally, suppose context-free languages were closed under complement, where complements are taken with respect to the common alphabet $\{a,b,c\}$. Since they are closed under union, $\overline{L_1}\cup\overline{L_2}$ would be context-free. Complement closure would then make its complement context-free as well. But De Morgan's law gives
+
+$$
+\overline{\overline{L_1}\cup\overline{L_2}}
+=L_1\cap L_2,
+$$
+
+which we just proved is not context-free. This contradiction establishes that context-free languages are not closed under complement.
+
+This boundary differs from the one for rational relations. As discussed in the FST unit, arbitrary rational relations are not closed under intersection with one another.
+:::
+
+## Extracting a grammar from CELEX
+
+A parsed CELEX entry supplies lexical rules, nonlexical rules, and its terminal morphemes. We can collect those objects without flattening away the tree.
+
+```{python}
+from collections.abc import Iterable
+
+from celex import MorphTree
+
+
+def grammar_from_morph_trees(
+    trees: Iterable[MorphTree],
+    start_variable: str,
+) -> ContextFreeGrammar:
+    """Estimate the support of a CFG from morphological trees."""
+    alphabet: set[str] = set()
+    variables: set[str] = set()
+    rules: set[Rule] = set()
+
+    for tree in trees:
+        alphabet.update(tree.morphemes)
+        rules.update(tree.rules)
+        variables.update(rule.left_side for rule in tree.rules)
+
+    return ContextFreeGrammar(
+        alphabet=alphabet,
+        variables=variables,
+        rules=rules,
+        start_variable=start_variable,
+    )
+```
+
+This construction preserves rule types and terminal yields. The [next section](normal-forms.qmd) transforms such a grammar into Chomsky Normal Form while preserving its string language. After establishing that theorem, return to the [post-normal-form proof checkpoint](#closure-boundary-proof) for the closure-boundary arguments.

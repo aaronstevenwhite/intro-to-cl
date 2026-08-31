@@ -5,7 +5,7 @@ jupyter: python3
 
 We build strings from some alphabet/lexicon $\Sigma$.
 
-Strings of length $N$ are given by $\Sigma^N$ and the [**Kleene closure**](https://en.wikipedia.org/wiki/Kleene_star) of $\Sigma$—notated $\Sigma^*$—gives us the set of all such sets.
+Strings of length $N$ are given by $\Sigma^N$ and the [**Kleene closure**](https://en.wikipedia.org/wiki/Kleene_star) of $\Sigma$—notated $\Sigma^*$—gives us the set of all finite strings over $\Sigma$.
 
 $$\Sigma^* \equiv \bigcup_{i\in\mathbb{N}} \Sigma^i$$
 
@@ -20,7 +20,7 @@ If $|\Sigma| = 3$, how many strings are in $\Sigma^0$? In $\Sigma^1$? In $\Sigma
 ::: {.callout-tip collapse=true}
 ## Answer
 
-$|\Sigma^0| = 1$ (just the empty string), $|\Sigma^1| = 3$, $|\Sigma^2| = 9$, and in general $|\Sigma^k| = 3^k$. Since $\Sigma^* = \bigcup_{k=0}^{\infty} \Sigma^k$ is a countably infinite union of finite sets of increasing size, $\Sigma^*$ is countably infinite.
+$|\Sigma^0| = 1$ (just the empty string), $|\Sigma^1| = 3$, $|\Sigma^2| = 9$, and in general $|\Sigma^k| = 3^k$. Since the alphabet is finite and nonempty, $\Sigma^*$ is countably infinite. We construct the required bijection below rather than assuming that every countable union is countable.
 :::
 
 As an infinite set, we need to implement $\Sigma^*$ using a generator. We'll start by defining a function that produces $\Sigma^i$.
@@ -29,13 +29,17 @@ As an infinite set, we need to implement $\Sigma^*$ using a generator. We'll sta
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| executionInfo: {elapsed: 181, status: ok, timestamp: 1643219172265, user: {displayName: Aaron Steven White, photoUrl: 'https://lh3.googleusercontent.com/a-/AOh14GjIthWcbbAkpz4qrGfqtOGZvudhRK2mQl0LCAJjbw=s64', userId: 06256629009318567325}, user_tz: 300}
 #| outputId: 00baa0be-47d1-403f-b8e9-9982f849a890
+from collections.abc import Iterator, Sequence
 from itertools import product
 
-def sigma_i(sigma: set[str], i: int) -> product:
-    sigma_repeated = [sigma]*i
+def sigma_i(sigma: Sequence[str], i: int) -> Iterator[tuple[str, ...]]:
+    """Generate the strings of length ``i`` over ``sigma``."""
+    if i < 0:
+        raise ValueError("i must be nonnegative")
+    sigma_repeated = [sigma] * i
     return product(*sigma_repeated)
 
-sigma = ["ɹ", "d", "u"]
+sigma: tuple[str, ...] = ("ɹ", "d", "u")
 
 for s in sigma_i(sigma, 3):
     print(''.join(s))
@@ -47,8 +51,8 @@ We can then define $\Sigma^*$ using a generator comprehension.
 #| code-fold: true
 #| code-summary: Generator for natural numbers
 
-def natural_numbers() -> int:
-    """Initialize a generator for the natural numbers"""
+def natural_numbers() -> Iterator[int]:
+    """Yield the natural numbers starting with zero."""
     i = 0
     while True:
         yield i
@@ -73,14 +77,22 @@ for s in sigma_star:
 ::: {.callout-caution}
 ## Question
 
-How many strings are there in $\Sigma^*$ (assuming that $\Sigma$ is finite)? That is, what is $|\Sigma^*| = |\bigcup_{i\in\mathbb{N}} \Sigma^i|$?
+How many strings are there in $\Sigma^*$ (assuming that $\Sigma$ is finite and nonempty)? That is, what is $|\Sigma^*| = |\bigcup_{i\in\mathbb{N}} \Sigma^i|$?
 :::
 
-It must be at least at least as big as $|\mathbb{N}|$, since we have a nonempty set $\Sigma^i$ corresponding to each natural number $i$.
+So how do we answer the question? We can construct a **length-lexicographic enumeration** (LLE): list the empty string first, then all strings of length $1$, then all strings of length $2$, and so on, using a fixed lexicographic order within each length. This will show that $|\Sigma^*|=|\mathbb{N}|$.
 
-Surprisingly, $|\Sigma^*|$ turns out to be exactly as big as $|\mathbb{N}|$, which we can show by demonstrating that there is a _bijection_ from $\mathbb{N}$ to $\Sigma^*$: for each $i \in \mathbb{N}$ we can map $i$ to a unique string in $\Sigma^*$ and for each string in $\Sigma^*$, we can map that string to a unique natural number $i$. This bijection is a total function from $\mathbb{N}$ to $\Sigma^*$.
+First, $\Sigma^*$ is infinite. Fix any symbol $a\in\Sigma$. The map $i\mapsto a^i$ is an injection from $\mathbb{N}$ to $\Sigma^*$ because $a^i$ and $a^j$ have different lengths whenever $i\neq j$. Thus, $|\Sigma^*|\geq|\mathbb{N}|$.
 
-The trick is to notice that each $\Sigma^i$ is itself of finite cardinality. This means that we can always break off a chunk of the natural numbers to allocate for building a sequence of all strings in $\Sigma^i$. The idea is then that we can then stitch those sequences together to get a sequence of all $\Sigma^*$ that never repeats strings.
+Second, the LLE assigns each string a unique natural-number position. Let $m=|\Sigma|$ and define
+
+$$C_i=\sum_{j=0}^{i-1}m^j.$$
+
+The number $C_i$ is the count of strings shorter than $i$. We reserve the block
+
+$$N_i=\{C_i,C_i+1,\ldots,C_i+m^i-1\}$$
+
+for the strings in $\Sigma^i$. This block has exactly $m^i=|\Sigma^i|$ positions. It ends at $C_i+m^i-1=C_{i+1}-1$, so the next block begins immediately at $C_{i+1}$. Thus, the blocks are disjoint and together cover every natural number.
 
 You can get an idea for how this works by enumerating the strings we generate from `sigma_star`.
 
@@ -101,13 +113,12 @@ for j, s in enumerate(sigma_star):
         break
 ```
 
-So for instance, in the above, you can think of the enumeration as setting aside $\{1, 2, 3\}$ for the strings of length 1, $\{4, \ldots, 12\}$ for the strings of length 2, and so on.
+For instance, when $m=3$, $N_0=\{0\}$, $N_1=\{1,2,3\}$, and $N_2=\{4,\ldots,12\}$. These are exactly the blocks visible in the output above.
 
-More formally, we'll set aside a chunk of natural numbers $N_i \equiv \left\{\left[\max N_{i-1}\right] + 1, ..., [\max N_{i-1}] + |\Sigma^i| + 1\right\}$–with $N_0 \equiv \{|\Sigma^0| - 1\} = \{0\}$–for each $\Sigma^i$. Note that this definition ensures that $N_i \cap N_j = \emptyset$ for all $i \neq j$. That is, the chunk of natural numbers $N_i$ we set aside for $\Sigma^i$ is disjoint from the chunk of natural numbers $N_j$ we set aside for $\Sigma^j$ when $i \neq j$, and $|N_i| = |\Sigma^i|$.
-
-We then use $N_i$ to construct a sequence $S_i: N_i \rightarrow \Sigma ^i$. Finally, we can stitch those sequences together by defining $S_*: \mathbb{N} \rightarrow \Sigma^*$ in terms of those $S_i$ along with a function $k: \mathbb{N} \rightarrow \mathbb{N}$ that satisfies $k^{-1}(\{i\}) = N_i$ for all $i \in \mathbb{N}$–i.e. the preimage of $\{i\}$ under $k$ is $N_i$.
+Now impose an arbitrary order on the finite alphabet $\Sigma$. This order induces a lexicographic order on each finite set $\Sigma^i$, so there is a bijection $S_i:N_i\to\Sigma^i$. Define $k:\mathbb{N}\to\mathbb{N}$ so that $k(n)$ is the unique length $i$ for which $n\in N_i$, and stitch the within-length maps together:
 
 $$S_*(n) = S_{k(n)}(n)$$
 
-One question you might have is how do we know how to build the sequence $S_i$ for an arbitrary set of strings $\Sigma^i$ of length $i$. As long as the alphabet/lexicon $\Sigma$ is finite, we can do this by imposing an order on $\Sigma$ itself, then use that to order sort the elements of $\Sigma^i$ in lexicographic order.
+It remains to verify both directions. For injectivity, suppose $S_*(n)=S_*(n')$. Equal strings have equal lengths, so $k(n)=k(n')=i$. Both positions are thus in $N_i$, and the injectivity of $S_i$ gives $n=n'$. For surjectivity, fix an arbitrary $w\in\Sigma^*$. It has some finite length $i$, so $w\in\Sigma^i$. Since $S_i$ is surjective, some $n\in N_i$ satisfies $S_i(n)=w$, and hence $S_*(n)=w$.
 
+Thus, $S_*$ is a bijection from $\mathbb{N}$ to $\Sigma^*$. We have shown both inequalities constructively, and we conclude that $|\Sigma^*|=|\mathbb{N}|$ for every finite nonempty alphabet. If $\Sigma=\emptyset$, the exception is $\Sigma^*=\{\varepsilon\}$, which is finite.

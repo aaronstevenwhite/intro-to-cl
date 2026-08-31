@@ -55,7 +55,7 @@ type(match_æ)
 match_æ.fullmatch(string_æ)
 ```
 
-Both return a `Match` object (so its not a perfect implementation of the formal definition).
+Both return a `Match` object (so neither is a perfect implementation of the formal definition).
 
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/'}
@@ -73,7 +73,7 @@ But if we try to cast this object to a `bool` we get `True`.
 bool(re.fullmatch(regex_æ, string_æ))
 ```
 
-In contrast, `match` returns `None` if there is no match.
+In contrast, `fullmatch` returns `None` if there is no match.
 
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/'}
@@ -93,9 +93,9 @@ This means that casting a non-match to a `bool` returns `False`.
 bool(re.fullmatch(regex_æ, string_æbstɹækʃən))
 ```
 
-I point this out because you might expect that `fullmatch` would return a `bool`, but it doesn't. This can be a problem if you're not calling `match` within some `if-else` statement. Nonetheless, this is probably the most straightforward way to check whether a particularly pattern is matched by a string.
+I point this out because you might expect that `fullmatch` would return a `bool`, but it doesn't. If you need a boolean value outside an `if` statement, wrap the result in `bool`. This is probably the most straightforward way to check whether a particular pattern matches an entire string.
 
-You might have noticed that there is another function `match`. It might seem like this functon would be simpler, but it has some odd behavior: it matches characters at the beginning of the string and ignores the rest of the string. 
+You might have noticed that there is another function, `match`. It might seem like this function would be simpler, but it checks only for a match beginning at position zero; it does not require the pattern to consume the rest of the string.
 
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/'}
@@ -105,4 +105,3 @@ re.match(regex_æ, string_æbstɹækʃən)
 ```
 
 The reason this is annoying is that this "beginning of the string" matching behavior is already built into regular expressions, which we'll see in a second. It also means that **`re.match` is not an implementation of the formal definition above**.
-

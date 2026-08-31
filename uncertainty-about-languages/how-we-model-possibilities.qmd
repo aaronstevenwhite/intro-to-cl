@@ -4,6 +4,10 @@ bibliography: ../references.bib
 jupyter: python3
 ---
 
+::: {.callout-note}
+The executable cells on this page use Python 3.14 syntax, matching the project configuration. The Quarto kernel is named `python3`; before rendering with execution, configure that kernelspec to point to a Python 3.14 environment.
+:::
+
 The Kolmogorov axioms start by specifying a set $\Omega$ that contains all and only the things that can possibly happen. This set is known as the *sample space*. So what it means to be a possibility is a brute fact: it's all and only the things in $\Omega$.
 
 That's very abstract, so let's consider a few examples:
@@ -13,12 +17,12 @@ That's very abstract, so let's consider a few examples:
 3. $\Omega$ could be the language $\text{eval}(r)$ that a regular expression $r \in R(\Sigma)$ evaluates to.
 4. $\Omega$ could be the set of all regular expressions in a language–e.g. if $\Sigma$ is the set of phonemes, then $\Omega = R(\Sigma)$. That is, $\Omega$ could be possible grammars, which in turn correspond to possible languages.
 
-The axioms then move forward by defining a way of classifying possibilities $\mathcal{F} \subseteq 2^\Omega$. These classes of possibilities are known as *events* and the set of said classes is known as the *event space*. It is events, which can contain just a single possibility, that we measure the probability of.^[Don't ask me why, but $\mathcal{F}$ is standard notation for the event space. Why we don't use $\mathcal{E}$ is beyond me. It might be some convention from measure theory I'm not aware of; or it might have to do with not confusing the event space with the expectation $\mathbb{E}$, which we'll review below.]
+The axioms then move forward by defining a way of classifying possibilities $\mathcal{F} \subseteq 2^\Omega$. These classes of possibilities are known as *events*, and the set containing them is known as the *event space*. It is events, which can contain just a single possibility, that we measure the probability of.^[Don't ask me why, but $\mathcal{F}$ is standard notation for the event space. Why we don't use $\mathcal{E}$ is beyond me. It might be some convention from measure theory I'm not aware of; or it might have to do with not confusing the event space with the expectation $\mathbb{E}$, which we'll review below.]
 
 The event space is where interesting linguistic structure enters the picture. Let's look at a few examples of event spaces that assume our first example of a sample space above: $\Omega = \{\text{e, i, o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ}\}$.
 
 1. One possible event space distinguishes vowels with respect to highness: $\mathcal{F}_\text{highness} = \{H, L, \Omega, \emptyset\}$, with $H = \{\text{i, u, ɪ, ʊ}\}$ and $L = \Omega - H$.
-2. Another possible event space distinguishes vowels with respect to backness: $\mathcal{F}_\text{backness} = \{B, F, \Omega, \emptyset\}$, with $B = \{\text{u, ʊ, o, ɔ}\}$ and $F = \Omega - B$.
+2. Another possible event space distinguishes vowels with respect to backness: $\mathcal{F}_\text{backness} = \{B, F, \Omega, \emptyset\}$, with $B = \{\text{u, ʊ, o, ɔ, ɑ}\}$ and $F = \Omega - B$.
 
 
 ```{python}
@@ -36,7 +40,7 @@ f_highness = frozenset({
 })
 
 # back v. nonback
-back = frozenset({'u', 'ʊ', 'o', 'ɔ'})
+back = frozenset({'u', 'ʊ', 'o', 'ɔ', 'ɑ'})
 nonback = vowels - back
 
 f_backness = frozenset({
@@ -56,15 +60,15 @@ You'll notice that beyond having just the set of high v. non-high vowels, or the
 4. $\bigcap \mathcal{E} \in \mathcal{F}$ for all countable $\mathcal{E} \subseteq \mathcal{F}$ (*closure under countable intersection*)
 
 ```{python}
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
 from itertools import chain, combinations
 from functools import reduce
 
-SampleSpace = frozenset[str]
-Event = frozenset[str]
-SigmaAlgebra = frozenset[Event]
+type SampleSpace = frozenset[str]
+type Event = frozenset[str]
+type SigmaAlgebra = frozenset[Event]
 
-def powerset(iterable: Iterable) -> Iterable:
+def powerset[T](iterable: Iterable[T]) -> Iterator[tuple[T, ...]]:
     """Compute the power set of an iterable.
 
     See https://docs.python.org/3/library/itertools.html#itertools-recipes
@@ -92,13 +96,28 @@ class FiniteMeasurableSpace:
   sigma_algebra : SigmaAlgebra
       The sigma-algebra of the space.
   """
-  def __init__(self, atoms: SampleSpace, sigma_algebra: SigmaAlgebra):
+  def __init__(self, atoms: SampleSpace, sigma_algebra: SigmaAlgebra) -> None:
     self._atoms = atoms
     self._sigma_algebra = sigma_algebra
 
     self._validate()
 
-  def _validate(self):
+  def _validate(self) -> None:
+    if not isinstance(self._atoms, frozenset):
+      raise TypeError("The sample space must be a frozenset")
+
+    if not isinstance(self._sigma_algebra, frozenset):
+      raise TypeError("The event family must be a frozenset")
+
+    if not all(isinstance(event, frozenset) for event in self._sigma_algebra):
+      raise TypeError("Every event must be a frozenset")
+
+    if frozenset() not in self._sigma_algebra:
+      raise ValueError("The event family must contain the empty event")
+
+    if self._atoms not in self._sigma_algebra:
+      raise ValueError("The event family must contain the sample space")
+
     for subset in self._sigma_algebra:
       if not subset <= self._atoms:
         raise ValueError("All events must be a subset of the atoms")
@@ -173,11 +192,16 @@ This point demonstrates an important fact about $\sigma$-algebras: if you design
 ```{python}
 #| colab: {base_uri: 'https://localhost:8080/'}
 #| outputId: 73f585f7-b3ad-4d73-c852-425dfd570166
-def generate_sigma_algebra(family: SigmaAlgebra) -> SigmaAlgebra:
+def generate_sigma_algebra(
+    atoms: SampleSpace,
+    family: SigmaAlgebra,
+) -> SigmaAlgebra:
   """Generate a sigma-algebra from a family of sets.
 
   Parameters
   ----------
+  atoms : SampleSpace
+      The sample space.
   family : SigmaAlgebra
       The family of sets from which to generate the sigma-algebra.
 
@@ -187,12 +211,18 @@ def generate_sigma_algebra(family: SigmaAlgebra) -> SigmaAlgebra:
       The smallest sigma-algebra containing the family.
   """
 
-  sigma_algebra = set(family)
-  old_sigma_algebra = set(family)
+  if not all(event <= atoms for event in family):
+    raise ValueError("Every generator must be a subset of the sample space")
 
-  complete = False
+  sigma_algebra = {frozenset(), atoms, *family}
+  old_sigma_algebra: set[Event] = set()
 
-  while not complete:
+  while sigma_algebra != old_sigma_algebra:
+    old_sigma_algebra = set(sigma_algebra)
+
+    for event in old_sigma_algebra:
+      sigma_algebra.add(atoms - event)
+
     for subsets in powerset(old_sigma_algebra):
       subsets = list(subsets)
 
@@ -205,15 +235,39 @@ def generate_sigma_algebra(family: SigmaAlgebra) -> SigmaAlgebra:
       intersection = reduce(frozenset.intersection, subsets)
       sigma_algebra.add(intersection)
 
-    complete = sigma_algebra == old_sigma_algebra
-    old_sigma_algebra = set(sigma_algebra)
-
   return frozenset(sigma_algebra)
 
-f_highness_backness = generate_sigma_algebra(f_highness | f_backness)
+f_highness_backness = generate_sigma_algebra(
+    vowels,
+    f_highness | f_backness,
+)
 
 f_highness_backness
 ```
+
+So how do we know this procedure returns the $\sigma$-algebra we want? We will call the procedure the **finite closure construction** (FCC). It should return the smallest $\sigma$-algebra on the finite sample space $\Omega$ that contains every supplied event.
+
+Before checking that it is the *smallest* such $\sigma$-algebra, we need to check two things. First, does the procedure stop? At every iteration, the current family only grows, and every event added is a subset of $\Omega$. There are only $2^{|\Omega|}$ such subsets. Thus, the loop can make only finitely many strict additions before it reaches a fixed point.
+
+Second, is the fixed point a $\sigma$-algebra? The initialization supplies $\emptyset$ and $\Omega$. Each pass adds the complement of every event and the union and intersection of every subfamily currently available. At the fixed point, making another pass adds nothing, so the result is closed under these operations. Because the result is finite, a countable collection of its events has only finitely many distinct members; its countable union reduces to the union of a finite subfamily already checked by the procedure. Hence, the fixed point is closed under countable union.
+
+Countable-intersection closure follows separately. Fix a countable collection $E_1,E_2,\ldots$ of events in the fixed point. Complement closure puts every $\Omega-E_i$ in the fixed point, and countable-union closure puts $\bigcup_i(\Omega-E_i)$ there. Taking one more complement and applying De Morgan's law gives
+
+$$
+\Omega-\bigcup_i(\Omega-E_i)=\bigcap_iE_i.
+$$
+
+The left-hand side belongs to the fixed point by complement closure. Thus, the countable intersection on the right belongs to it as well.
+
+Consider $\Omega=\{a,b,c\}$ with generators $A=\{a,b\}$ and $B=\{b,c\}$. Initialization gives
+
+$$
+S_0=\{\emptyset,\Omega,A,B\}.
+$$
+
+The first pass adds the complements $\{c\}$ and $\{a\}$ and the intersection $A\cap B=\{b\}$, giving $S_1=2^\Omega-\{\{a,c\}\}$. The second pass adds the complement of $\{b\}$, namely $\{a,c\}$, so $S_2=2^\Omega$. A third pass adds nothing. Thus, the fixed point is the full power set, which is the smallest $\sigma$-algebra containing $A$ and $B$ in this example.
+
+It remains to show minimality. Any $\sigma$-algebra $\mathcal{G}$ on $\Omega$ that contains the original family must contain every event the procedure adds. Initially, $\emptyset$ and $\Omega$ belong to $\mathcal{G}$ because they belong to every $\sigma$-algebra. If all events present after one pass belong to $\mathcal{G}$, then closure puts every complement, union, and intersection added on the next pass in $\mathcal{G}$ as well. Thus, every stage of the FCC remains inside $\mathcal{G}$. Since this holds for every such $\mathcal{G}$, the fixed point is contained in every $\sigma$-algebra that contains the generators. The procedure thus returns exactly $\sigma(\mathcal{F}_\text{highness}\cup\mathcal{F}_\text{backness})$ in the running example.
 
 ```{python}
 highness_backness_space = FiniteMeasurableSpace(vowels, f_highness_backness)
@@ -235,5 +289,12 @@ Do the regular languages on $\Sigma$–i.e. the image of $R(\Sigma)$ under $\tex
 No. And the reason has to do with the fact that the set of regular languages on $\Sigma$ are not closed under countable union. We will prove this later in the course when we discuss the pumping lemma for regular languages.
 :::
 
-An alternative way to do it is to assume that the event space is simply all possible languages on $\Sigma$. In that case, the event space gets a bit trickier to define: the powerset is uncountable for even a countably infinite sample space–something that we need to consider in the context of working with strings and derivations. This property can be a problem for reasons I'll gesture at in a second. So in general, we won't work with event spaces that are power sets of their corresponding sample space in this context. We'll instead work with what are called [Borel $\sigma$-algebras](https://en.wikipedia.org/wiki/Borel_set). It's not important to understand the intricacies of what a Borel $\sigma$-algebra is; I'll try to give you an intuition in a second.
+An alternative is to take the event space to be all languages, $2^{\Sigma^*}$. If $\Sigma$ is finite or countable, then $\Sigma^*$ is countable even though its power set is uncountable. This size difference does not prevent $2^{\Sigma^*}$ from being a valid $\sigma$-algebra.
 
+A [Borel $\sigma$-algebra](https://en.wikipedia.org/wiki/Borel_set) is defined only after a topology has been chosen: it is the $\sigma$-algebra generated by that topology's open sets. Equip $\Sigma^*$ with the discrete topology. Every singleton string is then open, and every language is a countable union of singleton strings. Thus,
+
+$$
+\mathcal B(\Sigma^*)=2^{\Sigma^*}
+$$
+
+under the discrete topology. Other topologies on strings may generate smaller Borel $\sigma$-algebras, and on uncountable spaces such as $\mathbb R$ the usual Borel $\sigma$-algebra is strictly smaller than the full power set. In these notes, language models on $\Sigma^*$ use the discrete topology and hence the full power-set event space; real-valued models use the Borel $\sigma$-algebra generated by the usual Euclidean topology.

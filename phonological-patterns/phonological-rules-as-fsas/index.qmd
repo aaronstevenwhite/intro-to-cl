@@ -3,6 +3,18 @@ title: Overview
 bibliography: ../../references.bib
 ---
 
-So far, we have constructed morphophonological grammar in a [constraint-based](https://en.wikipedia.org/wiki/Model-theoretic_grammar) way. In this sort of approch, we define a set that contains all the strings we want (in the limit, $\Sigma^*$ itself); then, we filter out strings that violate a constraint (such as the one against gemination by complement and intersection operation. 
+::: {.callout-tip}
+## Reading
 
-We can alterntively model morphophonological grammars using a [generative](https://en.wikipedia.org/wiki/Generative_grammar) approach. This could be accomplished using vanilla FSAs, like those discussed above; but it is often more productive to approach the problem as one of transduction: wherein we define some set of *underlying forms* that are mapped to surface forms by machines that implement morphophonological rules. These machines are generalizations of FSAs that we refer to as Finite State Transducers (FSTs). The main thing we add to an FSA to get an FSTs is that every edge is annotated with a mapping from a character in the input alphabet $\Sigma$ (or $\epsilon$) to one in the output alphabet $\Gamma$ (or $\epsilon$). The entire machine can then be viewed as a method for defining a relation between $\Sigma^*$ (the underlying forms) and $\Gamma^*$ (the surface forms). All the relations definable by an FST are known as the *regular relations*.
+@gorman_finite-state_2021 on finite state transducers and their use in text processing.
+:::
+
+So far, we have mainly used finite state automata (FSAs) to state *constraints* on strings. We began with some candidate language, often all of $\Sigma^*$, and intersected it with automata that exclude strings containing a prohibited pattern.
+
+But what if the grammar needs to relate an *underlying form* to one or more *surface forms*? We can describe it as a relation between two strings. We will call this formulation the **transduction view**.
+
+A finite state transducer (FST) implements the transduction view by placing two labels on each transition: an input label from $\Sigma \cup \{\epsilon\}$ and an output label from $\Gamma \cup \{\epsilon\}$ [@mohri_fst_1997]. A successful path thus spells out a pair of strings rather than a single string. The relations that can be described in this way are known as the *rational relations* [@kaplan1994regular].
+
+This relation-based formulation matters for phonology. It lets one machine be used in the generative direction, from an underlying form to its surface realizations, or in the analytic direction, from a surface form to its possible underlying forms. Kaplan and Kay use this two-way interpretation to compile rule systems into a single transducer, while Mohri develops the corresponding application and optimization algorithms [@kaplan1994regular; @mohri_fst_1997].
+
+We'll begin by following a path through one FST and reading its two labels. Then we'll ask how to combine these string relations, recover their paths and outputs, and compile phonological rewrite rules. This will give us the machinery needed to represent rule ordering and weighted alternatives.

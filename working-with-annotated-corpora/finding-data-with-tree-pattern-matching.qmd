@@ -1,11 +1,14 @@
 ---
 title: Finding data with tree pattern matching
 jupyter: python3
+bibliography: ../references.bib
 ---
 
 ```{python}
 #| code-fold: true
 #| code-summary: Definition of `Tree` up to this point
+
+from __future__ import annotations
 
 class Tree:
     """A tree.
@@ -14,22 +17,36 @@ class Tree:
     ----------
     data : str
         The data contained in this tree.
-    children : list[Tree]
+    children : list[Tree] or tuple[Tree, ...]
         The subtrees of this tree.
     """
-    def __init__(self, data: str, children: list['Tree']=[]):
+    def __init__(
+        self,
+        data: str,
+        children: list[Tree] | tuple[Tree, ...] | None = None,
+    ) -> None:
+        if children is not None and not isinstance(children, (list, tuple)):
+            raise TypeError("children must be a finite list or tuple of trees")
         self._data = data
-        self._children = children
+        self._children = tuple(() if children is None else children)
         
         self._validate()
         
     def _validate(self) -> None:
-        try:
-            assert all(isinstance(c, Tree)
-                       for c in self._children)
-        except AssertionError:
-            msg = 'all children must be trees'
-            raise TypeError(msg)
+        """Reject non-trees, cycles, and shared subtree objects."""
+        seen = {id(self)}
+
+        def visit(node: Tree) -> None:
+            if not isinstance(node, Tree):
+                raise TypeError("all children must be trees")
+            if id(node) in seen:
+                raise ValueError("trees cannot contain cycles or shared subtrees")
+            seen.add(id(node))
+            for child in node._children:
+                visit(child)
+
+        for child in self._children:
+            visit(child)
         
     @property
     def data(self) -> str:
@@ -37,20 +54,20 @@ class Tree:
         return self._data
 
     @property
-    def children(self) -> list['Tree']:
+    def children(self) -> tuple[Tree, ...]:
         """The subtrees of this node."""
         return self._children
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self._children:
             return ' '.join(c.__str__() for c in self._children)
         else:
             return str(self._data)
         
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.to_string(0)
      
-    def to_string(self, depth: int) -> str:
+    def to_string(self, depth: int = 0) -> str:
         """Render the tree as an indented string.
 
         Parameters
@@ -82,15 +99,12 @@ class Tree:
                 
             return False
         
-    def __getitem__(self, idx: tuple[int]) -> 'Tree':
-        idx = (idx,) if isinstance(idx, int) else idx
-        
-        try:
-            assert all(isinstance(i, int) for i in idx)
-            assert all(i >= 0 for i in idx)
-        except AssertionError:
-            errmsg = 'index must be a positive int or tuple of positive ints'
-            raise IndexError(errmsg)
+    def __getitem__(self, idx: tuple[int, ...]) -> Tree:
+        if (
+            not isinstance(idx, tuple)
+            or not all(isinstance(i, int) and i >= 0 for i in idx)
+        ):
+            raise IndexError("index must be a tuple of nonnegative integers")
         
         if not idx:
             return self
@@ -106,7 +120,11 @@ We can get from indices to trees, but how would we go from data to indices? Simi
 #| executionInfo: {elapsed: 11, status: ok, timestamp: 1680619945044, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 class Tree(Tree):
      
-    def index(self, data: str, index_path: tuple = tuple()) -> list[tuple]:
+    def index(
+        self,
+        data: str,
+        index_path: tuple[int, ...] = (),
+    ) -> list[tuple[int, ...]]:
         """Find all index paths where the node data matches.
 
         Parameters
@@ -122,14 +140,23 @@ class Tree(Tree):
             All index paths whose node data equals ``data``.
         """
         indices = [index_path] if self._data==data else []
-        root_path = [] if index_path == -1 else index_path
         
         indices += [j 
                     for i, c in enumerate(self._children) 
-                    for j in c.index(data, root_path+(i,))]
+                    for j in c.index(data, index_path+(i,))]
 
         return indices
 ```
+
+### Why `index` returns all and only the matches
+
+What should a recursive call return? Fix a tree `t`, a target value, and the path $p$ at which the current call begins. We want `t.index(data, p)` to return exactly the paths $p\mathbin{+}q$ such that $q$ leads to a node within `t` whose data equals the target. Here $+$ is tuple concatenation. This is our **index invariant**.
+
+Start with a leaf `t`. If its data matches, the method returns `[p]`; the empty local path names the leaf itself. If its data differs, it returns the empty list. The invariant thus holds for leaves.
+
+Now suppose the invariant holds for every child $c_i$. The first line includes $p$ exactly when the root matches. The comprehension then calls child $c_i$ with path $p+(i,)$. For instance, a match below the second child begins with the coordinate `(1,)`. By the induction hypothesis, the recursive call adds the rest of that match's path. Because every nonroot node belongs to exactly one child subtree, these lists contain every descendant match once and no nonmatch. Adding the possible root match gives every matching path exactly once.
+
+The public call uses the empty path. Thus, `tree.index(data)` returns every root-relative path whose node stores `data`, and only those paths.
 
 ```{python}
 #| executionInfo: {elapsed: 11, status: ok, timestamp: 1680619945044, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
@@ -174,6 +201,8 @@ tree1[determiner_indices[1]]
 
 ## Searching on tree patterns
 
+So far, we've searched for one piece of data at a time. Tree-query languages usually let us search for structural relations instead of requiring a complete literal subtree. The Penn Treebank paper, for instance, reports the use of `tgrep` for fast context-free pattern matching [@marcus_building_1993]. Tregex exposes relations such as immediate dominance, transitive dominance, precedence, and constrained dominance in a query language, while Tsurgeon adds tree-editing operations [@levy_tregex_2006]. We'll begin with a smaller matcher so that we can state exactly what a pattern means before moving to graph queries.
+
 What if instead we wanted to find where a piece of data was based on an entire tree pattern?
 
 ```{python}
@@ -195,21 +224,25 @@ We could implement a `find()` method.
 #| executionInfo: {elapsed: 8, status: ok, timestamp: 1680619945044, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
 class Tree(Tree):
     
-    def find(self, pattern: 'Tree',
-             subtree_idx: tuple = tuple()) -> list[tuple]:
-        """Find subtrees matching a tree pattern.
+    def find(
+        self,
+        pattern: Tree,
+        subtree_idx: tuple[int, ...] = (),
+    ) -> list[tuple[int, ...]]:
+        """Find paths to nodes within matching tree patterns.
 
         Parameters
         ----------
         pattern : Tree
             The tree pattern to match against.
         subtree_idx : tuple
-            The index within the match to return (default: entire match).
+            A path within every matched candidate to return. The empty
+            path returns the root of each match.
 
         Returns
         -------
         list[tuple]
-            Index paths to matching subtrees.
+            Root-relative paths to the requested nodes.
         """
         
         #raise NotImplementedError
@@ -220,7 +253,7 @@ class Tree(Tree):
             
         return match_indices
    
-    def match(self, pattern: 'Tree') -> bool:
+    def match(self, pattern: Tree) -> bool:
         """Check whether this tree matches a pattern.
 
         Parameters
@@ -235,6 +268,9 @@ class Tree(Tree):
         """
         if self._data != pattern.data:
             return False
+
+        if len(self._children) < len(pattern.children):
+            return False
         
         for child1, child2 in zip(self._children, pattern.children):
             if not child1.match(child2):
@@ -242,6 +278,18 @@ class Tree(Tree):
                 
         return True
 ```
+
+### What a tree pattern means, and why matching implements it
+
+What does a tree pattern mean here? We use a **prefix-tree pattern**. A candidate tree matches such a pattern when (i) its root data equals the pattern's root data, (ii) it has at least as many children as the pattern, and (iii) its $i$th child matches the pattern's $i$th child for every child specified by the pattern. Children omitted from the pattern are unconstrained. So `Tree('V')` matches any `V` subtree, whether or not that subtree dominates a word.
+
+Start with a height-zero pattern, which specifies only its root data. If the root comparison succeeds, there are no children to check, so the loop is empty and the method returns `True`. If the data differs, the method returns `False`. This is exactly the prefix-tree definition for a leaf pattern.
+
+Now take a larger pattern with children $p_1,\ldots,p_m$ and suppose recursive matching is correct for those children. A candidate with different root data fails the first condition. A candidate with fewer than $m$ children fails the second condition. Otherwise, the loop pairs each specified $p_i$ with the candidate's $i$th child. By the induction hypothesis, every recursive call succeeds exactly when the corresponding child satisfies the pattern relation. The method thus returns `True` exactly when all three conditions hold.
+
+The length check is necessary. Without it, `zip` would stop at the end of a childless candidate and could incorrectly accept a pattern that still had children to match.
+
+Now put the two pieces together. `self.index(pattern.data)` supplies every possible root of a match, by the index invariant. The filter retains exactly the roots that satisfy the prefix-tree pattern. A **valid** `subtree_idx` is a relative path that names a node inside every retained candidate. Under that condition, tuple concatenation names the requested node by the path invariant from the previous section. So `find` returns root-relative paths to all and only the requested nodes. Note that the method does not validate `subtree_idx`. If the path is invalid for one retained candidate, `find` may return a tuple that does not name a node. Callers should use a path guaranteed by the pattern or check the returned paths before indexing.
 
 ```{python}
 #| executionInfo: {elapsed: 8, status: ok, timestamp: 1680619945045, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
@@ -354,41 +402,41 @@ tree3.find(tree_pattern, subtree_idx=(1,))
 tree4.find(tree_pattern, subtree_idx=(1,))
 ```
 
-This sort of treelet-based matching is somewhat weak as it stands. What if we wanted:
-
-1. ...nodes to be allowed to have some value from a set? 
-2. ...arbitrary distance between the nodes we are matching on?
-3. ...arbitrary boolean conditions on node matches?
+This sort of treelet-based matching is somewhat weak as it stands. What if a node could have any value from a set? What if matched nodes could be arbitrarily far apart? And what if we wanted arbitrary boolean conditions on node matches?
 
 ## Expanding pattern-based search with SPARQL
 
-To handle this, we need both a *domain-specific language* (DSL) for specifying such queries and an *interpeter* for that language. We can use [SPARQL](https://en.wikipedia.org/wiki/SPARQL) for our DSL. To intepret SPARQL, we will use the existing interpreter in [`rdflib`](https://github.com/RDFLib/rdflib). 
+To handle this, we need both a *domain-specific language* (DSL) for specifying such queries and an *interpreter* for that language. We can use [SPARQL](https://en.wikipedia.org/wiki/SPARQL) for our DSL. To interpret SPARQL, we will use the existing interpreter in [`rdflib`](https://github.com/RDFLib/rdflib).
 
 To use `rdflib`'s interpreter, we need to map our `Tree` objects into an in-memory format for which a SPARQL interpreter is already implemented. We will use [Resource Description Format](https://en.wikipedia.org/wiki/Resource_Description_Framework) as implemented in `rdflib`.
 
 ```{python}
 #| executionInfo: {elapsed: 334, status: ok, timestamp: 1680619961664, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
+from uuid import uuid4
+from typing import ClassVar
+
 from rdflib import Graph, URIRef
 
 class Tree(Tree):
     
-    RDF_TYPES = {}
-    RDF_EDGES = {'is': URIRef('is-a'),
-                 'parent': URIRef('is-the-parent-of'),
-                 'child': URIRef('is-a-child-of'),
-                 'sister': URIRef('is-a-sister-of')}
+    RDF_TYPES: ClassVar[dict[str, URIRef]] = {}
+    RDF_EDGES: ClassVar[dict[str, URIRef]] = {
+        'is': URIRef('is-a'),
+        'parent': URIRef('is-the-parent-of'),
+        'child': URIRef('is-a-child-of'),
+        'sister': URIRef('is-a-sister-of'),
+    }
             
-    def to_rdf(self, graph=None, nodes={}, idx=tuple()) -> Graph:
+    def to_rdf(
+        self,
+        graph: Graph | None = None,
+    ) -> Graph:
         """Convert the tree to an RDF graph for SPARQL querying.
 
         Parameters
         ----------
         graph : Graph, optional
             An existing graph to add triples to.
-        nodes : dict, optional
-            A mapping from index tuples to URI nodes.
-        idx : tuple, optional
-            The index of this node in the parent tree.
 
         Returns
         -------
@@ -396,57 +444,58 @@ class Tree(Tree):
             The RDF graph representing the tree.
         """
         graph = Graph() if graph is None else graph
-        
-        idxstr = '_'.join(str(i) for i in idx)
-        nodes[idx] = URIRef(idxstr)
-            
-        if self._data not in Tree.RDF_TYPES:
-            Tree.RDF_TYPES[self._data] = URIRef(self._data)
+        namespace = f"urn:tree:{uuid4().hex}:"
+        nodes: dict[tuple[int, ...], URIRef] = {}
 
-        typetriple = (nodes[idx], 
-                      Tree.RDF_EDGES['is'],
-                      Tree.RDF_TYPES[self.data])
+        def encode(tree: Tree, idx: tuple[int, ...]) -> None:
+            path_string = "root" if not idx else ".".join(map(str, idx))
+            nodes[idx] = URIRef(namespace + path_string)
 
-        graph.add(typetriple)
+            if tree._data not in Tree.RDF_TYPES:
+                Tree.RDF_TYPES[tree._data] = URIRef(tree._data)
 
-        for i, child in enumerate(self._children):
-            childidx = idx+(i,)
-            child.to_rdf(graph, nodes, childidx)
-                
-            partriple = (nodes[idx], 
-                         Tree.RDF_EDGES['parent'],
-                         nodes[childidx])
-            chitriple = (nodes[childidx], 
-                         Tree.RDF_EDGES['child'],
-                         nodes[idx])
-            
-            graph.add(partriple)
-            graph.add(chitriple)
-            
-        for i, child1 in enumerate(self._children):
-            for j, child2 in enumerate(self._children):
-                child1idx = idx+(i,)
-                child2idx = idx+(j,)
-                sistriple = (nodes[child1idx], 
-                             Tree.RDF_EDGES['sister'],
-                             nodes[child2idx])
-                
-                graph.add(sistriple)
-        
+            graph.add((
+                nodes[idx],
+                Tree.RDF_EDGES["is"],
+                Tree.RDF_TYPES[tree.data],
+            ))
+
+            for i, child in enumerate(tree._children):
+                childidx = idx + (i,)
+                encode(child, childidx)
+                graph.add((
+                    nodes[idx],
+                    Tree.RDF_EDGES["parent"],
+                    nodes[childidx],
+                ))
+                graph.add((
+                    nodes[childidx],
+                    Tree.RDF_EDGES["child"],
+                    nodes[idx],
+                ))
+
+            for i, _ in enumerate(tree._children):
+                for j, _ in enumerate(tree._children):
+                    if i != j:
+                        graph.add((
+                            nodes[idx + (i,)],
+                            Tree.RDF_EDGES["sister"],
+                            nodes[idx + (j,)],
+                        ))
+
+        encode(self, ())
         self._rdf_nodes = nodes
+        self._rdf_paths = {node: path for path, node in nodes.items()}
         
         return graph
     
     @property
     def rdf(self) -> Graph:
-        """The lazily-constructed RDF graph for this tree."""
-        if not hasattr(self, "_rdf"):
-            self._rdf = self.to_rdf()
+        """A fresh RDF graph for this tree."""
+        return self.to_rdf()
 
-        return self._rdf
-
-    def find(self, query: str) -> list[tuple[int]]:
-        """Find subtrees matching a SPARQL query.
+    def find(self, query: str) -> list[tuple[int, ...]]:
+        """Find index paths selected by a SPARQL query.
 
         Parameters
         ----------
@@ -455,13 +504,78 @@ class Tree(Tree):
 
         Returns
         -------
-        list[tuple[int]]
-            Index paths to matching nodes.
+        list[tuple[int, ...]]
+            Root-relative paths to selected nodes.
         """
-        return [tuple([int(i) 
-                       for i in str(res[0]).split('_')]) 
-                for res in self.rdf.query(query)]
+        paths: list[tuple[int, ...]] = []
+        seen: set[tuple[int, ...]] = set()
+        graph = self.rdf
+        for result in graph.query(query):
+            if not result:
+                raise ValueError("query must select a node in its first column")
+            node = result[0]
+            if node not in self._rdf_paths:
+                raise ValueError(
+                    "the first selected column must be a node from this tree"
+                )
+            path = self._rdf_paths[node]
+            if path not in seen:
+                paths.append(path)
+                seen.add(path)
+        return paths
 ```
+
+### Why the RDF graph represents the tree relations
+
+How do we know that the RDF graph still represents the original tree? We want one conversion call to satisfy the **encoding invariant**. For every node at path $p$, the graph should contain (i) exactly one type triple from the URI for $p$ to that node's data label, (ii) a parent and inverse child triple for every tree edge, and (iii) two directed sister triples for every pair of distinct children of one parent. It should contain no triples of these forms for unrelated nodes.
+
+A structural induction on the converted subtree gives the result. Start with a leaf at path $p$. The method creates its URI and adds its type triple. Both loops are empty, so it adds no parent, child, or sister relation. The invariant holds.
+
+Now fix a nonleaf at $p$ and assume each recursive call correctly encodes its child subtree at $p+(i,)$. The current call first adds the type triple for $p$. For each child $i$, recursion encodes everything at or below that child; the two following additions encode the one edge between $p$ and $p+(i,)$ in both directions. No other parent or child triples are added at this level. Finally, the nested loop considers every ordered pair of child indices and skips exactly the cases in which the indices are equal. It thus adds a sister triple in each direction for every pair of distinct children, but never makes a node its own sister.
+
+Every node of the tree is either the current root or belongs to exactly one child subtree. And every edge or sister pair is introduced at its unique parent. So the recursive calls omit no tree relation, and the current call invents none. By induction, the encoding invariant holds at the tree root. A SPARQL query over these predicates can thus be read as a query over the corresponding node labels and tree relations.
+
+Now consider what happens when two trees are added to one graph. The URI scheme adds a fresh UUID namespace before the path string on every public `to_rdf` call. So equally positioned nodes in different trees cannot collide, and the root has an explicit `root` suffix. The method also stores the inverse URI-to-path mapping rather than trying to decode paths from URI punctuation. This **round-trip invariant** covers the empty root path `()` as well as nonroot paths.
+
+Consider the two-child tree `Tree('S', [Tree('NP'), Tree('VP')])`. Write $u_p$ for the URI assigned to path $p$, so the root has URI $u_{()}$ and its children have URIs $u_{(0)}$ and $u_{(1)}$. The complete RDF encoding is:
+
+| relation | triples |
+|---|---|
+| node labels | $(u_{()},\texttt{is-a},\texttt{S})$, $(u_{(0)},\texttt{is-a},\texttt{NP})$, $(u_{(1)},\texttt{is-a},\texttt{VP})$ |
+| parent edges | $(u_{()},\texttt{is-the-parent-of},u_{(0)})$, $(u_{()},\texttt{is-the-parent-of},u_{(1)})$ |
+| inverse child edges | $(u_{(0)},\texttt{is-a-child-of},u_{()})$, $(u_{(1)},\texttt{is-a-child-of},u_{()})$ |
+| sister edges | $(u_{(0)},\texttt{is-a-sister-of},u_{(1)})$, $(u_{(1)},\texttt{is-a-sister-of},u_{(0)})$ |
+
+This trace has three type triples, two parent triples, two inverse child triples, and two directed sister triples. In particular, it has no self-sister triple.
+
+SPARQL uses bag semantics, so different matches may produce the same first-column node more than once unless a query uses `SELECT DISTINCT`. The `find` contract is node selection: it reads the first selected column, verifies that the value is a URI from this tree, and returns each corresponding path once in first-result order. Callers who need row multiplicity or additional selected columns should query `tree.rdf` directly.
+
+```{python}
+first = Tree("S", [Tree("NP")])
+second = Tree("S", [Tree("VP")])
+shared_graph = Graph()
+first.to_rdf(shared_graph)
+first_nodes = set(first._rdf_nodes.values())
+second.to_rdf(shared_graph)
+second_nodes = set(second._rdf_nodes.values())
+assert first_nodes.isdisjoint(second_nodes)
+
+duplicate_root_query = """
+SELECT ?node WHERE {
+  { ?node <is-a> <S>. } UNION { ?node <is-a> <S>. }
+}
+"""
+assert first.find(duplicate_root_query) == [()]
+
+try:
+    first.find("SELECT ?node WHERE { VALUES ?node { <urn:not-tree> } }")
+except ValueError:
+    pass
+else:
+    raise AssertionError("the first column must contain this tree's nodes")
+```
+
+The queries below use three pieces of SPARQL syntax. First, a `*` after a predicate requests a path of zero or more edges, so `<is-the-parent-of>*` relates a node both to itself and to descendants at arbitrary depth. Second, a semicolon continues with the same subject: `?node <is-a> <NP>; <is-a-sister-of> ?sister` abbreviates two triples that both begin with `?node`. Third, `UNION` accepts a binding satisfying either braced graph pattern, which lets one query treat a `VP` parent or a `PP` parent as an alternative. These operators change how the displayed triples may be combined; they do not add relations to the RDF graph.
 
 ```{python}
 #| executionInfo: {elapsed: 3, status: ok, timestamp: 1680619961664, user: {displayName: Aaron Steven White, userId: 06256629009318567325}, user_tz: 240}
@@ -592,4 +706,3 @@ tree4.find('''SELECT ?node
                       ?sister <is-a> <V>.
                     }''')
 ```
-

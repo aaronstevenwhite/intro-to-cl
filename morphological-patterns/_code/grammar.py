@@ -1,5 +1,15 @@
-from typing import Literal
+from __future__ import annotations
+
 from functools import lru_cache
+from typing import ClassVar, Literal, Protocol
+
+
+class ParserFactory(Protocol):
+    """A callable that constructs a parser for one grammar."""
+
+    def __call__(self, grammar: ContextFreeGrammar, /) -> object:
+        """Construct a parser bound to ``grammar``."""
+        ...
 
 
 class Rule:
@@ -20,13 +30,13 @@ class Rule:
         The right-hand side symbols.
     """
 
-    def __init__(self, left_side: str, *right_side: str):
+    def __init__(self, left_side: str, *right_side: str) -> None:
         self._left_side = left_side
         self._right_side = right_side
 
     def __repr__(self) -> str:
         """Return a string representation of the rule."""
-        return self._left_side + ' -> ' + ' '.join(self._right_side)
+        return self._left_side + " -> " + " ".join(self._right_side)
 
     def to_tuple(self) -> tuple[str, tuple[str, ...]]:
         """Return the rule as a hashable tuple.
@@ -44,8 +54,10 @@ class Rule:
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Rule):
             return NotImplemented
-        return (self._left_side == other._left_side
-                and self._right_side == other._right_side)
+        return (
+            self._left_side == other._left_side
+            and self._right_side == other._right_side
+        )
 
     @property
     def left_side(self) -> str:
@@ -95,14 +107,20 @@ class ContextFreeGrammar:
         The start symbol.
     """
 
-    parser_class = None
+    parser_class: ClassVar[ParserFactory | None] = None
 
-    def __init__(self, alphabet: set[str], variables: set[str],
-                 rules: set[Rule], start_variable: str):
-        self._alphabet = alphabet
-        self._variables = variables
-        self._rules = rules
+    def __init__(
+        self,
+        alphabet: set[str],
+        variables: set[str],
+        rules: set[Rule],
+        start_variable: str,
+    ) -> None:
+        self._alphabet = alphabet.copy()
+        self._variables = variables.copy()
+        self._rules = rules.copy()
         self._start_variable = start_variable
+        self._phrase_variables: set[str] | None = None
 
         self._validate_variables()
         self._validate_rules()
@@ -115,14 +133,21 @@ class ContextFreeGrammar:
     def _validate_variables(self) -> None:
         """Check that alphabet and variables are disjoint and start variable is valid."""
         if self._alphabet & self._variables:
-            raise ValueError('alphabet and variables must not share elements')
+            raise ValueError("alphabet and variables must not share elements")
 
         if self._start_variable not in self._variables:
-            raise ValueError('start variable must be in set of variables')
+            raise ValueError("start variable must be in set of variables")
 
     def _validate_rules(self) -> None:
-        """Validate the grammar rules (no-op in the base class)."""
-        pass
+        """Check that every rule uses symbols declared by the grammar."""
+        symbols = self._alphabet | self._variables
+        for rule in self._rules:
+            if rule.left_side not in self._variables:
+                raise ValueError("every rule left side must be a variable")
+            if any(symbol not in symbols for symbol in rule.right_side):
+                raise ValueError(
+                    "every rule right side must contain only declared symbols"
+                )
 
     @property
     def alphabet(self) -> set[str]:
@@ -134,7 +159,7 @@ class ContextFreeGrammar:
         """The set of nonterminal symbols."""
         return self._variables
 
-    @lru_cache(2**10)
+    @lru_cache(maxsize=2**10)
     def rules(self, left_side: str | None = None) -> set[Rule]:
         """Return the grammar rules, optionally filtered by left side.
 
@@ -150,16 +175,16 @@ class ContextFreeGrammar:
         """
         if left_side is None:
             return self._rules
-        else:
-            return {rule for rule in self._rules
-                    if rule.left_side == left_side}
+        return {
+            rule for rule in self._rules if rule.left_side == left_side
+        }
 
     @property
     def start_variable(self) -> str:
         """The start symbol."""
         return self._start_variable
 
-    @lru_cache(2**14)
+    @lru_cache(maxsize=2**14)
     def parts_of_speech(self, word: str | None = None) -> set[str]:
         """Return parts of speech, optionally filtered to those generating a word.
 
@@ -174,28 +199,34 @@ class ContextFreeGrammar:
             The matching parts of speech.
         """
         if word is None:
-            return {rule.left_side for rule in self._rules
-                    if rule.is_unary
-                    if rule.right_side[0] in self._alphabet}
-        else:
-            return {rule.left_side for rule in self._rules
-                    if rule.is_unary
-                    if rule.right_side[0] == word}
+            return {
+                rule.left_side
+                for rule in self._rules
+                if rule.is_unary
+                if rule.right_side[0] in self._alphabet
+            }
+        return {
+            rule.left_side
+            for rule in self._rules
+            if rule.is_unary
+            if rule.right_side[0] == word
+        }
 
     @property
     def phrase_variables(self) -> set[str]:
         """The nonterminals that head phrasal (non-lexical) rules."""
-        try:
-            return self._phrase_variables
-        except AttributeError:
+        if self._phrase_variables is None:
             self._phrase_variables = {
-                rule.left_side for rule in self._rules
-                if not rule.is_unary or
-                rule.right_side[0] not in self._alphabet
+                rule.left_side
+                for rule in self._rules
+                if (
+                    not rule.is_unary
+                    or rule.right_side[0] not in self._alphabet
+                )
             }
-            return self._phrase_variables
+        return self._phrase_variables
 
-    @lru_cache(2**15)
+    @lru_cache(maxsize=2**15)
     def reduce(self, *right_side: str) -> set[str]:
         """Find nonterminals that can be rewritten as the given right side.
 
@@ -209,5 +240,8 @@ class ContextFreeGrammar:
         set[str]
             The nonterminals whose right side matches.
         """
-        return {r.left_side for r in self._rules
-                if r.right_side == tuple(right_side)}
+        return {
+            rule.left_side
+            for rule in self._rules
+            if rule.right_side == right_side
+        }

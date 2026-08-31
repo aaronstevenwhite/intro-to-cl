@@ -3,7 +3,7 @@ title: Language models
 bibliography: ../references.bib
 ---
 
-At the beginning of this module, I said that some strings are clearly possible phonological forms of English morphemes, some clearly aren't, and others fall somewhere in between. The example I used was that strings starting with $\text{bs}$ or $\text{gs}$ seem worse than ones starting with $\text{bn}$ or $\text{gn}$, and I said that we'd investigate ways of modeling this gradation as a kind of uncertainty about what is in the set of possible phonological forms.
+At the beginning of this module, I said that some strings are possible phonological forms of English morphemes, some aren't, and others fall somewhere in between. The example I used was that strings starting with $\text{bs}$ or $\text{gs}$ seem worse than ones starting with $\text{bn}$ or $\text{gn}$, and I said that we'd investigate ways of modeling this gradation as a kind of uncertainty about what is in the set of possible phonological forms.
 
 We now have the tools to do this. In this section, I'll define what a language model is and connect it to the probability theory we've been developing. Then, in the next section, we'll look at a specific kind of language model—the $N$-gram model—and ask how well it predicts the sort of gradient acceptability judgments I just described.
 
@@ -63,21 +63,30 @@ In particular, we can take $A = \Sigma$ with $\mathcal{G} = 2^\Sigma$. Since $\S
 
 ### Position-specific random variables
 
-With this in hand, we can define random variables that extract the symbol at each position of a string. Let $W_i: \Sigma^* \rightarrow \Sigma$ be the function that maps a string to the symbol at position $i$:
+With this in hand, we can define random variables that extract the symbol at each position of a string. We need one small addition first. Introduce a special end-of-string symbol $\mathtt{</s>}\notin\Sigma$ and let $\Sigma_\dagger=\Sigma\cup\{\mathtt{</s>}\}$. Now define $W_i:\Sigma^*\rightarrow\Sigma_\dagger$ by
 
-$$W_i(w_1 w_2 \ldots w_n) = w_i$$
+$$
+W_i(w_1\ldots w_n)=
+\begin{cases}
+w_i & \text{if }i\leq n,\\
+\mathtt{</s>} & \text{if }i>n.
+\end{cases}
+$$
 
-for strings of length at least $i$.^[I'm being a bit loose here about what happens when $i > n$. There are a few ways to handle this—for instance, by introducing a special end-of-string symbol—but for the purpose of building intuition, the important thing is that $W_i$ picks out the $i^{\text{th}}$ symbol.] Each $W_i$ is a measurable function from $\langle \Sigma^*, 2^{\Sigma^*} \rangle$ to $\langle \Sigma, 2^\Sigma \rangle$. The measurability condition is satisfied trivially: for any $E \subseteq \Sigma$, the preimage $W_i^{-1}(E) = \{w \in \Sigma^* \mid w_i \in E\}$ is a subset of $\Sigma^*$, and therefore an element of $2^{\Sigma^*}$.
+The end symbol makes $W_i$ total even for strings shorter than $i$. Each $W_i$ is a measurable function from $\langle\Sigma^*,2^{\Sigma^*}\rangle$ to $\langle\Sigma_\dagger,2^{\Sigma_\dagger}\rangle$. For any $E\subseteq\Sigma_\dagger$, the preimage $W_i^{-1}(E)$ is a subset of $\Sigma^*$ and therefore an event in $2^{\Sigma^*}$.
 
 ### String probability as a joint distribution
 
-Using these random variables, the probability of a string $p(w_1 w_2 \ldots w_n)$ can be written as a joint probability:
+Using these random variables, the probability of a string can be written as a joint probability:
 
-$$p(w_1 w_2 \ldots w_n) = \mathbb{P}(W_1 = w_1, W_2 = w_2, \ldots, W_n = w_n)$$
+$$
+p(w_1\ldots w_n)
+=\mathbb{P}(W_1=w_1,\ldots,W_n=w_n,W_{n+1}=\mathtt{</s>}).
+$$
 
-This is useful because it lets us bring to bear all the tools we developed for working with joint and conditional probability.
+The final event matters. Without $W_{n+1}=\mathtt{</s>}$, the intersection would contain every string beginning with $w_1\ldots w_n$, not just that string. For the empty string, the corresponding event is $W_1=\mathtt{</s>}$.
 
-I want to stress, though, that viewing the probability of a string as a joint distribution is a *choice*—a way of working with the probability measure $\mathbb{P}$ on $\Sigma^*$, not a requirement of it. The probability measure is defined on languages, and that is the more fundamental object. The joint distribution view is convenient because it opens the door to factorizations, which is where we turn next.
+I want to stress, though, that viewing the probability of a string as a joint distribution is a *choice*—a way of working with the probability measure $\mathbb{P}$ on $\Sigma^*$, not a requirement of it. The probability measure is defined on languages. The joint-distribution view is useful because we can factor it, which is where we turn next.
 
 ## The chain rule and autoregressive factorization
 
@@ -85,31 +94,24 @@ In the [section on conditional probability](some-useful-definitions.qmd), I intr
 
 $$\mathbb{P}(E_1, E_2, \ldots, E_N) = \mathbb{P}(E_1)\prod_{i=2}^N \mathbb{P}(E_i \mid E_1, \ldots, E_{i-1})$$
 
-And in the [section on random variables](some-more-useful-definitions.qmd), we extended conditional probability to random variables. We can now apply both of these to the position-specific random variables. The joint probability of $W_1 = w_1, \ldots, W_n = w_n$ is:
+And in the [section on random variables](some-more-useful-definitions.qmd), we extended conditional probability to random variables. Let $\widetilde w_i=w_i$ for $i\leq n$ and $\widetilde w_{n+1}=\mathtt{</s>}$. Applying the chain rule to the $n+1$ events that identify the terminated string gives
 
-$$\mathbb{P}(W_1 = w_1, W_2 = w_2, \ldots, W_n = w_n) = \mathbb{P}(W_1 = w_1)\prod_{i=2}^{n} \mathbb{P}(W_i = w_i \mid W_1 = w_1, \ldots, W_{i-1} = w_{i-1})$$
+$$
+p(w_1\ldots w_n)
+=p(\widetilde w_1)
+ \prod_{i=2}^{n+1}
+ p(\widetilde w_i\mid\widetilde w_1\ldots\widetilde w_{i-1}).
+$$
 
-Since each event $\{W_i = w_i\}$ is an element of $\mathcal{F} = 2^{\Sigma^*}$—specifically, the set of all strings whose $i^{\text{th}}$ symbol is $w_i$—this is just an instance of the chain rule for events applied to the events $\{W_1 = w_1\}, \{W_2 = w_2\}, \ldots, \{W_n = w_n\}$.
+Since each event $\{W_i=\widetilde w_i\}$ belongs to $2^{\Sigma^*}$, this is just the chain rule for events. The last factor is the conditional probability of ending after the observed prefix.
 
-We can now rewrite this in terms of probability mass functions. We defined $p(w_1 w_2 \ldots w_n) = \mathbb{P}(W_1 = w_1, \ldots, W_n = w_n)$. Similarly, the conditional PMF $p(w_i \mid w_1 \ldots w_{i-1})$ is shorthand for $\mathbb{P}(W_i = w_i \mid W_1 = w_1, \ldots, W_{i-1} = w_{i-1})$. So the chain rule becomes:
-
-$$p(w_1 w_2 \ldots w_n) = p(w_1) \prod_{i=2}^{n} p(w_i \mid w_1 \ldots w_{i-1})$$
-
-This decomposition is exact: no approximation or independence assumption has been made. It is sometimes called an *autoregressive* factorization, because each position is conditioned on all the ones that precede it, left to right.
+This decomposition is exact: no approximation or independence assumption has been made. It is sometimes called an *autoregressive* factorization because each position, including the terminating position, is conditioned on all the ones that precede it.
 
 I'm calling attention to the fact that this is exact because it will be important to keep in mind when we start making approximations in the next section.
 
 ### Other factorizations
 
-It will also be important to note that the left-to-right autoregressive factorization is not the only valid decomposition. The chain rule works for any ordering of the variables, so we could just as well factor right-to-left:
-
-$$p(w_1 w_2 \ldots w_n) = p(w_n) \prod_{i=n-1}^{1} p(w_i \mid w_{i+1} \ldots w_n)$$
-
-Or we could factor from the outside in, conditioning on both edges before filling in the middle:
-
-$$p(w_1 w_2 \ldots w_n) = p(w_1) \cdot p(w_n \mid w_1) \cdot p(w_2 \mid w_1, w_n) \cdot p(w_3 \mid w_1, w_2, w_n) \cdots$$
-
-All of these are exact—they are just different applications of the chain rule to different orderings of the same random variables. The choice of which factorization to use is a modeling decision, not a mathematical one: different factorizations suggest different independence assumptions when we start making approximations.
+The left-to-right autoregressive factorization is not the only valid decomposition. The chain rule works for any ordering of the $n+1$ events, so we could factor from right to left or from the outside in. Each exact factorization must retain the end event, because that event distinguishes a string from its extensions. The ordering becomes a modeling decision when we later approximate the conditional probabilities.
 
 There are also ways of specifying the probability measure on $\Sigma^*$ that don't decompose it position-by-position at all. For instance, if a string $w$ is generated by a sequence of rule applications $r_1, r_2, \ldots, r_m$—a *derivation*—we could instead factor the probability of the string in terms of the probability of the derivation:
 

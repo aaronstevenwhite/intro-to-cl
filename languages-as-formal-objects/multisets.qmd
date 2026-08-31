@@ -13,7 +13,7 @@ And this is a representation of the same multiset, since multisets are unordered
 
 $$\bar{V}_2 \equiv \{\text{o, u, æ, ɑ, ɔ, ə, ɛ, ɪ, ʊ, e, i}\}$$
 
-But this is not a representation of a multiset, since multisets are nonuniqued.
+But this is a representation of a *different* multiset. Repeated elements count in a multiset, so $\bar{V}_3\neq\bar{V}_1$.
 
 $$\bar{V}_3 \equiv \{\text{o, o, o, u, u, æ, ɑ, ɔ, ə, ə, ə, ɛ, ɪ, ʊ, e, i}\}$$
 
@@ -63,4 +63,3 @@ if vowels_bar_1 == vowels_bar_3:
 else:
     print("Vbar_1 ≠ Vbar_3")
 ```
-
